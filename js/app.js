@@ -1748,13 +1748,14 @@ class AppController {
       const currentDC = parseInt(dcValEl?.textContent, 10) || 15;
 
       ABILITIES.forEach(ab => {
+        const abShort = (ab.short || ab.id).toUpperCase();
         const baseRank = parseInt(this.char.abilities?.[ab.id], 10) || 0;
         const effRank = baseRank + mods.checkPenalty;
         const card = document.createElement('div');
         card.className = 'action-ability-card';
         card.innerHTML = `
           <div style="display: flex; justify-content: space-between; align-items: baseline;">
-            <strong style="font-size: var(--font-size-xs); color: var(--hero-gold);">${ab.abbrev.toUpperCase()}</strong>
+            <strong style="font-size: var(--font-size-xs); color: var(--hero-gold);">${abShort}</strong>
             <span style="font-size: var(--font-size-md); font-weight: 900; color: #fff;">${effRank >= 0 ? '+' + effRank : effRank}</span>
           </div>
           <div style="font-size: 0.65rem; color: var(--text-muted); display: flex; justify-content: space-between;">
@@ -1771,7 +1772,7 @@ class AppController {
             modifier: effRank,
             targetDC: currentDC,
             rollType: 'ability',
-            extraText: `Base ${ab.abbrev.toUpperCase()} (${baseRank >= 0 ? '+' + baseRank : baseRank})${mods.checkPenalty ? ` ${mods.checkPenalty} (Conditions)` : ''}`
+            extraText: `Base ${abShort} (${baseRank >= 0 ? '+' + baseRank : baseRank})${mods.checkPenalty ? ` ${mods.checkPenalty} (Conditions)` : ''}`
           });
           this.displayRollResult(roll);
         });
@@ -2462,6 +2463,12 @@ class AppController {
   }
 }
 
-window.addEventListener('DOMContentLoaded', () => {
-  window.app = new AppController();
-});
+if (typeof document !== 'undefined') {
+  if (document.readyState === 'loading') {
+    window.addEventListener('DOMContentLoaded', () => {
+      window.app = new AppController();
+    });
+  } else {
+    window.app = new AppController();
+  }
+}

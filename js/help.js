@@ -120,7 +120,7 @@ export const HELP_SECTIONS = [
         <li>You can tap Hero Point steppers or spend HP at any instant during combat.</li>
         <li>You can access the Menu, Tables, or switch tabs with a single click without having to scroll back to the top of the page.</li>
       </ul>
-      <p>The tab bar contains 7 core sections: <strong>Action Center</strong>, <strong>Abilities & Defenses</strong>, <strong>Skills Catalog</strong>, <strong>Advantages Catalog</strong>, <strong>Powers & Profiles</strong>, <strong>Gear & HQ</strong>, and <strong>History & Lore</strong>.</p>
+      <p>The tab bar contains 7 core sections: <strong>Action Center</strong>, <strong>Abilities & Defenses</strong>, <strong>Skills</strong>, <strong>Advantages</strong>, <strong>Powers & Profiles</strong>, <strong>Gear & HQ</strong>, and <strong>History & Lore</strong>.</p>
     `
   },
   {
@@ -195,8 +195,8 @@ export const HELP_SECTIONS = [
   },
   {
     id: 'help-skills-catalog',
-    category: 'Skills Catalog',
-    title: 'Skills Catalog & Prebuilt Specialties',
+    category: 'Skills',
+    title: 'Skills & Prebuilt Specialties',
     icon: '🥋',
     keywords: ['skills', 'ranks', 'catalog', 'prebuilts', 'expertise', 'specialties', 'acrobatics', 'athletics', 'stealth', 'technology'],
     summary: 'All 16 official skills, touch steppers, pointer-anchored rules tooltips, and prebuilt specialty options.',
@@ -217,8 +217,8 @@ export const HELP_SECTIONS = [
   },
   {
     id: 'help-advantages-catalog',
-    category: 'Advantages Catalog',
-    title: 'Advantages Catalog & Rules Integration',
+    category: 'Advantages',
+    title: 'Advantages & Rules Integration',
     icon: '🌟',
     keywords: ['advantages', 'ranks', 'catalog', 'prebuilts', 'equipment', 'luck', 'improved initiative', 'favored foe'],
     summary: 'Complete library of 70+ official advantages, multi-rank tracking, and rules descriptions.',

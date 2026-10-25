@@ -6,8 +6,8 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Mutants & Masterminds 3E - Character Architect v2.2</title>
-  <link rel="stylesheet" href="css/styles.css?v=2.2">
+  <title>Mutants & Masterminds 3E - Character Architect v2.3</title>
+  <link rel="stylesheet" href="css/styles.css?v=2.3">
 </head>
 <body>
 
@@ -27,11 +27,54 @@
       <!-- Top Two Header Rows -->
       <header class="header-container">
         
-        <!-- ROW 1: Menu Button | Player | Character | Campaign | Title Badge -->
+        <!-- ROW 1: Menu Dropdown | Player | Character | Campaign | Title Badge -->
         <div class="header-row-1">
-          <button class="btn-menu" id="btn-open-menu" title="Open File and Character Management Menu">
-            ☰ Menu
-          </button>
+          <div class="menu-dropdown-container">
+            <button class="btn-menu" id="btn-open-menu" aria-haspopup="true" aria-expanded="false" title="Open Character & System Menu">
+              ☰ Menu ▾
+            </button>
+            <div class="menu-dropdown-panel" id="menu-dropdown-list">
+              <div class="menu-dropdown-heading">Character Actions</div>
+              <button class="menu-dropdown-item" id="menu-action-new">
+                <span class="menu-item-icon">➕</span>
+                <span class="menu-item-text">New Freeform Hero</span>
+              </button>
+              <button class="menu-dropdown-item" id="menu-action-save">
+                <span class="menu-item-icon">💾</span>
+                <span class="menu-item-text">Save Character</span>
+              </button>
+              <button class="menu-dropdown-item" id="menu-action-save-as">
+                <span class="menu-item-icon">📑</span>
+                <span class="menu-item-text">Save As (Clone)...</span>
+              </button>
+              <button class="menu-dropdown-item" id="menu-action-load">
+                <span class="menu-item-icon">📂</span>
+                <span class="menu-item-text">Load Character...</span>
+              </button>
+              <div class="menu-dropdown-separator"></div>
+              <div class="menu-dropdown-heading">Import / Export</div>
+              <button class="menu-dropdown-item" id="menu-action-export">
+                <span class="menu-item-icon">📤</span>
+                <span class="menu-item-text">Export Character (JSON)</span>
+              </button>
+              <button class="menu-dropdown-item" id="menu-action-import">
+                <span class="menu-item-icon">📥</span>
+                <span class="menu-item-text">Import Character (JSON)</span>
+              </button>
+              <input type="file" id="menu-file-input" style="display: none;" accept=".json,.mm3e.json">
+              <div class="menu-dropdown-separator"></div>
+              <div class="menu-dropdown-heading">System & Options</div>
+              <button class="menu-dropdown-item" id="menu-action-settings">
+                <span class="menu-item-icon">⚙️</span>
+                <span class="menu-item-text">Settings</span>
+                <span class="menu-item-subtext">Fly-out ▶</span>
+              </button>
+              <button class="menu-dropdown-item" id="menu-action-help">
+                <span class="menu-item-icon">❓</span>
+                <span class="menu-item-text">Help & Documentation</span>
+              </button>
+            </div>
+          </div>
 
           <div class="header-field">
             <span class="header-field-label">Player:</span>
@@ -49,7 +92,7 @@
           </div>
 
           <div class="brand-label-compact">
-            M&M 3E Character Editor v2.2
+            M&M 3E Character Editor v2.3
           </div>
         </div>
 
@@ -92,7 +135,7 @@
 
       </header>
 
-      <!-- Persistent Navigation Tab Bar -->
+      <!-- Persistent Navigation Tab Bar (7 Focused Tabs) -->
       <nav class="nav-tab-bar">
         <button class="nav-tab-btn active" data-tab="tab-action">⚔️ Action Center</button>
         <button class="nav-tab-btn" data-tab="tab-abilities">🧬 Abilities & Defenses</button>
@@ -101,7 +144,6 @@
         <button class="nav-tab-btn" data-tab="tab-powers">⚡ Powers & Profiles</button>
         <button class="nav-tab-btn" data-tab="tab-gear-hq">🎒 Gear & HQ</button>
         <button class="nav-tab-btn" data-tab="tab-history">📖 History & Lore</button>
-        <button class="nav-tab-btn" data-tab="tab-settings">⚙️ Settings & Discord</button>
       </nav>
 
     </div>
@@ -449,59 +491,6 @@
 
       </div>
 
-      <!-- =================================================== -->
-      <!-- TAB 8: SETTINGS & DISCORD                           -->
-      <!-- =================================================== -->
-      <div class="tab-pane" id="tab-settings">
-        
-        <div class="card-box" style="margin-bottom: 0.85rem;">
-          <div class="card-box-header">
-            <div class="card-box-title">🤖 Discord Bot & Webhook Roll Echo</div>
-            <button class="btn btn-outline" id="btn-test-discord-echo">🔔 Send Test Roll</button>
-          </div>
-          <p style="font-size: var(--font-size-xs); color: var(--text-muted); margin-bottom: 0.65rem;">
-            Echo all rolls, attacks, defense checks, and hero point spends directly to your tabletop Discord channel.
-          </p>
-          <div style="display: flex; flex-direction: column; gap: 0.5rem;">
-            <input type="text" id="settings-discord-url" placeholder="https://discord.com/api/webhooks/...">
-            <div style="display: flex; gap: 0.5rem; align-items: center;">
-              <input type="text" id="settings-discord-botname" placeholder="Bot Name (e.g. M&M 3e Roller)" style="flex: 1;">
-              <label style="display: flex; align-items: center; gap: 0.35rem; font-weight: 700; cursor: pointer;">
-                <input type="checkbox" id="settings-discord-toggle"> Enable Echo
-              </label>
-            </div>
-            <button class="btn btn-primary" id="btn-save-discord-config" style="align-self: flex-start;">Save Discord Config</button>
-          </div>
-        </div>
-
-        <div class="card-box">
-          <div class="card-box-header">
-            <div class="card-box-title">⚙️ Display & Campaign Settings</div>
-          </div>
-          <div style="display: flex; gap: 1rem; align-items: center; margin-bottom: 0.75rem;">
-            <span style="font-weight: 700; font-size: var(--font-size-sm);">Font Size:</span>
-            <div style="display: flex; gap: 0.35rem;">
-              <button class="btn btn-outline font-size-toggle" data-size="small">Small</button>
-              <button class="btn btn-outline font-size-toggle" data-size="normal">Normal</button>
-              <button class="btn btn-outline font-size-toggle" data-size="large">Large</button>
-              <button class="btn btn-outline font-size-toggle" data-size="xlarge">Extra Large</button>
-            </div>
-          </div>
-          <div style="display: flex; gap: 0.75rem;">
-            <div>
-              <label style="font-size: var(--font-size-xs); color: var(--text-muted); font-weight: 700;">Campaign Power Level</label>
-              <input type="number" id="settings-campaign-pl" min="1" max="25" value="10" style="width: 90px;">
-            </div>
-            <div>
-              <label style="font-size: var(--font-size-xs); color: var(--text-muted); font-weight: 700;">PP Budget</label>
-              <input type="number" id="settings-campaign-budget" min="1" max="500" value="150" style="width: 100px;">
-            </div>
-            <button class="btn btn-primary" id="btn-apply-campaign-rules" style="align-self: flex-end;">Apply Budget</button>
-          </div>
-        </div>
-
-      </div>
-
     </main>
 
   </div>
@@ -518,39 +507,249 @@
   </div>
 
   <!-- ======================================================= -->
-  <!-- MODAL 1: MENU MODAL (Save, Save As, Load, Import/Export)-->
+  <!-- MODAL: LOAD CHARACTER ROSTER                            -->
   <!-- ======================================================= -->
-  <div class="modal-overlay" id="modal-menu">
+  <div class="modal-overlay" id="modal-load-character">
     <div class="modal-container" style="max-width: 580px;">
       <div class="modal-header-bar">
-        <div class="modal-header-title">☰ Character & File Management</div>
-        <button class="btn btn-outline" id="btn-close-menu" style="min-height: 28px; padding: 0.1rem 0.5rem;">✕</button>
+        <div class="modal-header-title">📂 Load Saved Character</div>
+        <button class="btn btn-outline" id="btn-close-load-modal" style="min-height: 28px; padding: 0.1rem 0.5rem;">✕</button>
       </div>
-      <div class="modal-scroll-body" style="display: flex; flex-direction: column; gap: 0.65rem;">
-        <div style="display: flex; gap: 0.5rem;">
-          <button class="btn btn-primary" id="menu-btn-save" style="flex: 1;">💾 Save</button>
-          <button class="btn btn-outline" id="menu-btn-save-as" style="flex: 1;">📑 Save As (Clone)</button>
+      <div class="modal-scroll-body" style="padding: 1rem;">
+        <p style="font-size: var(--font-size-xs); color: var(--text-muted); margin-bottom: 0.75rem;">
+          Select a character from your local browser roster to view and edit:
+        </p>
+        <div id="load-roster-list" style="display: flex; flex-direction: column; gap: 0.5rem; max-height: 320px; overflow-y: auto;">
+          <!-- Loaded dynamically -->
         </div>
+      </div>
+      <div class="modal-header-bar" style="background: #10192a; justify-content: space-between;">
+        <button class="btn btn-outline" id="btn-load-modal-new-freeform">➕ New Character</button>
+        <button class="btn btn-outline" id="btn-cancel-load-modal">Cancel</button>
+      </div>
+    </div>
+  </div>
 
-        <div style="border-top: 1px solid var(--border-color); padding-top: 0.65rem;">
-          <label style="font-size: var(--font-size-xs); font-weight: 700; color: var(--text-muted);">Switch Character (Load):</label>
-          <div style="display: flex; gap: 0.5rem; margin-top: 0.25rem;">
-            <select id="menu-char-roster" style="flex: 1; min-height: 38px;"></select>
-            <button class="btn btn-success" id="menu-btn-load-char">Load</button>
-            <button class="btn btn-danger" id="menu-btn-delete-char">Delete</button>
+  <!-- ======================================================= -->
+  <!-- MODAL: SAVE AS (CLONE) CHARACTER                        -->
+  <!-- ======================================================= -->
+  <div class="modal-overlay" id="modal-save-as">
+    <div class="modal-container" style="max-width: 480px;">
+      <div class="modal-header-bar">
+        <div class="modal-header-title">📑 Save Character As New Copy</div>
+        <button class="btn btn-outline" id="btn-close-save-as-modal" style="min-height: 28px; padding: 0.1rem 0.5rem;">✕</button>
+      </div>
+      <div class="modal-scroll-body" style="padding: 1rem;">
+        <label style="font-size: var(--font-size-xs); font-weight: 700; color: var(--text-muted);">New Superhero Name:</label>
+        <input type="text" id="save-as-hero-name" style="width: 100%; font-size: var(--font-size-md); font-weight: 800; margin-top: 0.35rem;" placeholder="e.g. Iron Sentinel II">
+        <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.5rem;">
+          This will duplicate the current character sheet into a new independent slot, preserving all powers, abilities, and history.
+        </p>
+      </div>
+      <div class="modal-header-bar" style="background: #10192a; justify-content: flex-end; gap: 0.5rem;">
+        <button class="btn btn-outline" id="btn-cancel-save-as">Cancel</button>
+        <button class="btn btn-primary" id="btn-confirm-save-as">Save As Clone</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================= -->
+  <!-- SETTINGS FLY-OUT DRAWER DIALOG                          -->
+  <!-- ======================================================= -->
+  <div class="flyout-backdrop" id="flyout-settings-backdrop"></div>
+  <div class="flyout-panel" id="flyout-settings-panel">
+    <div class="flyout-header">
+      <div class="flyout-title">
+        <span>⚙️</span> Application Settings
+      </div>
+      <button class="btn btn-outline" id="btn-close-settings-flyout" style="min-height: 30px; padding: 0.1rem 0.6rem;">✕</button>
+    </div>
+
+    <div class="flyout-body">
+
+      <!-- DISCORD INTEGRATIONS MULTI-DESTINATIONS -->
+      <div class="card-box">
+        <div class="card-box-header" style="flex-wrap: wrap; gap: 0.4rem;">
+          <div>
+            <div class="card-box-title" style="display: flex; align-items: center; gap: 0.4rem;">
+              <span>💬</span> Discord Echo & Bot Channels
+            </div>
+            <div style="font-size: 0.7rem; color: var(--text-muted);">
+              Echo rolls, damage DCs & Hero Points to Discord
+            </div>
+          </div>
+          <div style="display: flex; gap: 0.35rem;">
+            <button class="btn btn-outline" id="btn-discord-help-jump" title="Open Discord Setup in Help Guide" style="font-size: 0.7rem; padding: 0.2rem 0.5rem; min-height: 30px;">
+              ❓ Setup Help
+            </button>
+            <button class="btn btn-primary" id="btn-discord-add-config" style="font-size: 0.7rem; padding: 0.2rem 0.5rem; min-height: 30px;">
+              + Add Channel
+            </button>
           </div>
         </div>
 
-        <div style="display: flex; gap: 0.5rem; border-top: 1px solid var(--border-color); padding-top: 0.65rem;">
-          <button class="btn btn-outline" id="menu-btn-new-freeform" style="flex: 1;">➕ New Freeform Hero</button>
-          <button class="btn btn-archetype" id="menu-btn-archetypes-wizard" style="flex: 1;">✨ Guided Archetypes</button>
+        <!-- Configurations list container -->
+        <div id="discord-configs-list-container" style="margin-top: 0.5rem;">
+          <!-- Rendered dynamically -->
         </div>
 
-        <div style="display: flex; gap: 0.5rem; border-top: 1px solid var(--border-color); padding-top: 0.65rem;">
-          <button class="btn btn-outline" id="menu-btn-export" style="flex: 1;">📂 Export JSON</button>
-          <button class="btn btn-outline" id="menu-btn-import" style="flex: 1;">📥 Import JSON</button>
-          <input type="file" id="menu-file-input" style="display: none;" accept=".json,.mm3e.json">
+        <!-- Inline Config Editor (hidden by default) -->
+        <div id="discord-config-editor" style="display: none; background-color: #0b1120; border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 0.75rem; margin-top: 0.65rem;">
+          <div style="font-weight: 800; font-size: var(--font-size-xs); color: var(--hero-gold); text-transform: uppercase; margin-bottom: 0.5rem;" id="discord-editor-title">
+            Configure Discord Destination
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+            <div>
+              <label style="font-size: 0.7rem; color: var(--text-muted); font-weight: 700;">Custom Name (Optional - auto-named from Server & Channel if blank):</label>
+              <input type="text" id="discord-input-name" placeholder="Leave blank to use Server #Channel combo" style="width: 100%;">
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
+              <div>
+                <label style="font-size: 0.7rem; color: var(--text-muted); font-weight: 700;">Server / Guild Name:</label>
+                <input type="text" id="discord-input-server" placeholder="e.g. Justice League" style="width: 100%;">
+              </div>
+              <div>
+                <label style="font-size: 0.7rem; color: var(--text-muted); font-weight: 700;">Channel Name:</label>
+                <input type="text" id="discord-input-channel" placeholder="e.g. dice-rolls" style="width: 100%;">
+              </div>
+            </div>
+
+            <div>
+              <label style="font-size: 0.7rem; color: var(--text-muted); font-weight: 700; margin-bottom: 0.25rem; display: block;">Connection Mode:</label>
+              <div style="display: flex; gap: 0.5rem;">
+                <label style="flex: 1; display: flex; align-items: center; gap: 0.35rem; background: var(--bg-input); padding: 0.35rem 0.5rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color); cursor: pointer; font-size: var(--font-size-xs); font-weight: 700;">
+                  <input type="radio" name="discord-type" value="webhook" id="discord-type-webhook" checked>
+                  🔗 Webhook (Easy)
+                </label>
+                <label style="flex: 1; display: flex; align-items: center; gap: 0.35rem; background: var(--bg-input); padding: 0.35rem 0.5rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color); cursor: pointer; font-size: var(--font-size-xs); font-weight: 700;">
+                  <input type="radio" name="discord-type" value="bot" id="discord-type-bot">
+                  🤖 Bot Token API
+                </label>
+              </div>
+            </div>
+
+            <!-- Webhook Specific Fields -->
+            <div id="discord-fields-webhook" style="display: flex; flex-direction: column; gap: 0.5rem;">
+              <div>
+                <label style="font-size: 0.7rem; color: var(--text-muted); font-weight: 700;">Discord Webhook URL:</label>
+                <input type="text" id="discord-input-webhook-url" placeholder="https://discord.com/api/webhooks/..." style="width: 100%;">
+              </div>
+            </div>
+
+            <!-- Bot Specific Fields -->
+            <div id="discord-fields-bot" style="display: none; flex-direction: column; gap: 0.5rem;">
+              <div>
+                <label style="font-size: 0.7rem; color: var(--text-muted); font-weight: 700;">Bot Token (from Discord Developer Portal):</label>
+                <input type="password" id="discord-input-bot-token" placeholder="Bot token string..." style="width: 100%;">
+              </div>
+              <div>
+                <label style="font-size: 0.7rem; color: var(--text-muted); font-weight: 700;">Channel ID (Right-click channel -> Copy ID):</label>
+                <input type="text" id="discord-input-bot-channel-id" placeholder="e.g. 123456789012345678" style="width: 100%;">
+              </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
+              <div>
+                <label style="font-size: 0.7rem; color: var(--text-muted); font-weight: 700;">Bot Display Name:</label>
+                <input type="text" id="discord-input-bot-name" placeholder="M&M 3E Hero Roller" style="width: 100%;">
+              </div>
+              <div>
+                <label style="font-size: 0.7rem; color: var(--text-muted); font-weight: 700;">Avatar Image URL (Optional):</label>
+                <input type="text" id="discord-input-avatar-url" placeholder="https://..." style="width: 100%;">
+              </div>
+            </div>
+
+            <label style="display: flex; align-items: center; gap: 0.4rem; font-size: var(--font-size-xs); font-weight: 700; cursor: pointer; margin-top: 0.25rem;">
+              <input type="checkbox" id="discord-input-enabled" checked> Enable Echo to this channel
+            </label>
+
+            <div style="display: flex; gap: 0.5rem; justify-content: flex-end; margin-top: 0.5rem;">
+              <button class="btn btn-outline" id="btn-discord-cancel-editor">Cancel</button>
+              <button class="btn btn-outline" id="btn-discord-test-editor">🔔 Test</button>
+              <button class="btn btn-primary" id="btn-discord-save-editor">💾 Save Destination</button>
+            </div>
+          </div>
         </div>
+
+      </div>
+
+      <!-- DISPLAY & FONT SIZE -->
+      <div class="card-box">
+        <div class="card-box-header">
+          <div class="card-box-title">🔤 Display & Font Sizing</div>
+        </div>
+        <p style="font-size: var(--font-size-xs); color: var(--text-muted); margin-bottom: 0.5rem;">
+          Control global font and UI scaling across the application:
+        </p>
+        <div style="display: flex; gap: 0.4rem;">
+          <button class="btn btn-outline font-size-toggle" data-size="normal" style="flex: 1;">Normal (Default)</button>
+          <button class="btn btn-outline font-size-toggle" data-size="large" style="flex: 1;">Large</button>
+          <button class="btn btn-outline font-size-toggle" data-size="xlarge" style="flex: 1;">Extra Large</button>
+        </div>
+      </div>
+
+      <!-- CAMPAIGN RULES & DEFAULTS -->
+      <div class="card-box">
+        <div class="card-box-header">
+          <div class="card-box-title">🛡️ Campaign Defaults</div>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 0.65rem;">
+          <div>
+            <label style="font-size: var(--font-size-xs); color: var(--text-muted); font-weight: 700;">Power Level (PL):</label>
+            <input type="number" id="settings-campaign-pl" min="1" max="25" value="10" style="width: 100%;">
+          </div>
+          <div>
+            <label style="font-size: var(--font-size-xs); color: var(--text-muted); font-weight: 700;">PP Budget:</label>
+            <input type="number" id="settings-campaign-budget" min="1" max="500" value="150" style="width: 100%;">
+          </div>
+        </div>
+        <button class="btn btn-primary" id="btn-apply-campaign-rules" style="width: 100%;">Apply to Current Character</button>
+      </div>
+
+    </div>
+
+    <div class="flyout-footer">
+      <button class="btn btn-primary" id="btn-close-settings-done" style="min-width: 100px;">Done</button>
+    </div>
+  </div>
+
+  <!-- ======================================================= -->
+  <!-- SEARCHABLE USER MANUAL & RULES REFERENCE MODAL          -->
+  <!-- ======================================================= -->
+  <div class="modal-overlay" id="modal-help">
+    <div class="help-modal-container">
+      <div class="modal-header-bar">
+        <div class="modal-header-title" style="display: flex; align-items: center; gap: 0.45rem;">
+          <span>❓</span> Mutants & Masterminds 3E — User Manual & Reference Guide
+        </div>
+        <button class="btn btn-outline" id="btn-close-help" style="min-height: 28px; padding: 0.1rem 0.5rem;">✕</button>
+      </div>
+
+      <div class="help-search-bar">
+        <input type="text" id="help-search-input" placeholder="🔍 Search documentation (e.g. discord setup, dice notation, hero points, power builder, pl caps, hq...)" style="flex: 1; min-height: 38px;">
+        <button class="btn btn-outline" id="btn-help-clear-search" style="min-height: 38px;">Clear</button>
+      </div>
+
+      <div class="help-filter-chips-container" id="help-filter-chips">
+        <button class="help-filter-chip active" data-category="All">All Topics</button>
+        <button class="help-filter-chip" data-category="Getting Started">Getting Started</button>
+        <button class="help-filter-chip" data-category="Top Header">Top Header</button>
+        <button class="help-filter-chip" data-category="Persistent Tabs">Persistent Tabs</button>
+        <button class="help-filter-chip" data-category="Action Center">Action Center</button>
+        <button class="help-filter-chip" data-category="Abilities & Defenses">Abilities & Defenses</button>
+        <button class="help-filter-chip" data-category="Skills Catalog">Skills Catalog</button>
+        <button class="help-filter-chip" data-category="Advantages Catalog">Advantages Catalog</button>
+        <button class="help-filter-chip" data-category="Powers & Profiles">Powers & Profiles</button>
+        <button class="help-filter-chip" data-category="Gear & HQ">Gear & HQ</button>
+        <button class="help-filter-chip" data-category="History & Lore">History & Lore</button>
+        <button class="help-filter-chip" data-category="Discord Setup">Discord Setup</button>
+        <button class="help-filter-chip" data-category="Settings & UI">Settings & UI</button>
+      </div>
+
+      <div class="help-content-scroll" id="help-content-container">
+        <!-- Rendered dynamically by HelpManager -->
       </div>
     </div>
   </div>
@@ -869,6 +1068,6 @@
     </div>
   </div>
 
-  <script type="module" src="js/app.js?v=2.2"></script>
+  <script type="module" src="js/app.js?v=2.3"></script>
 </body>
 </html>

@@ -1,40 +1,137 @@
 /**
  * Discord Integration for Mutants & Masterminds 3rd Edition
- * Echoes rolls, checks, and hero point spends to Discord via Webhooks.
+ * Multi-Configuration Manager supporting both Webhook and Bot API channels.
+ * Supports automatic default naming (Server - #Channel combo).
  */
+
+export class DiscordConfig {
+  constructor(data = {}) {
+    this.id = data.id || 'dc_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6);
+    this.name = (data.name || '').trim();
+    this.serverName = (data.serverName || '').trim();
+    this.channelName = (data.channelName || '').trim().replace(/^#/, '');
+    this.type = data.type === 'bot' ? 'bot' : 'webhook'; // 'webhook' or 'bot'
+    this.webhookUrl = (data.webhookUrl || '').trim();
+    this.botToken = (data.botToken || '').trim();
+    this.channelId = (data.channelId || '').trim();
+    this.botName = (data.botName || 'M&M 3E Hero Roller').trim();
+    this.avatarUrl = (data.avatarUrl || 'https://raw.githubusercontent.com/twitter/twemoji/master/assets/72x72/1f9b8.png').trim();
+    this.enabled = data.enabled !== undefined ? !!data.enabled : true;
+  }
+
+  getDisplayName() {
+    if (this.name && this.name.length > 0) {
+      return this.name;
+    }
+    const s = this.serverName;
+    const c = this.channelName;
+    if (s && c) return `${s} #${c}`;
+    if (s) return `${s} (Discord)`;
+    if (c) return `#${c}`;
+    return 'Discord Channel';
+  }
+}
 
 export class DiscordIntegrator {
   constructor() {
-    this.webhookUrl = localStorage.getItem('mm3e_discord_webhook') || '';
-    this.enabled = localStorage.getItem('mm3e_discord_enabled') === 'true';
-    this.botName = localStorage.getItem('mm3e_discord_botname') || 'M&M 3e Virtual Tabletop';
-    this.avatarUrl = localStorage.getItem('mm3e_discord_avatar') || 'https://raw.githubusercontent.com/twitter/twemoji/master/assets/72x72/1f9b8.png';
+    this.configs = [];
+    this.loadConfigs();
   }
 
-  saveSettings({ webhookUrl, enabled, botName, avatarUrl }) {
-    this.webhookUrl = webhookUrl.trim();
-    this.enabled = !!enabled;
-    this.botName = (botName || 'M&M 3e Virtual Tabletop').trim();
-    this.avatarUrl = (avatarUrl || '').trim();
+  loadConfigs() {
+    if (typeof localStorage === 'undefined') return;
+    try {
+      const stored = localStorage.getItem('mm3e_discord_configs');
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed)) {
+          this.configs = parsed.map(c => new DiscordConfig(c));
+        }
+      }
+    } catch (e) {
+      console.warn('Failed to parse mm3e_discord_configs:', e);
+      this.configs = [];
+    }
 
-    localStorage.setItem('mm3e_discord_webhook', this.webhookUrl);
-    localStorage.setItem('mm3e_discord_enabled', this.enabled ? 'true' : 'false');
-    localStorage.setItem('mm3e_discord_botname', this.botName);
-    localStorage.setItem('mm3e_discord_avatar', this.avatarUrl);
+    // Legacy migration check
+    if (this.configs.length === 0) {
+      const legacyWebhook = localStorage.getItem('mm3e_discord_webhook');
+      if (legacyWebhook && legacyWebhook.trim()) {
+        const legacyEnabled = localStorage.getItem('mm3e_discord_enabled') === 'true';
+        const legacyBotName = localStorage.getItem('mm3e_discord_botname') || 'M&M 3E Hero Roller';
+        const legacyAvatar = localStorage.getItem('mm3e_discord_avatar') || '';
+        const initialConfig = new DiscordConfig({
+          name: '',
+          serverName: 'Campaign Server',
+          channelName: 'dice-rolls',
+          type: 'webhook',
+          webhookUrl: legacyWebhook,
+          enabled: legacyEnabled,
+          botName: legacyBotName,
+          avatarUrl: legacyAvatar
+        });
+        this.configs.push(initialConfig);
+        this.saveConfigs();
+      }
+    }
   }
 
-  async sendRollEmbed(roll) {
-    if (!this.enabled || !this.webhookUrl) return;
+  saveConfigs() {
+    if (typeof localStorage === 'undefined') return;
+    try {
+      localStorage.setItem('mm3e_discord_configs', JSON.stringify(this.configs));
+    } catch (e) {
+      console.error('Failed to save mm3e_discord_configs:', e);
+    }
+  }
 
-    let embedColor = 0x3498db; // blue default
+  get enabled() {
+    return this.configs.some(c => c.enabled);
+  }
+
+  getConfigs() {
+    return this.configs;
+  }
+
+  getConfig(id) {
+    return this.configs.find(c => c.id === id) || null;
+  }
+
+  saveConfig(data) {
+    const existingIndex = this.configs.findIndex(c => c.id === data.id);
+    const updated = new DiscordConfig(data);
+    if (existingIndex >= 0) {
+      this.configs[existingIndex] = updated;
+    } else {
+      this.configs.push(updated);
+    }
+    this.saveConfigs();
+    return updated;
+  }
+
+  deleteConfig(id) {
+    this.configs = this.configs.filter(c => c.id !== id);
+    this.saveConfigs();
+  }
+
+  toggleConfigEnabled(id, isEnabled) {
+    const config = this.getConfig(id);
+    if (config) {
+      config.enabled = !!isEnabled;
+      this.saveConfigs();
+    }
+  }
+
+  buildEmbedFromRoll(roll) {
+    let embedColor = 0x3498db; // Blue
     if (roll.isCriticalHit) {
-      embedColor = 0xf1c40f; // gold
+      embedColor = 0xf1c40f; // Gold
     } else if (roll.outcomeClass === 'success') {
-      embedColor = 0x2ecc71; // green
+      embedColor = 0x2ecc71; // Green
     } else if (roll.outcomeClass === 'failure') {
-      embedColor = 0xe74c3c; // red
+      embedColor = 0xe74c3c; // Red
     } else if (roll.isHeroPointReroll) {
-      embedColor = 0x9b59b6; // purple
+      embedColor = 0x9b59b6; // Purple
     }
 
     let diceString = `d20 (${roll.rawDie})`;
@@ -101,99 +198,152 @@ export class DiscordIntegrator {
       });
     }
 
-    const payload = {
-      username: this.botName || 'M&M 3e Dice Roller',
-      avatar_url: this.avatarUrl || undefined,
-      embeds: [
-        {
-          title: `🎲 ${roll.title}`,
-          author: {
-            name: `${roll.characterName || 'Hero'}`
-          },
-          color: embedColor,
-          fields,
-          footer: {
-            text: `Mutants & Masterminds 3e • ${roll.timestamp}`
-          }
-        }
-      ]
+    return {
+      title: `🎲 ${roll.title}`,
+      author: {
+        name: `${roll.characterName || 'Hero'}`
+      },
+      color: embedColor,
+      fields,
+      footer: {
+        text: `Mutants & Masterminds 3e • ${roll.timestamp || new Date().toLocaleTimeString()}`
+      }
     };
+  }
 
-    return this.postPayload(payload);
+  async sendRollEmbed(roll) {
+    const activeConfigs = this.configs.filter(c => c.enabled);
+    if (activeConfigs.length === 0) return;
+
+    const embed = this.buildEmbedFromRoll(roll);
+
+    const promises = activeConfigs.map(config => {
+      const payload = {
+        username: config.botName || 'M&M 3E Hero Roller',
+        avatar_url: config.avatarUrl || undefined,
+        embeds: [embed]
+      };
+      return this.dispatchToConfig(config, payload);
+    });
+
+    return Promise.allSettled(promises);
   }
 
   async sendHeroPointSpend(characterName, spendType, spendDetails) {
-    if (!this.enabled || !this.webhookUrl) return;
+    const activeConfigs = this.configs.filter(c => c.enabled);
+    if (activeConfigs.length === 0) return;
 
-    const payload = {
-      username: this.botName || 'M&M 3e Dice Roller',
-      avatar_url: this.avatarUrl || undefined,
-      embeds: [
+    const embed = {
+      title: `⚡ HERO POINT SPENT!`,
+      author: {
+        name: characterName || 'Hero'
+      },
+      color: 0x9b59b6, // Purple
+      description: `**${characterName}** expended 1 Hero Point for **${spendType}**!`,
+      fields: [
         {
-          title: `⚡ HERO POINT SPENT!`,
-          author: {
-            name: characterName || 'Hero'
-          },
-          color: 0x9b59b6, // purple
-          description: `**${characterName}** expended 1 Hero Point for **${spendType}**!`,
-          fields: [
-            {
-              name: 'Benefit',
-              value: spendDetails,
-              inline: false
-            }
-          ],
-          footer: {
-            text: `Mutants & Masterminds 3e • ${new Date().toLocaleTimeString()}`
-          }
+          name: 'Benefit',
+          value: spendDetails,
+          inline: false
         }
-      ]
+      ],
+      footer: {
+        text: `Mutants & Masterminds 3e • ${new Date().toLocaleTimeString()}`
+      }
     };
 
-    return this.postPayload(payload);
+    const promises = activeConfigs.map(config => {
+      const payload = {
+        username: config.botName || 'M&M 3E Hero Roller',
+        avatar_url: config.avatarUrl || undefined,
+        embeds: [embed]
+      };
+      return this.dispatchToConfig(config, payload);
+    });
+
+    return Promise.allSettled(promises);
   }
 
-  async testConnection() {
-    if (!this.webhookUrl) {
-      throw new Error('Please enter a valid Discord Webhook URL first.');
-    }
-
-    const payload = {
-      username: this.botName || 'M&M 3e Dice Roller',
-      avatar_url: this.avatarUrl || undefined,
-      embeds: [
+  async testConfig(config) {
+    const embed = {
+      title: `✅ Discord Integration Verified!`,
+      color: 0x2ecc71,
+      description: `The **Mutants & Masterminds 3E Character Architect** has successfully established communication with **${config.getDisplayName()}** via **${config.type === 'bot' ? 'Discord Bot API' : 'Discord Webhook'}**!`,
+      fields: [
         {
-          title: `✅ Discord Integration Connected!`,
-          color: 0x2ecc71,
-          description: 'The Mutants & Masterminds 3e Character Creator & Interactive Record is now successfully linked to this Discord channel! Rolls and hero point spends will echo here.',
-          footer: {
-            text: `Connected at ${new Date().toLocaleTimeString()}`
-          }
+          name: 'Configuration Mode',
+          value: config.type === 'bot' ? '🤖 Bot API' : '🔗 Webhook',
+          inline: true
+        },
+        {
+          name: 'Channel',
+          value: config.channelName ? `#${config.channelName}` : (config.channelId || 'Default'),
+          inline: true
         }
-      ]
+      ],
+      footer: {
+        text: `Connected • ${new Date().toLocaleTimeString()}`
+      }
     };
 
-    return this.postPayload(payload);
+    const payload = {
+      username: config.botName || 'M&M 3E Hero Roller',
+      avatar_url: config.avatarUrl || undefined,
+      embeds: [embed]
+    };
+
+    return this.dispatchToConfig(config, payload);
   }
 
-  async postPayload(payload) {
-    try {
-      const resp = await fetch(this.webhookUrl, {
+  async dispatchToConfig(config, payload) {
+    if (config.type === 'webhook') {
+      if (!config.webhookUrl) {
+        throw new Error('Discord Webhook URL is empty.');
+      }
+      const resp = await fetch(config.webhookUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify(payload)
       });
+      if (!resp.ok) {
+        const text = await resp.text().catch(() => '');
+        throw new Error(`Discord Webhook error (HTTP ${resp.status}): ${text}`);
+      }
+      return { success: true };
+    } else if (config.type === 'bot') {
+      if (!config.botToken) {
+        throw new Error('Discord Bot Token is empty.');
+      }
+      if (!config.channelId) {
+        throw new Error('Discord Channel ID is empty.');
+      }
+
+      // Format clean bot token if user pasted 'Bot ' prefix
+      const cleanToken = config.botToken.startsWith('Bot ') ? config.botToken : `Bot ${config.botToken}`;
+      const url = `https://discord.com/api/v10/channels/${config.channelId}/messages`;
+
+      const botPayload = {
+        embeds: payload.embeds
+      };
+
+      const resp = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Authorization': cleanToken,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(botPayload)
+      });
 
       if (!resp.ok) {
         const text = await resp.text().catch(() => '');
-        throw new Error(`Discord API responded with status ${resp.status}: ${text}`);
+        throw new Error(`Discord Bot API error (HTTP ${resp.status}): ${text}`);
       }
       return { success: true };
-    } catch (err) {
-      console.warn('Discord Webhook error:', err);
-      return { success: false, error: err.message };
+    } else {
+      throw new Error(`Unknown configuration type: ${config.type}`);
     }
   }
 }

@@ -33,7 +33,8 @@ import { POWER_PROFILES_LIBRARY } from './power_profiles.js';
 import { ARCHETYPES } from './archetypes.js';
 import { ARCHETYPE_CUSTOMIZATION_OPTIONS, buildCustomizedArchetype } from './archetype_builder.js';
 import { diceRoller } from './dice.js';
-import { discordIntegrator } from './discord.js';
+import { DiscordConfig, discordIntegrator } from './discord.js';
+import { helpManager } from './help.js';
 import { storageManager } from './storage.js';
 
 class AppController {
@@ -63,14 +64,16 @@ class AppController {
     this.setupDiceLog();
     this.setupDiceRollerBar();
     this.setupTables();
-    this.setupMenuModal();
+    this.setupMenuDropdown();
+    this.setupCharacterModals();
+    this.setupSettingsFlyout();
+    this.setupHelpModal();
     this.setupHeroPointModal();
     this.setupPointerPopup();
     this.setupPowerProfiles();
     this.setupCustomPowerBuilder();
     this.setupGearAndHQ();
     this.setupHistoryTab();
-    this.setupSettingsTab();
     this.setupArchetypeWizard();
     this.renderAll();
   }
@@ -121,12 +124,6 @@ class AppController {
   // 3. HEADER TWO-ROW BINDINGS
   // =======================================================
   setupHeaderBindings() {
-    // Menu button
-    document.getElementById('btn-open-menu').addEventListener('click', () => {
-      this.populateMenuRoster();
-      this.openModal('modal-menu');
-    });
-
     // Player Name
     const playerNameInput = document.getElementById('header-player-name');
     playerNameInput.value = this.char.playerName || '';
@@ -141,7 +138,6 @@ class AppController {
     charNameInput.addEventListener('input', (e) => {
       this.char.name = e.target.value;
       storageManager.saveCharacter(this.char);
-      this.populateMenuRoster();
     });
 
     // Campaign Name
@@ -620,75 +616,86 @@ class AppController {
   }
 
   // =======================================================
-  // 9. MENU MODAL (Save, Save As, Load, Import/Export)
+  // 9. MENU DROP-DOWN & CHARACTER MODALS
   // =======================================================
-  setupMenuModal() {
-    document.getElementById('btn-close-menu').addEventListener('click', () => {
-      this.closeModal('modal-menu');
+  setupMenuDropdown() {
+    const menuBtn = document.getElementById('btn-open-menu');
+    const menuList = document.getElementById('menu-dropdown-list');
+
+    if (!menuBtn || !menuList) return;
+
+    menuBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const isOpen = menuList.classList.toggle('show');
+      menuBtn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
     });
 
-    document.getElementById('menu-btn-save').addEventListener('click', () => {
+    // Close on click outside
+    document.addEventListener('click', (e) => {
+      const container = document.querySelector('.menu-dropdown-container');
+      if (container && !container.contains(e.target)) {
+        menuList.classList.remove('show');
+        menuBtn.setAttribute('aria-expanded', 'false');
+      }
+    });
+
+    // Close on Escape key
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        menuList.classList.remove('show');
+        menuBtn.setAttribute('aria-expanded', 'false');
+      }
+    });
+
+    const closeDropdown = () => {
+      menuList.classList.remove('show');
+      menuBtn.setAttribute('aria-expanded', 'false');
+    };
+
+    // 1. New Freeform Hero
+    document.getElementById('menu-action-new')?.addEventListener('click', () => {
+      closeDropdown();
+      const name = prompt('Enter superhero name for freeform creation:', 'New Champion');
+      if (name && name.trim()) {
+        const newHero = storageManager.createFreeformCharacter(name.trim(), 10, 150);
+        this.char = newHero;
+        this.renderAll();
+      }
+    });
+
+    // 2. Save Character
+    document.getElementById('menu-action-save')?.addEventListener('click', () => {
+      closeDropdown();
       this.saveAndAudit();
-      this.closeModal('modal-menu');
       alert(`Character "${this.char.name}" saved!`);
     });
 
-    document.getElementById('menu-btn-save-as').addEventListener('click', () => {
-      const clone = storageManager.cloneCharacter(this.char.id);
-      if (clone) {
-        this.char = clone;
-        this.populateMenuRoster();
-        this.renderAll();
-        this.closeModal('modal-menu');
-        alert(`Cloned as "${clone.name}"!`);
-      }
+    // 3. Save As (Clone)...
+    document.getElementById('menu-action-save-as')?.addEventListener('click', () => {
+      closeDropdown();
+      this.openSaveAsModal();
     });
 
-    document.getElementById('menu-btn-load-char').addEventListener('click', () => {
-      const select = document.getElementById('menu-char-roster');
-      storageManager.setActiveCharacter(select.value);
-      this.char = storageManager.getActiveCharacter();
-      this.renderAll();
-      this.closeModal('modal-menu');
+    // 4. Load Character...
+    document.getElementById('menu-action-load')?.addEventListener('click', () => {
+      closeDropdown();
+      this.openLoadCharacterModal();
     });
 
-    document.getElementById('menu-btn-delete-char').addEventListener('click', () => {
-      if (confirm(`Delete character "${this.char.name}"?`)) {
-        storageManager.deleteCharacter(this.char.id);
-        this.char = storageManager.getActiveCharacter();
-        this.populateMenuRoster();
-        this.renderAll();
-        this.closeModal('modal-menu');
-      }
-    });
-
-    document.getElementById('menu-btn-new-freeform').addEventListener('click', () => {
-      const name = prompt('Enter superhero name for freeform creation:', 'New Champion');
-      if (name) {
-        const newHero = storageManager.createFreeformCharacter(name.trim(), 10, 150);
-        this.char = newHero;
-        this.populateMenuRoster();
-        this.renderAll();
-        this.closeModal('modal-menu');
-      }
-    });
-
-    document.getElementById('menu-btn-archetypes-wizard').addEventListener('click', () => {
-      this.closeModal('modal-menu');
-      this.openArchetypeWizard();
-    });
-
-    document.getElementById('menu-btn-export').addEventListener('click', () => {
+    // 5. Export JSON
+    document.getElementById('menu-action-export')?.addEventListener('click', () => {
+      closeDropdown();
       storageManager.exportCharacterToJSON(this.char);
-      this.closeModal('modal-menu');
     });
 
+    // 6. Import JSON
     const fileInput = document.getElementById('menu-file-input');
-    document.getElementById('menu-btn-import').addEventListener('click', () => {
-      fileInput.click();
+    document.getElementById('menu-action-import')?.addEventListener('click', () => {
+      closeDropdown();
+      fileInput?.click();
     });
 
-    fileInput.addEventListener('change', (e) => {
+    fileInput?.addEventListener('change', (e) => {
       const file = e.target.files[0];
       if (!file) return;
       const reader = new FileReader();
@@ -696,28 +703,139 @@ class AppController {
         const imported = storageManager.importCharacterFromJSON(event.target.result);
         if (imported) {
           this.char = imported;
-          this.populateMenuRoster();
           this.renderAll();
-          this.closeModal('modal-menu');
           alert(`Imported ${imported.name}!`);
         }
       };
       reader.readAsText(file);
       fileInput.value = '';
     });
+
+    // 7. Settings Fly-out
+    document.getElementById('menu-action-settings')?.addEventListener('click', () => {
+      closeDropdown();
+      this.openSettingsFlyout();
+    });
+
+    // 8. Help & Documentation
+    document.getElementById('menu-action-help')?.addEventListener('click', () => {
+      closeDropdown();
+      helpManager.openToSection('help-overview');
+    });
   }
 
-  populateMenuRoster() {
-    const select = document.getElementById('menu-char-roster');
-    if (!select) return;
-    select.innerHTML = '';
-    storageManager.characters.forEach(c => {
-      const opt = document.createElement('option');
-      opt.value = c.id;
-      opt.textContent = `${c.name} (PL ${c.powerLevel})`;
-      if (c.id === this.char.id) opt.selected = true;
-      select.appendChild(opt);
+  setupCharacterModals() {
+    // Load Modal handlers
+    document.getElementById('btn-close-load-modal')?.addEventListener('click', () => {
+      this.closeModal('modal-load-character');
     });
+    document.getElementById('btn-cancel-load-modal')?.addEventListener('click', () => {
+      this.closeModal('modal-load-character');
+    });
+    document.getElementById('btn-load-modal-new-freeform')?.addEventListener('click', () => {
+      this.closeModal('modal-load-character');
+      const name = prompt('Enter superhero name for freeform creation:', 'New Champion');
+      if (name && name.trim()) {
+        const newHero = storageManager.createFreeformCharacter(name.trim(), 10, 150);
+        this.char = newHero;
+        this.renderAll();
+      }
+    });
+
+    // Save As Modal handlers
+    document.getElementById('btn-close-save-as-modal')?.addEventListener('click', () => {
+      this.closeModal('modal-save-as');
+    });
+    document.getElementById('btn-cancel-save-as')?.addEventListener('click', () => {
+      this.closeModal('modal-save-as');
+    });
+    document.getElementById('btn-confirm-save-as')?.addEventListener('click', () => {
+      const newName = (document.getElementById('save-as-hero-name')?.value || '').trim();
+      if (!newName) {
+        alert('Please enter a superhero name.');
+        return;
+      }
+      const clone = storageManager.cloneCharacter(this.char.id);
+      if (clone) {
+        clone.name = newName;
+        storageManager.saveCharacter(clone);
+        this.char = clone;
+        this.renderAll();
+        this.closeModal('modal-save-as');
+        alert(`Cloned and saved as "${newName}"!`);
+      }
+    });
+  }
+
+  openLoadCharacterModal() {
+    this.renderLoadCharacterRoster();
+    this.openModal('modal-load-character');
+  }
+
+  renderLoadCharacterRoster() {
+    const list = document.getElementById('load-roster-list');
+    if (!list) return;
+
+    if (storageManager.characters.length === 0) {
+      list.innerHTML = `<div style="text-align: center; color: var(--text-muted); padding: 1.5rem;">No saved characters found.</div>`;
+      return;
+    }
+
+    list.innerHTML = '';
+    storageManager.characters.forEach(c => {
+      const isCurrent = c.id === this.char.id;
+      const card = document.createElement('div');
+      card.style.cssText = `
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0.65rem 0.85rem;
+        background-color: ${isCurrent ? 'rgba(6, 182, 212, 0.12)' : 'var(--bg-input)'};
+        border: 1px solid ${isCurrent ? 'var(--hero-cyan)' : 'var(--border-color)'};
+        border-radius: var(--radius-sm);
+      `;
+
+      card.innerHTML = `
+        <div style="flex: 1;">
+          <div style="font-weight: 800; font-size: var(--font-size-sm); color: ${isCurrent ? 'var(--hero-cyan)' : '#fff'};">
+            ${c.name || 'Unnamed Hero'} ${isCurrent ? '<span style="font-size: 0.65rem; background: var(--hero-cyan); color: #000; padding: 1px 5px; border-radius: 3px; font-weight: 800; margin-left: 0.4rem;">ACTIVE</span>' : ''}
+          </div>
+          <div style="font-size: 0.72rem; color: var(--text-muted);">
+            PL ${c.powerLevel || 10} • ${c.campaign || 'Earth-Prime'} • ${c.powerPointsBudget || 150} PP
+          </div>
+        </div>
+        <div style="display: flex; gap: 0.4rem;">
+          ${!isCurrent ? `<button class="btn btn-primary btn-load-char" data-id="${c.id}" style="font-size: 0.75rem; min-height: 30px; padding: 0.2rem 0.6rem;">Load</button>` : ''}
+          <button class="btn btn-danger btn-delete-char" data-id="${c.id}" style="font-size: 0.75rem; min-height: 30px; padding: 0.2rem 0.6rem;" title="Delete hero">🗑️</button>
+        </div>
+      `;
+
+      card.querySelector('.btn-load-char')?.addEventListener('click', (e) => {
+        const id = e.currentTarget.dataset.id;
+        storageManager.setActiveCharacter(id);
+        this.char = storageManager.getActiveCharacter();
+        this.renderAll();
+        this.closeModal('modal-load-character');
+      });
+
+      card.querySelector('.btn-delete-char')?.addEventListener('click', (e) => {
+        const id = e.currentTarget.dataset.id;
+        if (confirm(`Delete character "${c.name}"?`)) {
+          storageManager.deleteCharacter(id);
+          this.char = storageManager.getActiveCharacter();
+          this.renderAll();
+          this.renderLoadCharacterRoster();
+        }
+      });
+
+      list.appendChild(card);
+    });
+  }
+
+  openSaveAsModal() {
+    const input = document.getElementById('save-as-hero-name');
+    if (input) input.value = `${this.char.name} (Copy)`;
+    this.openModal('modal-save-as');
   }
 
   // =======================================================
@@ -1204,40 +1322,284 @@ class AppController {
   }
 
   // =======================================================
-  // 15. SETTINGS & DISCORD
+  // 15. SETTINGS FLY-OUT & MULTI-DISCORD CONFIGURATIONS
   // =======================================================
-  setupSettingsTab() {
-    document.getElementById('settings-discord-url').value = discordIntegrator.webhookUrl;
-    document.getElementById('settings-discord-botname').value = discordIntegrator.botName;
-    document.getElementById('settings-discord-toggle').checked = discordIntegrator.enabled;
+  setupSettingsFlyout() {
+    const backdrop = document.getElementById('flyout-settings-backdrop');
+    const panel = document.getElementById('flyout-settings-panel');
+    const closeBtn = document.getElementById('btn-close-settings-flyout');
+    const doneBtn = document.getElementById('btn-close-settings-done');
 
-    document.getElementById('btn-save-discord-config').addEventListener('click', () => {
-      discordIntegrator.saveSettings({
-        webhookUrl: document.getElementById('settings-discord-url').value,
-        enabled: document.getElementById('settings-discord-toggle').checked,
-        botName: document.getElementById('settings-discord-botname').value
-      });
-      alert('Discord settings saved!');
+    const closeFlyout = () => {
+      backdrop?.classList.remove('open');
+      panel?.classList.remove('open');
+    };
+
+    closeBtn?.addEventListener('click', closeFlyout);
+    doneBtn?.addEventListener('click', closeFlyout);
+    backdrop?.addEventListener('click', closeFlyout);
+
+    // Discord Add Config button
+    document.getElementById('btn-discord-add-config')?.addEventListener('click', () => {
+      this.openDiscordConfigEditor(null);
     });
 
-    document.getElementById('btn-test-discord-echo').addEventListener('click', async () => {
-      try {
-        await discordIntegrator.testConnection();
-        alert('Test notification sent to Discord!');
-      } catch (err) {
-        alert('Discord test failed: ' + err.message);
+    // Discord Help Jump button
+    document.getElementById('btn-discord-help-jump')?.addEventListener('click', () => {
+      closeFlyout();
+      helpManager.openToSection('help-discord');
+    });
+
+    // Discord Config Editor mode switcher
+    const typeWebhook = document.getElementById('discord-type-webhook');
+    const typeBot = document.getElementById('discord-type-bot');
+    const fieldsWebhook = document.getElementById('discord-fields-webhook');
+    const fieldsBot = document.getElementById('discord-fields-bot');
+
+    typeWebhook?.addEventListener('change', () => {
+      if (typeWebhook.checked) {
+        if (fieldsWebhook) fieldsWebhook.style.display = 'flex';
+        if (fieldsBot) fieldsBot.style.display = 'none';
       }
     });
 
-    document.getElementById('settings-campaign-pl').value = this.char.powerLevel || 10;
-    document.getElementById('settings-campaign-budget').value = this.char.powerPointsBudget || 150;
+    typeBot?.addEventListener('change', () => {
+      if (typeBot.checked) {
+        if (fieldsWebhook) fieldsWebhook.style.display = 'none';
+        if (fieldsBot) fieldsBot.style.display = 'flex';
+      }
+    });
 
-    document.getElementById('btn-apply-campaign-rules').addEventListener('click', () => {
-      this.char.powerLevel = parseInt(document.getElementById('settings-campaign-pl').value, 10) || 10;
-      this.char.powerPointsBudget = parseInt(document.getElementById('settings-campaign-budget').value, 10) || 150;
+    // Discord Save Editor
+    document.getElementById('btn-discord-save-editor')?.addEventListener('click', () => {
+      const mode = typeBot?.checked ? 'bot' : 'webhook';
+      const configData = {
+        id: this.editingDiscordConfigId || undefined,
+        name: (document.getElementById('discord-input-name')?.value || '').trim(),
+        serverName: (document.getElementById('discord-input-server')?.value || '').trim(),
+        channelName: (document.getElementById('discord-input-channel')?.value || '').trim(),
+        type: mode,
+        webhookUrl: (document.getElementById('discord-input-webhook-url')?.value || '').trim(),
+        botToken: (document.getElementById('discord-input-bot-token')?.value || '').trim(),
+        channelId: (document.getElementById('discord-input-bot-channel-id')?.value || '').trim(),
+        botName: (document.getElementById('discord-input-bot-name')?.value || '').trim(),
+        avatarUrl: (document.getElementById('discord-input-avatar-url')?.value || '').trim(),
+        enabled: document.getElementById('discord-input-enabled')?.checked ?? true
+      };
+
+      if (mode === 'webhook' && !configData.webhookUrl) {
+        alert('Please enter a Discord Webhook URL.');
+        return;
+      }
+      if (mode === 'bot' && (!configData.botToken || !configData.channelId)) {
+        alert('Please enter both Bot Token and Channel ID for Bot mode.');
+        return;
+      }
+
+      discordIntegrator.saveConfig(configData);
+      this.closeDiscordConfigEditor();
+      this.renderDiscordConfigsList();
+    });
+
+    // Discord Test Editor button
+    document.getElementById('btn-discord-test-editor')?.addEventListener('click', async () => {
+      const mode = typeBot?.checked ? 'bot' : 'webhook';
+      const tempConfig = new DiscordConfig({
+        name: (document.getElementById('discord-input-name')?.value || '').trim(),
+        serverName: (document.getElementById('discord-input-server')?.value || '').trim(),
+        channelName: (document.getElementById('discord-input-channel')?.value || '').trim(),
+        type: mode,
+        webhookUrl: (document.getElementById('discord-input-webhook-url')?.value || '').trim(),
+        botToken: (document.getElementById('discord-input-bot-token')?.value || '').trim(),
+        channelId: (document.getElementById('discord-input-bot-channel-id')?.value || '').trim(),
+        botName: (document.getElementById('discord-input-bot-name')?.value || '').trim(),
+        avatarUrl: (document.getElementById('discord-input-avatar-url')?.value || '').trim()
+      });
+
+      try {
+        await discordIntegrator.testConfig(tempConfig);
+        alert(`Test message successfully posted to ${tempConfig.getDisplayName()}!`);
+      } catch (err) {
+        alert(`Discord Test Failed: ${err.message}`);
+      }
+    });
+
+    // Discord Cancel Editor button
+    document.getElementById('btn-discord-cancel-editor')?.addEventListener('click', () => {
+      this.closeDiscordConfigEditor();
+    });
+
+    // Campaign Defaults
+    const campaignPlInput = document.getElementById('settings-campaign-pl');
+    const campaignBudgetInput = document.getElementById('settings-campaign-budget');
+    if (campaignPlInput) campaignPlInput.value = this.char.powerLevel || 10;
+    if (campaignBudgetInput) campaignBudgetInput.value = this.char.powerPointsBudget || 150;
+
+    document.getElementById('btn-apply-campaign-rules')?.addEventListener('click', () => {
+      this.char.powerLevel = parseInt(campaignPlInput?.value, 10) || 10;
+      this.char.powerPointsBudget = parseInt(campaignBudgetInput?.value, 10) || 150;
       this.saveAndAudit();
       this.renderAll();
-      alert(`Updated to PL ${this.char.powerLevel} (${this.char.powerPointsBudget} PP)!`);
+      alert(`Applied: PL ${this.char.powerLevel} with ${this.char.powerPointsBudget} PP budget!`);
+    });
+
+    this.renderDiscordConfigsList();
+  }
+
+  openSettingsFlyout() {
+    const backdrop = document.getElementById('flyout-settings-backdrop');
+    const panel = document.getElementById('flyout-settings-panel');
+    backdrop?.classList.add('open');
+    panel?.classList.add('open');
+    this.renderDiscordConfigsList();
+  }
+
+  renderDiscordConfigsList() {
+    const container = document.getElementById('discord-configs-list-container');
+    if (!container) return;
+
+    const configs = discordIntegrator.getConfigs();
+    if (configs.length === 0) {
+      container.innerHTML = `
+        <div style="background-color: var(--bg-input); padding: 0.75rem; border-radius: var(--radius-sm); border: 1px dashed var(--border-color); text-align: center; color: var(--text-muted); font-size: 0.75rem;">
+          No Discord channels configured. Click <strong>+ Add Channel</strong> to connect a webhook or bot.
+        </div>
+      `;
+      return;
+    }
+
+    container.innerHTML = '';
+    configs.forEach(cfg => {
+      const card = document.createElement('div');
+      card.className = `discord-config-card ${cfg.enabled ? 'active-config' : ''}`;
+      card.innerHTML = `
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.35rem;">
+          <div>
+            <div style="font-weight: 800; font-size: var(--font-size-sm); color: #fff;">
+              ${cfg.getDisplayName()}
+            </div>
+            <div style="display: flex; align-items: center; gap: 0.4rem; margin-top: 2px;">
+              <span class="discord-badge ${cfg.type === 'bot' ? 'discord-badge-bot' : 'discord-badge-webhook'}">
+                ${cfg.type === 'bot' ? '🤖 Bot API' : '🔗 Webhook'}
+              </span>
+              <span style="font-size: 0.7rem; color: var(--text-muted);">
+                ${cfg.serverName ? cfg.serverName : ''} ${cfg.channelName ? '#' + cfg.channelName : ''}
+              </span>
+            </div>
+          </div>
+          <label style="display: flex; align-items: center; gap: 0.3rem; font-size: 0.72rem; font-weight: 700; cursor: pointer; color: ${cfg.enabled ? 'var(--hero-cyan)' : 'var(--text-muted)'};">
+            <input type="checkbox" class="cfg-toggle-enabled" data-id="${cfg.id}" ${cfg.enabled ? 'checked' : ''}> Echo
+          </label>
+        </div>
+        <div style="display: flex; gap: 0.35rem; justify-content: flex-end; margin-top: 0.4rem;">
+          <button class="btn btn-outline cfg-btn-test" data-id="${cfg.id}" style="font-size: 0.7rem; padding: 0.15rem 0.5rem; min-height: 26px;">🔔 Test</button>
+          <button class="btn btn-outline cfg-btn-edit" data-id="${cfg.id}" style="font-size: 0.7rem; padding: 0.15rem 0.5rem; min-height: 26px;">✏️ Edit</button>
+          <button class="btn btn-danger cfg-btn-delete" data-id="${cfg.id}" style="font-size: 0.7rem; padding: 0.15rem 0.5rem; min-height: 26px;">🗑️</button>
+        </div>
+      `;
+
+      card.querySelector('.cfg-toggle-enabled')?.addEventListener('change', (e) => {
+        discordIntegrator.toggleConfigEnabled(cfg.id, e.target.checked);
+        this.renderDiscordConfigsList();
+      });
+
+      card.querySelector('.cfg-btn-test')?.addEventListener('click', async () => {
+        try {
+          await discordIntegrator.testConfig(cfg);
+          alert(`Test roll card sent to ${cfg.getDisplayName()}!`);
+        } catch (err) {
+          alert(`Test failed: ${err.message}`);
+        }
+      });
+
+      card.querySelector('.cfg-btn-edit')?.addEventListener('click', () => {
+        this.openDiscordConfigEditor(cfg.id);
+      });
+
+      card.querySelector('.cfg-btn-delete')?.addEventListener('click', () => {
+        if (confirm(`Remove Discord channel "${cfg.getDisplayName()}"?`)) {
+          discordIntegrator.deleteConfig(cfg.id);
+          this.renderDiscordConfigsList();
+        }
+      });
+
+      container.appendChild(card);
+    });
+  }
+
+  openDiscordConfigEditor(configId) {
+    this.editingDiscordConfigId = configId;
+    const editor = document.getElementById('discord-config-editor');
+    const title = document.getElementById('discord-editor-title');
+    const nameInput = document.getElementById('discord-input-name');
+    const serverInput = document.getElementById('discord-input-server');
+    const channelInput = document.getElementById('discord-input-channel');
+    const webhookUrlInput = document.getElementById('discord-input-webhook-url');
+    const botTokenInput = document.getElementById('discord-input-bot-token');
+    const channelIdInput = document.getElementById('discord-input-bot-channel-id');
+    const botNameInput = document.getElementById('discord-input-bot-name');
+    const avatarUrlInput = document.getElementById('discord-input-avatar-url');
+    const enabledInput = document.getElementById('discord-input-enabled');
+    const typeWebhook = document.getElementById('discord-type-webhook');
+    const typeBot = document.getElementById('discord-type-bot');
+    const fieldsWebhook = document.getElementById('discord-fields-webhook');
+    const fieldsBot = document.getElementById('discord-fields-bot');
+
+    if (!editor) return;
+    editor.style.display = 'block';
+
+    if (configId) {
+      const cfg = discordIntegrator.getConfig(configId);
+      if (title) title.textContent = `Edit Destination: ${cfg.getDisplayName()}`;
+      if (nameInput) nameInput.value = cfg.name || '';
+      if (serverInput) serverInput.value = cfg.serverName || '';
+      if (channelInput) channelInput.value = cfg.channelName || '';
+      if (webhookUrlInput) webhookUrlInput.value = cfg.webhookUrl || '';
+      if (botTokenInput) botTokenInput.value = cfg.botToken || '';
+      if (channelIdInput) channelIdInput.value = cfg.channelId || '';
+      if (botNameInput) botNameInput.value = cfg.botName || 'M&M 3E Hero Roller';
+      if (avatarUrlInput) avatarUrlInput.value = cfg.avatarUrl || '';
+      if (enabledInput) enabledInput.checked = cfg.enabled;
+
+      if (cfg.type === 'bot') {
+        if (typeBot) typeBot.checked = true;
+        if (fieldsWebhook) fieldsWebhook.style.display = 'none';
+        if (fieldsBot) fieldsBot.style.display = 'flex';
+      } else {
+        if (typeWebhook) typeWebhook.checked = true;
+        if (fieldsWebhook) fieldsWebhook.style.display = 'flex';
+        if (fieldsBot) fieldsBot.style.display = 'none';
+      }
+    } else {
+      if (title) title.textContent = 'Add New Discord Destination';
+      if (nameInput) nameInput.value = '';
+      if (serverInput) serverInput.value = '';
+      if (channelInput) channelInput.value = '';
+      if (webhookUrlInput) webhookUrlInput.value = '';
+      if (botTokenInput) botTokenInput.value = '';
+      if (channelIdInput) channelIdInput.value = '';
+      if (botNameInput) botNameInput.value = 'M&M 3E Hero Roller';
+      if (avatarUrlInput) avatarUrlInput.value = 'https://raw.githubusercontent.com/twitter/twemoji/master/assets/72x72/1f9b8.png';
+      if (enabledInput) enabledInput.checked = true;
+      if (typeWebhook) typeWebhook.checked = true;
+      if (fieldsWebhook) fieldsWebhook.style.display = 'flex';
+      if (fieldsBot) fieldsBot.style.display = 'none';
+    }
+  }
+
+  closeDiscordConfigEditor() {
+    this.editingDiscordConfigId = null;
+    const editor = document.getElementById('discord-config-editor');
+    if (editor) editor.style.display = 'none';
+  }
+
+  // =======================================================
+  // 16. SEARCHABLE HELP MODAL
+  // =======================================================
+  setupHelpModal() {
+    helpManager.init();
+    document.getElementById('btn-close-help')?.addEventListener('click', () => {
+      this.closeModal('modal-help');
     });
   }
 

@@ -6,8 +6,8 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Mutants & Masterminds 3E - Character Architect v2.3</title>
-  <link rel="stylesheet" href="css/styles.css?v=2.3">
+  <title>Mutants & Masterminds 3E - Character Architect v2.4</title>
+  <link rel="stylesheet" href="css/styles.css?v=2.4">
 </head>
 <body>
 
@@ -92,7 +92,7 @@
           </div>
 
           <div class="brand-label-compact">
-            M&M 3E Character Editor v2.3
+            M&M 3E Character Editor v2.4
           </div>
         </div>
 
@@ -158,12 +158,26 @@
       <!-- =================================================== -->
       <div class="tab-pane active" id="tab-action">
         
-        <!-- Top Dice Roller with Common Dice Notation -->
-        <div class="dice-roller-bar" style="margin-bottom: 0.85rem;">
-          <span style="font-weight: 800; font-size: var(--font-size-sm); color: var(--hero-cyan); white-space: nowrap;">🎲 Dice Roller:</span>
-          <input type="text" id="action-dice-input" class="dice-roller-input" placeholder="Enter notation e.g., d20+8, 1d20+12, 3d6+4, 2d10">
-          <input type="number" id="action-dice-dc" class="dice-dc-input" placeholder="Target DC">
-          <button class="btn-roll-notation" id="btn-action-roll-dice">Roll Dice</button>
+        <!-- Top Dice Roller Row: Notation | DC Stepper | Roll Button | Live Result -->
+        <div class="dice-roller-bar" style="margin-bottom: 0.85rem; display: flex; align-items: center; gap: 0.5rem; flex-wrap: nowrap;">
+          <span style="font-weight: 800; font-size: var(--font-size-sm); color: var(--hero-cyan); white-space: nowrap;">🎲 Roller:</span>
+          <input type="text" id="action-dice-input" class="dice-roller-input" placeholder="e.g. d20+8, 1d20+12, 3d6+4, 2d10" style="width: 175px;">
+          
+          <div style="display: flex; align-items: center; gap: 0.35rem; background: var(--bg-input); padding: 0.15rem 0.4rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color); white-space: nowrap;">
+            <span style="font-weight: 800; font-size: var(--font-size-xs); color: var(--text-muted);">DC:</span>
+            <div class="stepper-control">
+              <button class="btn-stepper compact" id="btn-action-dc-minus" title="Decrease DC">-</button>
+              <span class="stepper-value compact" id="action-dc-val" style="min-width: 32px; font-weight: 800;">15</span>
+              <button class="btn-stepper compact" id="btn-action-dc-plus" title="Increase DC">+</button>
+            </div>
+          </div>
+
+          <button class="btn-roll-notation" id="btn-action-roll-dice" style="min-height: 38px; padding: 0 0.85rem;">Roll</button>
+
+          <!-- Result Field directly on the dice roller row -->
+          <div id="action-dice-result" class="dice-result-badge" style="flex: 1; min-height: 38px; display: flex; align-items: center; padding: 0 0.75rem; background: #0c1424; border: 1px solid var(--border-color); border-radius: var(--radius-sm); font-size: var(--font-size-xs); color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+            Result: Ready to roll
+          </div>
         </div>
 
         <div class="action-center-grid">
@@ -171,6 +185,17 @@
           <!-- Left Main Column -->
           <div class="action-main-col">
             
+            <!-- Main Abilities in Action Center -->
+            <div class="card-box">
+              <div class="card-box-header">
+                <div class="card-box-title">🧬 Main Abilities & Checks</div>
+                <span style="font-size: var(--font-size-xs); color: var(--text-muted);">Click Check to roll d20 + ability</span>
+              </div>
+              <div id="action-abilities-grid" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.5rem;">
+                <!-- Populated via JS -->
+              </div>
+            </div>
+
             <!-- Core Combat Defenses & Saves -->
             <div class="card-box">
               <div class="card-box-header">
@@ -229,16 +254,18 @@
           <!-- Right Sidebar Column -->
           <div class="action-side-col">
             
-            <!-- Damage & Bruises Tracker -->
+            <!-- Damage & Conditions Tracker -->
             <div class="card-box">
               <div class="card-box-header">
-                <div class="card-box-title">🩸 Damage & Bruises</div>
-                <button class="btn btn-outline" id="btn-action-clear-damage" style="font-size: var(--font-size-xs); min-height: 28px; padding: 0.15rem 0.4rem;">Reset</button>
+                <div class="card-box-title">🩸 Damage & Conditions</div>
+                <button class="btn btn-outline" id="btn-action-clear-damage" style="font-size: var(--font-size-xs); min-height: 28px; padding: 0.15rem 0.5rem;">Reset All</button>
               </div>
-              <div style="display: flex; justify-content: space-between; align-items: center; background-color: var(--bg-input); padding: 0.5rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color); margin-bottom: 0.65rem;">
+
+              <!-- Bruises Stepper -->
+              <div style="display: flex; justify-content: space-between; align-items: center; background-color: var(--bg-input); padding: 0.5rem 0.65rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color); margin-bottom: 0.65rem;">
                 <div>
-                  <div style="font-weight: 800; font-size: var(--font-size-sm);">Bruises</div>
-                  <div style="font-size: 0.7rem; color: var(--text-muted);">-1 Toughness each</div>
+                  <div style="font-weight: 800; font-size: var(--font-size-sm); color: #fff;">Bruises</div>
+                  <div style="font-size: 0.7rem; color: var(--text-muted);">-1 to Toughness checks each</div>
                 </div>
                 <div class="stepper-control">
                   <button class="btn-stepper compact" id="btn-bruise-minus">-</button>
@@ -246,23 +273,40 @@
                   <button class="btn-stepper compact" id="btn-bruise-plus">+</button>
                 </div>
               </div>
-              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.4rem;">
-                <button class="btn btn-outline condition-toggle" data-cond="dazed" id="cond-btn-dazed">Dazed</button>
-                <button class="btn btn-outline condition-toggle" data-cond="staggered" id="cond-btn-staggered">Staggered</button>
-                <button class="btn btn-outline condition-toggle" data-cond="vulnerable" id="cond-btn-vulnerable">Vulnerable</button>
-                <button class="btn btn-outline condition-toggle" data-cond="defenseless" id="cond-btn-defenseless">Defenseless</button>
-              </div>
-            </div>
 
-            <!-- Roll Log / VTT Chat -->
-            <div class="card-box" style="flex: 1; display: flex; flex-direction: column;">
-              <div class="card-box-header">
-                <div class="card-box-title">📜 Roll Log (Roll20 Echo)</div>
-                <button class="btn btn-outline" id="btn-clear-dice-log" style="font-size: var(--font-size-xs); min-height: 28px; padding: 0.15rem 0.4rem;">Clear</button>
+              <!-- Combined Conditions Dropdown -->
+              <div style="margin-bottom: 0.75rem;">
+                <label style="font-size: 0.7rem; font-weight: 800; color: var(--hero-gold); text-transform: uppercase; margin-bottom: 0.25rem; display: block;">Combined Condition:</label>
+                <select id="select-combined-condition" style="width: 100%; min-height: 38px;">
+                  <option value="">-- None (Healthy) --</option>
+                  <option value="staggered">Staggered (Dazed + Hindered)</option>
+                  <option value="surprised">Surprised (Stunned + Vulnerable)</option>
+                  <option value="entangled">Entangled (Hindered + Vulnerable)</option>
+                  <option value="exhausted">Exhausted (Hindered + Impaired)</option>
+                  <option value="restrained">Restrained (Hindered + Vulnerable + Immobile)</option>
+                  <option value="paralyzed">Paralyzed (Defenseless + Immobile + Stunned)</option>
+                  <option value="incapacitated">Incapacitated (Defenseless + Stunned + Unaware + Prone)</option>
+                  <option value="unconscious">Unconscious (Defenseless + Stunned + Unaware + Prone)</option>
+                  <option value="asleep">Asleep (Defenseless + Stunned + Unaware + Prone)</option>
+                  <option value="dying">Dying (Incapacitated + Fatal Check)</option>
+                  <option value="compelled">Compelled (Dazed / Externally Directed)</option>
+                  <option value="controlled">Controlled (Dazed / Total External Control)</option>
+                </select>
               </div>
-              <div id="dice-log-feed" style="height: 380px; overflow-y: auto; display: flex; flex-direction: column; gap: 0.45rem;">
-                <!-- Live rolls appended here -->
+
+              <!-- Individual Condition Toggles -->
+              <div style="margin-bottom: 0.65rem;">
+                <div style="font-size: 0.7rem; font-weight: 800; color: var(--hero-cyan); text-transform: uppercase; margin-bottom: 0.35rem;">Individual Conditions:</div>
+                <div id="individual-conditions-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.35rem;">
+                  <!-- Populated dynamically via JS -->
+                </div>
               </div>
+
+              <!-- Condition Penalty Summary Banner -->
+              <div id="conditions-summary-badge" style="background-color: var(--bg-input); padding: 0.5rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color); font-size: 0.72rem; color: var(--text-muted); line-height: 1.4;">
+                Active Penalties: None
+              </div>
+
             </div>
 
           </div>
@@ -1068,6 +1112,6 @@
     </div>
   </div>
 
-  <script type="module" src="js/app.js?v=2.3"></script>
+  <script type="module" src="js/app.js?v=2.4"></script>
 </body>
 </html>

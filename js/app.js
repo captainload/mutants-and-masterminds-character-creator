@@ -36,16 +36,17 @@ import { diceRoller } from './dice.js';
 import { DiscordConfig, discordIntegrator } from './discord.js';
 import { helpManager } from './help.js';
 import { storageManager } from './storage.js';
+import { BASIC_CONDITIONS, COMBINED_CONDITIONS, calculateConditionModifiers } from './conditions.js';
 
 class AppController {
   constructor() {
     this.char = storageManager.getActiveCharacter();
     this.activePowerEditing = null;
 
-    // Interactive Archetype Wizard State
+    // Interactive Archetype Wizard State (No default archetype loaded)
     this.wizardState = {
       step: 1,
-      selectedArchetypeId: 'battlesuit',
+      selectedArchetypeId: null,
       selectedSpecializationId: null,
       selectedComplication: null,
       heroName: ''
@@ -61,7 +62,6 @@ class AppController {
     this.initFontSize();
     this.setupHeaderBindings();
     this.setupNavigation();
-    this.setupDiceLog();
     this.setupDiceRollerBar();
     this.setupTables();
     this.setupMenuDropdown();
@@ -213,6 +213,10 @@ class AppController {
 
     document.getElementById('btn-wizard-next').addEventListener('click', () => {
       if (this.wizardState.step === 1) {
+        if (!this.wizardState.selectedArchetypeId) {
+          alert('Please select an archetype from the list before proceeding.');
+          return;
+        }
         this.wizardState.step = 2;
         this.renderWizardStep();
       } else if (this.wizardState.step === 2) {
@@ -227,7 +231,7 @@ class AppController {
   openArchetypeWizard() {
     this.wizardState = {
       step: 1,
-      selectedArchetypeId: 'battlesuit',
+      selectedArchetypeId: null,
       selectedSpecializationId: null,
       selectedComplication: null,
       heroName: ''
@@ -242,7 +246,7 @@ class AppController {
     const nextBtn = document.getElementById('btn-wizard-next');
 
     backBtn.style.display = this.wizardState.step === 1 ? 'none' : 'inline-flex';
-    nextBtn.textContent = this.wizardState.step === 3 ? '⚡ Generate & Equip Hero' : 'Next Step ➜';
+    nextBtn.textContent = this.wizardState.step === 3 ? '⚡ Apply Archetype' : 'Next Step ➜';
 
     if (this.wizardState.step === 1) {
       // Step 1: Select Archetype
@@ -388,6 +392,14 @@ class AppController {
   }
 
   finishArchetypeWizard() {
+    const activeName = this.char.name || 'Current Character';
+    const confirmed = window.confirm(
+      `⚠️ WARNING: Applying this archetype will overwrite all currently loaded character data for "${activeName}".\n\nAre you sure you want to proceed and replace the active character?`
+    );
+    if (!confirmed) {
+      return;
+    }
+
     const heroName = (document.getElementById('wizard-hero-name')?.value || this.wizardState.heroName || 'Champion').trim();
     const newHero = buildCustomizedArchetype(
       this.wizardState.selectedArchetypeId,
@@ -396,70 +408,79 @@ class AppController {
       this.wizardState.selectedComplication
     );
 
-    storageManager.characters.push(newHero);
-    storageManager.activeId = newHero.id;
-    storageManager.saveAll();
-
+    newHero.id = this.char.id; // overwrite active character slot
     this.char = newHero;
+    storageManager.saveCharacter(this.char);
     this.closeModal('modal-archetype-wizard');
-    this.populateMenuRoster();
     this.renderAll();
-    alert(`Equipped ${newHero.name} (${newHero.concept})! Ready for action!`);
+    alert(`Archetype successfully applied! "${newHero.name}" is now the active character.`);
   }
 
   // =======================================================
-  // 6. DICE ROLLER BAR & LOG
+  // 6. DICE ROLLER BAR & RESULT DISPLAY
   // =======================================================
   setupDiceRollerBar() {
     const rollBtn = document.getElementById('btn-action-roll-dice');
     const input = document.getElementById('action-dice-input');
-    const dcInput = document.getElementById('action-dice-dc');
+    const dcValEl = document.getElementById('action-dc-val');
+    let targetDC = 15;
+
+    document.getElementById('btn-action-dc-minus')?.addEventListener('click', () => {
+      targetDC = Math.max(0, targetDC - 1);
+      if (dcValEl) dcValEl.textContent = targetDC;
+    });
+
+    document.getElementById('btn-action-dc-plus')?.addEventListener('click', () => {
+      targetDC++;
+      if (dcValEl) dcValEl.textContent = targetDC;
+    });
 
     const executeRoll = () => {
       const notation = input.value.trim() || 'd20';
-      const dcVal = dcInput.value.trim();
-      const targetDC = dcVal !== '' ? parseInt(dcVal, 10) : null;
+      const dcCurrent = parseInt(dcValEl?.textContent, 10) || targetDC;
 
       try {
-        const roll = diceRoller.rollNotation(notation, this.char.name, targetDC);
-        discordIntegrator.sendRollEmbed(roll);
+        const roll = diceRoller.rollNotation(notation, this.char.name, dcCurrent);
+        this.displayRollResult(roll);
       } catch (err) {
         alert(err.message);
       }
     };
 
-    rollBtn.addEventListener('click', executeRoll);
-    input.addEventListener('keydown', (e) => {
+    rollBtn?.addEventListener('click', executeRoll);
+    input?.addEventListener('keydown', (e) => {
       if (e.key === 'Enter') executeRoll();
     });
 
     // Initiative Roll Button
-    document.getElementById('btn-roll-initiative').addEventListener('click', () => {
+    document.getElementById('btn-roll-initiative')?.addEventListener('click', () => {
+      const mods = calculateConditionModifiers(this.char.conditions || {}, this.char.bruises || 0);
       const agi = parseInt(this.char.abilities?.agi, 10) || 0;
       let impInitRanks = 0;
       (this.char.advantages || []).forEach(a => {
         if (a.id === 'improved_initiative') impInitRanks += parseInt(a.rank, 10) || 1;
       });
-      const mod = agi + (impInitRanks * 4);
+      const baseMod = agi + (impInitRanks * 4);
+      const effMod = baseMod + mods.checkPenalty;
 
       const roll = diceRoller.rollCheck({
         title: 'Initiative Check',
         characterName: this.char.name,
-        modifier: mod,
+        modifier: effMod,
         rollType: 'initiative',
-        extraText: `Base AGI (${agi}) + Improved Initiative (+${impInitRanks * 4})`
+        extraText: `AGI (${agi}) + Imp Init (+${impInitRanks * 4})${mods.checkPenalty ? ` ${mods.checkPenalty} (Conditions)` : ''}`
       });
-      discordIntegrator.sendRollEmbed(roll);
+      this.displayRollResult(roll);
     });
 
-    // Bruises and conditions
-    document.getElementById('btn-bruise-plus').addEventListener('click', () => {
+    // Bruises Steppers
+    document.getElementById('btn-bruise-plus')?.addEventListener('click', () => {
       this.char.bruises = (this.char.bruises || 0) + 1;
       this.saveAndAudit();
       this.renderActionCenter(auditCharacter(this.char));
     });
 
-    document.getElementById('btn-bruise-minus').addEventListener('click', () => {
+    document.getElementById('btn-bruise-minus')?.addEventListener('click', () => {
       if ((this.char.bruises || 0) > 0) {
         this.char.bruises--;
         this.saveAndAudit();
@@ -467,57 +488,76 @@ class AppController {
       }
     });
 
-    document.getElementById('btn-action-clear-damage').addEventListener('click', () => {
+    // Reset All Damage & Conditions
+    document.getElementById('btn-action-clear-damage')?.addEventListener('click', () => {
       this.char.bruises = 0;
-      this.char.conditions = { dazed: false, staggered: false, defenseless: false, vulnerable: false };
+      this.char.conditions = {};
+      delete this.char.activeCombinedCondition;
       this.saveAndAudit();
       this.renderActionCenter(auditCharacter(this.char));
     });
 
-    document.querySelectorAll('.condition-toggle').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const cond = btn.dataset.cond;
-        if (!this.char.conditions) this.char.conditions = {};
-        this.char.conditions[cond] = !this.char.conditions[cond];
-        this.saveAndAudit();
-        this.renderActionCenter(auditCharacter(this.char));
-      });
+    // Combined Conditions Dropdown
+    document.getElementById('select-combined-condition')?.addEventListener('change', (e) => {
+      const selectedId = e.target.value;
+      if (!this.char.conditions) this.char.conditions = {};
+
+      if (this.char.activeCombinedCondition) {
+        const prevDef = COMBINED_CONDITIONS.find(c => c.id === this.char.activeCombinedCondition);
+        if (prevDef) {
+          prevDef.constituents.forEach(bId => {
+            delete this.char.conditions[bId];
+          });
+        }
+      }
+
+      if (selectedId) {
+        const newDef = COMBINED_CONDITIONS.find(c => c.id === selectedId);
+        if (newDef) {
+          newDef.constituents.forEach(bId => {
+            this.char.conditions[bId] = true;
+          });
+          this.char.activeCombinedCondition = selectedId;
+        }
+      } else {
+        delete this.char.activeCombinedCondition;
+      }
+
+      this.saveAndAudit();
+      this.renderActionCenter(auditCharacter(this.char));
     });
 
-    document.getElementById('btn-clear-dice-log').addEventListener('click', () => {
-      diceRoller.history = [];
-      document.getElementById('dice-log-feed').innerHTML = '';
-    });
+    // Wire global roller listener
+    diceRoller.onRoll((roll) => this.displayRollResult(roll));
   }
 
-  setupDiceLog() {
-    diceRoller.onRoll((roll) => {
-      const container = document.getElementById('dice-log-feed');
-      if (!container) return;
+  displayRollResult(roll) {
+    const resEl = document.getElementById('action-dice-result');
+    if (!resEl) return;
 
-      const entry = document.createElement('div');
-      entry.style.cssText = `
-        background-color: var(--bg-input);
-        border-left: 4px solid ${roll.outcomeClass === 'success' ? 'var(--hero-green)' : roll.outcomeClass === 'failure' ? 'var(--hero-red)' : 'var(--hero-blue)'};
-        border-radius: var(--radius-sm);
-        padding: 0.45rem 0.65rem;
-        font-size: var(--font-size-xs);
-      `;
+    resEl.className = 'dice-result-badge';
+    let outcomeTag = '';
+    if (roll.isCriticalHit) {
+      resEl.classList.add('result-critical');
+      outcomeTag = '💥 CRITICAL HIT!';
+    } else if (roll.outcomeClass === 'success') {
+      resEl.classList.add('result-success');
+      outcomeTag = `✅ ${roll.outcome || 'Success'}${roll.degrees ? ` (${roll.degrees} Deg)` : ''}`;
+    } else if (roll.outcomeClass === 'failure') {
+      resEl.classList.add('result-failure');
+      outcomeTag = `❌ ${roll.outcome || 'Failure'}${roll.degrees ? ` (${roll.degrees} Deg)` : ''}`;
+    }
 
-      entry.innerHTML = `
-        <div style="display: flex; justify-content: space-between; font-weight: 800; color: var(--text-bright);">
-          <span>${roll.title}</span>
-          <span style="font-size: 0.65rem; color: var(--text-muted);">${roll.timestamp}</span>
-        </div>
-        <div style="font-size: var(--font-size-md); font-weight: 900; margin: 2px 0;">
-          ${roll.total} <span style="font-size: var(--font-size-xs); color: var(--text-muted); font-weight: 600;">(${roll.extraText || `d20 (${roll.rawDie}) + ${roll.modifier}`}${roll.targetDC ? ` vs DC ${roll.targetDC}` : ''})</span>
-        </div>
-        ${roll.outcome ? `<div style="font-weight: 700; color: ${roll.outcomeClass === 'success' ? 'var(--hero-green)' : 'var(--hero-red)'};">${roll.outcomeClass === 'success' ? '✅' : '❌'} ${roll.outcomeDescription}</div>` : ''}
-        ${discordIntegrator.enabled ? `<span style="font-size: 0.65rem; color: #5865f2; font-weight: 700;">🤖 Discord Echoed</span>` : ''}
-      `;
+    const dcText = roll.targetDC !== null && roll.targetDC !== undefined ? ` vs DC ${roll.targetDC}` : '';
+    const formula = roll.extraText || `d20(${roll.rawDie})${roll.modifier >= 0 ? '+' + roll.modifier : roll.modifier}`;
+    resEl.innerHTML = `
+      <strong style="color: #fff; margin-right: 0.4rem;">${roll.title}:</strong>
+      <span style="font-size: 0.95rem; font-weight: 900; margin-right: 0.4rem;">${roll.total}</span>
+      <span style="color: var(--text-muted); margin-right: 0.5rem;">[${formula}${dcText}]</span>
+      ${outcomeTag ? `<span>${outcomeTag}</span>` : ''}
+    `;
 
-      container.insertBefore(entry, container.firstChild);
-    });
+    discordIntegrator.sendRollEmbed(roll);
   }
 
   // =======================================================
@@ -596,10 +636,18 @@ class AppController {
         e.preventDefault();
         e.stopPropagation();
 
-        const name = link.dataset.name || link.textContent;
+        const name = (link.dataset.name || link.textContent || '').trim();
         const desc = link.dataset.desc || '';
         const cat = link.dataset.cat || 'Official 3E Rules';
 
+        // Close if clicking the same link a second time
+        if (popup.style.display === 'block' && popup.dataset.activeItem === name) {
+          popup.style.display = 'none';
+          popup.dataset.activeItem = '';
+          return;
+        }
+
+        popup.dataset.activeItem = name;
         document.getElementById('popup-item-name').textContent = name;
         document.getElementById('popup-item-cat').textContent = cat;
         document.getElementById('popup-item-body').textContent = desc;
@@ -611,6 +659,7 @@ class AppController {
         popup.style.top = `${posY}px`;
       } else if (!e.target.closest('#pointer-rules-popup')) {
         popup.style.display = 'none';
+        popup.dataset.activeItem = '';
       }
     });
   }
@@ -1635,176 +1684,306 @@ class AppController {
   }
 
   renderActionCenter(audit) {
-    document.getElementById('action-bruise-val').textContent = this.char.bruises || 0;
-
-    const conds = this.char.conditions || {};
-    ['dazed', 'staggered', 'vulnerable', 'defenseless'].forEach(c => {
-      const btn = document.getElementById(`cond-btn-${c}`);
-      if (btn) btn.classList.toggle('btn-danger', !!conds[c]);
-    });
-
-    // Defenses Grid
-    const defGrid = document.getElementById('action-defenses-grid');
-    defGrid.innerHTML = '';
     const bruises = this.char.bruises || 0;
+    const conds = this.char.conditions || {};
+    const mods = calculateConditionModifiers(conds, bruises);
 
-    DEFENSES.forEach(def => {
-      const box = document.createElement('div');
-      box.style.cssText = 'background-color: var(--bg-input); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 0.5rem; text-align: center;';
+    // 1. Update Bruises & Summary
+    const bruiseValEl = document.getElementById('action-bruise-val');
+    if (bruiseValEl) bruiseValEl.textContent = bruises;
 
-      let score = audit.computedDefenses[def.id] || 0;
-      let effectiveScore = score;
-      if (def.id === 'toughness') effectiveScore = score - bruises;
+    const summaryEl = document.getElementById('conditions-summary-badge');
+    if (summaryEl) {
+      if (mods.summaryText === 'Normal') {
+        summaryEl.innerHTML = `<span style="color: var(--hero-green); font-weight: 700;">🟢 Status: Normal & Healthy</span>`;
+      } else {
+        summaryEl.innerHTML = `<span style="color: var(--hero-red); font-weight: 800;">⚠️ Active Modifiers: ${mods.summaryText}</span>`;
+      }
+    }
 
-      box.innerHTML = `
-        <div style="font-size: var(--font-size-xs); font-weight: 800; color: var(--text-muted); text-transform: uppercase;">${def.name}</div>
-        <div style="font-size: var(--font-size-xl); font-weight: 900; color: var(--text-bright);">${effectiveScore}</div>
-        ${def.id === 'toughness' && bruises > 0 ? `<div style="font-size: 0.65rem; color: var(--hero-red);">(-${bruises} bruises)</div>` : ''}
-        <button class="btn-touch-roll defense" style="margin-top: 0.35rem; width: 100%;" data-def="${def.id}">🎲 Save</button>
-      `;
+    // 2. Render Individual Conditions Grid (14 basic conditions)
+    const indGrid = document.getElementById('individual-conditions-grid');
+    if (indGrid) {
+      indGrid.innerHTML = '';
+      BASIC_CONDITIONS.forEach(c => {
+        const isActive = !!conds[c.id];
+        const btn = document.createElement('button');
+        btn.className = `condition-btn ${isActive ? 'active' : ''}`;
+        btn.textContent = c.name;
+        btn.title = `${c.name}: ${c.desc}`;
+        btn.addEventListener('click', () => {
+          this.char.conditions[c.id] = !this.char.conditions[c.id];
+          if (!this.char.conditions[c.id]) delete this.char.conditions[c.id];
 
-      box.querySelector('button').addEventListener('click', () => {
-        const dcPrompt = prompt(`Enter DC for ${def.name} check (or leave blank for raw check):`, def.id === 'toughness' ? '20' : '15');
-        const targetDC = dcPrompt !== null && dcPrompt.trim() !== '' ? parseInt(dcPrompt, 10) : null;
-
-        const roll = diceRoller.rollCheck({
-          title: `${def.name} Defense Check`,
-          characterName: this.char.name,
-          modifier: effectiveScore,
-          targetDC,
-          rollType: def.id === 'toughness' ? 'toughness' : 'defense',
-          extraText: def.id === 'toughness' && bruises > 0 ? `Bruise Penalty: -${bruises}` : ''
-        });
-
-        if (def.id === 'toughness' && roll.outcomeClass === 'failure') {
-          this.char.bruises = (this.char.bruises || 0) + 1;
-          if (roll.degrees >= 2) this.char.conditions.dazed = true;
-          if (roll.degrees >= 3) this.char.conditions.staggered = true;
+          // Check if combined condition is affected
+          if (this.char.activeCombinedCondition) {
+            const combDef = COMBINED_CONDITIONS.find(comb => comb.id === this.char.activeCombinedCondition);
+            if (combDef && !combDef.constituents.every(id => !!this.char.conditions[id])) {
+              delete this.char.activeCombinedCondition;
+            }
+          }
           this.saveAndAudit();
           this.renderActionCenter(auditCharacter(this.char));
+        });
+        indGrid.appendChild(btn);
+      });
+    }
+
+    // 3. Sync Combined Condition Dropdown
+    const combinedSelect = document.getElementById('select-combined-condition');
+    if (combinedSelect) {
+      let matchedCombined = this.char.activeCombinedCondition || '';
+      if (!matchedCombined) {
+        const found = COMBINED_CONDITIONS.find(comb => comb.constituents.every(id => !!conds[id]));
+        if (found) matchedCombined = found.id;
+      }
+      combinedSelect.value = matchedCombined;
+    }
+
+    // 4. Render Main Abilities in Action Center
+    const abilitiesGrid = document.getElementById('action-abilities-grid');
+    if (abilitiesGrid) {
+      abilitiesGrid.innerHTML = '';
+      const dcValEl = document.getElementById('action-dc-val');
+      const currentDC = parseInt(dcValEl?.textContent, 10) || 15;
+
+      ABILITIES.forEach(ab => {
+        const baseRank = parseInt(this.char.abilities?.[ab.id], 10) || 0;
+        const effRank = baseRank + mods.checkPenalty;
+        const card = document.createElement('div');
+        card.className = 'action-ability-card';
+        card.innerHTML = `
+          <div style="display: flex; justify-content: space-between; align-items: baseline;">
+            <strong style="font-size: var(--font-size-xs); color: var(--hero-gold);">${ab.abbrev.toUpperCase()}</strong>
+            <span style="font-size: var(--font-size-md); font-weight: 900; color: #fff;">${effRank >= 0 ? '+' + effRank : effRank}</span>
+          </div>
+          <div style="font-size: 0.65rem; color: var(--text-muted); display: flex; justify-content: space-between;">
+            <span>${ab.name}</span>
+            ${mods.checkPenalty !== 0 ? `<span style="color: var(--hero-red); font-weight: 700;">(${mods.checkPenalty})</span>` : ''}
+          </div>
+          <button class="btn btn-outline btn-roll-ability-check" style="width: 100%; min-height: 28px; font-size: 0.7rem; padding: 0.1rem; margin-top: 2px;">🎲 Check</button>
+        `;
+
+        card.querySelector('.btn-roll-ability-check')?.addEventListener('click', () => {
+          const roll = diceRoller.rollCheck({
+            title: `${ab.name} Ability Check`,
+            characterName: this.char.name,
+            modifier: effRank,
+            targetDC: currentDC,
+            rollType: 'ability',
+            extraText: `Base ${ab.abbrev.toUpperCase()} (${baseRank >= 0 ? '+' + baseRank : baseRank})${mods.checkPenalty ? ` ${mods.checkPenalty} (Conditions)` : ''}`
+          });
+          this.displayRollResult(roll);
+        });
+
+        abilitiesGrid.appendChild(card);
+      });
+    }
+
+    // 5. Render Defenses Grid in Action Center
+    const defGrid = document.getElementById('action-defenses-grid');
+    if (defGrid) {
+      defGrid.innerHTML = '';
+      const dcValEl = document.getElementById('action-dc-val');
+      const currentDC = parseInt(dcValEl?.textContent, 10) || 15;
+
+      DEFENSES.forEach(def => {
+        const box = document.createElement('div');
+        box.style.cssText = 'background-color: var(--bg-input); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 0.5rem; text-align: center;';
+
+        const baseScore = audit.computedDefenses[def.id] || 0;
+        let effScore = baseScore;
+        let modNotes = [];
+
+        if (def.id === 'dodge' || def.id === 'parry') {
+          if (mods.isDefenseless) {
+            effScore = 0;
+            modNotes.push('Defenseless');
+          } else if (mods.isVulnerable) {
+            effScore = Math.floor(baseScore / 2);
+            modNotes.push('Vulnerable');
+          }
+          effScore = Math.max(0, effScore + mods.dodgeParryPenalty);
+          if (mods.dodgeParryPenalty !== 0) modNotes.push(`${mods.dodgeParryPenalty}`);
+        } else if (def.id === 'toughness') {
+          effScore = Math.max(0, baseScore + mods.toughnessPenalty);
+          if (mods.bruiseCount > 0) modNotes.push(`-${mods.bruiseCount} Bruises`);
+          if (mods.checkPenalty !== 0) modNotes.push(`${mods.checkPenalty} Cond`);
+        } else {
+          effScore = baseScore + mods.checkPenalty;
+          if (mods.checkPenalty !== 0) modNotes.push(`${mods.checkPenalty} Cond`);
         }
 
-        discordIntegrator.sendRollEmbed(roll);
+        box.innerHTML = `
+          <div style="font-size: var(--font-size-xs); font-weight: 800; color: var(--text-muted); text-transform: uppercase;">${def.name}</div>
+          <div style="font-size: var(--font-size-xl); font-weight: 900; color: ${effScore !== baseScore ? 'var(--hero-red)' : 'var(--text-bright)'};">${effScore}</div>
+          <div style="font-size: 0.65rem; color: ${effScore !== baseScore ? 'var(--hero-red)' : 'var(--text-muted);'}; min-height: 14px;">
+            ${modNotes.length > 0 ? `(${modNotes.join(', ')})` : `Base ${baseScore}`}
+          </div>
+          <button class="btn-touch-roll defense" style="margin-top: 0.35rem; width: 100%;" data-def="${def.id}">🎲 Save</button>
+        `;
+
+        box.querySelector('button')?.addEventListener('click', () => {
+          const roll = diceRoller.rollCheck({
+            title: `${def.name} Defense Save`,
+            characterName: this.char.name,
+            modifier: effScore,
+            targetDC: currentDC,
+            rollType: def.id === 'toughness' ? 'toughness' : 'defense',
+            extraText: modNotes.length > 0 ? `Modifiers: ${modNotes.join(', ')}` : ''
+          });
+
+          if (def.id === 'toughness' && roll.outcomeClass === 'failure') {
+            this.char.bruises = (this.char.bruises || 0) + 1;
+            if (roll.degrees >= 2) this.char.conditions.dazed = true;
+            if (roll.degrees >= 3) {
+              this.char.conditions.staggered = true;
+              this.char.conditions.dazed = true;
+              this.char.conditions.hindered = true;
+            }
+            if (roll.degrees >= 4) {
+              this.char.conditions.incapacitated = true;
+              this.char.conditions.defenseless = true;
+              this.char.conditions.stunned = true;
+              this.char.conditions.unaware = true;
+              this.char.conditions.prone = true;
+            }
+            this.saveAndAudit();
+            this.renderActionCenter(auditCharacter(this.char));
+          }
+
+          this.displayRollResult(roll);
+        });
+
+        defGrid.appendChild(box);
       });
+    }
 
-      defGrid.appendChild(box);
-    });
-
-    // Attacks Table
+    // 6. Render Attacks Table in Action Center
     const attacksTbody = document.getElementById('action-attacks-tbody');
-    attacksTbody.innerHTML = '';
+    if (attacksTbody) {
+      attacksTbody.innerHTML = '';
+      const dcValEl = document.getElementById('action-dc-val');
+      const currentDC = parseInt(dcValEl?.textContent, 10) || 15;
 
-    // Unarmed Attack
-    const str = parseInt(this.char.abilities?.str, 10) || 0;
-    const fgt = parseInt(this.char.abilities?.fgt, 10) || 0;
-    let unarmedBonus = fgt;
-    (this.char.skills || []).forEach(sk => {
-      if (sk.id === 'close_combat' && (sk.specialty || '').toLowerCase().includes('unarmed')) {
-        unarmedBonus += parseInt(sk.ranks, 10) || 0;
-      }
-    });
-
-    const unarmedRow = document.createElement('tr');
-    unarmedRow.innerHTML = `
-      <td><strong>👊 Unarmed Strike</strong></td>
-      <td>Close • Bludgeoning</td>
-      <td><span style="font-weight: 800; color: var(--hero-blue);">+${unarmedBonus}</span></td>
-      <td>Damage ${str} (DC ${15 + str})</td>
-      <td style="text-align: right;">
-        <button class="btn-touch-roll attack">🎲 Attack</button>
-      </td>
-    `;
-    unarmedRow.querySelector('button').addEventListener('click', () => {
-      const defTarget = prompt('Enter Target Parry Defense:', '15');
-      const targetDC = defTarget !== null && defTarget.trim() !== '' ? parseInt(defTarget, 10) : null;
-      const roll = diceRoller.rollCheck({
-        title: 'Attack: Unarmed Strike',
-        characterName: this.char.name,
-        modifier: unarmedBonus,
-        targetDC,
-        rollType: 'attack',
-        damageRank: str,
-        descriptor: 'Close, Bludgeoning'
+      const str = parseInt(this.char.abilities?.str, 10) || 0;
+      const fgt = parseInt(this.char.abilities?.fgt, 10) || 0;
+      let unarmedBaseBonus = fgt;
+      (this.char.skills || []).forEach(sk => {
+        if (sk.id === 'close_combat' && (sk.specialty || '').toLowerCase().includes('unarmed')) {
+          unarmedBaseBonus += parseInt(sk.ranks, 10) || 0;
+        }
       });
-      discordIntegrator.sendRollEmbed(roll);
-    });
-    attacksTbody.appendChild(unarmedRow);
 
-    // Power Attacks
-    (this.char.powers || []).forEach(p => {
-      if (p.effect?.isAttack || ['damage', 'blast', 'affliction', 'move_object'].includes(p.effect?.id)) {
-        const isRanged = p.range === 'Ranged' || p.effect?.id === 'blast';
-        const dex = parseInt(this.char.abilities?.dex, 10) || 0;
-        let bonus = isRanged ? dex : fgt;
+      const unarmedEffBonus = unarmedBaseBonus + mods.attackPenalty + (mods.isProne ? -5 : 0);
 
-        (p.extras || []).forEach(ex => {
-          if (ex.id === 'accurate') bonus += (parseInt(ex.rank, 10) || 1) * 2;
+      const unarmedRow = document.createElement('tr');
+      unarmedRow.innerHTML = `
+        <td><strong>👊 Unarmed Strike</strong></td>
+        <td>Close • Bludgeoning</td>
+        <td><span style="font-weight: 800; color: ${unarmedEffBonus !== unarmedBaseBonus ? 'var(--hero-red)' : 'var(--hero-blue)'};">${unarmedEffBonus >= 0 ? '+' + unarmedEffBonus : unarmedEffBonus}</span></td>
+        <td>Damage ${str} (DC ${15 + str})</td>
+        <td style="text-align: right;">
+          <button class="btn-touch-roll attack">🎲 Attack</button>
+        </td>
+      `;
+      unarmedRow.querySelector('button')?.addEventListener('click', () => {
+        const roll = diceRoller.rollCheck({
+          title: 'Attack: Unarmed Strike',
+          characterName: this.char.name,
+          modifier: unarmedEffBonus,
+          targetDC: currentDC,
+          rollType: 'attack',
+          damageRank: str,
+          descriptor: 'Close, Bludgeoning',
+          extraText: unarmedEffBonus !== unarmedBaseBonus ? `Base +${unarmedBaseBonus}${mods.attackPenalty ? ` ${mods.attackPenalty} (Conditions)` : ''}${mods.isProne ? ' -5 (Prone)' : ''}` : ''
         });
+        this.displayRollResult(roll);
+      });
+      attacksTbody.appendChild(unarmedRow);
 
-        const rank = parseInt(p.rank, 10) || 1;
-        const dc = (p.effect?.dcBase || 15) + rank;
-        const row = document.createElement('tr');
-        row.innerHTML = `
-          <td><strong>⚡ ${p.name}</strong></td>
-          <td>${p.range} • ${p.descriptor}</td>
-          <td><span style="font-weight: 800; color: var(--hero-blue);">+${bonus}</span></td>
-          <td>Rank ${rank} (DC ${dc})</td>
-          <td style="text-align: right;">
-            <button class="btn-touch-roll attack">🎲 Attack</button>
-          </td>
-        `;
-        row.querySelector('button').addEventListener('click', () => {
-          const defTarget = prompt(`Enter Target Defense for ${p.name}:`, '15');
-          const targetDC = defTarget !== null && defTarget.trim() !== '' ? parseInt(defTarget, 10) : null;
-          const roll = diceRoller.rollCheck({
-            title: `Attack: ${p.name}`,
-            characterName: this.char.name,
-            modifier: bonus,
-            targetDC,
-            rollType: 'attack',
-            damageRank: rank,
-            descriptor: p.descriptor
+      (this.char.powers || []).forEach(p => {
+        if (p.effect?.isAttack || ['damage', 'blast', 'affliction', 'move_object'].includes(p.effect?.id)) {
+          const isRanged = p.range === 'Ranged' || p.effect?.id === 'blast';
+          const dex = parseInt(this.char.abilities?.dex, 10) || 0;
+          let baseBonus = isRanged ? dex : fgt;
+
+          (p.extras || []).forEach(ex => {
+            if (ex.id === 'accurate') baseBonus += (parseInt(ex.rank, 10) || 1) * 2;
           });
-          discordIntegrator.sendRollEmbed(roll);
-        });
-        attacksTbody.appendChild(row);
-      }
-    });
 
-    // Known Skills Quick Checks
+          const effBonus = baseBonus + mods.attackPenalty + (!isRanged && mods.isProne ? -5 : 0);
+          const rank = parseInt(p.rank, 10) || 1;
+          const dc = (p.effect?.dcBase || 15) + rank;
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td><strong>⚡ ${p.name}</strong></td>
+            <td>${p.range} • ${p.descriptor}</td>
+            <td><span style="font-weight: 800; color: ${effBonus !== baseBonus ? 'var(--hero-red)' : 'var(--hero-blue)'};">${effBonus >= 0 ? '+' + effBonus : effBonus}</span></td>
+            <td>Rank ${rank} (DC ${dc})</td>
+            <td style="text-align: right;">
+              <button class="btn-touch-roll attack">🎲 Attack</button>
+            </td>
+          `;
+          row.querySelector('button')?.addEventListener('click', () => {
+            const roll = diceRoller.rollCheck({
+              title: `Attack: ${p.name}`,
+              characterName: this.char.name,
+              modifier: effBonus,
+              targetDC: currentDC,
+              rollType: 'attack',
+              damageRank: rank,
+              descriptor: `${p.range}, ${p.descriptor}`,
+              extraText: effBonus !== baseBonus ? `Base +${baseBonus}${mods.attackPenalty ? ` ${mods.attackPenalty} (Conditions)` : ''}` : ''
+            });
+            this.displayRollResult(roll);
+          });
+          attacksTbody.appendChild(row);
+        }
+      });
+    }
+
+    // 7. Render Skills Table in Action Center
     const skillsTbody = document.getElementById('action-skills-tbody');
-    skillsTbody.innerHTML = '';
-    audit.computedSkills.forEach(sk => {
-      if (sk.ranks > 0) {
-        const skillDef = SKILLS_LIST.find(s => s.id === sk.id);
-        const row = document.createElement('tr');
-        row.innerHTML = `
-          <td>
-            <span class="rules-link" data-name="${sk.name}" data-desc="${skillDef?.desc || ''}" data-cat="Official 3E Skill">
-              ${sk.name}${sk.specialty ? ` (${sk.specialty})` : ''}
-            </span>
-          </td>
-          <td>${sk.ability.toUpperCase()}</td>
-          <td><strong style="color: var(--hero-cyan); font-size: var(--font-size-md);">${sk.totalBonus >= 0 ? '+' : ''}${sk.totalBonus}</strong></td>
-          <td style="text-align: right;">
-            <button class="btn-touch-roll" style="min-height: 32px;">🎲 Roll</button>
-          </td>
-        `;
-        row.querySelector('button').addEventListener('click', () => {
-          const dcPrompt = prompt(`Enter DC for ${sk.name} check:`, '15');
-          const targetDC = dcPrompt !== null && dcPrompt.trim() !== '' ? parseInt(dcPrompt, 10) : null;
-          const roll = diceRoller.rollCheck({
-            title: `${sk.name} Skill Check`,
-            characterName: this.char.name,
-            modifier: sk.totalBonus,
-            targetDC,
-            rollType: 'skill'
+    if (skillsTbody) {
+      skillsTbody.innerHTML = '';
+      const dcValEl = document.getElementById('action-dc-val');
+      const currentDC = parseInt(dcValEl?.textContent, 10) || 15;
+
+      audit.computedSkills.forEach(sk => {
+        if (sk.ranks > 0) {
+          const skillDef = SKILLS_LIST.find(s => s.id === sk.id);
+          const baseBonus = sk.totalBonus;
+          const effBonus = baseBonus + mods.checkPenalty;
+
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td>
+              <span class="rules-link" data-name="${sk.name}" data-desc="${skillDef?.desc || ''}" data-cat="Official 3E Skill">
+                ${sk.name}${sk.specialty ? ` (${sk.specialty})` : ''}
+              </span>
+            </td>
+            <td>${sk.ability.toUpperCase()}</td>
+            <td><strong style="color: ${effBonus !== baseBonus ? 'var(--hero-red)' : 'var(--hero-cyan)'}; font-size: var(--font-size-md);">${effBonus >= 0 ? '+' : ''}${effBonus}</strong></td>
+            <td style="text-align: right;">
+              <button class="btn-touch-roll" style="min-height: 32px;">🎲 Roll</button>
+            </td>
+          `;
+          row.querySelector('button')?.addEventListener('click', () => {
+            const roll = diceRoller.rollCheck({
+              title: `${sk.name} Skill Check`,
+              characterName: this.char.name,
+              modifier: effBonus,
+              targetDC: currentDC,
+              rollType: 'skill',
+              extraText: effBonus !== baseBonus ? `Base +${baseBonus}${mods.checkPenalty ? ` ${mods.checkPenalty} (Conditions)` : ''}` : ''
+            });
+            this.displayRollResult(roll);
           });
-          discordIntegrator.sendRollEmbed(roll);
-        });
-        skillsTbody.appendChild(row);
-      }
-    });
+          skillsTbody.appendChild(row);
+        }
+      });
+    }
   }
 
   // =======================================================

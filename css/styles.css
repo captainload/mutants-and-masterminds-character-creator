@@ -457,7 +457,8 @@ body {
 }
 
 .dice-roller-input {
-  flex: 1;
+  flex: 0 0 110px;
+  width: 110px;
   background-color: var(--bg-input);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-sm);

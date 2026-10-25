@@ -77,12 +77,12 @@ export class DiceRoller {
         degrees = Math.min(4, Math.floor(diff / 5) + 1);
         outcome = 'Success';
         outcomeClass = 'success';
-        outcomeDescription = `${degrees} Degree${degrees > 1 ? 's' : ''} of Success!`;
+        outcomeDescription = `${degrees}° Success`;
       } else {
         degrees = Math.min(4, Math.floor((Math.abs(diff) - 1) / 5) + 1);
         outcome = 'Failure';
         outcomeClass = 'failure';
-        outcomeDescription = `${degrees} Degree${degrees > 1 ? 's' : ''} of Failure.`;
+        outcomeDescription = `${degrees}° Failure`;
       }
     }
 
@@ -90,7 +90,7 @@ export class DiceRoller {
       id: 'roll_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
       characterName,
-      title: `Dice Roll: ${notationString}`,
+      title: notationString,
       rollType: 'notation',
       notation: notationString,
       rawDie: isSingleD20 ? rolls[0] : rolls.join(', '),
@@ -159,9 +159,9 @@ export class DiceRoller {
         degrees = Math.min(4, degreeRank);
 
         if (rollType === 'toughness') {
-          outcomeDescription = `Resisted harm! No damage taken (${degrees} Degree${degrees > 1 ? 's' : ''} of Success).`;
+          outcomeDescription = `${degrees}° Success (No damage)`;
         } else {
-          outcomeDescription = `${degrees} Degree${degrees > 1 ? 's' : ''} of Success!`;
+          outcomeDescription = `${degrees}° Success`;
         }
       } else {
         const failDiff = Math.abs(diff);
@@ -172,16 +172,16 @@ export class DiceRoller {
 
         if (rollType === 'toughness') {
           if (degrees === 1) {
-            outcomeDescription = '1st Degree Failure: +1 Bruise (-1 penalty to future Toughness checks).';
+            outcomeDescription = '1° Fail (+1 Bruise)';
           } else if (degrees === 2) {
-            outcomeDescription = '2nd Degree Failure: Dazed for 1 round + 1 Bruise (-1 penalty).';
+            outcomeDescription = '2° Fail (Dazed + Bruise)';
           } else if (degrees === 3) {
-            outcomeDescription = '3rd Degree Failure: Staggered + 1 Bruise (-1 penalty)! (Second Staggered = Incapacitated).';
+            outcomeDescription = '3° Fail (Staggered + Bruise)';
           } else {
-            outcomeDescription = '4th Degree Failure: INCAPACITATED immediately!';
+            outcomeDescription = '4° Fail (Incapacitated!)';
           }
         } else {
-          outcomeDescription = `${degrees} Degree${degrees > 1 ? 's' : ''} of Failure.`;
+          outcomeDescription = `${degrees}° Failure`;
         }
       }
     }

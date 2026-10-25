@@ -465,7 +465,7 @@ class AppController {
       const effMod = baseMod + mods.checkPenalty;
 
       const roll = diceRoller.rollCheck({
-        title: 'Initiative Check',
+        title: 'Initiative',
         characterName: this.char.name,
         modifier: effMod,
         rollType: 'initiative',
@@ -540,13 +540,18 @@ class AppController {
     let outcomeTag = '';
     if (roll.isCriticalHit) {
       resEl.classList.add('result-critical');
-      outcomeTag = '💥 CRITICAL HIT!';
+      outcomeTag = '💥 CRIT!';
     } else if (roll.outcomeClass === 'success') {
       resEl.classList.add('result-success');
-      outcomeTag = `✅ ${roll.outcome || 'Success'}${roll.degrees ? ` (${roll.degrees} Deg)` : ''}`;
+      outcomeTag = `✅ ${roll.degrees ? roll.degrees + '° ' : ''}Success`;
     } else if (roll.outcomeClass === 'failure') {
       resEl.classList.add('result-failure');
-      outcomeTag = `❌ ${roll.outcome || 'Failure'}${roll.degrees ? ` (${roll.degrees} Deg)` : ''}`;
+      if (roll.rollType === 'toughness' && roll.degrees) {
+        const toughLabels = ['', 'Bruise', 'Dazed+Bruise', 'Staggered+Bruise', 'Incapacitated!'];
+        outcomeTag = `❌ ${roll.degrees}° Fail (${toughLabels[roll.degrees] || 'Bruise'})`;
+      } else {
+        outcomeTag = `❌ ${roll.degrees ? roll.degrees + '° ' : ''}Fail`;
+      }
     }
 
     const dcText = roll.targetDC !== null && roll.targetDC !== undefined ? ` vs DC ${roll.targetDC}` : '';
@@ -964,7 +969,7 @@ class AppController {
       }
       this.char.heroPoints--;
       const roll = diceRoller.rollCheck({
-        title: 'Hero Point Reroll Check',
+        title: 'Hero Point Reroll',
         characterName: this.char.name,
         modifier: parseInt(this.char.abilities?.fgt, 10) || 0,
         isHeroPointReroll: true,
@@ -1828,7 +1833,7 @@ class AppController {
 
         card.querySelector('.btn-roll-ability-check')?.addEventListener('click', () => {
           const roll = diceRoller.rollCheck({
-            title: `${ab.name} Ability Check`,
+            title: `${ab.name} Check`,
             characterName: this.char.name,
             modifier: effRank,
             targetDC: currentDC,
@@ -1896,7 +1901,7 @@ class AppController {
 
         box.querySelector('button')?.addEventListener('click', () => {
           const roll = diceRoller.rollCheck({
-            title: `${def.name} Defense Save`,
+            title: `${def.name} Save`,
             characterName: this.char.name,
             modifier: effScore,
             targetDC: currentDC,
@@ -1960,7 +1965,7 @@ class AppController {
       `;
       unarmedRow.querySelector('button')?.addEventListener('click', () => {
         const roll = diceRoller.rollCheck({
-          title: 'Attack: Unarmed Strike',
+          title: 'Unarmed Strike',
           characterName: this.char.name,
           modifier: unarmedEffBonus,
           targetDC: currentDC,
@@ -1998,7 +2003,7 @@ class AppController {
           `;
           row.querySelector('button')?.addEventListener('click', () => {
             const roll = diceRoller.rollCheck({
-              title: `Attack: ${p.name}`,
+              title: p.name,
               characterName: this.char.name,
               modifier: effBonus,
               targetDC: currentDC,
@@ -2042,7 +2047,7 @@ class AppController {
           `;
           row.querySelector('button')?.addEventListener('click', () => {
             const roll = diceRoller.rollCheck({
-              title: `${sk.name} Skill Check`,
+              title: `${sk.name} Check`,
               characterName: this.char.name,
               modifier: effBonus,
               targetDC: currentDC,

@@ -162,49 +162,49 @@ export const ADVANTAGES_DATABASE = [
     name: 'Accurate Attack',
     category: 'Combat',
     maxRank: 1,
-    desc: 'When you make an attack, you can trade effect rank for attack bonus on a 1-for-1 basis, up to a maximum of 5 points. Your attack bonus increases and the effect rank decreases by the chosen amount.'
+    desc: 'When you make an attack, you can trade effect rank for attack bonus on a 1-for-1 basis, up to a maximum of 5 points. You can take a penalty of up to -5 on the effect modifier (e.g. Damage) and add the same amount (up to +5) to your attack check. Your effect modifier cannot be reduced below 0. The modification takes effect before making the attack and lasts until the start of your next turn.'
   },
   {
     id: 'agile_feint',
     name: 'Agile Feint',
     category: 'Combat',
     maxRank: 1,
-    desc: 'You can use your Acrobatics skill bonus instead of Deception to feint in combat, using speed, acrobatics, and athletic flips to catch opponents flat-footed.'
+    desc: 'You can use your Acrobatics skill bonus instead of Deception to feint in combat, using speed, acrobatics, and athletic flips to catch opponents flat-footed. Your Acrobatics check is opposed by the target’s Acrobatics or Insight check.'
   },
   {
     id: 'all_out_attack',
     name: 'All-out Attack',
     category: 'Combat',
     maxRank: 1,
-    desc: 'When you make an attack, you can take a penalty of up to -5 on your active defenses (Dodge and Parry) and add the same number (up to +5) to your attack bonus for that check.'
+    desc: 'When you make an attack, you can take a penalty of up to -5 on your active defenses (Dodge and Parry) and add the same number (up to +5) to your attack bonus for that check. The defense penalty applies immediately and lasts until the start of your next turn.'
   },
   {
     id: 'animal_empathy',
     name: 'Animal Empathy',
     category: 'General',
     maxRank: 1,
-    desc: 'You can use interaction skills on animals just as you would on normal people, sensing their intentions and communicating basic ideas.'
+    desc: 'You can use interaction skills (Deception, Intimidation, Persuasion) on animals just as you would on normal people, without circumstance penalties. You can also understand an animal’s basic emotional state and intentions with an Insight check.'
   },
   {
     id: 'artificer',
     name: 'Artificer',
     category: 'Skill',
     maxRank: 1,
-    desc: 'You can use the Expertise: Magic skill to design, invent, and create temporary occult devices and magical talismans, using the inventing rules.'
+    desc: 'You can use the Expertise: Magic skill to design, invent, and create temporary occult devices and magical talismans, using the inventing rules (see Inventing, Chapter 8).'
   },
   {
     id: 'assessment',
     name: 'Assessment',
     category: 'Skill',
     maxRank: 1,
-    desc: 'You can use your Insight skill to gauge an opponent’s relative combat capabilities (attack, defense, and effect ranks) compared to your own.'
+    desc: 'You can use Insight to gauge an opponent’s combat capabilities. Make an Insight check as a free action opposed by the target’s Deception. If you succeed, you learn the target’s relative attack, defense, and effect ranks compared to your own (lower, equal, or higher). With three or more degrees of success, you learn the exact values.'
   },
   {
     id: 'attractive',
     name: 'Attractive',
     category: 'General',
     maxRank: 2,
-    desc: 'You are exceptionally good-looking. You gain a +2 circumstance bonus on Deception and Persuasion checks per rank whenever physical attraction is a factor.'
+    desc: 'You are exceptionally good-looking. You gain a +2 circumstance bonus on Deception and Persuasion checks per rank whenever physical attraction is a factor. You also gain this bonus when feinting with Deception or making interaction checks against receptive targets.'
   },
   {
     id: 'benefit',
@@ -212,36 +212,62 @@ export const ADVANTAGES_DATABASE = [
     category: 'General',
     maxRank: 10,
     hasOptions: true,
-    desc: 'You have a significant social or economic advantage. Each rank provides a concrete benefit such as Billionaire wealth, Diplomatic Immunity, Security Clearance, or Cipher status.',
-    options: ['Wealth: Wealthy (+1)', 'Wealth: Millionaire (+2)', 'Wealth: Multi-Millionaire (+3)', 'Wealth: Billionaire (+4)', 'Diplomatic Immunity', 'Alternate Identity', 'Security Clearance: Top Secret', 'Cipher (No public records)', 'Status (Nobility / Head of State)']
+    desc: `You have some significant social or legal benefit. The opposite of a Complication, a Benefit grants you an in-game advantage. Each rank provides one of the following benefits:
+
+• Wealth: You are wealthier than average. Characters are normally assumed to have sufficient income for basic living expenses and typical equipment. Ranks of Wealth grant significant financial resources:
+  - Rank 1 (Well-off): Upper-middle class, comfortable professional income, easily affords luxury goods and leisure activities.
+  - Rank 2 (Wealthy): Low-level millionaire, substantial personal assets and investment portfolio, easily finances major lifestyle expenses.
+  - Rank 3 (Very Wealthy): Multi-millionaire, considerable corporate assets, private estates, yachts, or personal aircraft.
+  - Rank 4 (Rich): Hundreds of millions, major corporate tycoon, venture capitalist, or industrial CEO.
+  - Rank 5 (Billionaire): Immense multi-billion global empire, can privately fund space exploration, massive R&D, secret superhero headquarters, and advanced technology.
+
+• Administrative / Diplomatic Immunity: You are immune to prosecution by civil authorities and beyond the jurisdiction of local law enforcement.
+• Alternate Identity: You have a legal alternate identity, complete with documentation (driver's license, passport, birth certificate).
+• Ambidexterity: You can use either hand equally well; you do not suffer off-hand penalties.
+• Cipher: You are not on any public record; your identity and background cannot be researched using Investigation or public databases. Each rank adds +5 to the DC to uncover information about you.
+• Security Clearance: You have official clearance to access classified information and facilities. Higher ranks grant higher levels of clearance (Confidential, Secret, Top Secret, Black Ops).
+• Status: You have a degree of formal status or high social standing, such as royalty, nobility, high military rank, or head of state.`,
+    options: [
+      'Wealth 1 (Well-off: comfortable professional luxury)',
+      'Wealth 2 (Wealthy: millionaire, substantial personal assets)',
+      'Wealth 3 (Very Wealthy: multi-millionaire, corporate assets)',
+      'Wealth 4 (Rich: hundreds of millions, major tycoon)',
+      'Wealth 5 (Billionaire: global empire, private R&D funding)',
+      'Diplomatic Immunity (Immune to civil prosecution)',
+      'Alternate Identity (Legal ID with documentation)',
+      'Ambidexterity (No off-hand penalties)',
+      'Cipher (+5 DC per rank to research identity via public records)',
+      'Security Clearance (Classified state/military access)',
+      'Status (Royalty, nobility, or head of state)'
+    ]
   },
   {
     id: 'chokehold',
     name: 'Chokehold',
     category: 'Combat',
     maxRank: 1,
-    desc: 'If you have an opponent pinned or bound in a grab attack, you can suffocate them. The target must hold their breath and make Fortitude checks or fall unconscious.'
+    desc: 'If you have an opponent pinned or bound in a grab attack, you can suffocate them. The target must hold their breath (for Stamina rounds) and make Fortitude checks (DC 10 + rank, +1 per previous check) each round or become exhausted, then disabled, then dying on subsequent failed checks.'
   },
   {
     id: 'close_attack',
     name: 'Close Attack',
     category: 'Combat',
     maxRank: 20,
-    desc: 'You gain a +1 bonus on all close attack checks per rank of this advantage, applying to unarmed strikes, melee weapons, and close power attacks.'
+    desc: 'You gain a +1 bonus on all close attack checks per rank of this advantage, applying to unarmed strikes, melee weapons, and close power attacks (subject to campaign PL attack and effect caps).'
   },
   {
     id: 'connected',
     name: 'Connected',
     category: 'General',
     maxRank: 1,
-    desc: 'You have extensive contacts and friends in various fields. You can call in favors by making a Persuasion check, securing assistance, equipment, or bail.'
+    desc: 'You have extensive contacts and friends in various fields. You can call in favors by making a Persuasion check (DC 10 for minor help, DC 15 for significant help, DC 20 for risky or illegal help) to secure assistance, resources, equipment, or bail.'
   },
   {
     id: 'contacts',
     name: 'Contacts',
     category: 'General',
     maxRank: 1,
-    desc: 'You have an extensive network of informants. You can make an initial Investigation check to gather information in one minute instead of the usual hours.'
+    desc: 'You have an extensive network of informants. You can make an initial Investigation check to gather information in one minute instead of the usual hours. You must still make the check, but can obtain results quickly.'
   },
   {
     id: 'daze',
@@ -249,7 +275,7 @@ export const ADVANTAGES_DATABASE = [
     category: 'Combat',
     maxRank: 1,
     hasOptions: true,
-    desc: 'You can use Deception or Intimidation to daze an opponent for one round with an interaction check opposed by the target’s Insight or Will check.',
+    desc: 'You can use Deception or Intimidation to daze an opponent. Make an interaction check as a standard action opposed by the target’s Insight or Will check. If you succeed, the target is dazed until the end of your next turn (can take only a single standard or move action, and cannot take free actions).',
     options: ['Deception (Trickery / Taunt)', 'Intimidation (Menace / Fright)']
   },
   {
@@ -257,42 +283,42 @@ export const ADVANTAGES_DATABASE = [
     name: 'Defensive Attack',
     category: 'Combat',
     maxRank: 1,
-    desc: 'When making an attack, you can trade up to -5 on your attack bonus to add the same number (up to +5) to your active defenses (Dodge and Parry) until your next turn.'
+    desc: 'When making an attack, you can trade attack bonus for active defense bonus. You can take a penalty of up to -5 on your attack check and add the same number (up to +5) to your active defenses (Dodge and Parry) until the start of your next turn.'
   },
   {
     id: 'defensive_roll',
     name: 'Defensive Roll',
     category: 'Combat',
     maxRank: 10,
-    desc: 'You can roll with incoming blows. You gain an active bonus of +1 to your Toughness defense per rank. This bonus does not apply if you are vulnerable or defenseless.'
+    desc: 'You can roll with incoming blows to avoid damage. You gain an active bonus of +1 to your Toughness defense per rank. This bonus cannot exceed your character’s active defense bonus (Dodge or Parry). Like other active defenses, you lose this bonus if you are vulnerable or defenseless.'
   },
   {
     id: 'diehard',
     name: 'Diehard',
     category: 'General',
     maxRank: 1,
-    desc: 'When dying, you automatically stabilize on the following round without needing to make a Fortitude check.'
+    desc: 'When your condition is dying, you automatically stabilize on the following round without needing to make a Fortitude check.'
   },
   {
     id: 'eidetic_memory',
     name: 'Eidetic Memory',
     category: 'General',
     maxRank: 1,
-    desc: 'You have flawless total recall. You receive a +5 circumstance bonus on checks to remember details and never forget anything you have experienced.'
+    desc: 'You have flawless total recall. You receive a +5 circumstance bonus on checks to remember details and never forget anything you have experienced. You can make routine memory checks for things most people would forget.'
   },
   {
     id: 'equipment',
     name: 'Equipment',
     category: 'General',
     maxRank: 30,
-    desc: 'Each rank of Equipment provides you with 5 Equipment Points (EP) to purchase mundane weapons, body armor, vehicles, headquarters, and gadgets.'
+    desc: 'Each rank in Equipment provides you with 5 Equipment Points (EP) to purchase mundane weapons, body armor, vehicles, headquarters, and gadgets (see Chapter 7: Gadgets & Gear). Equipment can be damaged, lost, or confiscated without awarding a hero point.'
   },
   {
     id: 'extraordinary_effort',
     name: 'Extraordinary Effort',
     category: 'Fortune',
     maxRank: 1,
-    desc: 'When using Extra Effort, you can choose two benefits at the same time instead of just one (though you still suffer the fatigue cost as normal).'
+    desc: 'When using Extra Effort, you can choose two benefits at the same time instead of just one (though you still only suffer the normal fatigue cost of a single extra effort).'
   },
   {
     id: 'fascinate',
@@ -300,7 +326,7 @@ export const ADVANTAGES_DATABASE = [
     category: 'Skill',
     maxRank: 1,
     hasOptions: true,
-    desc: 'You can captivate and entrance an audience using an artistic or interaction skill. Entranced targets are fascinated and transfixed by your performance.',
+    desc: 'You can captivate and entrance an audience using an artistic or interaction skill. Make a check as a standard action opposed by the targets’ Insight or Will. If you succeed, the targets are entranced (fascinated) and can take no actions other than paying attention to you. Any hostile action or obvious danger immediately breaks the effect.',
     options: ['Expertise: Artistic / Music', 'Deception', 'Intimidation', 'Persuasion']
   },
   {
@@ -309,7 +335,7 @@ export const ADVANTAGES_DATABASE = [
     category: 'Combat',
     maxRank: 1,
     hasOptions: true,
-    desc: 'You are adapted to fighting in a specific environment. You gain a +2 circumstance bonus to either your attack checks or your active defenses while in that environment.',
+    desc: 'You are adapted to fighting in a specific environment (e.g. Aerial, Aquatic, Zero-G, Urban, Underground). You gain a +2 circumstance bonus to either your attack checks or your active defenses (Dodge and Parry) while operating in that environment (chosen at the start of each turn).',
     options: ['Aerial / Airborne', 'Aquatic / Underwater', 'Zero-G / Space', 'Urban / Rooftops', 'Underground / Caves']
   },
   {
@@ -318,7 +344,7 @@ export const ADVANTAGES_DATABASE = [
     category: 'Combat',
     maxRank: 5,
     hasOptions: true,
-    desc: 'You have specialized training against a particular type of opponent. You gain a +2 bonus on checks to oppose, resist, or recall lore about that foe group.',
+    desc: 'You have specialized training or experience fighting a particular type of opponent. You gain a +1 circumstance bonus per rank on checks to deceive, intimidate, intuit, or perceive that type of foe, as well as +1 to damage against them.',
     options: ['Undead', 'Robots & Constructs', 'Aliens / Extraterrestrials', 'Mutants', 'Demons & Fiends', 'Criminal Syndicate']
   },
   {
@@ -326,35 +352,35 @@ export const ADVANTAGES_DATABASE = [
     name: 'Fearless',
     category: 'General',
     maxRank: 1,
-    desc: 'You are utterly immune to fear effects, intimidation attempts, and fear-based emotional manipulation.'
+    desc: 'You are utterly immune to fear effects, intimidation attempts, and fear-based emotional manipulation. You never need to make checks or resistance rolls against fear.'
   },
   {
     id: 'grab_fighting',
     name: 'Grab Fighting',
     category: 'Combat',
     maxRank: 1,
-    desc: 'You can maintain a grab with only one arm and retain your full active defenses (Dodge and Parry) while grabbing a foe.'
+    desc: 'You can maintain a grab with only one arm and retain your full active defenses (Dodge and Parry) while grabbing a foe. You can also make close attacks against a grabbed target with your free hand.'
   },
   {
     id: 'great_endurance',
     name: 'Great Endurance',
     category: 'General',
     maxRank: 1,
-    desc: 'You receive a +5 circumstance bonus on Fortitude checks against environmental cold, heat, starvation, thirst, suffocation, and sleep deprivation.'
+    desc: 'You receive a +5 circumstance bonus on Fortitude resistance checks and endurance checks against environmental cold, heat, starvation, thirst, suffocation, holding your breath, and sleep deprivation.'
   },
   {
     id: 'hide_in_plain_sight',
     name: 'Hide in Plain Sight',
     category: 'Skill',
     maxRank: 1,
-    desc: 'You can use the Stealth skill to hide even while being actively observed, without requiring cover or concealment.'
+    desc: 'You can use the Stealth skill to hide even while being actively observed, without requiring cover, concealment, or a distraction.'
   },
   {
     id: 'improved_aim',
     name: 'Improved Aim',
     category: 'Combat',
     maxRank: 1,
-    desc: 'Taking the Aim action gives you double the normal bonus: +5 on your next attack check against that target (or +10 if you took a full action to aim).'
+    desc: 'When you take an action to aim, you double the normal aim bonus: you gain a +5 bonus on your next attack check (or +10 if you spend a full action aiming with a scoped weapon) instead of the normal +2/+5.'
   },
   {
     id: 'improved_critical',
@@ -362,7 +388,7 @@ export const ADVANTAGES_DATABASE = [
     category: 'Combat',
     maxRank: 4,
     hasOptions: true,
-    desc: 'Your critical threat range with a chosen attack expands by 1 per rank (rank 1 threatens on 19-20; rank 2 on 18-20; rank 3 on 17-20; rank 4 on 16-20).',
+    desc: 'Your critical threat range with a chosen attack expands by 1 per rank (rank 1 threatens on a natural 19-20; rank 2 on 18-20; rank 3 on 17-20; rank 4 on 16-20). A critical hit adds +5 to the effect DC or grants another critical effect.',
     options: ['Unarmed Strike', 'Melee Blades / Swords', 'Ranged Blaster', 'Sniper Rifle', 'Custom Power Strike']
   },
   {
@@ -370,21 +396,21 @@ export const ADVANTAGES_DATABASE = [
     name: 'Improved Defense',
     category: 'Combat',
     maxRank: 1,
-    desc: 'When you take the Defend action, you gain a +2 bonus to your active defenses (total +4 bonus to Dodge and Parry).'
+    desc: 'When you take the Defend action in combat, you gain a +2 circumstance bonus to your active defenses in addition to the standard defend benefits (total +4 bonus to Dodge and Parry).'
   },
   {
     id: 'improved_disarm',
     name: 'Improved Disarm',
     category: 'Combat',
     maxRank: 1,
-    desc: 'You suffer no attack penalty when attempting to disarm an opponent, and the defender cannot attempt to disarm you if your check fails.'
+    desc: 'You suffer no attack check penalty when attempting to disarm an opponent, and the defender gains no bonus if their weapon is larger than yours. Furthermore, an opponent cannot attempt to disarm you in return if your disarm check fails.'
   },
   {
     id: 'improved_grab',
     name: 'Improved Grab',
     category: 'Combat',
     maxRank: 1,
-    desc: 'When you hit an opponent with an unarmed strike, you can make an immediate grab attempt against that target as a free action.'
+    desc: 'When you hit an opponent with an unarmed close attack, you can make an immediate grab attempt against that target as a free action. You are not considered vulnerable while maintaining the grab.'
   },
   {
     id: 'improved_hold',
@@ -398,70 +424,70 @@ export const ADVANTAGES_DATABASE = [
     name: 'Improved Initiative',
     category: 'Combat',
     maxRank: 5,
-    desc: 'You gain a +4 bonus on Initiative checks per rank of this advantage, letting you act faster in combat.'
+    desc: 'You gain a +4 bonus on Initiative checks per rank of this advantage, letting you act faster in combat. Multiple ranks are cumulative (+8 for rank 2, +12 for rank 3, etc.).'
   },
   {
     id: 'improved_smash',
     name: 'Improved Smash',
     category: 'Combat',
     maxRank: 1,
-    desc: 'You suffer no attack check penalty when attempting to smash or damage an object held or worn by another character.'
+    desc: 'You suffer no attack check penalty when attempting to smash or damage an object held, carried, or worn by another character, and gain a +5 circumstance bonus on damage checks to break objects.'
   },
   {
     id: 'improved_trip',
     name: 'Improved Trip',
     category: 'Combat',
     maxRank: 1,
-    desc: 'You suffer no penalty when attempting a trip attack. If your trip attempt fails, the defender cannot attempt to trip you in return.'
+    desc: 'You suffer no penalty when attempting a trip attack. If your trip attempt fails, the defender cannot attempt to trip you in return. You can also use Agility or Dexterity instead of Strength for trip checks.'
   },
   {
     id: 'improvised_tools',
     name: 'Improvised Tools',
     category: 'Skill',
     maxRank: 1,
-    desc: 'You suffer no circumstance penalty on Technology or Treatment checks when working without proper toolkits or specialized instruments.'
+    desc: 'You suffer no circumstance penalty on skill checks (such as Technology or Treatment) when working without proper toolkits or specialized instruments.'
   },
   {
     id: 'improvised_weapon',
     name: 'Improvised Weapon',
     category: 'Combat',
     maxRank: 4,
-    desc: 'When using improvised weapons (bottles, chairs, lamp posts), you gain +1 to your damage rank per rank of this advantage (up to +4).'
+    desc: 'When using improvised weapons (bottles, chairs, lamp posts, trash cans), you gain +1 to your Damage rank per rank of this advantage (up to a maximum bonus of +4, capped by your Strength).'
   },
   {
     id: 'inspire',
     name: 'Inspire',
     category: 'Fortune',
     maxRank: 5,
-    desc: 'You can spend a hero point to grant all allies who can hear and see you a +1 circumstance bonus per rank on all checks for one round.'
+    desc: 'Once per scene as a standard action, you can spend a hero point to inspire your comrades. All allies who can hear and see you gain a +1 circumstance bonus per rank of Inspire (up to rank 5) on all checks until the start of your next turn.'
   },
   {
     id: 'instant_up',
     name: 'Instant Up',
     category: 'Combat',
     maxRank: 1,
-    desc: 'You can stand up from prone as a free action by succeeding on an Acrobatics check DC 10 (or automatically with Skill Mastery).'
+    desc: 'You can stand up from prone as a free action without needing to make an Acrobatics check.'
   },
   {
     id: 'interpose',
     name: 'Interpose',
     category: 'Combat',
     maxRank: 1,
-    desc: 'Once per round, you can move up to your full movement speed to step into the line of fire and suffer an attack intended for an adjacent ally.'
+    desc: 'Once per round, when an ally within your normal movement distance is targeted by an attack, you can move to step into the line of fire and suffer the attack intended for that ally, resolving it against your defenses.'
   },
   {
     id: 'inventor',
     name: 'Inventor',
     category: 'Skill',
     maxRank: 1,
-    desc: 'You can use the Technology skill to design, build, and jury-rig temporary super-science devices and inventions on the fly.'
+    desc: 'You can use the Technology skill to design, build, and jury-rig temporary super-science devices and gadgets on the fly, using the inventing rules in Chapter 8.'
   },
   {
     id: 'jack_of_all_trades',
     name: 'Jack-of-all-trades',
     category: 'Skill',
     maxRank: 1,
-    desc: 'You can use any skill untrained, even those skills that normally require formal training (such as Technology, Treatment, and Sleight of Hand).'
+    desc: 'You can use any skill untrained, even those skills that normally require formal training (such as Technology, Treatment, Investigation, and Sleight of Hand).'
   },
   {
     id: 'languages',
@@ -469,7 +495,7 @@ export const ADVANTAGES_DATABASE = [
     category: 'General',
     maxRank: 20,
     hasOptions: true,
-    desc: 'Each rank of this advantage grants you fluency in an additional spoken and written language (or doubles your known languages at high ranks).',
+    desc: 'Each rank of this advantage grants you fluency in an additional spoken and written language (Rank 1: 1 language, Rank 2: 2 languages, Rank 3: 4 languages, Rank 4: 8 languages, Rank 5: 16 languages... Rank 10: speak and understand every language).',
     options: ['Spanish', 'Mandarin Chinese', 'French', 'Russian', 'German', 'Japanese', 'Arabic', 'Latin', 'Ancient Greek', 'Atlantean', 'Kryptonian / Alien']
   },
   {
@@ -477,28 +503,28 @@ export const ADVANTAGES_DATABASE = [
     name: 'Leadership',
     category: 'Fortune',
     maxRank: 1,
-    desc: 'You can spend a hero point to remove a condition (such as dazed, fatigued, or stunned) from an ally within earshot who can hear your orders.'
+    desc: 'You can spend a hero point to remove a condition (such as dazed, fatigued, or stunned) from an ally within earshot who can hear your orders, or grant them an immediate reroll with normal hero point benefits.'
   },
   {
     id: 'luck',
     name: 'Luck',
     category: 'Fortune',
     maxRank: 5,
-    desc: 'You gain one additional hero point reroll per rank per game session, allowing you to reroll a failed check with the hero point rules.'
+    desc: 'Each rank in Luck gives you one extra hero point per game session (usable only for rerolls and recovery). You cannot possess more ranks of Luck than half your campaign Power Level.'
   },
   {
     id: 'move_by_action',
     name: 'Move-by Action',
     category: 'Combat',
     maxRank: 1,
-    desc: 'You can split your movement before and after taking a standard action, moving in, striking an opponent, and continuing your move away.'
+    desc: 'When you take a standard action (such as an attack), you can split your movement, taking part of your move action before the standard action and the remainder after.'
   },
   {
     id: 'power_attack',
     name: 'Power Attack',
     category: 'Combat',
     maxRank: 1,
-    desc: 'When making an attack, you can trade up to -5 on your attack bonus to add the same number (up to +5) to your effect damage rank.'
+    desc: 'When making an attack, you can trade attack bonus for effect bonus. You can take a penalty of up to -5 on your attack check and add the same number (up to +5) to the effect modifier (e.g. Damage). Your attack bonus cannot be reduced below 0.'
   },
   {
     id: 'precise_attack',
@@ -506,7 +532,7 @@ export const ADVANTAGES_DATABASE = [
     category: 'Combat',
     maxRank: 4,
     hasOptions: true,
-    desc: 'You ignore circumstance penalties from cover or concealment on attacks. Each rank chooses one specific combination of cover/concealment.',
+    desc: 'You ignore circumstance penalties from cover or concealment on attacks. Each rank chooses one specific combination: Close vs Cover, Close vs Concealment, Ranged vs Cover, or Ranged vs Concealment.',
     options: ['Close Attacks vs Cover', 'Close Attacks vs Concealment', 'Ranged Attacks vs Cover', 'Ranged Attacks vs Concealment']
   },
   {
@@ -514,35 +540,35 @@ export const ADVANTAGES_DATABASE = [
     name: 'Prone Fighting',
     category: 'Combat',
     maxRank: 1,
-    desc: 'You suffer no attack check penalty for being prone, and opponents gain no attack bonus against you in melee while you are on the ground.'
+    desc: 'You suffer no penalty on melee attack checks while prone, and melee attacks against you gain no bonus while you are prone.'
   },
   {
     id: 'quick_draw',
     name: 'Quick Draw',
     category: 'Combat',
     maxRank: 1,
-    desc: 'You can draw a weapon or ready an item from your belt or holster as a free action rather than a move action.'
+    desc: 'You can draw a weapon or ready an item from your belt, holster, or scabbard as a free action rather than a move action.'
   },
   {
     id: 'ranged_attack',
     name: 'Ranged Attack',
     category: 'Combat',
     maxRank: 20,
-    desc: 'You gain a +1 bonus on all ranged attack checks per rank of this advantage, applying to firearms, blasters, thrown weapons, and rays.'
+    desc: 'You gain a +1 bonus on all ranged attack checks per rank of this advantage, applying to firearms, blasters, bows, thrown weapons, and rays (subject to campaign PL caps).'
   },
   {
     id: 'redirect',
     name: 'Redirect',
     category: 'Combat',
     maxRank: 1,
-    desc: 'If you successfully trick or feint an opponent, you can cause an attacker who misses you to strike another adjacent target instead.'
+    desc: 'If you successfully trick or feint an opponent using Deception, you can cause an attacker who misses you with a close attack to strike the tricked opponent instead.'
   },
   {
     id: 'ritualist',
     name: 'Ritualist',
     category: 'Skill',
     maxRank: 1,
-    desc: 'You can use the Expertise: Magic skill to perform occult rituals to cast spells and generate magical power stunts over extended preparation periods.'
+    desc: 'You can use the Expertise: Magic skill to perform occult rituals to cast spells and generate magical power stunts over extended preparation periods (see Rituals, Chapter 8).'
   },
   {
     id: 'second_chance',
@@ -550,7 +576,7 @@ export const ADVANTAGES_DATABASE = [
     category: 'Fortune',
     maxRank: 5,
     hasOptions: true,
-    desc: 'You gain one free reroll on checks against a specific hazard or threat per rank. You must take the result of the second roll.',
+    desc: 'You gain one free reroll on resistance checks against a specific hazard or check type (e.g. Mind Control, Radiation, Toxins, Falling, Traps). You must accept the result of the second roll.',
     options: ['Mind Control', 'Radiation', 'Suffocation / Drowning', 'Toxins & Poisons', 'Falling Damage', 'Traps & Snares']
   },
   {
@@ -558,14 +584,14 @@ export const ADVANTAGES_DATABASE = [
     name: 'Seize Initiative',
     category: 'Fortune',
     maxRank: 1,
-    desc: 'You can spend a hero point to automatically go first in the initiative order for the encounter, regardless of anyone else’s roll.'
+    desc: 'You can spend a hero point to automatically act first in the initiative order for the encounter, preempting all other participants regardless of their initiative rolls.'
   },
   {
     id: 'set_up',
     name: 'Set-up',
     category: 'Combat',
     maxRank: 1,
-    desc: 'When you successfully feint or deceive an opponent in combat, you can transfer the combat advantage of their vulnerability to an ally.'
+    desc: 'When you successfully feint or deceive an opponent in combat, you can transfer the combat advantage of their vulnerability to an ally instead of yourself.'
   },
   {
     id: 'skill_mastery',
@@ -573,7 +599,7 @@ export const ADVANTAGES_DATABASE = [
     category: 'Skill',
     maxRank: 5,
     hasOptions: true,
-    desc: 'You are so practiced with chosen skills that you can make routine checks (take 10) even under extreme danger and combat pressure.',
+    desc: 'You are so practiced with chosen skills that you can make routine checks (take 10) even under extreme danger and combat pressure. Each rank applies to one skill.',
     options: ['Acrobatics', 'Athletics', 'Deception', 'Insight', 'Investigation', 'Perception', 'Stealth', 'Technology', 'Treatment', 'Vehicles']
   },
   {
@@ -581,49 +607,49 @@ export const ADVANTAGES_DATABASE = [
     name: 'Startle',
     category: 'Combat',
     maxRank: 1,
-    desc: 'You can use the Intimidation skill instead of Deception to feint an opponent in combat, causing them to flinch and become vulnerable.'
+    desc: 'You can use the Intimidation skill instead of Deception to feint an opponent in combat. The check is opposed by the target’s Insight or Will. Success renders them vulnerable against your next attack.'
   },
   {
     id: 'takedown',
     name: 'Takedown',
     category: 'Combat',
     maxRank: 2,
-    desc: 'If you render a minion incapacitated with a melee attack, you gain an immediate extra attack against an adjacent minion as a free action.'
+    desc: 'If you render a minion incapacitated with a melee attack, you gain an immediate extra attack against an adjacent minion as a free action. With rank 2, you can also move between attacks.'
   },
   {
     id: 'taunt',
     name: 'Taunt',
     category: 'Combat',
     maxRank: 1,
-    desc: 'You can use Deception instead of Intimidation to demoralize an opponent in combat, provoking them into making tactical errors.'
+    desc: 'You can demoralize an opponent using Deception instead of Intimidation. The check is opposed by the target’s Insight or Will. Success imposes a -2 circumstance penalty on checks until the end of their next round.'
   },
   {
     id: 'teamwork',
     name: 'Teamwork',
     category: 'General',
     maxRank: 1,
-    desc: 'You receive a +5 circumstance bonus when assisting an ally with a team check or providing aid in combat.'
+    desc: 'You are effective at coordinating team efforts. When aiding an ally, you provide a +5 bonus on a check with 1 degree of success (instead of +2), and +7 with 3 or more degrees of success.'
   },
   {
     id: 'throwing_mastery',
     name: 'Throwing Mastery',
     category: 'Combat',
     maxRank: 5,
-    desc: 'You gain a +1 damage rank with thrown weapons per rank of this advantage, turning ordinary objects into deadly projectiles.'
+    desc: 'You gain a +1 bonus to damage when throwing objects or thrown weapons per rank of this advantage, turning everyday objects into lethal projectiles.'
   },
   {
     id: 'tracking',
     name: 'Tracking',
     category: 'Skill',
     maxRank: 1,
-    desc: 'You can follow visual tracks and footprints using Perception checks at full normal walking speed without penalty.'
+    desc: 'You can follow visual tracks and footprints using Perception checks at full normal walking speed without penalty (opposed by DC set by terrain and time).'
   },
   {
     id: 'trance',
     name: 'Trance',
     category: 'General',
     maxRank: 1,
-    desc: 'You can enter a deep meditative trance that slows your breathing and heart rate, allowing you to survive without air for hours.'
+    desc: 'You can enter a deep meditative trance that slows your breathing and heart rate to a fraction of normal, allowing you to survive on 1/10th the normal air for hours.'
   },
   {
     id: 'ultimate_effort',
@@ -631,7 +657,7 @@ export const ADVANTAGES_DATABASE = [
     category: 'Fortune',
     maxRank: 5,
     hasOptions: true,
-    desc: 'You can spend a hero point on a specific check type to treat your die roll as an automatic natural 20, guaranteeing maximum success.',
+    desc: 'Choose a specific check or trait (e.g. Ultimate Toughness, Ultimate Aim, Ultimate Will). When you spend a hero point on that check, you automatically treat your d20 roll as an unmodified natural 20.',
     options: ['Toughness Saves', 'Aiming Attacks', 'Escaping Grabs', 'Will Defense Saves', 'Strength Lifting Checks', 'Technology / Hacking Checks']
   },
   {
@@ -639,28 +665,28 @@ export const ADVANTAGES_DATABASE = [
     name: 'Uncanny Dodge',
     category: 'Combat',
     maxRank: 1,
-    desc: 'You are exceptionally hard to catch by surprise. You retain your full active defenses (Dodge and Parry) even when surprised or flat-footed.'
+    desc: 'You are especially attuned to danger. You retain your active defense bonuses (Dodge and Parry) even when surprised, caught flat-footed, or blind.'
   },
   {
     id: 'weapon_bind',
     name: 'Weapon Bind',
     category: 'Combat',
     maxRank: 1,
-    desc: 'If you take the Defend action and an opponent misses you with a melee weapon, you can make an immediate free disarm check against them.'
+    desc: 'If you take the Defend action and an opponent misses you with a melee weapon attack, you can make an immediate free disarm check against them.'
   },
   {
     id: 'weapon_break',
     name: 'Weapon Break',
     category: 'Combat',
     maxRank: 1,
-    desc: 'If you take the Defend action and an opponent misses you with a melee weapon, you can make an immediate free smash check against their weapon.'
+    desc: 'If you take the Defend action and an opponent misses you with a melee weapon attack, you can make an immediate free smash check against their weapon.'
   },
   {
     id: 'well_informed',
     name: 'Well-informed',
     category: 'Skill',
     maxRank: 1,
-    desc: 'When you encounter an individual, group, or organization for the first time, you can make an immediate Investigation or Perception check to recall facts about them.'
+    desc: 'When you encounter an individual, group, or secret organization for the first time, you can make an immediate Investigation or Perception check to recall key intelligence and facts about them.'
   }
 ];
 
@@ -985,4 +1011,41 @@ export function getStrengthLiftingCapacity(rank) {
     '20': '25,000 tons'
   };
   return table[String(rank)] || `${Math.pow(2, rank - 10) * 25} tons`;
+}
+
+export function getTraitDefinition(id, type, name) {
+  if (id) {
+    const byAdv = ADVANTAGES_DATABASE.find(a => a.id === id);
+    if (byAdv) return { ...byAdv, traitType: 'advantage' };
+    const bySkill = SKILLS_LIST.find(s => s.id === id);
+    if (bySkill) return { ...bySkill, traitType: 'skill' };
+    const byAb = ABILITIES.find(a => a.id === id || a.short?.toLowerCase() === id.toLowerCase());
+    if (byAb) return { ...byAb, traitType: 'ability' };
+    const byDef = DEFENSES.find(d => d.id === id);
+    if (byDef) return { ...byDef, traitType: 'defense' };
+    const byPow = POWER_EFFECTS_CATALOG.find(p => p.id === id);
+    if (byPow) return { ...byPow, traitType: 'power' };
+    const byExtra = EXTRAS_CATALOG.find(x => x.id === id);
+    if (byExtra) return { ...byExtra, traitType: 'extra' };
+    const byFlaw = FLAWS_CATALOG.find(f => f.id === id);
+    if (byFlaw) return { ...byFlaw, traitType: 'flaw' };
+  }
+  if (name) {
+    const cleanName = name.toLowerCase().split('(')[0].trim();
+    const byAdv = ADVANTAGES_DATABASE.find(a => a.name.toLowerCase() === cleanName);
+    if (byAdv) return { ...byAdv, traitType: 'advantage' };
+    const bySkill = SKILLS_LIST.find(s => s.name.toLowerCase() === cleanName);
+    if (bySkill) return { ...bySkill, traitType: 'skill' };
+    const byAb = ABILITIES.find(a => a.name.toLowerCase() === cleanName || a.short?.toLowerCase() === cleanName);
+    if (byAb) return { ...byAb, traitType: 'ability' };
+    const byDef = DEFENSES.find(d => d.name.toLowerCase() === cleanName);
+    if (byDef) return { ...byDef, traitType: 'defense' };
+    const byPow = POWER_EFFECTS_CATALOG.find(p => p.name.toLowerCase() === cleanName);
+    if (byPow) return { ...byPow, traitType: 'power' };
+    const byExtra = EXTRAS_CATALOG.find(x => x.name.toLowerCase() === cleanName);
+    if (byExtra) return { ...byExtra, traitType: 'extra' };
+    const byFlaw = FLAWS_CATALOG.find(f => f.name.toLowerCase() === cleanName);
+    if (byFlaw) return { ...byFlaw, traitType: 'flaw' };
+  }
+  return null;
 }

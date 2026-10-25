@@ -15,7 +15,8 @@ import {
   FLAWS_CATALOG,
   calculatePowerCost,
   auditCharacter,
-  getStrengthLiftingCapacity
+  getStrengthLiftingCapacity,
+  getTraitDefinition
 } from './rules.js';
 
 import {
@@ -626,6 +627,50 @@ class AppController {
   // =======================================================
   // 8. POINTER-ANCHORED RULES POPUP (Verbatim 3E text)
   // =======================================================
+  formatRulesDescription(rawText) {
+    if (!rawText) return '<em>No detailed description available.</em>';
+
+    // If already contains HTML formatting, pass through cleanly
+    if (rawText.includes('<p>') || rawText.includes('<ul>') || rawText.includes('<div>')) {
+      return rawText;
+    }
+
+    const lines = rawText.split('\n');
+    let html = '';
+    let inList = false;
+
+    lines.forEach(line => {
+      const trimmed = line.trim();
+      if (!trimmed) {
+        if (inList) {
+          html += '</ul>';
+          inList = false;
+        }
+        return;
+      }
+
+      if (trimmed.startsWith('•') || trimmed.startsWith('- ') || trimmed.startsWith('* ')) {
+        if (!inList) {
+          html += '<ul style="margin: 0.35rem 0 0.5rem 1.15rem; padding: 0;">';
+          inList = true;
+        }
+        const itemContent = trimmed.replace(/^[•\-\*]\s*/, '');
+        // Highlight prefix before colon (e.g. "Wealth:" or "Rank 1 (Well-off):")
+        const formattedItem = itemContent.replace(/^([^:]+):/, '<strong style="color: var(--hero-gold);">$1:</strong>');
+        html += `<li style="margin-bottom: 0.3rem;">${formattedItem}</li>`;
+      } else {
+        if (inList) {
+          html += '</ul>';
+          inList = false;
+        }
+        html += `<p style="margin: 0 0 0.5rem 0;">${trimmed}</p>`;
+      }
+    });
+
+    if (inList) html += '</ul>';
+    return html;
+  }
+
   setupPointerPopup() {
     const popup = document.getElementById('pointer-rules-popup');
     window.tablesManager = tablesManager;
@@ -636,9 +681,11 @@ class AppController {
         e.preventDefault();
         e.stopPropagation();
 
-        const name = (link.dataset.name || link.textContent || '').trim();
-        const desc = link.dataset.desc || '';
-        const cat = link.dataset.cat || 'Official 3E Rules';
+        const id = link.dataset.id || '';
+        const type = link.dataset.type || '';
+        let name = (link.dataset.name || link.textContent || '').trim();
+        let cat = link.dataset.cat || 'Official 3E Rules';
+        let desc = link.dataset.desc || '';
 
         // Close if clicking the same link a second time
         if (popup.style.display === 'block' && popup.dataset.activeItem === name) {
@@ -647,14 +694,29 @@ class AppController {
           return;
         }
 
+        // Look up rich trait details from the official rules database
+        const trait = getTraitDefinition(id, type, name);
+        if (trait) {
+          if (trait.name) name = trait.name;
+          if (trait.desc) desc = trait.desc;
+          if (trait.category) cat = `${trait.category} ${type ? type.charAt(0).toUpperCase() + type.slice(1) : 'Trait'}`;
+        }
+
         popup.dataset.activeItem = name;
         document.getElementById('popup-item-name').textContent = name;
         document.getElementById('popup-item-cat').textContent = cat;
-        document.getElementById('popup-item-body').textContent = desc;
+        document.getElementById('popup-item-body').innerHTML = this.formatRulesDescription(desc);
 
         popup.style.display = 'block';
-        const posX = Math.min(window.innerWidth - 340, Math.max(10, e.pageX + 10));
-        const posY = e.pageY + 10;
+        const popupWidth = Math.min(440, window.innerWidth - 30);
+        let posX = e.pageX + 10;
+        if (posX + popupWidth > window.innerWidth) {
+          posX = Math.max(10, window.innerWidth - popupWidth - 20);
+        }
+        let posY = e.pageY + 10;
+        if (e.clientY > window.innerHeight - 340 && e.pageY > 360) {
+          posY = e.pageY - 340;
+        }
         popup.style.left = `${posX}px`;
         popup.style.top = `${posY}px`;
       } else if (!e.target.closest('#pointer-rules-popup')) {
@@ -1759,7 +1821,7 @@ class AppController {
             <span style="font-size: var(--font-size-md); font-weight: 900; color: #fff;">${effRank >= 0 ? '+' + effRank : effRank}</span>
           </div>
           <div style="font-size: 0.65rem; color: var(--text-muted); display: flex; justify-content: space-between;">
-            <span>${ab.name}</span>
+            <span class="rules-link" data-id="${ab.id}" data-type="ability" data-name="${ab.name}" data-cat="Ability" style="cursor: pointer; text-decoration: underline dotted;">${ab.name}</span>
             ${mods.checkPenalty !== 0 ? `<span style="color: var(--hero-red); font-weight: 700;">(${mods.checkPenalty})</span>` : ''}
           </div>
           <button class="btn btn-outline btn-roll-ability-check" style="width: 100%; min-height: 28px; font-size: 0.7rem; padding: 0.1rem; margin-top: 2px;">🎲 Check</button>
@@ -1816,7 +1878,9 @@ class AppController {
         }
 
         box.innerHTML = `
-          <div style="font-size: var(--font-size-xs); font-weight: 800; color: var(--text-muted); text-transform: uppercase;">${def.name}</div>
+          <div style="font-size: var(--font-size-xs); font-weight: 800; color: var(--text-muted); text-transform: uppercase;">
+            <span class="rules-link" data-id="${def.id}" data-type="defense" data-name="${def.name}" data-cat="Defense" style="cursor: pointer; text-decoration: underline dotted;">${def.name}</span>
+          </div>
           <div style="font-size: var(--font-size-xl); font-weight: 900; color: ${effScore !== baseScore ? 'var(--hero-red)' : 'var(--text-bright)'};">${effScore}</div>
           <div style="font-size: 0.65rem; color: ${effScore !== baseScore ? 'var(--hero-red)' : 'var(--text-muted);'}; min-height: 14px;">
             ${modNotes.length > 0 ? `(${modNotes.join(', ')})` : `Base ${baseScore}`}
@@ -1960,7 +2024,7 @@ class AppController {
           const row = document.createElement('tr');
           row.innerHTML = `
             <td>
-              <span class="rules-link" data-name="${sk.name}" data-desc="${skillDef?.desc || ''}" data-cat="Official 3E Skill">
+              <span class="rules-link" data-id="${sk.id}" data-type="skill" data-name="${sk.name}" data-cat="Official 3E Skill">
                 ${sk.name}${sk.specialty ? ` (${sk.specialty})` : ''}
               </span>
             </td>
@@ -2003,7 +2067,7 @@ class AppController {
       card.style.cssText = 'background-color: var(--bg-input); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 0.5rem; text-align: center;';
       card.innerHTML = `
         <div style="font-size: var(--font-size-xs); font-weight: 800; color: var(--text-muted);">
-          <span class="rules-link" data-name="${ab.name}" data-desc="${ab.desc}" data-cat="Ability">${ab.name} (${ab.short})</span>
+          <span class="rules-link" data-id="${ab.id}" data-type="ability" data-name="${ab.name}" data-cat="Ability">${ab.name} (${ab.short})</span>
         </div>
         <div style="font-size: 0.7rem; color: var(--hero-gold);">${val * 2} PP</div>
         <div class="stepper-control" style="margin-top: 0.35rem; width: 100%; justify-content: center;">
@@ -2037,7 +2101,7 @@ class AppController {
       card.style.cssText = 'background-color: var(--bg-input); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 0.5rem; text-align: center;';
       card.innerHTML = `
         <div style="font-size: var(--font-size-xs); font-weight: 800; color: var(--text-muted);">
-          <span class="rules-link" data-name="${def.name}" data-desc="${def.desc}" data-cat="Defense">${def.name}</span>
+          <span class="rules-link" data-id="${def.id}" data-type="defense" data-name="${def.name}" data-cat="Defense">${def.name}</span>
         </div>
         <div style="font-size: var(--font-size-lg); font-weight: 900; color: var(--text-bright);">${total}</div>
         <div style="font-size: 0.65rem; color: var(--text-muted);">Base (${baseVal}) + Bought (${bought})</div>
@@ -2092,7 +2156,7 @@ class AppController {
       const row = document.createElement('tr');
       row.innerHTML = `
         <td>
-          <span class="rules-link" data-name="${skillDef.name}" data-desc="${skillDef.desc}" data-cat="Official 3E Skill">
+          <span class="rules-link" data-id="${skillDef.id}" data-type="skill" data-name="${skillDef.name}" data-cat="Official 3E Skill">
             ${skillDef.name}
           </span>
           ${skillDef.hasSpecialty ? `<span style="font-size: 0.75rem; color: var(--hero-gold); margin-left: 0.5rem;">[${specialty || 'No Specialty'}]</span>` : ''}
@@ -2186,15 +2250,16 @@ class AppController {
         justify-content: space-between;
       `;
 
+      const previewDesc = (advDef.desc.split('\n')[0] || advDef.desc).substring(0, 110);
       card.innerHTML = `
         <div>
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
-            <span class="rules-link" data-name="${advDef.name}" data-desc="${advDef.desc}" data-cat="${advDef.category} Advantage">
+            <span class="rules-link" data-id="${advDef.id}" data-type="advantage" data-name="${advDef.name}" data-cat="${advDef.category} Advantage">
               ${advDef.name}
             </span>
             <span style="font-size: 0.65rem; background: rgba(255,255,255,0.06); padding: 0.1rem 0.35rem; border-radius: 3px;">${advDef.category}</span>
           </div>
-          <div style="font-size: var(--font-size-xs); color: var(--text-muted);">${advDef.desc.substring(0, 95)}...</div>
+          <div style="font-size: var(--font-size-xs); color: var(--text-muted);">${previewDesc}...</div>
           ${existing?.note ? `<div style="font-size: 0.7rem; color: var(--hero-gold); margin-top: 0.25rem;">[${existing.note}]</div>` : ''}
         </div>
 
@@ -2337,7 +2402,7 @@ class AppController {
 
       card.innerHTML = `
         <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 0.25rem;">
-          <strong style="color: var(--text-bright); font-size: var(--font-size-md);">⚡ ${p.name} (Rank ${p.rank})</strong>
+          <strong style="color: var(--text-bright); font-size: var(--font-size-md);">⚡ <span class="rules-link" data-id="${p.effect?.id || ''}" data-type="power" data-name="${p.effect?.name || p.name}" data-cat="Power Effect" style="cursor: pointer; text-decoration: underline dotted;">${p.name}</span> (Rank ${p.rank})</strong>
           <span class="pp-status-value">${cost} PP</span>
         </div>
         <div style="font-size: var(--font-size-xs); color: var(--hero-cyan); font-weight: 600;">

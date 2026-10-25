@@ -13,20 +13,54 @@ export class StorageManager {
     this.characters = this.loadAll();
     this.activeId = localStorage.getItem(CURRENT_CHAR_KEY);
 
+    // If the only saved character is the legacy pre-seeded Battlesuit ("Apex Guardian"), purge it
+    if (this.characters.length === 1 && this.isDefaultSeededHero(this.characters[0])) {
+      this.characters = [];
+      this.activeId = null;
+    }
+
     if (this.characters.length === 0) {
-      // Seed with Battlesuit archetype as the starting default hero
-      const defaultHero = JSON.parse(JSON.stringify(ARCHETYPES[0]));
-      defaultHero.id = 'char_' + Date.now();
-      defaultHero.name = 'Apex Guardian';
-      defaultHero.heroPoints = 1;
-      defaultHero.bruises = 0;
-      defaultHero.conditions = { dazed: false, staggered: false, defenseless: false, vulnerable: false };
+      // Create a clean, blank freeform hero by default (never seed an archetype)
+      const defaultHero = this.buildBlankHero('New Hero', 10, 150);
       this.characters = [defaultHero];
       this.activeId = defaultHero.id;
       this.saveAll();
     } else if (!this.activeId || !this.characters.some(c => c.id === this.activeId)) {
       this.activeId = this.characters[0].id;
     }
+  }
+
+  isDefaultSeededHero(c) {
+    if (!c) return false;
+    if (c.name === 'Apex Guardian') return true;
+    if (c.name === 'Battlesuit' && c.concept === 'Armored Paragon') return true;
+    if (Array.isArray(c.powers) && c.powers.some(p => p.name === 'Battlesuit Armor Plating')) return true;
+    return false;
+  }
+
+  buildBlankHero(name = 'New Hero', pl = 10, budget = 150) {
+    return {
+      id: 'char_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
+      name,
+      player: '',
+      campaign: 'Standard Issue',
+      identity: 'Secret Identity',
+      powerLevel: pl,
+      powerPointsBudget: budget,
+      heroPoints: 1,
+      bruises: 0,
+      concept: 'Freeform custom superhero',
+      abilities: { str: 0, sta: 0, agi: 0, dex: 0, fgt: 0, int: 0, awe: 0, pre: 0 },
+      defenses: { dodge: 0, parry: 0, fortitude: 0, toughness: 0, will: 0 },
+      skills: [],
+      advantages: [],
+      powers: [],
+      gear: [],
+      complications: [
+        { type: 'Motivation', name: 'Justice', desc: 'Driven to fight crime and protect innocents.' }
+      ],
+      conditions: { dazed: false, staggered: false, defenseless: false, vulnerable: false }
+    };
   }
 
   loadAll() {
@@ -70,26 +104,7 @@ export class StorageManager {
   }
 
   createFreeformCharacter(name = 'New Hero', pl = 10, budget = 150) {
-    const newChar = {
-      id: 'char_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
-      name,
-      identity: 'Secret Identity',
-      powerLevel: pl,
-      powerPointsBudget: budget,
-      heroPoints: 1,
-      bruises: 0,
-      concept: 'Freeform custom superhero',
-      abilities: { str: 0, sta: 0, agi: 0, dex: 0, fgt: 0, int: 0, awe: 0, pre: 0 },
-      defenses: { dodge: 0, parry: 0, fortitude: 0, toughness: 0, will: 0 },
-      skills: [],
-      advantages: [],
-      powers: [],
-      gear: [],
-      complications: [
-        { type: 'Motivation', name: 'Justice', desc: 'Driven to fight crime and protect innocents.' }
-      ],
-      conditions: { dazed: false, staggered: false, defenseless: false, vulnerable: false }
-    };
+    const newChar = this.buildBlankHero(name, pl, budget);
     this.characters.push(newChar);
     this.activeId = newChar.id;
     this.saveAll();

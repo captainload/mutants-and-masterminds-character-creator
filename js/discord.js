@@ -124,7 +124,9 @@ export class DiscordIntegrator {
 
   buildEmbedFromRoll(roll) {
     let embedColor = 0x3498db; // Blue
-    if (roll.isCriticalHit) {
+    if (roll.rollType === 'initiative') {
+      embedColor = 0xf39c12; // Gold/Amber for Initiative
+    } else if (roll.isCriticalHit) {
       embedColor = 0xf1c40f; // Gold
     } else if (roll.outcomeClass === 'success') {
       embedColor = 0x2ecc71; // Green
@@ -143,13 +145,19 @@ export class DiscordIntegrator {
 
     const fields = [
       {
-        name: 'Result',
+        name: roll.rollType === 'initiative' ? 'Initiative Score' : 'Result',
         value: mathBreakdown,
         inline: true
       }
     ];
 
-    if (roll.targetDC !== null && roll.targetDC !== undefined && roll.targetDC !== '') {
+    if (roll.rollType === 'initiative') {
+      fields.push({
+        name: 'Turn Order',
+        value: `Acts at Initiative **${roll.total}**`,
+        inline: true
+      });
+    } else if (roll.targetDC !== null && roll.targetDC !== undefined && roll.targetDC !== '') {
       fields.push({
         name: 'Target DC',
         value: `**${roll.targetDC}**`,
@@ -157,7 +165,7 @@ export class DiscordIntegrator {
       });
     }
 
-    if (roll.outcome) {
+    if (roll.rollType !== 'initiative' && roll.outcome) {
       const icon = roll.outcomeClass === 'success' ? '✅' : '❌';
       fields.push({
         name: 'Outcome',

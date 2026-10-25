@@ -437,6 +437,11 @@ class AppController {
     });
 
     const executeRoll = () => {
+      const raw = input.value.trim().toLowerCase();
+      if (raw === 'init' || raw === 'initiative' || raw === '/init' || raw === '/initiative') {
+        document.getElementById('btn-roll-initiative')?.click();
+        return;
+      }
       const notation = input.value.trim() || 'd20';
       const dcCurrent = parseInt(dcValEl?.textContent, 10) || targetDC;
 
@@ -464,14 +469,14 @@ class AppController {
       const baseMod = agi + (impInitRanks * 4);
       const effMod = baseMod + mods.checkPenalty;
 
-      const roll = diceRoller.rollCheck({
+      diceRoller.rollCheck({
         title: 'Initiative',
         characterName: this.char.name,
         modifier: effMod,
         rollType: 'initiative',
-        extraText: `AGI (${agi}) + Imp Init (+${impInitRanks * 4})${mods.checkPenalty ? ` ${mods.checkPenalty} (Conditions)` : ''}`
+        targetDC: null,
+        extraText: `AGI ${agi >= 0 ? '+' + agi : agi}${impInitRanks > 0 ? `, Imp Init +${impInitRanks * 4}` : ''}${mods.checkPenalty ? ` ${mods.checkPenalty} Cond` : ''}`
       });
-      this.displayRollResult(roll);
     });
 
     // Bruises Steppers
@@ -537,6 +542,22 @@ class AppController {
     if (!resEl) return;
 
     resEl.className = 'dice-result-badge';
+
+    // Special handling for Initiative: turn order only, no DC, no success/failure
+    if (roll.rollType === 'initiative') {
+      resEl.classList.add('result-initiative');
+      const modStr = roll.modifier >= 0 ? '+' + roll.modifier : roll.modifier;
+      const formula = `d20(${roll.rawDie})${modStr}${roll.extraText ? ` (${roll.extraText})` : ''}`;
+      resEl.innerHTML = `
+        <strong style="color: #fff; margin-right: 0.4rem;">${roll.title}:</strong>
+        <span style="font-size: 0.95rem; font-weight: 900; color: var(--hero-gold); margin-right: 0.4rem;">${roll.total}</span>
+        <span style="color: var(--text-muted); margin-right: 0.5rem;">[${formula}]</span>
+        <span style="color: var(--hero-gold); font-weight: 700;">⚡ Order ${roll.total}</span>
+      `;
+      discordIntegrator.sendRollEmbed(roll);
+      return;
+    }
+
     let outcomeTag = '';
     if (roll.isCriticalHit) {
       resEl.classList.add('result-critical');
@@ -1848,6 +1869,19 @@ class AppController {
     }
 
     // 5. Render Defenses Grid in Action Center
+    const initBtn = document.getElementById('btn-roll-initiative');
+    if (initBtn) {
+      const agi = parseInt(this.char.abilities?.agi, 10) || 0;
+      let impInitRanks = 0;
+      (this.char.advantages || []).forEach(a => {
+        if (a.id === 'improved_initiative') impInitRanks += parseInt(a.rank, 10) || 1;
+      });
+      const baseMod = agi + (impInitRanks * 4);
+      const effMod = baseMod + mods.checkPenalty;
+      initBtn.textContent = `⚡ Roll Initiative (${effMod >= 0 ? '+' + effMod : effMod})`;
+      initBtn.title = `Roll Initiative: d20 + ${effMod} (AGI ${agi >= 0 ? '+' + agi : agi}${impInitRanks > 0 ? ` + Improved Init ${impInitRanks * 4}` : ''}${mods.checkPenalty ? ` ${mods.checkPenalty} Cond` : ''})`;
+    }
+
     const defGrid = document.getElementById('action-defenses-grid');
     if (defGrid) {
       defGrid.innerHTML = '';

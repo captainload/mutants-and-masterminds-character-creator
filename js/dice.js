@@ -27,6 +27,15 @@ export class DiceRoller {
    */
   rollNotation(notationString, characterName = 'Hero', targetDC = null) {
     const clean = notationString.trim().toLowerCase();
+    if (clean === 'init' || clean === 'initiative') {
+      return this.rollCheck({
+        title: 'Initiative',
+        characterName,
+        modifier: 0,
+        targetDC: null,
+        rollType: 'initiative'
+      });
+    }
     const regex = /^(\d+)?d(\d+)([\+\-]\d+)?$/i;
     const match = clean.match(regex);
 
@@ -145,10 +154,15 @@ export class DiceRoller {
 
     let degrees = null;
     let outcome = null;
-    let outcomeClass = 'neutral';
+    let outcomeClass = rollType === 'initiative' ? 'initiative' : 'neutral';
     let outcomeDescription = '';
 
-    if (targetDC !== null && targetDC !== undefined && targetDC !== '') {
+    // Initiative in M&M 3e is never rolled against a DC and has no success/failure
+    if (rollType === 'initiative') {
+      targetDC = null;
+    }
+
+    if (rollType !== 'initiative' && targetDC !== null && targetDC !== undefined && targetDC !== '') {
       const dc = parseInt(targetDC, 10);
       const diff = total - dc;
 

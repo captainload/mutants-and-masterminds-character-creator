@@ -1238,6 +1238,13 @@ input:focus, select:focus, textarea:focus {
   box-shadow: 0 0 10px rgba(245, 158, 11, 0.4);
 }
 
+.dice-result-badge.result-initiative {
+  background-color: rgba(245, 158, 11, 0.15) !important;
+  border-color: var(--hero-gold) !important;
+  color: #fef08a !important;
+  font-weight: 700;
+}
+
 .action-ability-card,
 .action-save-card,
 .ability-stepper-card-compact,

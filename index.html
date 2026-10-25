@@ -6,8 +6,8 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Mutants & Masterminds 3E - Character Architect v2.6</title>
-  <link rel="stylesheet" href="css/styles.css?v=2.6">
+  <title>Mutants & Masterminds 3E - Character Architect v2.7</title>
+  <link rel="stylesheet" href="css/styles.css?v=2.7">
 </head>
 <body>
 
@@ -92,7 +92,7 @@
           </div>
 
           <div class="brand-label-compact">
-            M&M 3E Character Editor v2.6
+            M&M 3E Character Editor v2.7
           </div>
         </div>
 
@@ -186,23 +186,23 @@
           <div class="action-main-col">
             
             <!-- Main Abilities in Action Center -->
-            <div class="card-box">
-              <div class="card-box-header">
-                <div class="card-box-title">🧬 Main Abilities & Checks</div>
+            <div class="card-box" style="margin-bottom: 0.5rem; padding: 0.5rem 0.75rem;">
+              <div class="card-box-header" style="margin-bottom: 0.35rem;">
+                <div class="card-box-title">🧬 Abilities</div>
                 <span style="font-size: var(--font-size-xs); color: var(--text-muted);">Click Check to roll d20 + ability</span>
               </div>
-              <div id="action-abilities-grid" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.5rem;">
+              <div id="action-abilities-grid" style="display: grid; grid-template-columns: repeat(8, 1fr); gap: 0.35rem;">
                 <!-- Populated via JS -->
               </div>
             </div>
 
             <!-- Core Combat Defenses & Saves -->
-            <div class="card-box">
-              <div class="card-box-header">
-                <div class="card-box-title">🛡️ Defenses & Resistance Saves</div>
-                <button class="btn btn-touch-roll" id="btn-roll-initiative" style="min-height: 32px; font-size: var(--font-size-xs);">⚡ Roll Initiative</button>
+            <div class="card-box" style="margin-bottom: 0.5rem; padding: 0.5rem 0.75rem;">
+              <div class="card-box-header" style="margin-bottom: 0.35rem;">
+                <div class="card-box-title">🛡️ Saving Throws & Defenses</div>
+                <button class="btn btn-touch-roll" id="btn-roll-initiative" style="min-height: 26px; font-size: var(--font-size-xs); padding: 0.15rem 0.55rem;">⚡ Roll Initiative</button>
               </div>
-              <div id="action-defenses-grid" style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.5rem;">
+              <div id="action-defenses-grid" style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.35rem;">
                 <!-- Populated via JS -->
               </div>
             </div>
@@ -320,22 +320,22 @@
       <!-- =================================================== -->
       <div class="tab-pane" id="tab-abilities">
         
-        <div class="card-box" style="margin-bottom: 0.85rem;">
-          <div class="card-box-header">
+        <div class="card-box" style="margin-bottom: 0.65rem; padding: 0.55rem 0.75rem;">
+          <div class="card-box-header" style="margin-bottom: 0.35rem;">
             <div class="card-box-title">🧬 Abilities (2 PP per Rank)</div>
             <span class="pp-status-value" id="abilities-cost-display">0 PP</span>
           </div>
-          <div id="abilities-stepper-grid" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.65rem;">
+          <div id="abilities-stepper-grid" style="display: grid; grid-template-columns: repeat(8, 1fr); gap: 0.35rem;">
             <!-- Populated via JS -->
           </div>
         </div>
 
-        <div class="card-box" style="margin-bottom: 0.85rem;">
-          <div class="card-box-header">
+        <div class="card-box" style="margin-bottom: 0.65rem; padding: 0.55rem 0.75rem;">
+          <div class="card-box-header" style="margin-bottom: 0.35rem;">
             <div class="card-box-title">🛡️ Defenses Point Buy (1 PP per Rank)</div>
             <span class="pp-status-value" id="defenses-cost-display">0 PP</span>
           </div>
-          <div id="defenses-stepper-grid" style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.65rem;">
+          <div id="defenses-stepper-grid" style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.35rem;">
             <!-- Populated via JS -->
           </div>
         </div>
@@ -1112,6 +1112,6 @@
     </div>
   </div>
 
-  <script type="module" src="js/app.js?v=2.6"></script>
+  <script type="module" src="js/app.js?v=2.7"></script>
 </body>
 </html>

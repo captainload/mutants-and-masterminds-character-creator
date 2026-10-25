@@ -1237,20 +1237,28 @@ input:focus, select:focus, textarea:focus {
   box-shadow: 0 0 10px rgba(245, 158, 11, 0.4);
 }
 
-.action-ability-card {
+.action-ability-card,
+.action-save-card,
+.ability-stepper-card-compact,
+.defense-stepper-card-compact {
   background-color: var(--bg-input);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-sm);
-  padding: 0.45rem 0.55rem;
+  padding: 0.28rem 0.38rem;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  gap: 0.25rem;
+  gap: 0.18rem;
   transition: all 0.15s ease;
+  min-height: 46px;
 }
 
-.action-ability-card:hover {
+.action-ability-card:hover,
+.action-save-card:hover,
+.ability-stepper-card-compact:hover,
+.defense-stepper-card-compact:hover {
   border-color: var(--hero-blue);
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.25);
 }
 
 .condition-btn {
@@ -1282,5 +1290,13 @@ input:focus, select:focus, textarea:focus {
   font-weight: 800;
   box-shadow: 0 2px 6px rgba(239, 68, 68, 0.4);
 }
+
+@media (max-width: 850px) {
+  #action-abilities-grid,
+  #abilities-stepper-grid {
+    grid-template-columns: repeat(4, 1fr) !important;
+  }
+}
+
 
 

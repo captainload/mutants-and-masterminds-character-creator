@@ -1816,15 +1816,14 @@ class AppController {
         const card = document.createElement('div');
         card.className = 'action-ability-card';
         card.innerHTML = `
-          <div style="display: flex; justify-content: space-between; align-items: baseline;">
-            <strong style="font-size: var(--font-size-xs); color: var(--hero-gold);">${abShort}</strong>
-            <span style="font-size: var(--font-size-md); font-weight: 900; color: #fff;">${effRank >= 0 ? '+' + effRank : effRank}</span>
+          <div style="display: flex; justify-content: space-between; align-items: baseline; line-height: 1.1;">
+            <span class="rules-link" data-id="${ab.id}" data-type="ability" data-name="${ab.name}" data-cat="Ability" style="font-size: 0.72rem; font-weight: 800; color: var(--hero-gold); cursor: pointer;" title="${ab.name} (Click for rules)">${abShort}</span>
+            <div style="display: flex; align-items: baseline; gap: 0.15rem;">
+              <strong style="font-size: var(--font-size-sm); font-weight: 900; color: ${effRank !== baseRank ? 'var(--hero-red)' : '#fff'};">${effRank >= 0 ? '+' + effRank : effRank}</strong>
+              ${mods.checkPenalty !== 0 ? `<span style="font-size: 0.58rem; color: var(--hero-red); font-weight: 700;">(${mods.checkPenalty})</span>` : ''}
+            </div>
           </div>
-          <div style="font-size: 0.65rem; color: var(--text-muted); display: flex; justify-content: space-between;">
-            <span class="rules-link" data-id="${ab.id}" data-type="ability" data-name="${ab.name}" data-cat="Ability" style="cursor: pointer; text-decoration: underline dotted;">${ab.name}</span>
-            ${mods.checkPenalty !== 0 ? `<span style="color: var(--hero-red); font-weight: 700;">(${mods.checkPenalty})</span>` : ''}
-          </div>
-          <button class="btn btn-outline btn-roll-ability-check" style="width: 100%; min-height: 28px; font-size: 0.7rem; padding: 0.1rem; margin-top: 2px;">🎲 Check</button>
+          <button class="btn btn-outline btn-roll-ability-check" style="width: 100%; min-height: 22px; font-size: 0.65rem; padding: 0.05rem 0.2rem; border-radius: 3px;" title="Roll ${ab.name} Check (${effRank >= 0 ? '+' + effRank : effRank})">🎲 Check</button>
         `;
 
         card.querySelector('.btn-roll-ability-check')?.addEventListener('click', () => {
@@ -1852,7 +1851,7 @@ class AppController {
 
       DEFENSES.forEach(def => {
         const box = document.createElement('div');
-        box.style.cssText = 'background-color: var(--bg-input); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 0.5rem; text-align: center;';
+        box.className = 'action-save-card';
 
         const baseScore = audit.computedDefenses[def.id] || 0;
         let effScore = baseScore;
@@ -1877,15 +1876,22 @@ class AppController {
           if (mods.checkPenalty !== 0) modNotes.push(`${mods.checkPenalty} Cond`);
         }
 
+        const noteText = modNotes.length > 0 ? modNotes.join(', ') : `Base ${baseScore}`;
+
         box.innerHTML = `
-          <div style="font-size: var(--font-size-xs); font-weight: 800; color: var(--text-muted); text-transform: uppercase;">
-            <span class="rules-link" data-id="${def.id}" data-type="defense" data-name="${def.name}" data-cat="Defense" style="cursor: pointer; text-decoration: underline dotted;">${def.name}</span>
+          <div style="display: flex; justify-content: space-between; align-items: baseline; line-height: 1.1;">
+            <span class="rules-link" data-id="${def.id}" data-type="defense" data-name="${def.name}" data-cat="Defense" style="font-size: 0.72rem; font-weight: 800; color: var(--hero-cyan); text-transform: uppercase; cursor: pointer;" title="${def.name} (Click for rules)">${def.name}</span>
+            <div style="display: flex; align-items: baseline; gap: 0.15rem;">
+              <strong style="font-size: var(--font-size-sm); font-weight: 900; color: ${effScore !== baseScore ? 'var(--hero-red)' : 'var(--text-bright)'};">${effScore}</strong>
+              ${effScore !== baseScore ? `<span style="font-size: 0.58rem; color: var(--hero-red); font-weight: 700;">*</span>` : ''}
+            </div>
           </div>
-          <div style="font-size: var(--font-size-xl); font-weight: 900; color: ${effScore !== baseScore ? 'var(--hero-red)' : 'var(--text-bright)'};">${effScore}</div>
-          <div style="font-size: 0.65rem; color: ${effScore !== baseScore ? 'var(--hero-red)' : 'var(--text-muted);'}; min-height: 14px;">
-            ${modNotes.length > 0 ? `(${modNotes.join(', ')})` : `Base ${baseScore}`}
+          <div style="display: flex; justify-content: space-between; align-items: center; gap: 0.2rem;">
+            <span style="font-size: 0.6rem; color: ${effScore !== baseScore ? 'var(--hero-red)' : 'var(--text-muted)'}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 60px;" title="${noteText}">
+              ${noteText}
+            </span>
+            <button class="btn-touch-roll defense" style="min-height: 22px; padding: 0.05rem 0.4rem; font-size: 0.65rem; border-radius: 3px;" data-def="${def.id}" title="Roll ${def.name} Save (+${effScore})">🎲 Save</button>
           </div>
-          <button class="btn-touch-roll defense" style="margin-top: 0.35rem; width: 100%;" data-def="${def.id}">🎲 Save</button>
         `;
 
         box.querySelector('button')?.addEventListener('click', () => {
@@ -2064,18 +2070,17 @@ class AppController {
     ABILITIES.forEach(ab => {
       const val = parseInt(this.char.abilities?.[ab.id], 10) || 0;
       const card = document.createElement('div');
-      card.style.cssText = 'background-color: var(--bg-input); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 0.5rem; text-align: center;';
+      card.className = 'ability-stepper-card-compact';
       card.innerHTML = `
-        <div style="font-size: var(--font-size-xs); font-weight: 800; color: var(--text-muted);">
-          <span class="rules-link" data-id="${ab.id}" data-type="ability" data-name="${ab.name}" data-cat="Ability">${ab.name} (${ab.short})</span>
+        <div style="display: flex; justify-content: space-between; align-items: baseline; line-height: 1.1;">
+          <span class="rules-link" data-id="${ab.id}" data-type="ability" data-name="${ab.name}" data-cat="Ability" style="font-weight: 800; font-size: 0.72rem; color: var(--hero-gold); cursor: pointer;" title="${ab.name}${ab.id === 'str' ? ` (Lift: ${getStrengthLiftingCapacity(val)})` : ''}">${ab.short}</span>
+          <span style="font-size: 0.62rem; color: var(--text-muted);">${val * 2} PP</span>
         </div>
-        <div style="font-size: 0.7rem; color: var(--hero-gold);">${val * 2} PP</div>
-        <div class="stepper-control" style="margin-top: 0.35rem; width: 100%; justify-content: center;">
+        <div class="stepper-control compact" style="width: 100%; justify-content: center; margin-top: 0.15rem;">
           <button class="btn-stepper compact" data-ab="${ab.id}" data-dir="-1">-</button>
           <span class="stepper-value compact">${val}</span>
           <button class="btn-stepper compact" data-ab="${ab.id}" data-dir="1">+</button>
         </div>
-        ${ab.id === 'str' ? `<div style="font-size: 0.65rem; color: var(--text-muted); margin-top: 2px;">Lift: ${getStrengthLiftingCapacity(val)}</div>` : ''}
       `;
 
       card.querySelectorAll('.btn-stepper').forEach(btn => {
@@ -2098,17 +2103,19 @@ class AppController {
       const total = audit.computedDefenses[def.id] || 0;
 
       const card = document.createElement('div');
-      card.style.cssText = 'background-color: var(--bg-input); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 0.5rem; text-align: center;';
+      card.className = 'defense-stepper-card-compact';
       card.innerHTML = `
-        <div style="font-size: var(--font-size-xs); font-weight: 800; color: var(--text-muted);">
-          <span class="rules-link" data-id="${def.id}" data-type="defense" data-name="${def.name}" data-cat="Defense">${def.name}</span>
+        <div style="display: flex; justify-content: space-between; align-items: baseline; line-height: 1.1;">
+          <span class="rules-link" data-id="${def.id}" data-type="defense" data-name="${def.name}" data-cat="Defense" style="font-weight: 800; font-size: 0.72rem; color: var(--hero-cyan); text-transform: uppercase; cursor: pointer;" title="${def.name}">${def.name}</span>
+          <strong style="font-size: var(--font-size-sm); font-weight: 900; color: var(--text-bright);">${total}</strong>
         </div>
-        <div style="font-size: var(--font-size-lg); font-weight: 900; color: var(--text-bright);">${total}</div>
-        <div style="font-size: 0.65rem; color: var(--text-muted);">Base (${baseVal}) + Bought (${bought})</div>
-        <div class="stepper-control" style="margin-top: 0.35rem; width: 100%; justify-content: center;">
-          <button class="btn-stepper compact" data-def="${def.id}" data-dir="-1">-</button>
-          <span class="stepper-value compact">${bought}</span>
-          <button class="btn-stepper compact" data-def="${def.id}" data-dir="1">+</button>
+        <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; margin-top: 0.15rem; gap: 0.2rem;">
+          <span style="font-size: 0.6rem; color: var(--text-muted);" title="Base (${baseVal}) + Bought (${bought})">B${baseVal}+${bought}</span>
+          <div class="stepper-control compact">
+            <button class="btn-stepper compact" data-def="${def.id}" data-dir="-1">-</button>
+            <span class="stepper-value compact">${bought}</span>
+            <button class="btn-stepper compact" data-def="${def.id}" data-dir="1">+</button>
+          </div>
         </div>
       `;
 

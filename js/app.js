@@ -1,6 +1,6 @@
 /**
- * Mutants & Masterminds 3e Character Architect & Interactive Record
- * Primary Application Controller
+ * Mutants & Masterminds 3E Character Architect & Interactive Record
+ * Primary Application Controller - Optimized for 1080px display width
  */
 
 import {
@@ -16,7 +16,19 @@ import {
   getStrengthLiftingCapacity
 } from './rules.js';
 
-import { ARCHETYPES, getArchetypeById } from './archetypes.js';
+import {
+  MEASUREMENTS_TABLE,
+  POWER_LEVEL_GUIDELINES,
+  DAMAGE_CONDITIONS_TABLE,
+  COMBAT_MANEUVERS_TABLE,
+  MATERIAL_TOUGHNESS_TABLE,
+  HQ_SIZES_TABLE,
+  HQ_FEATURES_LIST,
+  tablesManager
+} from './tables.js';
+
+import { POWER_PROFILES_LIBRARY } from './power_profiles.js';
+import { ARCHETYPES } from './archetypes.js';
 import { diceRoller } from './dice.js';
 import { discordIntegrator } from './discord.js';
 import { storageManager } from './storage.js';
@@ -24,98 +36,453 @@ import { storageManager } from './storage.js';
 class AppController {
   constructor() {
     this.char = storageManager.getActiveCharacter();
-    this.activePowerEditing = null; // currently opened power in builder
+    this.activePowerEditing = null;
     this.init();
   }
 
   init() {
+    this.checkDisplayWidth();
+    window.addEventListener('resize', () => this.checkDisplayWidth());
+
     this.initFontSize();
+    this.setupHeaderBindings();
     this.setupNavigation();
     this.setupDiceLog();
-    this.setupSidebarControls();
-    this.setupModals();
-    this.setupRoster();
+    this.setupDiceRollerBar();
+    this.setupTables();
+    this.setupMenuModal();
+    this.setupHeroPointModal();
+    this.setupPointerPopup();
+    this.setupPowerProfiles();
+    this.setupCustomPowerBuilder();
+    this.setupGearAndHQ();
+    this.setupHistoryTab();
     this.setupSettingsTab();
     this.renderAll();
   }
 
-  // ==========================================
-  // FONT SIZE CONTROLS
-  // ==========================================
+  // =======================================================
+  // 1. DISPLAY WIDTH WARNING CHECK (< 1080px)
+  // =======================================================
+  checkDisplayWidth() {
+    const banner = document.getElementById('width-warning-banner');
+    if (!banner) return;
+    const isDismissed = sessionStorage.getItem('mm3e_width_dismissed') === 'true';
+
+    if (window.innerWidth < 1080 && !isDismissed) {
+      banner.classList.add('visible');
+    } else {
+      banner.classList.remove('visible');
+    }
+
+    const dismissBtn = document.getElementById('btn-dismiss-width-warning');
+    if (dismissBtn && !dismissBtn.dataset.wired) {
+      dismissBtn.dataset.wired = 'true';
+      dismissBtn.addEventListener('click', () => {
+        banner.classList.remove('visible');
+        sessionStorage.setItem('mm3e_width_dismissed', 'true');
+      });
+    }
+  }
+
+  // =======================================================
+  // 2. FONT SIZING
+  // =======================================================
   initFontSize() {
-    const savedSize = localStorage.getItem('mm3e_font_size') || 'normal';
-    document.documentElement.setAttribute('data-font-size', savedSize);
-    document.querySelectorAll('.font-size-btn').forEach(btn => {
-      btn.classList.toggle('active', btn.dataset.size === savedSize);
+    const saved = localStorage.getItem('mm3e_font_size') || 'normal';
+    document.documentElement.setAttribute('data-font-size', saved);
+    document.querySelectorAll('.font-size-toggle').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.size === saved);
       btn.addEventListener('click', () => {
         const size = btn.dataset.size;
         document.documentElement.setAttribute('data-font-size', size);
         localStorage.setItem('mm3e_font_size', size);
-        document.querySelectorAll('.font-size-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.font-size-toggle').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
-        this.showToast(`Font size set to ${size.toUpperCase()}`);
       });
     });
   }
 
-  // ==========================================
-  // TABS & NAVIGATION
-  // ==========================================
-  setupNavigation() {
-    const tabButtons = document.querySelectorAll('.tab-btn');
-    tabButtons.forEach(btn => {
-      btn.addEventListener('click', () => {
-        const targetTab = btn.dataset.tab;
-        tabButtons.forEach(b => b.classList.remove('active'));
-        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-
-        btn.classList.add('active');
-        const content = document.getElementById(targetTab);
-        if (content) content.classList.add('active');
-      });
+  // =======================================================
+  // 3. HEADER TWO-ROW BINDINGS
+  // =======================================================
+  setupHeaderBindings() {
+    // Menu button
+    document.getElementById('btn-open-menu').addEventListener('click', () => {
+      this.populateMenuRoster();
+      this.openModal('modal-menu');
     });
 
-    // Jump to powers tab shortcut
-    document.getElementById('btn-goto-powers-tab')?.addEventListener('click', () => {
-      document.querySelector('[data-tab="tab-powers"]')?.click();
-    });
-  }
-
-  // ==========================================
-  // ROSTER & MULTI-CHARACTER
-  // ==========================================
-  setupRoster() {
-    const rosterSelect = document.getElementById('char-roster-select');
-    this.updateRosterDropdown();
-
-    rosterSelect.addEventListener('change', (e) => {
-      storageManager.setActiveCharacter(e.target.value);
-      this.char = storageManager.getActiveCharacter();
-      this.renderAll();
-      this.showToast(`Switched to ${this.char.name}`);
+    // Player Name
+    const playerNameInput = document.getElementById('header-player-name');
+    playerNameInput.value = this.char.playerName || '';
+    playerNameInput.addEventListener('input', (e) => {
+      this.char.playerName = e.target.value;
+      storageManager.saveCharacter(this.char);
     });
 
-    // New freeform character
-    document.getElementById('btn-new-freeform').addEventListener('click', () => {
-      const name = prompt('Enter superhero name for freeform creation:', 'New Champion');
-      if (name) {
-        const newChar = storageManager.createFreeformCharacter(name.trim(), 10, 150);
-        this.char = newChar;
-        this.updateRosterDropdown();
-        this.renderAll();
-        this.showToast(`Created new freeform hero: ${name}`);
+    // Character Name
+    const charNameInput = document.getElementById('header-char-name');
+    charNameInput.value = this.char.name || '';
+    charNameInput.addEventListener('input', (e) => {
+      this.char.name = e.target.value;
+      storageManager.saveCharacter(this.char);
+      this.populateMenuRoster();
+    });
+
+    // Campaign Name
+    const campaignInput = document.getElementById('header-campaign-name');
+    campaignInput.value = this.char.campaign || 'Earth-Prime';
+    campaignInput.addEventListener('input', (e) => {
+      this.char.campaign = e.target.value;
+      storageManager.saveCharacter(this.char);
+    });
+
+    // Hero Points Stepper
+    document.getElementById('btn-hp-plus').addEventListener('click', () => {
+      this.char.heroPoints = (this.char.heroPoints || 0) + 1;
+      this.saveAndAudit();
+      this.renderHeaderStatus();
+    });
+
+    document.getElementById('btn-hp-minus').addEventListener('click', () => {
+      if ((this.char.heroPoints || 0) > 0) {
+        this.char.heroPoints--;
+        this.saveAndAudit();
+        this.renderHeaderStatus();
       }
     });
 
-    // Export to JSON
-    document.getElementById('btn-export-char').addEventListener('click', () => {
-      storageManager.exportCharacterToJSON(this.char);
-      this.showToast(`Exported ${this.char.name} as JSON.`);
+    document.getElementById('btn-quick-spend-hp').addEventListener('click', () => {
+      this.openModal('modal-hero-point');
     });
 
-    // Import from JSON
-    const fileInput = document.getElementById('import-file-input');
-    document.getElementById('btn-import-char').addEventListener('click', () => {
+    // Tables Button
+    document.getElementById('btn-open-tables').addEventListener('click', () => {
+      this.openModal('modal-tables');
+    });
+  }
+
+  // =======================================================
+  // 4. NAVIGATION TABS
+  // =======================================================
+  setupNavigation() {
+    const tabs = document.querySelectorAll('.nav-tab-btn');
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        const target = tab.dataset.tab;
+        tabs.forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+
+        tab.classList.add('active');
+        const pane = document.getElementById(target);
+        if (pane) pane.classList.add('active');
+      });
+    });
+  }
+
+  // =======================================================
+  // 5. DICE ROLLER BAR & LOG
+  // =======================================================
+  setupDiceRollerBar() {
+    const rollBtn = document.getElementById('btn-action-roll-dice');
+    const input = document.getElementById('action-dice-input');
+    const dcInput = document.getElementById('action-dice-dc');
+
+    const executeRoll = () => {
+      const notation = input.value.trim() || 'd20';
+      const dcVal = dcInput.value.trim();
+      const targetDC = dcVal !== '' ? parseInt(dcVal, 10) : null;
+
+      try {
+        const roll = diceRoller.rollNotation(notation, this.char.name, targetDC);
+        discordIntegrator.sendRollEmbed(roll);
+      } catch (err) {
+        alert(err.message);
+      }
+    };
+
+    rollBtn.addEventListener('click', executeRoll);
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') executeRoll();
+    });
+
+    // Initiative Roll Button
+    document.getElementById('btn-roll-initiative').addEventListener('click', () => {
+      const agi = parseInt(this.char.abilities?.agi, 10) || 0;
+      let impInitRanks = 0;
+      (this.char.advantages || []).forEach(a => {
+        if (a.id === 'improved_initiative') impInitRanks += parseInt(a.rank, 10) || 1;
+      });
+      const mod = agi + (impInitRanks * 4);
+
+      const roll = diceRoller.rollCheck({
+        title: 'Initiative Check',
+        characterName: this.char.name,
+        modifier: mod,
+        rollType: 'initiative',
+        extraText: `Base AGI (${agi}) + Improved Initiative (+${impInitRanks * 4})`
+      });
+      discordIntegrator.sendRollEmbed(roll);
+    });
+
+    // Bruises and conditions
+    document.getElementById('btn-bruise-plus').addEventListener('click', () => {
+      this.char.bruises = (this.char.bruises || 0) + 1;
+      this.saveAndAudit();
+      this.renderActionCenter(auditCharacter(this.char));
+    });
+
+    document.getElementById('btn-bruise-minus').addEventListener('click', () => {
+      if ((this.char.bruises || 0) > 0) {
+        this.char.bruises--;
+        this.saveAndAudit();
+        this.renderActionCenter(auditCharacter(this.char));
+      }
+    });
+
+    document.getElementById('btn-action-clear-damage').addEventListener('click', () => {
+      this.char.bruises = 0;
+      this.char.conditions = { dazed: false, staggered: false, defenseless: false, vulnerable: false };
+      this.saveAndAudit();
+      this.renderActionCenter(auditCharacter(this.char));
+    });
+
+    document.querySelectorAll('.condition-toggle').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const cond = btn.dataset.cond;
+        if (!this.char.conditions) this.char.conditions = {};
+        this.char.conditions[cond] = !this.char.conditions[cond];
+        this.saveAndAudit();
+        this.renderActionCenter(auditCharacter(this.char));
+      });
+    });
+
+    document.getElementById('btn-clear-dice-log').addEventListener('click', () => {
+      diceRoller.history = [];
+      document.getElementById('dice-log-feed').innerHTML = '';
+    });
+  }
+
+  setupDiceLog() {
+    diceRoller.onRoll((roll) => {
+      const container = document.getElementById('dice-log-feed');
+      if (!container) return;
+
+      const entry = document.createElement('div');
+      entry.style.cssText = `
+        background-color: var(--bg-input);
+        border-left: 4px solid ${roll.outcomeClass === 'success' ? 'var(--hero-green)' : roll.outcomeClass === 'failure' ? 'var(--hero-red)' : 'var(--hero-blue)'};
+        border-radius: var(--radius-sm);
+        padding: 0.45rem 0.65rem;
+        font-size: var(--font-size-xs);
+      `;
+
+      entry.innerHTML = `
+        <div style="display: flex; justify-content: space-between; font-weight: 800; color: var(--text-bright);">
+          <span>${roll.title}</span>
+          <span style="font-size: 0.65rem; color: var(--text-muted);">${roll.timestamp}</span>
+        </div>
+        <div style="font-size: var(--font-size-md); font-weight: 900; margin: 2px 0;">
+          ${roll.total} <span style="font-size: var(--font-size-xs); color: var(--text-muted); font-weight: 600;">(${roll.extraText || `d20 (${roll.rawDie}) + ${roll.modifier}`}${roll.targetDC ? ` vs DC ${roll.targetDC}` : ''})</span>
+        </div>
+        ${roll.outcome ? `<div style="font-weight: 700; color: ${roll.outcomeClass === 'success' ? 'var(--hero-green)' : 'var(--hero-red)'};">${roll.outcomeClass === 'success' ? '✅' : '❌'} ${roll.outcomeDescription}</div>` : ''}
+        ${discordIntegrator.enabled ? `<span style="font-size: 0.65rem; color: #5865f2; font-weight: 700;">🤖 Discord Echoed</span>` : ''}
+      `;
+
+      container.insertBefore(entry, container.firstChild);
+    });
+  }
+
+  // =======================================================
+  // 6. TABLES POP-UP & POP-OUT MANAGER
+  // =======================================================
+  setupTables() {
+    // Populate Measurements Table
+    const measTbody = document.querySelector('#table-measurements tbody');
+    if (measTbody) {
+      measTbody.innerHTML = MEASUREMENTS_TABLE.map(r => `
+        <tr><td><strong>Rank ${r.rank}</strong></td><td>${r.mass}</td><td>${r.distance}</td><td>${r.time}</td><td>${r.volume}</td></tr>
+      `).join('');
+    }
+
+    // Populate PL Guidelines
+    const plTbody = document.querySelector('#table-pl-guidelines tbody');
+    if (plTbody) {
+      plTbody.innerHTML = POWER_LEVEL_GUIDELINES.map(g => `
+        <tr><td><strong>PL ${g.pl}</strong></td><td>${g.pp} PP</td><td>Max +${g.maxAttackEffect}</td><td>Max +${g.maxDefTough}</td><td>Max +${g.maxFortWill}</td><td>Max +${g.maxSkill}</td><td>${g.description}</td></tr>
+      `).join('');
+    }
+
+    // Populate Damage Conditions Table
+    const dmgTbody = document.querySelector('#table-damage-conditions tbody');
+    if (dmgTbody) {
+      dmgTbody.innerHTML = DAMAGE_CONDITIONS_TABLE.map(d => `
+        <tr><td><strong>${d.degree}</strong></td><td><span style="color: var(--hero-red); font-weight: 800;">${d.result}</span></td><td>${d.description}</td></tr>
+      `).join('');
+    }
+
+    // Populate Combat Maneuvers
+    const manTbody = document.querySelector('#table-combat-maneuvers tbody');
+    if (manTbody) {
+      manTbody.innerHTML = COMBAT_MANEUVERS_TABLE.map(m => `
+        <tr><td><strong>${m.maneuver}</strong></td><td style="color: var(--hero-cyan);">${m.tradeOff}</td><td>${m.requirement}</td></tr>
+      `).join('');
+    }
+
+    // Populate Material Toughness
+    const matTbody = document.querySelector('#table-materials tbody');
+    if (matTbody) {
+      matTbody.innerHTML = MATERIAL_TOUGHNESS_TABLE.map(m => `
+        <tr><td>${m.material}</td><td><strong>Toughness ${m.toughness}</strong></td></tr>
+      `).join('');
+    }
+
+    // Collapsible sections toggle
+    document.querySelectorAll('.collapsible-header').forEach(header => {
+      header.addEventListener('click', () => {
+        const content = header.nextElementSibling;
+        if (content) content.classList.toggle('collapsed');
+      });
+    });
+
+    // Expand / Collapse all
+    document.getElementById('btn-tables-expand-all').addEventListener('click', () => {
+      document.querySelectorAll('.collapsible-content').forEach(c => c.classList.remove('collapsed'));
+    });
+    document.getElementById('btn-tables-collapse-all').addEventListener('click', () => {
+      document.querySelectorAll('.collapsible-content').forEach(c => c.classList.add('collapsed'));
+    });
+
+    // Close Tables Modal
+    document.getElementById('btn-close-tables').addEventListener('click', () => {
+      this.closeModal('modal-tables');
+    });
+
+    // Pop-Out Window Button
+    document.getElementById('btn-tables-popout').addEventListener('click', () => {
+      tablesManager.openPopout();
+      this.closeModal('modal-tables');
+    });
+  }
+
+  // =======================================================
+  // 7. POINTER-ANCHORED RULES POPUP (Verbatim 3E text)
+  // =======================================================
+  setupPointerPopup() {
+    const popup = document.getElementById('pointer-rules-popup');
+    window.tablesManager = tablesManager; // expose for child popout window
+
+    document.addEventListener('click', (e) => {
+      const link = e.target.closest('.rules-link');
+      if (link) {
+        e.preventDefault();
+        e.stopPropagation();
+
+        const name = link.dataset.name || link.textContent;
+        const desc = link.dataset.desc || '';
+        const cat = link.dataset.cat || 'Official 3E Rules';
+
+        document.getElementById('popup-item-name').textContent = name;
+        document.getElementById('popup-item-cat').textContent = cat;
+        document.getElementById('popup-item-body').textContent = desc;
+
+        popup.style.display = 'block';
+        const posX = Math.min(window.innerWidth - 340, Math.max(10, e.pageX + 10));
+        const posY = e.pageY + 10;
+        popup.style.left = `${posX}px`;
+        popup.style.top = `${posY}px`;
+      } else if (!e.target.closest('#pointer-rules-popup')) {
+        popup.style.display = 'none';
+      }
+    });
+  }
+
+  // =======================================================
+  // 8. MENU MODAL (Save, Save As, Load, Import/Export)
+  // =======================================================
+  setupMenuModal() {
+    document.getElementById('btn-close-menu').addEventListener('click', () => {
+      this.closeModal('modal-menu');
+    });
+
+    // Save
+    document.getElementById('menu-btn-save').addEventListener('click', () => {
+      this.saveAndAudit();
+      this.closeModal('modal-menu');
+      alert(`Character "${this.char.name}" saved!`);
+    });
+
+    // Save As
+    document.getElementById('menu-btn-save-as').addEventListener('click', () => {
+      const clone = storageManager.cloneCharacter(this.char.id);
+      if (clone) {
+        this.char = clone;
+        this.populateMenuRoster();
+        this.renderAll();
+        this.closeModal('modal-menu');
+        alert(`Cloned as "${clone.name}"!`);
+      }
+    });
+
+    // Load Character from Roster
+    document.getElementById('menu-btn-load-char').addEventListener('click', () => {
+      const select = document.getElementById('menu-char-roster');
+      storageManager.setActiveCharacter(select.value);
+      this.char = storageManager.getActiveCharacter();
+      this.renderAll();
+      this.closeModal('modal-menu');
+    });
+
+    // Delete Character
+    document.getElementById('menu-btn-delete-char').addEventListener('click', () => {
+      if (confirm(`Delete character "${this.char.name}"?`)) {
+        storageManager.deleteCharacter(this.char.id);
+        this.char = storageManager.getActiveCharacter();
+        this.populateMenuRoster();
+        this.renderAll();
+        this.closeModal('modal-menu');
+      }
+    });
+
+    // New Freeform Hero
+    document.getElementById('menu-btn-new-freeform').addEventListener('click', () => {
+      const name = prompt('Enter superhero name for freeform creation:', 'New Champion');
+      if (name) {
+        const newHero = storageManager.createFreeformCharacter(name.trim(), 10, 150);
+        this.char = newHero;
+        this.populateMenuRoster();
+        this.renderAll();
+        this.closeModal('modal-menu');
+      }
+    });
+
+    // Guided Archetypes
+    document.getElementById('menu-btn-archetypes-wizard').addEventListener('click', () => {
+      const archName = prompt(`Select Archetype from:\n1. Battlesuit\n2. Martial Artist\n3. Mystic\n4. Paragon\n5. Speedster\n6. Crime Fighter\n7. Energy Controller\n8. Powerhouse\n9. Psychic\n10. Shapeshifter`, 'Battlesuit');
+      if (archName) {
+        const match = ARCHETYPES.find(a => a.name.toLowerCase().includes(archName.toLowerCase()) || a.id.toLowerCase().includes(archName.toLowerCase()));
+        if (match) {
+          const hero = storageManager.createFromArchetype(match.id, match.name);
+          this.char = hero;
+          this.populateMenuRoster();
+          this.renderAll();
+          this.closeModal('modal-menu');
+        } else {
+          alert('Archetype not recognized.');
+        }
+      }
+    });
+
+    // Export JSON
+    document.getElementById('menu-btn-export').addEventListener('click', () => {
+      storageManager.exportCharacterToJSON(this.char);
+      this.closeModal('modal-menu');
+    });
+
+    // Import JSON
+    const fileInput = document.getElementById('menu-file-input');
+    document.getElementById('menu-btn-import').addEventListener('click', () => {
       fileInput.click();
     });
 
@@ -127,9 +494,10 @@ class AppController {
         const imported = storageManager.importCharacterFromJSON(event.target.result);
         if (imported) {
           this.char = imported;
-          this.updateRosterDropdown();
+          this.populateMenuRoster();
           this.renderAll();
-          this.showToast(`Imported ${imported.name} successfully!`);
+          this.closeModal('modal-menu');
+          alert(`Imported ${imported.name}!`);
         }
       };
       reader.readAsText(file);
@@ -137,263 +505,183 @@ class AppController {
     });
   }
 
-  updateRosterDropdown() {
-    const rosterSelect = document.getElementById('char-roster-select');
-    rosterSelect.innerHTML = '';
+  populateMenuRoster() {
+    const select = document.getElementById('menu-char-roster');
+    if (!select) return;
+    select.innerHTML = '';
     storageManager.characters.forEach(c => {
       const opt = document.createElement('option');
       opt.value = c.id;
       opt.textContent = `${c.name} (PL ${c.powerLevel})`;
       if (c.id === this.char.id) opt.selected = true;
-      rosterSelect.appendChild(opt);
+      select.appendChild(opt);
     });
   }
 
-  // ==========================================
-  // SIDEBAR CONTROLS & ROLL20 LOG
-  // ==========================================
-  setupSidebarControls() {
-    // Hero Points Spend Modal Open
-    document.getElementById('btn-open-hp-modal').addEventListener('click', () => {
-      this.openModal('modal-hero-point');
-    });
-
-    // Bruise counter controls
-    document.getElementById('btn-bruise-plus').addEventListener('click', () => {
-      this.char.bruises = (this.char.bruises || 0) + 1;
-      this.saveAndAudit();
-      this.renderSidebarHUD();
-    });
-
-    document.getElementById('btn-bruise-minus').addEventListener('click', () => {
-      if ((this.char.bruises || 0) > 0) {
-        this.char.bruises--;
-        this.saveAndAudit();
-        this.renderSidebarHUD();
-      }
-    });
-
-    document.getElementById('btn-reset-damage').addEventListener('click', () => {
-      this.char.bruises = 0;
-      this.char.conditions = { dazed: false, staggered: false, defenseless: false, vulnerable: false };
-      this.saveAndAudit();
-      this.renderSidebarHUD();
-      this.showToast('Conditions and bruises cleared!');
-    });
-
-    // Condition pills
-    ['dazed', 'staggered', 'defenseless', 'vulnerable'].forEach(cond => {
-      const el = document.getElementById(`cond-${cond}`);
-      if (el) {
-        el.addEventListener('click', () => {
-          if (!this.char.conditions) this.char.conditions = {};
-          this.char.conditions[cond] = !this.char.conditions[cond];
-          this.saveAndAudit();
-          this.renderSidebarHUD();
-        });
-      }
-    });
-
-    // Quick d20 roll
-    document.getElementById('btn-quick-roll').addEventListener('click', () => {
-      const mod = parseInt(document.getElementById('quick-roll-mod').value, 10) || 0;
-      const dcVal = document.getElementById('quick-roll-dc').value;
-      const targetDC = dcVal !== '' ? parseInt(dcVal, 10) : null;
-
-      const roll = diceRoller.rollCheck({
-        title: 'Quick d20 Check',
-        characterName: this.char.name,
-        modifier: mod,
-        targetDC,
-        rollType: 'general'
-      });
-
-      discordIntegrator.sendRollEmbed(roll);
-    });
-
-    // Clear roll log
-    document.getElementById('btn-clear-log').addEventListener('click', () => {
-      diceRoller.history = [];
-      document.getElementById('dice-log-container').innerHTML = '';
-      this.showToast('Dice log cleared.');
-    });
-
-    // Initiative Roll Button
-    document.getElementById('btn-roll-initiative').addEventListener('click', () => {
-      const agi = parseInt(this.char.abilities?.agi, 10) || 0;
-      let impInitRanks = 0;
-      (this.char.advantages || []).forEach(adv => {
-        if (adv.id === 'improved_initiative') impInitRanks += parseInt(adv.rank, 10) || 1;
-      });
-      const totalMod = agi + (impInitRanks * 4);
-
-      const roll = diceRoller.rollCheck({
-        title: 'Initiative Check',
-        characterName: this.char.name,
-        modifier: totalMod,
-        rollType: 'initiative',
-        extraText: `Base AGI (${agi}) + Improved Initiative (+${impInitRanks * 4})`
-      });
-
-      discordIntegrator.sendRollEmbed(roll);
-    });
-  }
-
-  setupDiceLog() {
-    diceRoller.onRoll((roll) => {
-      this.renderDiceLogEntry(roll);
-    });
-  }
-
-  renderDiceLogEntry(roll) {
-    const container = document.getElementById('dice-log-container');
-    const entry = document.createElement('div');
-    entry.className = `dice-log-entry ${roll.outcomeClass} ${roll.isCriticalHit ? 'critical' : ''} ${roll.isHeroPointReroll ? 'hero-point' : ''}`;
-
-    let mathText = `d20 (${roll.rawDie})`;
-    if (roll.heroPointAdjusted) {
-      mathText = `d20 (${roll.rawDie} ➜ <b>${roll.effectiveDie}</b> HP +10)`;
-    }
-    const modText = roll.modifier >= 0 ? `+ ${roll.modifier}` : `- ${Math.abs(roll.modifier)}`;
-
-    let outcomeHtml = '';
-    if (roll.outcome) {
-      outcomeHtml = `<div class="log-outcome ${roll.outcomeClass}">
-        ${roll.outcomeClass === 'success' ? '✅' : '❌'} ${roll.outcome}: ${roll.outcomeDescription}
-      </div>`;
-    }
-
-    if (roll.isCriticalHit) {
-      outcomeHtml += `<div style="color: var(--hero-gold); font-weight: 800; font-size: 0.75rem; margin-top: 2px;">💥 CRITICAL HIT!</div>`;
-    }
-
-    entry.innerHTML = `
-      <div class="log-entry-header">
-        <span class="log-entry-title">${roll.title}</span>
-        <span class="log-entry-time">${roll.timestamp}</span>
-      </div>
-      <div class="log-entry-roll">
-        <span class="log-total">${roll.total}</span>
-        <span class="log-breakdown">(${mathText} ${modText}${roll.targetDC ? ` vs DC ${roll.targetDC}` : ''})</span>
-      </div>
-      ${outcomeHtml}
-      ${discordIntegrator.enabled ? `<div class="discord-echo-badge">🤖 Discord Echoed</div>` : ''}
-    `;
-
-    container.insertBefore(entry, container.firstChild);
-  }
-
-  // ==========================================
-  // MODALS MANAGEMENT
-  // ==========================================
-  setupModals() {
-    // Hero Point Spending Modal
+  // =======================================================
+  // 9. HERO POINT SPEND MODAL
+  // =======================================================
+  setupHeroPointModal() {
     document.getElementById('btn-close-hp-modal').addEventListener('click', () => {
       this.closeModal('modal-hero-point');
     });
 
-    // Spend Hero Point options:
+    // Reroll action (1-10 + 10)
     document.getElementById('btn-hp-exec-reroll').addEventListener('click', () => {
       if ((this.char.heroPoints || 0) <= 0) {
-        alert('You have no Hero Points remaining!');
+        alert('You have no Hero Points left!');
         return;
       }
       this.char.heroPoints--;
-      const target = document.getElementById('hp-reroll-target').value;
-      let mod = 0;
-      let title = 'Hero Point Reroll';
-      let dc = null;
-
-      if (target === 'toughness') {
-        const audit = auditCharacter(this.char);
-        const bruises = this.char.bruises || 0;
-        mod = audit.computedDefenses.toughness - bruises;
-        title = `Hero Point Reroll: Toughness Check`;
-      } else if (['dodge', 'parry', 'fortitude', 'will'].includes(target)) {
-        const audit = auditCharacter(this.char);
-        mod = audit.computedDefenses[target] || 0;
-        title = `Hero Point Reroll: ${target.toUpperCase()} Check`;
-      } else {
-        // default attack
-        const fgt = parseInt(this.char.abilities?.fgt, 10) || 0;
-        mod = fgt;
-        title = `Hero Point Reroll: Attack Check`;
-      }
-
       const roll = diceRoller.rollCheck({
-        title,
+        title: 'Hero Point Reroll Check',
         characterName: this.char.name,
-        modifier: mod,
-        targetDC: dc,
+        modifier: parseInt(this.char.abilities?.fgt, 10) || 0,
         isHeroPointReroll: true,
-        rollType: target
+        rollType: 'hero_point'
       });
-
-      discordIntegrator.sendHeroPointSpend(this.char.name, 'Reroll Check (1-10 + 10 Rule)', `Rerolled ${title} for a total of **${roll.total}**!`);
+      discordIntegrator.sendHeroPointSpend(this.char.name, 'Reroll (1-10 + 10 Rule)', `Result: **${roll.total}**`);
       discordIntegrator.sendRollEmbed(roll);
-
       this.saveAndAudit();
-      this.renderSidebarHUD();
+      this.renderHeaderStatus();
       this.closeModal('modal-hero-point');
-      this.showToast('Hero Point spent on Reroll!');
     });
 
     const spendActions = [
-      { id: 'btn-hp-extra-effort', name: 'Extra Effort', desc: 'Gained extra action / +2 bonus / power stunt without immediate fatigue.' },
-      { id: 'btn-hp-edit-scene', name: 'Edit Scene', desc: 'Introduced a plausible advantageous element or clue into the scene.' },
-      { id: 'btn-hp-instant-counter', name: 'Instant Counter', desc: 'Countered an incoming power attack immediately without readying an action.' },
-      { id: 'btn-hp-inspiration', name: 'Inspiration', desc: 'Received a crucial epiphany and guidance from the Gamemaster.' },
-      { id: 'btn-hp-recovery', name: 'Recovery / Escape Death', desc: 'Recovered immediately from worst condition or stabilized from dying!' }
+      { id: 'btn-hp-extra-effort', name: 'Extra Effort', desc: 'Extra standard action / +2 check / power stunt.' },
+      { id: 'btn-hp-edit-scene', name: 'Edit Scene', desc: 'Introduced an advantageous plot element.' },
+      { id: 'btn-hp-instant-counter', name: 'Instant Counter', desc: 'Instant reaction counter on incoming power.' },
+      { id: 'btn-hp-inspiration', name: 'Inspiration', desc: 'Received a vital hint from the Gamemaster.' },
+      { id: 'btn-hp-recovery', name: 'Recovery / Escape Death', desc: 'Removed worst condition or stabilized.' }
     ];
 
     spendActions.forEach(action => {
       document.getElementById(action.id)?.addEventListener('click', () => {
         if ((this.char.heroPoints || 0) <= 0) {
-          alert('You have no Hero Points remaining!');
+          alert('You have no Hero Points left!');
           return;
         }
         this.char.heroPoints--;
         if (action.id === 'btn-hp-recovery') {
-          // auto remove worst condition
           if (this.char.conditions?.staggered) this.char.conditions.staggered = false;
           else if (this.char.conditions?.dazed) this.char.conditions.dazed = false;
           else if ((this.char.bruises || 0) > 0) this.char.bruises--;
         }
-
         discordIntegrator.sendHeroPointSpend(this.char.name, action.name, action.desc);
-        diceRoller.notify({
-          title: `⚡ HERO POINT: ${action.name}`,
-          characterName: this.char.name,
-          timestamp: new Date().toLocaleTimeString(),
-          total: 'HP Spent',
-          rawDie: '-',
-          modifier: 0,
-          outcome: action.name,
-          outcomeClass: 'hero-point',
-          outcomeDescription: action.desc,
-          isHeroPointReroll: true
-        });
-
         this.saveAndAudit();
-        this.renderSidebarHUD();
+        this.renderHeaderStatus();
+        this.renderActionCenter(auditCharacter(this.char));
         this.closeModal('modal-hero-point');
-        this.showToast(`Hero Point spent on ${action.name}!`);
       });
     });
+  }
 
-    // Archetype Generator Modal
-    document.getElementById('btn-open-archetypes').addEventListener('click', () => {
-      this.renderArchetypesPicker();
-      this.openModal('modal-archetypes');
+  // =======================================================
+  // 10. POWER PROFILES (Official 3E Profiles Library)
+  // =======================================================
+  setupPowerProfiles() {
+    const select = document.getElementById('power-profiles-select');
+    select.innerHTML = '';
+
+    POWER_PROFILES_LIBRARY.forEach(group => {
+      const optGroup = document.createElement('optgroup');
+      optGroup.label = group.category;
+      group.profiles.forEach(p => {
+        const opt = document.createElement('option');
+        opt.value = p.id;
+        opt.textContent = `${p.name} (Rank ${p.rank}) [${p.descriptor}]`;
+        optGroup.appendChild(opt);
+      });
+      select.appendChild(optGroup);
     });
 
-    document.getElementById('btn-close-archetypes-modal').addEventListener('click', () => {
-      this.closeModal('modal-archetypes');
+    document.getElementById('btn-apply-profile').addEventListener('click', () => {
+      const profileId = select.value;
+      let matchedProfile = null;
+      for (const grp of POWER_PROFILES_LIBRARY) {
+        const found = grp.profiles.find(p => p.id === profileId);
+        if (found) { matchedProfile = found; break; }
+      }
+
+      if (!matchedProfile) return;
+
+      const baseEffect = POWER_EFFECTS_CATALOG.find(e => e.id === matchedProfile.effectId) || { id: matchedProfile.effectId, baseCost: 1 };
+      const newPower = {
+        id: 'p_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
+        name: matchedProfile.name,
+        rank: matchedProfile.rank,
+        effect: baseEffect,
+        action: matchedProfile.action,
+        range: matchedProfile.range,
+        duration: matchedProfile.duration,
+        descriptor: matchedProfile.descriptor,
+        extras: JSON.parse(JSON.stringify(matchedProfile.extras || [])),
+        flaws: JSON.parse(JSON.stringify(matchedProfile.flaws || [])),
+        alternateEffects: [],
+        notes: matchedProfile.notes || ''
+      };
+
+      if (!this.char.powers) this.char.powers = [];
+      this.char.powers.push(newPower);
+      this.saveAndAudit();
+      this.renderAll();
+      alert(`Power Profile "${matchedProfile.name}" added to character!`);
     });
 
-    // Power Builder Modal
-    document.getElementById('btn-open-power-builder').addEventListener('click', () => {
-      this.openPowerBuilderModal(null);
+    document.getElementById('btn-open-custom-power-builder').addEventListener('click', () => {
+      this.openCustomPowerBuilder(null);
+    });
+  }
+
+  // =======================================================
+  // 11. CUSTOM POWER BUILDER
+  // =======================================================
+  setupCustomPowerBuilder() {
+    const effectSelect = document.getElementById('builder-base-effect');
+    effectSelect.innerHTML = '';
+    POWER_EFFECTS_CATALOG.forEach(e => {
+      const opt = document.createElement('option');
+      opt.value = e.id;
+      opt.textContent = `${e.name} (${e.baseCost} PP/rank) [${e.range}, ${e.duration}]`;
+      effectSelect.appendChild(opt);
+    });
+
+    effectSelect.addEventListener('change', () => {
+      const def = POWER_EFFECTS_CATALOG.find(e => e.id === effectSelect.value);
+      if (def) {
+        document.getElementById('builder-action').value = def.action || 'Standard';
+        document.getElementById('builder-range').value = def.range || 'Close';
+        document.getElementById('builder-duration').value = def.duration || 'Instant';
+      }
+      this.recalculateCustomBuilder();
+    });
+
+    // Steppers for Rank
+    document.getElementById('btn-builder-rank-plus').addEventListener('click', () => {
+      const valEl = document.getElementById('builder-rank-val');
+      valEl.textContent = parseInt(valEl.textContent, 10) + 1;
+      this.recalculateCustomBuilder();
+    });
+
+    document.getElementById('btn-builder-rank-minus').addEventListener('click', () => {
+      const valEl = document.getElementById('builder-rank-val');
+      valEl.textContent = Math.max(1, parseInt(valEl.textContent, 10) - 1);
+      this.recalculateCustomBuilder();
+    });
+
+    document.getElementById('btn-builder-add-extra').addEventListener('click', () => {
+      this.addBuilderExtraRow();
+      this.recalculateCustomBuilder();
+    });
+
+    document.getElementById('btn-builder-add-flaw').addEventListener('click', () => {
+      this.addBuilderFlawRow();
+      this.recalculateCustomBuilder();
+    });
+
+    document.getElementById('btn-builder-add-ae').addEventListener('click', () => {
+      this.addBuilderAeRow();
+      this.recalculateCustomBuilder();
     });
 
     document.getElementById('btn-close-power-builder').addEventListener('click', () => {
@@ -404,124 +692,23 @@ class AppController {
       this.closeModal('modal-power-builder');
     });
 
-    this.setupPowerBuilderEvents();
-  }
-
-  openModal(modalId) {
-    const modal = document.getElementById(modalId);
-    if (modal) modal.classList.add('active');
-  }
-
-  closeModal(modalId) {
-    const modal = document.getElementById(modalId);
-    if (modal) modal.classList.remove('active');
-  }
-
-  // ==========================================
-  // ARCHETYPE PICKER
-  // ==========================================
-  renderArchetypesPicker() {
-    const container = document.getElementById('archetypes-picker-container');
-    container.innerHTML = '';
-
-    ARCHETYPES.forEach(arch => {
-      const card = document.createElement('div');
-      card.className = 'archetype-card';
-      card.innerHTML = `
-        <div>
-          <div class="archetype-card-name">${arch.name}</div>
-          <div class="archetype-card-tagline">${arch.tagline}</div>
-          <div class="archetype-card-concept">${arch.concept}</div>
-          <div style="font-size: var(--font-size-xs); color: var(--text-muted); margin-top: 0.25rem;">
-            <strong>Key Powers:</strong> ${(arch.powers || []).map(p => p.name).slice(0, 3).join(', ')}
-          </div>
-        </div>
-        <div style="margin-top: 0.75rem; display: flex; justify-content: flex-end;">
-          <button class="btn btn-primary" style="font-size: var(--font-size-xs);" data-arch-id="${arch.id}">
-            Select & Build
-          </button>
-        </div>
-      `;
-
-      card.querySelector('button').addEventListener('click', () => {
-        const customName = prompt(`Enter superhero name for ${arch.name}:`, arch.name);
-        if (customName !== null) {
-          const newHero = storageManager.createFromArchetype(arch.id, customName.trim() || arch.name);
-          this.char = newHero;
-          this.updateRosterDropdown();
-          this.renderAll();
-          this.closeModal('modal-archetypes');
-          this.showToast(`Loaded ${newHero.name} (${arch.name} Archetype)!`);
-        }
-      });
-
-      container.appendChild(card);
-    });
-  }
-
-  // ==========================================
-  // HERO LAB POWER BUILDER
-  // ==========================================
-  setupPowerBuilderEvents() {
-    const baseEffectSelect = document.getElementById('builder-base-effect');
-    baseEffectSelect.innerHTML = '';
-    POWER_EFFECTS_CATALOG.forEach(effect => {
-      const opt = document.createElement('option');
-      opt.value = effect.id;
-      opt.textContent = `${effect.name} (${effect.baseCost} PP/rank) [${effect.range}, ${effect.duration}]`;
-      baseEffectSelect.appendChild(opt);
-    });
-
-    baseEffectSelect.addEventListener('change', () => {
-      const effect = POWER_EFFECTS_CATALOG.find(e => e.id === baseEffectSelect.value);
-      if (effect) {
-        document.getElementById('builder-action').value = effect.action || 'Standard';
-        document.getElementById('builder-range').value = effect.range || 'Close';
-        document.getElementById('builder-duration').value = effect.duration || 'Instant';
-      }
-      this.recalculateBuilderPreview();
-    });
-
-    document.getElementById('builder-power-rank').addEventListener('input', () => {
-      this.recalculateBuilderPreview();
-    });
-
-    // Add extra button
-    document.getElementById('btn-builder-add-extra').addEventListener('click', () => {
-      this.addExtraRow();
-      this.recalculateBuilderPreview();
-    });
-
-    // Add flaw button
-    document.getElementById('btn-builder-add-flaw').addEventListener('click', () => {
-      this.addFlawRow();
-      this.recalculateBuilderPreview();
-    });
-
-    // Add alternate effect
-    document.getElementById('btn-builder-add-ae').addEventListener('click', () => {
-      this.addAlternateEffectRow();
-      this.recalculateBuilderPreview();
-    });
-
-    // Save power
     document.getElementById('btn-save-power-builder').addEventListener('click', () => {
       this.savePowerFromBuilder();
     });
   }
 
-  openPowerBuilderModal(powerToEdit = null) {
+  openCustomPowerBuilder(powerToEdit = null) {
     this.activePowerEditing = powerToEdit ? JSON.parse(JSON.stringify(powerToEdit)) : null;
     const isEdit = !!powerToEdit;
 
     document.getElementById('builder-modal-title').textContent = isEdit
       ? `⚡ Edit Power: ${powerToEdit.name}`
-      : '⚡ Build New Power (Hero Lab Model)';
+      : '⚡ 3E Power Builder';
 
     if (isEdit) {
-      document.getElementById('builder-power-name').value = powerToEdit.name || '';
+      document.getElementById('builder-power-name').value = powerToEdit.name;
       document.getElementById('builder-power-descriptor').value = powerToEdit.descriptor || '';
-      document.getElementById('builder-power-rank').value = powerToEdit.rank || 1;
+      document.getElementById('builder-rank-val').textContent = powerToEdit.rank || 10;
       document.getElementById('builder-base-effect').value = powerToEdit.effect?.id || 'damage';
       document.getElementById('builder-action').value = powerToEdit.action || 'Standard';
       document.getElementById('builder-range').value = powerToEdit.range || 'Close';
@@ -530,7 +717,7 @@ class AppController {
     } else {
       document.getElementById('builder-power-name').value = '';
       document.getElementById('builder-power-descriptor').value = 'Energy, Technology';
-      document.getElementById('builder-power-rank').value = 10;
+      document.getElementById('builder-rank-val').textContent = '10';
       document.getElementById('builder-base-effect').value = 'damage';
       document.getElementById('builder-action').value = 'Standard';
       document.getElementById('builder-range').value = 'Close';
@@ -538,182 +725,131 @@ class AppController {
       document.getElementById('builder-power-notes').value = '';
     }
 
-    // Populate extras
     const extrasList = document.getElementById('builder-extras-list');
     extrasList.innerHTML = '';
-    (isEdit ? powerToEdit.extras || [] : []).forEach(ex => this.addExtraRow(ex));
+    (isEdit ? powerToEdit.extras || [] : []).forEach(e => this.addBuilderExtraRow(e));
 
-    // Populate flaws
     const flawsList = document.getElementById('builder-flaws-list');
     flawsList.innerHTML = '';
-    (isEdit ? powerToEdit.flaws || [] : []).forEach(fl => this.addFlawRow(fl));
+    (isEdit ? powerToEdit.flaws || [] : []).forEach(f => this.addBuilderFlawRow(f));
 
-    // Populate AEs
     const aeList = document.getElementById('builder-ae-list');
     aeList.innerHTML = '';
-    (isEdit ? powerToEdit.alternateEffects || [] : []).forEach(ae => this.addAlternateEffectRow(ae));
+    (isEdit ? powerToEdit.alternateEffects || [] : []).forEach(ae => this.addBuilderAeRow(ae));
 
-    this.recalculateBuilderPreview();
+    this.recalculateCustomBuilder();
     this.openModal('modal-power-builder');
   }
 
-  addExtraRow(savedExtra = null) {
-    const container = document.getElementById('builder-extras-list');
+  addBuilderExtraRow(saved = null) {
+    const list = document.getElementById('builder-extras-list');
     const row = document.createElement('div');
     row.style.cssText = 'display: flex; gap: 0.35rem; align-items: center;';
 
-    const select = document.createElement('select');
-    select.style.flex = '1';
+    const sel = document.createElement('select');
+    sel.style.flex = '1';
     EXTRAS_CATALOG.forEach(ex => {
       const opt = document.createElement('option');
       opt.value = ex.id;
       opt.textContent = `${ex.name} (${ex.isFlat ? `+${ex.cost} flat` : `+${ex.cost}/rank`})`;
-      if (savedExtra && savedExtra.id === ex.id) opt.selected = true;
-      select.appendChild(opt);
+      if (saved && saved.id === ex.id) opt.selected = true;
+      sel.appendChild(opt);
     });
-
-    const rankInput = document.createElement('input');
-    rankInput.type = 'number';
-    rankInput.min = '1';
-    rankInput.value = savedExtra ? (savedExtra.rank || 1) : 1;
-    rankInput.style.width = '60px';
 
     const delBtn = document.createElement('button');
     delBtn.className = 'btn btn-outline';
-    delBtn.style.padding = '0.2rem 0.4rem';
+    delBtn.style.padding = '0.1rem 0.35rem';
     delBtn.textContent = '✕';
-    delBtn.addEventListener('click', () => {
-      row.remove();
-      this.recalculateBuilderPreview();
-    });
+    delBtn.addEventListener('click', () => { row.remove(); this.recalculateCustomBuilder(); });
 
-    select.addEventListener('change', () => this.recalculateBuilderPreview());
-    rankInput.addEventListener('input', () => this.recalculateBuilderPreview());
+    sel.addEventListener('change', () => this.recalculateCustomBuilder());
 
-    row.appendChild(select);
-    row.appendChild(rankInput);
+    row.appendChild(sel);
     row.appendChild(delBtn);
-    container.appendChild(row);
+    list.appendChild(row);
   }
 
-  addFlawRow(savedFlaw = null) {
-    const container = document.getElementById('builder-flaws-list');
+  addBuilderFlawRow(saved = null) {
+    const list = document.getElementById('builder-flaws-list');
     const row = document.createElement('div');
     row.style.cssText = 'display: flex; gap: 0.35rem; align-items: center;';
 
-    const select = document.createElement('select');
-    select.style.flex = '1';
+    const sel = document.createElement('select');
+    sel.style.flex = '1';
     FLAWS_CATALOG.forEach(fl => {
       const opt = document.createElement('option');
       opt.value = fl.id;
-      opt.textContent = `${fl.name} (${fl.isDevice ? `Device -${fl.discountPer5} per 5` : fl.isFlat ? `-${fl.cost} flat` : `-${fl.cost}/rank`})`;
-      if (savedFlaw && savedFlaw.id === fl.id) opt.selected = true;
-      select.appendChild(opt);
+      opt.textContent = `${fl.name} (${fl.isDevice ? `Device -${fl.discountPer5}/5` : fl.isFlat ? `-${fl.cost} flat` : `-${fl.cost}/rank`})`;
+      if (saved && saved.id === fl.id) opt.selected = true;
+      sel.appendChild(opt);
     });
-
-    const rankInput = document.createElement('input');
-    rankInput.type = 'number';
-    rankInput.min = '1';
-    rankInput.value = savedFlaw ? (savedFlaw.rank || 1) : 1;
-    rankInput.style.width = '60px';
 
     const delBtn = document.createElement('button');
     delBtn.className = 'btn btn-outline';
-    delBtn.style.padding = '0.2rem 0.4rem';
+    delBtn.style.padding = '0.1rem 0.35rem';
     delBtn.textContent = '✕';
-    delBtn.addEventListener('click', () => {
-      row.remove();
-      this.recalculateBuilderPreview();
-    });
+    delBtn.addEventListener('click', () => { row.remove(); this.recalculateCustomBuilder(); });
 
-    select.addEventListener('change', () => this.recalculateBuilderPreview());
-    rankInput.addEventListener('input', () => this.recalculateBuilderPreview());
+    sel.addEventListener('change', () => this.recalculateCustomBuilder());
 
-    row.appendChild(select);
-    row.appendChild(rankInput);
+    row.appendChild(sel);
     row.appendChild(delBtn);
-    container.appendChild(row);
+    list.appendChild(row);
   }
 
-  addAlternateEffectRow(savedAe = null) {
-    const container = document.getElementById('builder-ae-list');
+  addBuilderAeRow(saved = null) {
+    const list = document.getElementById('builder-ae-list');
     const row = document.createElement('div');
-    row.style.cssText = 'display: flex; gap: 0.35rem; align-items: center; margin-bottom: 0.25rem;';
+    row.style.cssText = 'display: flex; gap: 0.35rem; align-items: center;';
 
-    const nameInput = document.createElement('input');
-    nameInput.type = 'text';
-    nameInput.placeholder = 'Alt Effect Name (e.g. Cone Blast)';
-    nameInput.value = savedAe ? savedAe.name : 'Alternate Attack Form';
-    nameInput.style.flex = '2';
-
-    const rankInput = document.createElement('input');
-    rankInput.type = 'number';
-    rankInput.placeholder = 'Rank';
-    rankInput.value = savedAe ? (savedAe.rank || 10) : 10;
-    rankInput.style.width = '70px';
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.placeholder = 'Alt Effect Name (e.g. Cone Blast)';
+    input.value = saved ? saved.name : 'Alternate Attack Form';
+    input.style.flex = '1';
 
     const delBtn = document.createElement('button');
     delBtn.className = 'btn btn-outline';
-    delBtn.style.padding = '0.2rem 0.4rem';
+    delBtn.style.padding = '0.1rem 0.35rem';
     delBtn.textContent = '✕';
-    delBtn.addEventListener('click', () => {
-      row.remove();
-      this.recalculateBuilderPreview();
-    });
+    delBtn.addEventListener('click', () => { row.remove(); this.recalculateCustomBuilder(); });
 
-    row.appendChild(nameInput);
-    row.appendChild(rankInput);
+    row.appendChild(input);
     row.appendChild(delBtn);
-    container.appendChild(row);
+    list.appendChild(row);
   }
 
-  collectPowerFromForm() {
+  recalculateCustomBuilder() {
+    const power = this.collectPowerFromBuilder();
+    const cost = calculatePowerCost(power);
+    document.getElementById('builder-total-pp-display').textContent = `${cost} PP`;
+    document.getElementById('builder-formula-display').textContent = `Rank ${power.rank} • Cost: ${cost} Power Points`;
+  }
+
+  collectPowerFromBuilder() {
     const effectId = document.getElementById('builder-base-effect').value;
     const effect = POWER_EFFECTS_CATALOG.find(e => e.id === effectId) || { id: effectId, baseCost: 1 };
-    const rank = parseInt(document.getElementById('builder-power-rank').value, 10) || 1;
+    const rank = parseInt(document.getElementById('builder-rank-val').textContent, 10) || 1;
 
     const extras = [];
-    document.querySelectorAll('#builder-extras-list > div').forEach(row => {
-      const select = row.querySelector('select');
-      const rankInput = row.querySelector('input');
-      if (select) {
-        const extraDef = EXTRAS_CATALOG.find(e => e.id === select.value);
-        extras.push({
-          id: select.value,
-          name: extraDef?.name || select.value,
-          rank: parseInt(rankInput.value, 10) || 1,
-          cost: extraDef?.cost || 1,
-          isFlat: extraDef?.isFlat || false
-        });
-      }
+    document.querySelectorAll('#builder-extras-list select').forEach(s => {
+      const def = EXTRAS_CATALOG.find(e => e.id === s.value);
+      if (def) extras.push({ id: def.id, name: def.name, cost: def.cost, isFlat: def.isFlat });
     });
 
     const flaws = [];
-    document.querySelectorAll('#builder-flaws-list > div').forEach(row => {
-      const select = row.querySelector('select');
-      const rankInput = row.querySelector('input');
-      if (select) {
-        const flawDef = FLAWS_CATALOG.find(f => f.id === select.value);
-        flaws.push({
-          id: select.value,
-          name: flawDef?.name || select.value,
-          rank: parseInt(rankInput.value, 10) || 1,
-          cost: flawDef?.cost || 1,
-          isFlat: flawDef?.isFlat || false,
-          isDevice: flawDef?.isDevice || false
-        });
-      }
+    document.querySelectorAll('#builder-flaws-list select').forEach(s => {
+      const def = FLAWS_CATALOG.find(f => f.id === s.value);
+      if (def) flaws.push({ id: def.id, name: def.name, cost: def.cost, isFlat: def.isFlat, isDevice: def.isDevice });
     });
 
     const alternateEffects = [];
-    document.querySelectorAll('#builder-ae-list > div').forEach(row => {
-      const inputs = row.querySelectorAll('input');
-      if (inputs.length >= 2) {
+    document.querySelectorAll('#builder-ae-list input').forEach(input => {
+      if (input.value.trim()) {
         alternateEffects.push({
           id: 'ae_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
-          name: inputs[0].value,
-          rank: parseInt(inputs[1].value, 10) || 1,
-          isDynamic: false
+          name: input.value.trim(),
+          rank
         });
       }
     });
@@ -734,45 +870,15 @@ class AppController {
     };
   }
 
-  recalculateBuilderPreview() {
-    const power = this.collectPowerFromForm();
-    const totalCost = calculatePowerCost(power);
-
-    // Compute breakdown explanation
-    const base = power.effect?.baseCost || 1;
-    let extraRanks = 0;
-    (power.extras || []).forEach(e => { if (!e.isFlat) extraRanks += (e.rank || 1) * e.cost; });
-    let flawRanks = 0;
-    (power.flaws || []).forEach(f => { if (!f.isFlat && !f.isDevice) flawRanks += (f.rank || 1) * f.cost; });
-
-    const net = base + extraRanks - flawRanks;
-    let formulaText = '';
-    if (net >= 1) {
-      formulaText = `Cost: (${base} base + ${extraRanks} extras - ${flawRanks} flaws) = ${net} PP/rank × ${power.rank} ranks`;
-    } else {
-      const divisor = 2 - net;
-      formulaText = `Fractional: net rank cost ≤ 0 ➜ 1 PP per ${divisor} ranks (${Math.ceil(power.rank / divisor)} PP)`;
-    }
-
-    if (power.alternateEffects && power.alternateEffects.length > 0) {
-      formulaText += ` + ${power.alternateEffects.length} AE (${power.alternateEffects.length} PP)`;
-    }
-
-    document.getElementById('builder-formula-display').textContent = formulaText;
-    document.getElementById('builder-total-pp-display').textContent = `${totalCost} PP`;
-  }
-
   savePowerFromBuilder() {
-    const power = this.collectPowerFromForm();
+    const power = this.collectPowerFromBuilder();
     if (!this.char.powers) this.char.powers = [];
 
     const existingIdx = this.char.powers.findIndex(p => p.id === power.id);
     if (existingIdx !== -1) {
       this.char.powers[existingIdx] = power;
-      this.showToast(`Updated power: ${power.name}`);
     } else {
       this.char.powers.push(power);
-      this.showToast(`Added power: ${power.name}`);
     }
 
     this.saveAndAudit();
@@ -780,60 +886,168 @@ class AppController {
     this.closeModal('modal-power-builder');
   }
 
-  // ==========================================
-  // SETTINGS & DISCORD CONFIGURATION
-  // ==========================================
-  setupSettingsTab() {
-    document.getElementById('discord-webhook-url').value = discordIntegrator.webhookUrl;
-    document.getElementById('discord-enabled-toggle').checked = discordIntegrator.enabled;
-    document.getElementById('discord-bot-name').value = discordIntegrator.botName;
-    document.getElementById('discord-bot-avatar').value = discordIntegrator.avatarUrl;
+  // =======================================================
+  // 12. GEAR & HEADQUARTERS (HQ) TAB
+  // =======================================================
+  setupGearAndHQ() {
+    document.getElementById('btn-add-item-gear').addEventListener('click', () => {
+      const name = document.getElementById('new-item-name').value.trim();
+      const cost = parseInt(document.getElementById('new-item-cost').value, 10) || 1;
+      const desc = document.getElementById('new-item-desc').value.trim();
 
-    document.getElementById('btn-save-discord').addEventListener('click', () => {
-      discordIntegrator.saveSettings({
-        webhookUrl: document.getElementById('discord-webhook-url').value,
-        enabled: document.getElementById('discord-enabled-toggle').checked,
-        botName: document.getElementById('discord-bot-name').value,
-        avatarUrl: document.getElementById('discord-bot-avatar').value
-      });
-      this.showToast('Discord settings saved!');
-    });
+      if (!name) { alert('Enter gear name.'); return; }
+      if (!this.char.gear) this.char.gear = [];
+      this.char.gear.push({ name, cost, desc });
 
-    document.getElementById('btn-test-discord').addEventListener('click', async () => {
-      discordIntegrator.saveSettings({
-        webhookUrl: document.getElementById('discord-webhook-url').value,
-        enabled: true,
-        botName: document.getElementById('discord-bot-name').value,
-        avatarUrl: document.getElementById('discord-bot-avatar').value
-      });
-      document.getElementById('discord-enabled-toggle').checked = true;
+      document.getElementById('new-item-name').value = '';
+      document.getElementById('new-item-desc').value = '';
 
-      try {
-        await discordIntegrator.testConnection();
-        this.showToast('Discord test notification sent successfully!');
-      } catch (err) {
-        alert('Discord Webhook test failed: ' + err.message);
-      }
-    });
-
-    // Campaign PL settings
-    document.getElementById('settings-pl-input').value = this.char.powerLevel || 10;
-    document.getElementById('settings-budget-input').value = this.char.powerPointsBudget || 150;
-
-    document.getElementById('btn-save-pl-settings').addEventListener('click', () => {
-      const pl = parseInt(document.getElementById('settings-pl-input').value, 10) || 10;
-      const budget = parseInt(document.getElementById('settings-budget-input').value, 10) || (pl * 15);
-      this.char.powerLevel = pl;
-      this.char.powerPointsBudget = budget;
       this.saveAndAudit();
-      this.renderAll();
-      this.showToast(`Updated campaign settings: PL ${pl} (${budget} PP)`);
+      this.renderGearTab(auditCharacter(this.char));
+    });
+
+    // Populate HQ Size select
+    const sizeSelect = document.getElementById('hq-size-select');
+    sizeSelect.innerHTML = HQ_SIZES_TABLE.map(s => `
+      <option value="${s.name}" data-ep="${s.ep}">${s.name} (${s.ep >= 0 ? `+${s.ep}` : s.ep} EP) - ${s.desc}</option>
+    `).join('');
+
+    sizeSelect.addEventListener('change', () => {
+      if (!this.char.hq) this.char.hq = {};
+      this.char.hq.size = sizeSelect.value;
+      this.saveAndAudit();
+      this.renderGearTab(auditCharacter(this.char));
+    });
+
+    // HQ Toughness Stepper
+    document.getElementById('btn-hq-tough-plus').addEventListener('click', () => {
+      if (!this.char.hq) this.char.hq = {};
+      this.char.hq.toughness = (this.char.hq.toughness || 8) + 1;
+      this.saveAndAudit();
+      this.renderGearTab(auditCharacter(this.char));
+    });
+
+    document.getElementById('btn-hq-tough-minus').addEventListener('click', () => {
+      if (!this.char.hq) this.char.hq = {};
+      this.char.hq.toughness = Math.max(1, (this.char.hq.toughness || 8) - 1);
+      this.saveAndAudit();
+      this.renderGearTab(auditCharacter(this.char));
+    });
+
+    // HQ Name
+    const hqNameInput = document.getElementById('hq-name-input');
+    hqNameInput.addEventListener('input', (e) => {
+      if (!this.char.hq) this.char.hq = {};
+      this.char.hq.name = e.target.value;
+      storageManager.saveCharacter(this.char);
+    });
+
+    // HQ Features checklist
+    const featuresContainer = document.getElementById('hq-features-checklist');
+    featuresContainer.innerHTML = HQ_FEATURES_LIST.map(f => `
+      <label style="display: flex; align-items: center; gap: 0.35rem; background-color: var(--bg-input); padding: 0.3rem 0.5rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color); font-size: var(--font-size-xs); cursor: pointer;">
+        <input type="checkbox" data-feat-id="${f.id}" class="hq-feat-checkbox">
+        <span class="rules-link" data-name="${f.name}" data-desc="${f.desc}" data-cat="HQ Feature">${f.name}</span>
+      </label>
+    `).join('');
+
+    featuresContainer.querySelectorAll('.hq-feat-checkbox').forEach(cb => {
+      cb.addEventListener('change', () => {
+        if (!this.char.hq) this.char.hq = { features: [] };
+        if (!this.char.hq.features) this.char.hq.features = [];
+        const featId = cb.dataset.featId;
+        if (cb.checked) {
+          if (!this.char.hq.features.includes(featId)) this.char.hq.features.push(featId);
+        } else {
+          this.char.hq.features = this.char.hq.features.filter(id => id !== featId);
+        }
+        this.saveAndAudit();
+        this.renderGearTab(auditCharacter(this.char));
+      });
     });
   }
 
-  // ==========================================
-  // MASTER RENDER & AUDIT
-  // ==========================================
+  // =======================================================
+  // 13. HISTORY & LORE TAB
+  // =======================================================
+  setupHistoryTab() {
+    const originText = document.getElementById('history-origin-text');
+    originText.value = this.char.bio || '';
+    originText.addEventListener('input', (e) => {
+      this.char.bio = e.target.value;
+      storageManager.saveCharacter(this.char);
+    });
+
+    const contactsText = document.getElementById('history-contacts-text');
+    contactsText.value = this.char.contactsLore || '';
+    contactsText.addEventListener('input', (e) => {
+      this.char.contactsLore = e.target.value;
+      storageManager.saveCharacter(this.char);
+    });
+
+    document.getElementById('btn-add-session-entry').addEventListener('click', () => {
+      const now = new Date();
+      const dateStr = now.toLocaleDateString();
+      const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      const title = prompt('Enter game session title:', `Session of ${dateStr}`);
+      if (!title) return;
+      const notes = prompt('Enter session notes / recap:', 'Infiltration into villain stronghold; gained 1 PP.');
+
+      if (!this.char.historyLog) this.char.historyLog = [];
+      this.char.historyLog.unshift({
+        id: 'sess_' + Date.now(),
+        date: dateStr,
+        time: timeStr,
+        title,
+        notes: notes || ''
+      });
+
+      this.saveAndAudit();
+      this.renderHistoryTab();
+    });
+  }
+
+  // =======================================================
+  // 14. SETTINGS & DISCORD
+  // =======================================================
+  setupSettingsTab() {
+    document.getElementById('settings-discord-url').value = discordIntegrator.webhookUrl;
+    document.getElementById('settings-discord-botname').value = discordIntegrator.botName;
+    document.getElementById('settings-discord-toggle').checked = discordIntegrator.enabled;
+
+    document.getElementById('btn-save-discord-config').addEventListener('click', () => {
+      discordIntegrator.saveSettings({
+        webhookUrl: document.getElementById('settings-discord-url').value,
+        enabled: document.getElementById('settings-discord-toggle').checked,
+        botName: document.getElementById('settings-discord-botname').value
+      });
+      alert('Discord settings saved!');
+    });
+
+    document.getElementById('btn-test-discord-echo').addEventListener('click', async () => {
+      try {
+        await discordIntegrator.testConnection();
+        alert('Test notification sent to Discord!');
+      } catch (err) {
+        alert('Discord test failed: ' + err.message);
+      }
+    });
+
+    document.getElementById('settings-campaign-pl').value = this.char.powerLevel || 10;
+    document.getElementById('settings-campaign-budget').value = this.char.powerPointsBudget || 150;
+
+    document.getElementById('btn-apply-campaign-rules').addEventListener('click', () => {
+      this.char.powerLevel = parseInt(document.getElementById('settings-campaign-pl').value, 10) || 10;
+      this.char.powerPointsBudget = parseInt(document.getElementById('settings-campaign-budget').value, 10) || 150;
+      this.saveAndAudit();
+      this.renderAll();
+      alert(`Updated to PL ${this.char.powerLevel} (${this.char.powerPointsBudget} PP)!`);
+    });
+  }
+
+  // =======================================================
+  // 15. MASTER RENDER ALL
+  // =======================================================
   saveAndAudit() {
     storageManager.saveCharacter(this.char);
     return auditCharacter(this.char);
@@ -841,111 +1055,62 @@ class AppController {
 
   renderAll() {
     const audit = this.saveAndAudit();
-
-    // 1. Top Bar status
-    document.getElementById('header-pl-display').textContent = `PL ${audit.powerLevel}`;
-    document.getElementById('header-pp-display').textContent = `${audit.totalSpent} / ${audit.budget} PP`;
-    const complianceDisplay = document.getElementById('header-compliance-display');
-    if (audit.isCompliant) {
-      complianceDisplay.textContent = 'Legal';
-      complianceDisplay.className = 'status-value green';
-    } else {
-      complianceDisplay.textContent = `${audit.violations.length} Over Cap`;
-      complianceDisplay.className = 'status-value red';
-    }
-
-    // 2. Sidebar HUD
-    this.renderSidebarHUD();
-
-    // 3. Tab 1: Character Record (Roll20 Sheet)
-    this.renderRecordTab(audit);
-
-    // 4. Tab 2: Abilities & Defenses
+    this.renderHeaderStatus();
+    this.renderActionCenter(audit);
     this.renderAbilitiesTab(audit);
-
-    // 5. Tab 3: Skills
     this.renderSkillsTab(audit);
-
-    // 6. Tab 4: Advantages
     this.renderAdvantagesTab(audit);
-
-    // 7. Tab 5: Powers Builder
     this.renderPowersTab(audit);
-
-    // 8. Tab 6: Gear
     this.renderGearTab(audit);
-
-    // 9. Tab 7: Identity & Complications
-    this.renderIdentityTab(audit);
+    this.renderHistoryTab();
   }
 
-  renderSidebarHUD() {
-    document.getElementById('sidebar-hp-number').textContent = this.char.heroPoints ?? 1;
-    document.getElementById('bruise-count-display').textContent = this.char.bruises || 0;
+  renderHeaderStatus() {
+    const audit = auditCharacter(this.char);
+    document.getElementById('header-pp-used').textContent = `${audit.totalSpent} / ${audit.budget} used`;
+    document.getElementById('header-pl-display').textContent = `PL ${audit.powerLevel}`;
+    document.getElementById('header-hp-val').textContent = this.char.heroPoints ?? 1;
+
+    document.getElementById('header-player-name').value = this.char.playerName || '';
+    document.getElementById('header-char-name').value = this.char.name || '';
+    document.getElementById('header-campaign-name').value = this.char.campaign || 'Earth-Prime';
+  }
+
+  renderActionCenter(audit) {
+    document.getElementById('action-bruise-val').textContent = this.char.bruises || 0;
 
     const conds = this.char.conditions || {};
-    ['dazed', 'staggered', 'defenseless', 'vulnerable'].forEach(c => {
-      const el = document.getElementById(`cond-${c}`);
-      if (el) el.classList.toggle('active', !!conds[c]);
+    ['dazed', 'staggered', 'vulnerable', 'defenseless'].forEach(c => {
+      const btn = document.getElementById(`cond-btn-c`);
+      if (btn) btn.classList.toggle('btn-danger', !!conds[c]);
     });
-  }
 
-  // ==========================================
-  // RENDER TAB 1: CHARACTER RECORD (ROLL20)
-  // ==========================================
-  renderRecordTab(audit) {
-    const nameInput = document.getElementById('record-hero-name');
-    nameInput.value = this.char.name || '';
-    nameInput.oninput = (e) => {
-      this.char.name = e.target.value;
-      storageManager.saveCharacter(this.char);
-      this.updateRosterDropdown();
-    };
-
-    const taglineInput = document.getElementById('record-hero-tagline');
-    taglineInput.value = this.char.concept || this.char.tagline || '';
-    taglineInput.oninput = (e) => {
-      this.char.concept = e.target.value;
-      storageManager.saveCharacter(this.char);
-    };
-
-    const identityInput = document.getElementById('record-hero-identity');
-    identityInput.value = this.char.identity || '';
-    identityInput.oninput = (e) => {
-      this.char.identity = e.target.value;
-      storageManager.saveCharacter(this.char);
-    };
-
-    // Defenses with roll buttons
-    const defGrid = document.getElementById('record-defenses-grid');
+    // Defenses Grid
+    const defGrid = document.getElementById('action-defenses-grid');
     defGrid.innerHTML = '';
     const bruises = this.char.bruises || 0;
 
     DEFENSES.forEach(def => {
       const box = document.createElement('div');
-      box.className = 'defense-box';
+      box.style.cssText = 'background-color: var(--bg-input); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 0.5rem; text-align: center;';
+
       let score = audit.computedDefenses[def.id] || 0;
       let effectiveScore = score;
-      let subtitle = '';
-
-      if (def.id === 'toughness') {
-        effectiveScore = score - bruises;
-        if (bruises > 0) subtitle = `(${effectiveScore} bruised)`;
-      }
+      if (def.id === 'toughness') effectiveScore = score - bruises;
 
       box.innerHTML = `
-        <div class="defense-name">${def.name}</div>
-        <div class="defense-score">${effectiveScore}</div>
-        ${subtitle ? `<div style="font-size: 0.7rem; color: var(--hero-red);">${subtitle}</div>` : ''}
-        <button class="btn-roll btn-roll-defense" data-defense="${def.id}">🎲 Roll</button>
+        <div style="font-size: var(--font-size-xs); font-weight: 800; color: var(--text-muted); text-transform: uppercase;">${def.name}</div>
+        <div style="font-size: var(--font-size-xl); font-weight: 900; color: var(--text-bright);">${effectiveScore}</div>
+        ${def.id === 'toughness' && bruises > 0 ? `<div style="font-size: 0.65rem; color: var(--hero-red);">(-${bruises} bruises)</div>` : ''}
+        <button class="btn-touch-roll defense" style="margin-top: 0.35rem; width: 100%;" data-def="${def.id}">🎲 Save</button>
       `;
 
       box.querySelector('button').addEventListener('click', () => {
-        const dcInput = prompt(`Enter DC for ${def.name} check (or leave blank for raw roll):`, def.id === 'toughness' ? '20' : '15');
-        const targetDC = dcInput !== null && dcInput.trim() !== '' ? parseInt(dcInput, 10) : null;
+        const dcPrompt = prompt(`Enter DC for ${def.name} check (or leave blank for raw check):`, def.id === 'toughness' ? '20' : '15');
+        const targetDC = dcPrompt !== null && dcPrompt.trim() !== '' ? parseInt(dcPrompt, 10) : null;
 
         const roll = diceRoller.rollCheck({
-          title: `${def.name} Defense Save`,
+          title: `${def.name} Defense Check`,
           characterName: this.char.name,
           modifier: effectiveScore,
           targetDC,
@@ -953,13 +1118,12 @@ class AppController {
           extraText: def.id === 'toughness' && bruises > 0 ? `Bruise Penalty: -${bruises}` : ''
         });
 
-        // If Toughness check failed, offer to automatically tick bruise
         if (def.id === 'toughness' && roll.outcomeClass === 'failure') {
           this.char.bruises = (this.char.bruises || 0) + 1;
           if (roll.degrees >= 2) this.char.conditions.dazed = true;
           if (roll.degrees >= 3) this.char.conditions.staggered = true;
           this.saveAndAudit();
-          this.renderSidebarHUD();
+          this.renderActionCenter(auditCharacter(this.char));
         }
 
         discordIntegrator.sendRollEmbed(roll);
@@ -968,8 +1132,8 @@ class AppController {
       defGrid.appendChild(box);
     });
 
-    // Attacks & Actions Table
-    const attacksTbody = document.getElementById('record-attacks-tbody');
+    // Attacks Table
+    const attacksTbody = document.getElementById('action-attacks-tbody');
     attacksTbody.innerHTML = '';
 
     // Unarmed Attack
@@ -981,26 +1145,20 @@ class AppController {
         unarmedBonus += parseInt(sk.ranks, 10) || 0;
       }
     });
-    let closeAdvBonus = 0;
-    (this.char.advantages || []).forEach(adv => {
-      if (adv.id === 'close_attack') closeAdvBonus += parseInt(adv.rank, 10) || 1;
-    });
-    unarmedBonus += closeAdvBonus;
 
     const unarmedRow = document.createElement('tr');
     unarmedRow.innerHTML = `
       <td><strong>👊 Unarmed Strike</strong></td>
       <td>Close • Bludgeoning</td>
       <td><span style="font-weight: 800; color: var(--hero-blue);">+${unarmedBonus}</span></td>
-      <td>Damage ${str} (DC ${15 + str} Toughness)</td>
+      <td>Damage ${str} (DC ${15 + str})</td>
       <td style="text-align: right;">
-        <button class="btn-roll btn-roll-attack" id="btn-roll-unarmed">🎲 Attack</button>
+        <button class="btn-touch-roll attack">🎲 Attack</button>
       </td>
     `;
     unarmedRow.querySelector('button').addEventListener('click', () => {
-      const defTarget = prompt('Enter Target Parry Defense (or leave blank for raw attack roll):', '15');
+      const defTarget = prompt('Enter Target Parry Defense:', '15');
       const targetDC = defTarget !== null && defTarget.trim() !== '' ? parseInt(defTarget, 10) : null;
-
       const roll = diceRoller.rollCheck({
         title: 'Attack: Unarmed Strike',
         characterName: this.char.name,
@@ -1014,117 +1172,69 @@ class AppController {
     });
     attacksTbody.appendChild(unarmedRow);
 
-    // Attacks from Powers
-    (this.char.powers || []).forEach(power => {
-      if (power.effect?.isAttack || ['damage', 'blast', 'affliction', 'move_object', 'weaken', 'nullify'].includes(power.effect?.id)) {
-        let attackMod = 0;
-        const isRanged = power.range === 'Ranged' || power.effect?.id === 'blast';
-        if (isRanged) {
-          const dex = parseInt(this.char.abilities?.dex, 10) || 0;
-          let rangedAdv = 0;
-          (this.char.advantages || []).forEach(a => { if (a.id === 'ranged_attack') rangedAdv += parseInt(a.rank, 10) || 1; });
-          attackMod = dex + rangedAdv;
-          (this.char.skills || []).forEach(sk => {
-            if (sk.id === 'ranged_combat' && (power.name.toLowerCase().includes((sk.specialty || '').toLowerCase()) || (sk.specialty || '').toLowerCase().includes(power.effect.id))) {
-              attackMod += parseInt(sk.ranks, 10) || 0;
-            }
-          });
-        } else {
-          attackMod = fgt + closeAdvBonus;
-          (this.char.skills || []).forEach(sk => {
-            if (sk.id === 'close_combat' && power.name.toLowerCase().includes((sk.specialty || '').toLowerCase())) {
-              attackMod += parseInt(sk.ranks, 10) || 0;
-            }
-          });
-        }
+    // Power Attacks
+    (this.char.powers || []).forEach(p => {
+      if (p.effect?.isAttack || ['damage', 'blast', 'affliction', 'move_object'].includes(p.effect?.id)) {
+        const isRanged = p.range === 'Ranged' || p.effect?.id === 'blast';
+        const dex = parseInt(this.char.abilities?.dex, 10) || 0;
+        let bonus = isRanged ? dex : fgt;
 
-        // Check for Accurate extra
-        (power.extras || []).forEach(ex => {
-          if (ex.id === 'accurate') attackMod += (parseInt(ex.rank, 10) || 1) * 2;
+        (p.extras || []).forEach(ex => {
+          if (ex.id === 'accurate') bonus += (parseInt(ex.rank, 10) || 1) * 2;
         });
 
-        const rank = parseInt(power.rank, 10) || 1;
-        const dc = (power.effect?.dcBase || 15) + rank;
-        const resist = power.effect?.resist || 'Toughness';
-
+        const rank = parseInt(p.rank, 10) || 1;
+        const dc = (p.effect?.dcBase || 15) + rank;
         const row = document.createElement('tr');
         row.innerHTML = `
-          <td><strong>⚡ ${power.name}</strong></td>
-          <td>${power.range} • ${power.descriptor || 'Power'}</td>
-          <td><span style="font-weight: 800; color: var(--hero-blue);">+${attackMod}</span></td>
-          <td>Rank ${rank} (DC ${dc} ${resist})</td>
+          <td><strong>⚡ ${p.name}</strong></td>
+          <td>${p.range} • ${p.descriptor}</td>
+          <td><span style="font-weight: 800; color: var(--hero-blue);">+${bonus}</span></td>
+          <td>Rank ${rank} (DC ${dc})</td>
           <td style="text-align: right;">
-            <button class="btn-roll btn-roll-attack">🎲 Attack</button>
+            <button class="btn-touch-roll attack">🎲 Attack</button>
           </td>
         `;
-
         row.querySelector('button').addEventListener('click', () => {
-          const defTarget = prompt(`Enter Target Defense for ${power.name} (or leave blank):`, isRanged ? '15 (Dodge)' : '15 (Parry)');
+          const defTarget = prompt(`Enter Target Defense for ${p.name}:`, '15');
           const targetDC = defTarget !== null && defTarget.trim() !== '' ? parseInt(defTarget, 10) : null;
-
           const roll = diceRoller.rollCheck({
-            title: `Attack: ${power.name}`,
+            title: `Attack: ${p.name}`,
             characterName: this.char.name,
-            modifier: attackMod,
+            modifier: bonus,
             targetDC,
             rollType: 'attack',
             damageRank: rank,
-            descriptor: power.descriptor || 'Power'
+            descriptor: p.descriptor
           });
           discordIntegrator.sendRollEmbed(roll);
         });
-
         attacksTbody.appendChild(row);
-
-        // Also add Alternate Effects if any
-        (power.alternateEffects || []).forEach(ae => {
-          const aeRow = document.createElement('tr');
-          aeRow.style.backgroundColor = 'rgba(6, 182, 212, 0.04)';
-          aeRow.innerHTML = `
-            <td style="padding-left: 1.5rem;">↳ <em>${ae.name}</em></td>
-            <td>Alternate Effect</td>
-            <td><span style="font-weight: 800; color: var(--hero-blue);">+${attackMod}</span></td>
-            <td>Rank ${ae.rank || rank} (DC ${(ae.effect?.dcBase || 15) + (ae.rank || rank)})</td>
-            <td style="text-align: right;">
-              <button class="btn-roll btn-roll-attack" style="font-size: 0.7rem;">🎲 Roll</button>
-            </td>
-          `;
-          aeRow.querySelector('button').addEventListener('click', () => {
-            const defTarget = prompt(`Enter Target Defense for ${ae.name}:`, '15');
-            const targetDC = defTarget !== null && defTarget.trim() !== '' ? parseInt(defTarget, 10) : null;
-            const roll = diceRoller.rollCheck({
-              title: `Attack: ${ae.name}`,
-              characterName: this.char.name,
-              modifier: attackMod,
-              targetDC,
-              rollType: 'attack',
-              damageRank: ae.rank || rank,
-              descriptor: power.descriptor || 'Power'
-            });
-            discordIntegrator.sendRollEmbed(roll);
-          });
-          attacksTbody.appendChild(aeRow);
-        });
       }
     });
 
-    // Quick Skills Checks
-    const skillsTbody = document.getElementById('record-skills-tbody');
+    // Known Skills Quick Checks
+    const skillsTbody = document.getElementById('action-skills-tbody');
     skillsTbody.innerHTML = '';
     audit.computedSkills.forEach(sk => {
       if (sk.ranks > 0) {
+        const skillDef = SKILLS_LIST.find(s => s.id === sk.id);
         const row = document.createElement('tr');
-        const sign = sk.totalBonus >= 0 ? '+' : '';
         row.innerHTML = `
-          <td><strong>${sk.name}${sk.specialty ? ` (${sk.specialty})` : ''}</strong></td>
-          <td><span style="font-weight: 800; color: var(--hero-cyan);">${sign}${sk.totalBonus}</span></td>
+          <td>
+            <span class="rules-link" data-name="${sk.name}" data-desc="${skillDef?.desc || ''}" data-cat="Official 3E Skill">
+              ${sk.name}${sk.specialty ? ` (${sk.specialty})` : ''}
+            </span>
+          </td>
+          <td>${sk.ability.toUpperCase()}</td>
+          <td><strong style="color: var(--hero-cyan); font-size: var(--font-size-md);">${sk.totalBonus >= 0 ? '+' : ''}${sk.totalBonus}</strong></td>
           <td style="text-align: right;">
-            <button class="btn-roll" style="font-size: 0.7rem; padding: 0.2rem 0.5rem;">🎲 Check</button>
+            <button class="btn-touch-roll" style="min-height: 32px;">🎲 Roll</button>
           </td>
         `;
         row.querySelector('button').addEventListener('click', () => {
-          const dcInput = prompt(`Enter DC for ${sk.name} check (or leave blank for raw check):`, '15');
-          const targetDC = dcInput !== null && dcInput.trim() !== '' ? parseInt(dcInput, 10) : null;
+          const dcPrompt = prompt(`Enter DC for ${sk.name} check:`, '15');
+          const targetDC = dcPrompt !== null && dcPrompt.trim() !== '' ? parseInt(dcPrompt, 10) : null;
           const roll = diceRoller.rollCheck({
             title: `${sk.name} Skill Check`,
             characterName: this.char.name,
@@ -1137,53 +1247,36 @@ class AppController {
         skillsTbody.appendChild(row);
       }
     });
-
-    // Powers Summary Cards
-    const powersSummary = document.getElementById('record-powers-summary');
-    powersSummary.innerHTML = '';
-    (this.char.powers || []).forEach(p => {
-      const cost = calculatePowerCost(p);
-      const card = document.createElement('div');
-      card.className = `power-card ${p.flaws?.some(f => f.isDevice) ? 'device' : ''}`;
-      card.innerHTML = `
-        <div class="power-header">
-          <div class="power-title">⚡ ${p.name} (Rank ${p.rank})</div>
-          <span class="power-cost-tag">${cost} PP</span>
-        </div>
-        <div class="power-descriptors">${p.descriptor || 'General'} • ${p.action || 'Standard'} • ${p.range || 'Close'} • ${p.duration || 'Instant'}</div>
-        <div style="font-size: var(--font-size-xs); color: var(--text-muted);">${p.notes || p.effect?.desc || ''}</div>
-      `;
-      powersSummary.appendChild(card);
-    });
   }
 
-  // ==========================================
-  // RENDER TAB 2: ABILITIES & DEFENSES
-  // ==========================================
+  // =======================================================
+  // 16. ABILITIES & DEFENSES TAB
+  // =======================================================
   renderAbilitiesTab(audit) {
-    document.getElementById('abilities-total-pp').textContent = `${audit.abilitiesCost} PP`;
-    document.getElementById('defenses-total-pp').textContent = `${audit.defensesCost} PP`;
+    document.getElementById('abilities-cost-display').textContent = `${audit.abilitiesCost} PP`;
+    document.getElementById('defenses-cost-display').textContent = `${audit.defensesCost} PP`;
 
-    const abGrid = document.getElementById('abilities-editor-grid');
+    const abGrid = document.getElementById('abilities-stepper-grid');
     abGrid.innerHTML = '';
 
     ABILITIES.forEach(ab => {
-      const currentVal = parseInt(this.char.abilities?.[ab.id], 10) || 0;
-      const box = document.createElement('div');
-      box.className = 'ability-box';
-      box.innerHTML = `
-        <div class="ability-name">${ab.name} (${ab.short})</div>
-        <div class="ability-score">${currentVal}</div>
-        <div class="ability-cost-tag">${currentVal * 2} PP</div>
-        <div style="display: flex; gap: 0.35rem; margin-top: 0.5rem; align-items: center;">
-          <button class="btn-step" data-ab="${ab.id}" data-dir="-1">-</button>
-          <input type="number" value="${currentVal}" min="-5" max="25" style="width: 55px; text-align: center;" data-ab="${ab.id}">
-          <button class="btn-step" data-ab="${ab.id}" data-dir="1">+</button>
+      const val = parseInt(this.char.abilities?.[ab.id], 10) || 0;
+      const card = document.createElement('div');
+      card.style.cssText = 'background-color: var(--bg-input); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 0.5rem; text-align: center;';
+      card.innerHTML = `
+        <div style="font-size: var(--font-size-xs); font-weight: 800; color: var(--text-muted);">
+          <span class="rules-link" data-name="${ab.name}" data-desc="${ab.desc}" data-cat="Ability">${ab.name} (${ab.short})</span>
         </div>
-        ${ab.id === 'str' ? `<div style="font-size: 0.65rem; color: var(--text-muted); margin-top: 4px;">Lift: ${getStrengthLiftingCapacity(currentVal)}</div>` : ''}
+        <div style="font-size: 0.7rem; color: var(--hero-gold);">${val * 2} PP</div>
+        <div class="stepper-control" style="margin-top: 0.35rem; width: 100%; justify-content: center;">
+          <button class="btn-stepper compact" data-ab="${ab.id}" data-dir="-1">-</button>
+          <span class="stepper-value compact">${val}</span>
+          <button class="btn-stepper compact" data-ab="${ab.id}" data-dir="1">+</button>
+        </div>
+        ${ab.id === 'str' ? `<div style="font-size: 0.65rem; color: var(--text-muted); margin-top: 2px;">Lift: ${getStrengthLiftingCapacity(val)}</div>` : ''}
       `;
 
-      box.querySelectorAll('button').forEach(btn => {
+      card.querySelectorAll('.btn-stepper').forEach(btn => {
         btn.addEventListener('click', () => {
           const dir = parseInt(btn.dataset.dir, 10);
           this.char.abilities[ab.id] = Math.max(-5, (parseInt(this.char.abilities[ab.id], 10) || 0) + dir);
@@ -1191,37 +1284,33 @@ class AppController {
         });
       });
 
-      box.querySelector('input').addEventListener('change', (e) => {
-        this.char.abilities[ab.id] = parseInt(e.target.value, 10) || 0;
-        this.renderAll();
-      });
-
-      abGrid.appendChild(box);
+      abGrid.appendChild(card);
     });
 
-    // Defenses editor
-    const defGrid = document.getElementById('defenses-editor-grid');
+    const defGrid = document.getElementById('defenses-stepper-grid');
     defGrid.innerHTML = '';
 
     DEFENSES.forEach(def => {
       const baseVal = parseInt(this.char.abilities?.[def.ability], 10) || 0;
-      const boughtRanks = parseInt(this.char.defenses?.[def.id], 10) || 0;
+      const bought = parseInt(this.char.defenses?.[def.id], 10) || 0;
       const total = audit.computedDefenses[def.id] || 0;
 
-      const box = document.createElement('div');
-      box.className = 'defense-box';
-      box.innerHTML = `
-        <div class="defense-name">${def.name}</div>
-        <div class="defense-score">${total}</div>
-        <div style="font-size: 0.7rem; color: var(--text-muted);">Base (${baseVal}) + Bought (${boughtRanks})</div>
-        <div style="display: flex; gap: 0.35rem; align-items: center; margin-top: 0.35rem;">
-          <button class="btn-step" data-def="${def.id}" data-dir="-1">-</button>
-          <input type="number" value="${boughtRanks}" min="0" max="25" style="width: 50px; text-align: center;" data-def="${def.id}">
-          <button class="btn-step" data-def="${def.id}" data-dir="1">+</button>
+      const card = document.createElement('div');
+      card.style.cssText = 'background-color: var(--bg-input); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 0.5rem; text-align: center;';
+      card.innerHTML = `
+        <div style="font-size: var(--font-size-xs); font-weight: 800; color: var(--text-muted);">
+          <span class="rules-link" data-name="${def.name}" data-desc="${def.desc}" data-cat="Defense">${def.name}</span>
+        </div>
+        <div style="font-size: var(--font-size-lg); font-weight: 900; color: var(--text-bright);">${total}</div>
+        <div style="font-size: 0.65rem; color: var(--text-muted);">Base (${baseVal}) + Bought (${bought})</div>
+        <div class="stepper-control" style="margin-top: 0.35rem; width: 100%; justify-content: center;">
+          <button class="btn-stepper compact" data-def="${def.id}" data-dir="-1">-</button>
+          <span class="stepper-value compact">${bought}</span>
+          <button class="btn-stepper compact" data-def="${def.id}" data-dir="1">+</button>
         </div>
       `;
 
-      box.querySelectorAll('button').forEach(btn => {
+      card.querySelectorAll('.btn-stepper').forEach(btn => {
         btn.addEventListener('click', () => {
           const dir = parseInt(btn.dataset.dir, 10);
           if (!this.char.defenses) this.char.defenses = {};
@@ -1230,149 +1319,120 @@ class AppController {
         });
       });
 
-      box.querySelector('input').addEventListener('change', (e) => {
-        if (!this.char.defenses) this.char.defenses = {};
-        this.char.defenses[def.id] = Math.max(0, parseInt(e.target.value, 10) || 0);
-        this.renderAll();
-      });
-
-      defGrid.appendChild(box);
+      defGrid.appendChild(card);
     });
 
-    // Caps audit details
-    const auditDiv = document.getElementById('caps-audit-details');
+    // PL Caps Report
     const pl2 = audit.powerLevel * 2;
-    const pl10 = audit.powerLevel + 10;
-
-    let auditHtml = `
-      <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem; font-size: var(--font-size-xs);">
-        <div style="background-color: var(--bg-input); padding: 0.6rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
-          <strong>Dodge + Toughness:</strong> ${audit.computedDefenses.dodge + audit.computedDefenses.toughness} / ${pl2}
-        </div>
-        <div style="background-color: var(--bg-input); padding: 0.6rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
-          <strong>Parry + Toughness:</strong> ${audit.computedDefenses.parry + audit.computedDefenses.toughness} / ${pl2}
-        </div>
-        <div style="background-color: var(--bg-input); padding: 0.6rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
-          <strong>Fortitude + Will:</strong> ${audit.computedDefenses.fortitude + audit.computedDefenses.will} / ${pl2}
-        </div>
+    document.getElementById('pl-caps-report').innerHTML = `
+      <div style="background-color: var(--bg-input); padding: 0.5rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+        <strong>Dodge + Toughness:</strong> ${audit.computedDefenses.dodge + audit.computedDefenses.toughness} / ${pl2}
+      </div>
+      <div style="background-color: var(--bg-input); padding: 0.5rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+        <strong>Parry + Toughness:</strong> ${audit.computedDefenses.parry + audit.computedDefenses.toughness} / ${pl2}
+      </div>
+      <div style="background-color: var(--bg-input); padding: 0.5rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+        <strong>Fortitude + Will:</strong> ${audit.computedDefenses.fortitude + audit.computedDefenses.will} / ${pl2}
       </div>
     `;
-
-    if (audit.violations.length > 0) {
-      auditHtml += `<div style="margin-top: 0.75rem; padding: 0.75rem; background-color: rgba(239, 68, 68, 0.15); border: 1px solid #ef4444; border-radius: var(--radius-sm);">
-        <div style="font-weight: 800; color: #f87171; margin-bottom: 0.25rem;">⚠️ Power Level Cap Violations:</div>
-        <ul style="padding-left: 1.25rem; font-size: var(--font-size-xs); color: #fca5a5;">
-          ${audit.violations.map(v => `<li>${v.message}</li>`).join('')}
-        </ul>
-      </div>`;
-    }
-
-    auditDiv.innerHTML = auditHtml;
   }
 
-  // ==========================================
-  // RENDER TAB 3: SKILLS
-  // ==========================================
+  // =======================================================
+  // 17. SKILLS CATALOG TAB
+  // =======================================================
   renderSkillsTab(audit) {
-    document.getElementById('skills-total-pp').textContent = `${audit.skillsCost} PP`;
-    const tbody = document.getElementById('skills-editor-tbody');
+    document.getElementById('skills-cost-display').textContent = `${audit.skillsCost} PP`;
+    const tbody = document.getElementById('skills-catalog-tbody');
     tbody.innerHTML = '';
 
     SKILLS_LIST.forEach(skillDef => {
       const existing = (this.char.skills || []).find(s => s.id === skillDef.id);
       const ranks = existing ? (parseInt(existing.ranks, 10) || 0) : 0;
-      const specialty = existing?.specialty || skillDef.defaultSpecialty || '';
+      const specialty = existing?.specialty || '';
       const baseVal = parseInt(this.char.abilities?.[skillDef.ability], 10) || 0;
       const totalBonus = baseVal + ranks;
 
       const row = document.createElement('tr');
       row.innerHTML = `
         <td>
-          <strong>${skillDef.name}</strong>
-          ${skillDef.hasSpecialty ? `<input type="text" value="${specialty}" style="margin-left: 0.5rem; width: 140px; font-size: 0.75rem;" placeholder="Specialty">` : ''}
+          <span class="rules-link" data-name="${skillDef.name}" data-desc="${skillDef.desc}" data-cat="Official 3E Skill">
+            ${skillDef.name}
+          </span>
+          ${skillDef.hasSpecialty ? `<span style="font-size: 0.75rem; color: var(--hero-gold); margin-left: 0.5rem;">[${specialty || 'No Specialty'}]</span>` : ''}
         </td>
         <td>${skillDef.ability.toUpperCase()}</td>
-        <td>${baseVal >= 0 ? `+${baseVal}` : baseVal}</td>
+        <td>${baseVal >= 0 ? '+' : ''}${baseVal}</td>
         <td>
-          <div style="display: flex; gap: 0.35rem; align-items: center;">
-            <button class="btn-step" data-dir="-1">-</button>
-            <input type="number" value="${ranks}" min="0" max="25" style="width: 50px; text-align: center;">
-            <button class="btn-step" data-dir="1">+</button>
+          <div class="stepper-control">
+            <button class="btn-stepper compact" data-skill="${skillDef.id}" data-dir="-1">-</button>
+            <span class="stepper-value compact">${ranks}</span>
+            <button class="btn-stepper compact" data-skill="${skillDef.id}" data-dir="1">+</button>
           </div>
         </td>
-        <td><strong style="color: var(--hero-cyan); font-size: var(--font-size-md);">${totalBonus >= 0 ? `+${totalBonus}` : totalBonus}</strong></td>
+        <td><strong style="color: var(--hero-cyan); font-size: var(--font-size-md);">${totalBonus >= 0 ? '+' : ''}${totalBonus}</strong></td>
         <td style="text-align: right;">
-          <button class="btn-roll" style="font-size: 0.7rem; padding: 0.2rem 0.5rem;">🎲 Roll</button>
+          ${skillDef.hasSpecialty ? `
+            <button class="btn btn-outline" style="min-height: 32px; font-size: var(--font-size-xs);" data-prebuilt-skill="${skillDef.id}">+ Specialty</button>
+          ` : `<span></span>`}
         </td>
       `;
 
-      // Update ranks
-      const updateRanks = (newRanks) => {
-        if (!this.char.skills) this.char.skills = [];
-        let item = this.char.skills.find(s => s.id === skillDef.id);
-        if (!item) {
-          item = { id: skillDef.id, name: skillDef.name, ranks: 0 };
-          this.char.skills.push(item);
-        }
-        item.ranks = Math.max(0, newRanks);
-        this.renderAll();
-      };
-
-      row.querySelectorAll('.btn-step').forEach(btn => {
+      row.querySelectorAll('.btn-stepper').forEach(btn => {
         btn.addEventListener('click', () => {
           const dir = parseInt(btn.dataset.dir, 10);
-          updateRanks(ranks + dir);
+          this.updateSkillRanks(skillDef.id, skillDef.name, ranks + dir);
         });
-      });
-
-      row.querySelector('input[type="number"]').addEventListener('change', (e) => {
-        updateRanks(parseInt(e.target.value, 10) || 0);
       });
 
       if (skillDef.hasSpecialty) {
-        row.querySelector('input[type="text"]').addEventListener('change', (e) => {
-          if (!this.char.skills) this.char.skills = [];
-          let item = this.char.skills.find(s => s.id === skillDef.id);
-          if (!item) {
-            item = { id: skillDef.id, name: skillDef.name, ranks: 0 };
-            this.char.skills.push(item);
-          }
-          item.specialty = e.target.value;
-          this.saveAndAudit();
+        row.querySelector('[data-prebuilt-skill]').addEventListener('click', () => {
+          this.openPrebuiltOptionsModal(`Select Specialty for ${skillDef.name}`, skillDef.options, (selected) => {
+            this.setSkillSpecialty(skillDef.id, skillDef.name, selected);
+          });
         });
       }
-
-      row.querySelector('.btn-roll').addEventListener('click', () => {
-        const dcInput = prompt(`Enter DC for ${skillDef.name} check:`, '15');
-        const targetDC = dcInput !== null && dcInput.trim() !== '' ? parseInt(dcInput, 10) : null;
-        const roll = diceRoller.rollCheck({
-          title: `${skillDef.name} Skill Check`,
-          characterName: this.char.name,
-          modifier: totalBonus,
-          targetDC,
-          rollType: 'skill'
-        });
-        discordIntegrator.sendRollEmbed(roll);
-      });
 
       tbody.appendChild(row);
     });
   }
 
-  // ==========================================
-  // RENDER TAB 4: ADVANTAGES
-  // ==========================================
-  renderAdvantagesTab(audit) {
-    document.getElementById('advantages-total-pp').textContent = `${audit.advantagesCost} PP`;
-    const container = document.getElementById('advantages-catalog-list');
-    container.innerHTML = '';
+  updateSkillRanks(id, name, newRanks) {
+    if (!this.char.skills) this.char.skills = [];
+    let item = this.char.skills.find(s => s.id === id);
+    if (!item) {
+      item = { id, name, ranks: 0 };
+      this.char.skills.push(item);
+    }
+    item.ranks = Math.max(0, newRanks);
+    this.renderAll();
+  }
 
-    const filterText = (document.getElementById('adv-search-input')?.value || '').toLowerCase();
-    const filterCat = document.getElementById('adv-category-filter')?.value || 'all';
+  setSkillSpecialty(id, name, specialty) {
+    if (!this.char.skills) this.char.skills = [];
+    let item = this.char.skills.find(s => s.id === id);
+    if (!item) {
+      item = { id, name, ranks: 0 };
+      this.char.skills.push(item);
+    }
+    item.specialty = specialty;
+    this.saveAndAudit();
+    this.renderAll();
+  }
+
+  // =======================================================
+  // 18. ADVANTAGES CATALOG TAB
+  // =======================================================
+  renderAdvantagesTab(audit) {
+    document.getElementById('advantages-cost-display').textContent = `${audit.advantagesCost} PP`;
+    const grid = document.getElementById('advantages-catalog-grid');
+    grid.innerHTML = '';
+
+    const search = (document.getElementById('adv-search-box')?.value || '').toLowerCase();
+    const filterCat = document.getElementById('adv-filter-cat')?.value || 'all';
 
     ADVANTAGES_DATABASE.forEach(advDef => {
       if (filterCat !== 'all' && advDef.category !== filterCat) return;
-      if (filterText && !advDef.name.toLowerCase().includes(filterText) && !advDef.desc.toLowerCase().includes(filterText)) return;
+      if (search && !advDef.name.toLowerCase().includes(search) && !advDef.desc.toLowerCase().includes(search)) return;
 
       const existing = (this.char.advantages || []).find(a => a.id === advDef.id);
       const isSelected = !!existing;
@@ -1391,27 +1451,44 @@ class AppController {
 
       card.innerHTML = `
         <div>
-          <div style="display: flex; justify-content: space-between; align-items: center;">
-            <strong style="color: ${isSelected ? 'var(--hero-cyan)' : 'var(--text-bright)'}; font-size: var(--font-size-sm);">${advDef.name}</strong>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
+            <span class="rules-link" data-name="${advDef.name}" data-desc="${advDef.desc}" data-cat="${advDef.category} Advantage">
+              ${advDef.name}
+            </span>
             <span style="font-size: 0.65rem; background: rgba(255,255,255,0.06); padding: 0.1rem 0.35rem; border-radius: 3px;">${advDef.category}</span>
           </div>
-          <div style="font-size: var(--font-size-xs); color: var(--text-muted); margin: 0.35rem 0;">${advDef.desc}</div>
+          <div style="font-size: var(--font-size-xs); color: var(--text-muted);">${advDef.desc.substring(0, 95)}...</div>
+          ${existing?.note ? `<div style="font-size: 0.7rem; color: var(--hero-gold); margin-top: 0.25rem;">[${existing.note}]</div>` : ''}
         </div>
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.5rem; border-top: 1px solid var(--border-color); padding-top: 0.35rem;">
+
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.5rem; border-top: 1px solid var(--border-color); padding-top: 0.45rem;">
           ${advDef.maxRank > 1 ? `
-            <div style="display: flex; gap: 0.25rem; align-items: center;">
-              <span style="font-size: 0.7rem; color: var(--text-muted);">Rank:</span>
-              <input type="number" min="0" max="${advDef.maxRank}" value="${currentRank}" style="width: 50px; font-size: 0.75rem; padding: 0.15rem 0.3rem;" data-adv="${advDef.id}">
+            <div class="stepper-control">
+              <button class="btn-stepper compact" data-adv="${advDef.id}" data-dir="-1">-</button>
+              <span class="stepper-value compact">${currentRank}</span>
+              <button class="btn-stepper compact" data-adv="${advDef.id}" data-dir="1">+</button>
             </div>
           ` : `<span></span>`}
-          <button class="btn ${isSelected ? 'btn-danger' : 'btn-primary'}" style="font-size: 0.7rem; padding: 0.2rem 0.5rem;" data-adv="${advDef.id}">
-            ${isSelected ? 'Remove' : '+ Add'}
-          </button>
+
+          <div style="display: flex; gap: 0.35rem;">
+            ${advDef.hasOptions ? `
+              <button class="btn btn-outline" style="min-height: 32px; font-size: var(--font-size-xs);" data-opt-adv="${advDef.id}">+ Option</button>
+            ` : ''}
+            <button class="btn ${isSelected ? 'btn-danger' : 'btn-primary'}" style="min-height: 32px; font-size: var(--font-size-xs);" data-toggle-adv="${advDef.id}">
+              ${isSelected ? 'Remove' : '+ Add'}
+            </button>
+          </div>
         </div>
       `;
 
-      const btn = card.querySelector('button');
-      btn.addEventListener('click', () => {
+      card.querySelectorAll('.btn-stepper').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const dir = parseInt(btn.dataset.dir, 10);
+          this.setAdvantageRank(advDef.id, advDef.name, currentRank + dir, advDef.maxRank);
+        });
+      });
+
+      card.querySelector('[data-toggle-adv]').addEventListener('click', () => {
         if (!this.char.advantages) this.char.advantages = [];
         if (isSelected) {
           this.char.advantages = this.char.advantages.filter(a => a.id !== advDef.id);
@@ -1421,141 +1498,170 @@ class AppController {
         this.renderAll();
       });
 
-      const rankInput = card.querySelector('input');
-      if (rankInput) {
-        rankInput.addEventListener('change', (e) => {
-          const val = Math.max(0, parseInt(e.target.value, 10) || 0);
-          if (!this.char.advantages) this.char.advantages = [];
-          if (val === 0) {
-            this.char.advantages = this.char.advantages.filter(a => a.id !== advDef.id);
-          } else {
-            let item = this.char.advantages.find(a => a.id === advDef.id);
+      if (advDef.hasOptions) {
+        card.querySelector('[data-opt-adv]').addEventListener('click', () => {
+          this.openPrebuiltOptionsModal(`Select Option for ${advDef.name}`, advDef.options, (selected) => {
+            let item = (this.char.advantages || []).find(a => a.id === advDef.id);
             if (!item) {
-              item = { id: advDef.id, name: advDef.name, rank: val };
+              item = { id: advDef.id, name: advDef.name, rank: 1 };
               this.char.advantages.push(item);
-            } else {
-              item.rank = val;
             }
-          }
-          this.renderAll();
+            item.note = selected;
+            this.saveAndAudit();
+            this.renderAll();
+          });
         });
       }
 
-      container.appendChild(card);
+      grid.appendChild(card);
     });
 
-    // Wire search listeners once
-    const searchInput = document.getElementById('adv-search-input');
-    if (!searchInput.dataset.wired) {
-      searchInput.dataset.wired = 'true';
-      searchInput.addEventListener('input', () => this.renderAdvantagesTab(auditCharacter(this.char)));
-      document.getElementById('adv-category-filter').addEventListener('change', () => this.renderAdvantagesTab(auditCharacter(this.char)));
+    const searchBox = document.getElementById('adv-search-box');
+    if (!searchBox.dataset.wired) {
+      searchBox.dataset.wired = 'true';
+      searchBox.addEventListener('input', () => this.renderAdvantagesTab(auditCharacter(this.char)));
+      document.getElementById('adv-filter-cat').addEventListener('change', () => this.renderAdvantagesTab(auditCharacter(this.char)));
     }
   }
 
-  // ==========================================
-  // RENDER TAB 5: POWERS
-  // ==========================================
-  renderPowersTab(audit) {
-    document.getElementById('powers-total-pp').textContent = `${audit.powersCost} PP`;
-    const container = document.getElementById('powers-builder-list');
+  setAdvantageRank(id, name, rank, maxRank) {
+    if (!this.char.advantages) this.char.advantages = [];
+    const val = Math.max(0, Math.min(maxRank, rank));
+    if (val === 0) {
+      this.char.advantages = this.char.advantages.filter(a => a.id !== id);
+    } else {
+      let item = this.char.advantages.find(a => a.id === id);
+      if (!item) {
+        item = { id, name, rank: val };
+        this.char.advantages.push(item);
+      } else {
+        item.rank = val;
+      }
+    }
+    this.renderAll();
+  }
+
+  // =======================================================
+  // 19. PREBUILT OPTIONS MODAL (with conflict / illegal check)
+  // =======================================================
+  openPrebuiltOptionsModal(title, optionsList, onSelectCallback) {
+    document.getElementById('prebuilt-modal-title').textContent = title;
+    const container = document.getElementById('prebuilt-options-list');
     container.innerHTML = '';
 
+    (optionsList || []).forEach(opt => {
+      const btn = document.createElement('button');
+      btn.className = 'btn btn-outline';
+      btn.style.cssText = 'text-align: left; justify-content: flex-start; padding: 0.5rem 0.85rem;';
+      btn.textContent = opt;
+
+      btn.addEventListener('click', () => {
+        onSelectCallback(opt);
+        this.closeModal('modal-prebuilt-options');
+      });
+
+      container.appendChild(btn);
+    });
+
+    document.getElementById('btn-close-prebuilt').addEventListener('click', () => {
+      this.closeModal('modal-prebuilt-options');
+    });
+
+    this.openModal('modal-prebuilt-options');
+  }
+
+  // =======================================================
+  // 20. POWERS TAB RENDER
+  // =======================================================
+  renderPowersTab(audit) {
+    document.getElementById('powers-cost-display').textContent = `${audit.powersCost} PP`;
+    const list = document.getElementById('character-powers-list');
+    list.innerHTML = '';
+
     if (!this.char.powers || this.char.powers.length === 0) {
-      container.innerHTML = `<div style="text-align: center; padding: 2rem; color: var(--text-muted); font-size: var(--font-size-sm);">
-        No powers built yet. Click <strong>"➕ Build New Power"</strong> to create custom powers using the Hero Lab model!
+      list.innerHTML = `<div style="text-align: center; padding: 1.5rem; color: var(--text-muted); font-size: var(--font-size-sm);">
+        No powers built yet. Choose a profile from the <strong>Power Profiles Library</strong> above or click <strong>Custom Power Builder</strong>.
       </div>`;
       return;
     }
 
-    this.char.powers.forEach((power, idx) => {
-      const cost = calculatePowerCost(power);
-      const isDevice = power.flaws?.some(f => f.isDevice);
+    this.char.powers.forEach((p, idx) => {
+      const cost = calculatePowerCost(p);
+      const isDevice = p.flaws?.some(f => f.isDevice);
 
       const card = document.createElement('div');
-      card.className = `power-card ${isDevice ? 'device' : ''}`;
-
-      let modifiersSummary = [];
-      (power.extras || []).forEach(e => modifiersSummary.push(`+${e.name}`));
-      (power.flaws || []).forEach(f => modifiersSummary.push(`-${f.name}`));
-
-      let aeHtml = '';
-      if (power.alternateEffects && power.alternateEffects.length > 0) {
-        aeHtml = `
-          <div style="margin-top: 0.5rem; padding-top: 0.35rem; border-top: 1px dashed var(--border-color); font-size: var(--font-size-xs);">
-            <strong style="color: var(--hero-cyan);">Alternate Effects Array (${power.alternateEffects.length} AE):</strong>
-            <ul style="padding-left: 1.25rem; color: var(--text-muted); margin-top: 2px;">
-              ${power.alternateEffects.map(ae => `<li>${ae.name} (Rank ${ae.rank}) - 1 PP</li>`).join('')}
-            </ul>
-          </div>
-        `;
-      }
+      card.style.cssText = `
+        background-color: var(--bg-input);
+        border: 1px solid var(--border-color);
+        ${isDevice ? 'border-left: 4px solid var(--hero-gold);' : ''}
+        border-radius: var(--radius-sm);
+        padding: 0.65rem 0.85rem;
+      `;
 
       card.innerHTML = `
-        <div class="power-header">
-          <div class="power-title">
-            ⚡ ${power.name} (Rank ${power.rank})
-            ${isDevice ? `<span style="font-size: 0.65rem; background: #854d0e; color: #fef08a; padding: 0.1rem 0.35rem; border-radius: 3px;">DEVICE</span>` : ''}
-          </div>
-          <span class="power-cost-tag">${cost} PP</span>
+        <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 0.25rem;">
+          <strong style="color: var(--text-bright); font-size: var(--font-size-md);">⚡ ${p.name} (Rank ${p.rank})</strong>
+          <span class="pp-status-value">${cost} PP</span>
         </div>
-        <div class="power-descriptors">
-          [${power.descriptor || 'Power'}] • Action: ${power.action || 'Standard'} • Range: ${power.range || 'Close'} • Duration: ${power.duration || 'Instant'}
+        <div style="font-size: var(--font-size-xs); color: var(--hero-cyan); font-weight: 600;">
+          [${p.descriptor}] • ${p.action} • ${p.range} • ${p.duration}
         </div>
-        ${modifiersSummary.length > 0 ? `<div style="font-size: var(--font-size-xs); color: var(--text-muted); margin: 0.25rem 0;"><strong>Modifiers:</strong> ${modifiersSummary.join(', ')}</div>` : ''}
-        ${aeHtml}
-        ${power.notes ? `<div style="font-size: var(--font-size-xs); color: var(--text-muted); margin-top: 0.35rem;">${power.notes}</div>` : ''}
+        ${p.notes ? `<div style="font-size: var(--font-size-xs); color: var(--text-muted); margin-top: 0.25rem;">${p.notes}</div>` : ''}
         
-        <div class="power-actions-row">
-          <div></div>
-          <div class="power-buttons">
-            <button class="btn btn-outline" style="font-size: 0.7rem; padding: 0.25rem 0.5rem;" data-action="edit">✏️ Edit</button>
-            <button class="btn btn-danger" style="font-size: 0.7rem; padding: 0.25rem 0.5rem;" data-action="delete">🗑️ Delete</button>
-          </div>
+        <div style="display: flex; justify-content: flex-end; gap: 0.35rem; margin-top: 0.45rem;">
+          <button class="btn btn-outline" style="min-height: 28px; font-size: var(--font-size-xs);" data-edit-p="${p.id}">✏️ Edit</button>
+          <button class="btn btn-danger" style="min-height: 28px; font-size: var(--font-size-xs);" data-del-p="${p.id}">🗑️ Delete</button>
         </div>
       `;
 
-      card.querySelector('[data-action="edit"]').addEventListener('click', () => {
-        this.openPowerBuilderModal(power);
+      card.querySelector('[data-edit-p]').addEventListener('click', () => {
+        this.openCustomPowerBuilder(p);
       });
 
-      card.querySelector('[data-action="delete"]').addEventListener('click', () => {
-        if (confirm(`Delete power "${power.name}"?`)) {
+      card.querySelector('[data-del-p]').addEventListener('click', () => {
+        if (confirm(`Delete "${p.name}"?`)) {
           this.char.powers.splice(idx, 1);
           this.saveAndAudit();
           this.renderAll();
-          this.showToast(`Deleted ${power.name}`);
         }
       });
 
-      container.appendChild(card);
+      list.appendChild(card);
     });
   }
 
-  // ==========================================
-  // RENDER TAB 6: GEAR & EQUIPMENT
-  // ==========================================
+  // =======================================================
+  // 21. GEAR & HQ RENDER
+  // =======================================================
   renderGearTab(audit) {
-    let eqAdvRank = 0;
-    (this.char.advantages || []).forEach(a => { if (a.id === 'equipment') eqAdvRank += parseInt(a.rank, 10) || 1; });
-    const epBudget = eqAdvRank * 5;
+    let eqAdvRanks = 0;
+    (this.char.advantages || []).forEach(a => { if (a.id === 'equipment') eqAdvRanks += parseInt(a.rank, 10) || 1; });
+    const epBudget = eqAdvRanks * 5;
 
-    let epSpent = 0;
-    (this.char.gear || []).forEach(g => epSpent += parseInt(g.cost, 10) || 0);
+    let gearSpent = 0;
+    (this.char.gear || []).forEach(g => gearSpent += parseInt(g.cost, 10) || 0);
 
-    document.getElementById('gear-ep-display').textContent = `${epSpent} / ${epBudget} EP`;
+    // Calculate HQ Cost
+    const hq = this.char.hq || {};
+    const sizeDef = HQ_SIZES_TABLE.find(s => s.name === hq.size) || { ep: 0 };
+    const toughCost = Math.max(0, (hq.toughness || 8) - 8);
+    const featuresCost = (hq.features || []).length;
+    const hqTotalEp = Math.max(0, sizeDef.ep + toughCost + featuresCost);
 
-    const tbody = document.getElementById('gear-tbody');
+    document.getElementById('gear-ep-badge').textContent = `${gearSpent + hqTotalEp} / ${epBudget} EP Used`;
+    document.getElementById('hq-ep-badge').textContent = `Total HQ: ${hqTotalEp} EP`;
+
+    // Render items tbody
+    const tbody = document.getElementById('gear-items-tbody');
     tbody.innerHTML = '';
-
     (this.char.gear || []).forEach((item, idx) => {
       const row = document.createElement('tr');
       row.innerHTML = `
         <td><strong>${item.name}</strong></td>
-        <td><span style="color: var(--hero-gold); font-weight: 800;">${item.cost} EP</span></td>
+        <td><strong style="color: var(--hero-gold);">${item.cost} EP</strong></td>
         <td>${item.desc || ''}</td>
         <td style="text-align: right;">
-          <button class="btn btn-danger" style="font-size: 0.7rem; padding: 0.15rem 0.4rem;">🗑️</button>
+          <button class="btn btn-danger" style="min-height: 28px; font-size: var(--font-size-xs);">🗑️</button>
         </td>
       `;
       row.querySelector('button').addEventListener('click', () => {
@@ -1566,98 +1672,63 @@ class AppController {
       tbody.appendChild(row);
     });
 
-    const addBtn = document.getElementById('btn-add-gear');
-    if (!addBtn.dataset.wired) {
-      addBtn.dataset.wired = 'true';
-      addBtn.addEventListener('click', () => {
-        const name = document.getElementById('new-gear-name').value.trim();
-        const cost = parseInt(document.getElementById('new-gear-cost').value, 10) || 1;
-        const desc = document.getElementById('new-gear-desc').value.trim();
-        if (!name) {
-          alert('Please enter an item name.');
-          return;
-        }
-        if (!this.char.gear) this.char.gear = [];
-        this.char.gear.push({ name, cost, desc });
-        document.getElementById('new-gear-name').value = '';
-        document.getElementById('new-gear-desc').value = '';
-        this.saveAndAudit();
-        this.renderGearTab(auditCharacter(this.char));
-        this.showToast(`Added ${name}`);
-      });
-    }
+    // Sync HQ values
+    document.getElementById('hq-name-input').value = hq.name || '';
+    document.getElementById('hq-size-select').value = hq.size || 'Small';
+    document.getElementById('hq-tough-val').textContent = hq.toughness || 8;
+
+    document.querySelectorAll('.hq-feat-checkbox').forEach(cb => {
+      cb.checked = (hq.features || []).includes(cb.dataset.featId);
+    });
   }
 
-  // ==========================================
-  // RENDER TAB 7: IDENTITY & COMPLICATIONS
-  // ==========================================
-  renderIdentityTab(audit) {
-    const list = document.getElementById('complications-list');
+  // =======================================================
+  // 22. HISTORY TAB RENDER
+  // =======================================================
+  renderHistoryTab() {
+    const list = document.getElementById('session-log-list');
     list.innerHTML = '';
 
-    (this.char.complications || []).forEach((comp, idx) => {
-      const card = document.createElement('div');
-      card.style.cssText = 'background-color: var(--bg-input); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 0.75rem;';
-      card.innerHTML = `
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.25rem;">
-          <strong style="color: var(--hero-gold); font-size: var(--font-size-sm);">${comp.type || 'Complication'}: ${comp.name}</strong>
-          <button class="btn btn-danger" style="font-size: 0.7rem; padding: 0.15rem 0.4rem;">🗑️</button>
-        </div>
-        <div style="font-size: var(--font-size-xs); color: var(--text-muted);">${comp.desc}</div>
-      `;
-      card.querySelector('button').addEventListener('click', () => {
-        this.char.complications.splice(idx, 1);
-        this.saveAndAudit();
-        this.renderIdentityTab(auditCharacter(this.char));
-      });
-      list.appendChild(card);
-    });
-
-    const addCompBtn = document.getElementById('btn-add-complication');
-    if (!addCompBtn.dataset.wired) {
-      addCompBtn.dataset.wired = 'true';
-      addCompBtn.addEventListener('click', () => {
-        const type = prompt('Enter complication type (e.g. Motivation, Identity, Weakness, Enemy, Quirk, Prejudice):', 'Motivation');
-        if (!type) return;
-        const name = prompt('Enter complication name / title:', 'Doing Good');
-        if (!name) return;
-        const desc = prompt('Enter complication details (how GM can trigger it for Hero Points):', 'Hero will never compromise innocent lives.');
-        if (!this.char.complications) this.char.complications = [];
-        this.char.complications.push({ type, name, desc });
-        this.saveAndAudit();
-        this.renderIdentityTab(auditCharacter(this.char));
-        this.showToast(`Added complication: ${name}`);
-      });
+    if (!this.char.historyLog || this.char.historyLog.length === 0) {
+      list.innerHTML = `<div style="text-align: center; color: var(--text-muted); font-size: var(--font-size-xs); padding: 1rem;">
+        No game sessions logged yet. Click "+ Log Game Session" to record session recaps, dates, and campaign notes.
+      </div>`;
+      return;
     }
 
-    const bioInput = document.getElementById('hero-bio-input');
-    bioInput.value = this.char.bio || '';
-    bioInput.oninput = (e) => {
-      this.char.bio = e.target.value;
-      storageManager.saveCharacter(this.char);
-    };
+    this.char.historyLog.forEach((sess, idx) => {
+      const entry = document.createElement('div');
+      entry.className = 'history-entry';
+      entry.innerHTML = `
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.25rem;">
+          <strong style="color: var(--hero-cyan);">${sess.title}</strong>
+          <span style="font-size: 0.7rem; color: var(--text-muted);">${sess.date} • ${sess.time}</span>
+        </div>
+        <div style="font-size: var(--font-size-xs); color: var(--text-bright);">${sess.notes}</div>
+        <div style="text-align: right; margin-top: 0.25rem;">
+          <button class="btn btn-danger" style="min-height: 24px; padding: 0.1rem 0.35rem; font-size: 0.65rem;">Delete</button>
+        </div>
+      `;
+      entry.querySelector('button').addEventListener('click', () => {
+        this.char.historyLog.splice(idx, 1);
+        this.saveAndAudit();
+        this.renderHistoryTab();
+      });
+      list.appendChild(entry);
+    });
   }
 
-  // ==========================================
-  // TOAST NOTIFICATIONS
-  // ==========================================
-  showToast(message, type = 'success') {
-    const container = document.getElementById('toast-container');
-    if (!container) return;
-    const toast = document.createElement('div');
-    toast.className = `toast ${type}`;
-    toast.innerHTML = `<span>${type === 'success' ? '⚡' : '⚠️'}</span> <span>${message}</span>`;
-    container.appendChild(toast);
-    setTimeout(() => {
-      toast.style.opacity = '0';
-      toast.style.transform = 'translateY(10px)';
-      toast.style.transition = 'all 0.3s ease';
-      setTimeout(() => toast.remove(), 300);
-    }, 2800);
+  openModal(id) {
+    const el = document.getElementById(id);
+    if (el) el.classList.add('active');
+  }
+
+  closeModal(id) {
+    const el = document.getElementById(id);
+    if (el) el.classList.remove('active');
   }
 }
 
-// Start application
 window.addEventListener('DOMContentLoaded', () => {
   window.app = new AppController();
 });

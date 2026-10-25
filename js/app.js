@@ -1,6 +1,8 @@
 /**
  * Mutants & Masterminds 3E Character Architect & Interactive Record
- * Primary Application Controller - Optimized for 1080px display width
+ * Primary Application Controller - Version 2.2
+ * Optimized for 1080px display width, persistent top header & tabs,
+ * and interactive archetype wizard.
  */
 
 import {
@@ -29,6 +31,7 @@ import {
 
 import { POWER_PROFILES_LIBRARY } from './power_profiles.js';
 import { ARCHETYPES } from './archetypes.js';
+import { ARCHETYPE_CUSTOMIZATION_OPTIONS, buildCustomizedArchetype } from './archetype_builder.js';
 import { diceRoller } from './dice.js';
 import { discordIntegrator } from './discord.js';
 import { storageManager } from './storage.js';
@@ -37,6 +40,16 @@ class AppController {
   constructor() {
     this.char = storageManager.getActiveCharacter();
     this.activePowerEditing = null;
+
+    // Interactive Archetype Wizard State
+    this.wizardState = {
+      step: 1,
+      selectedArchetypeId: 'battlesuit',
+      selectedSpecializationId: null,
+      selectedComplication: null,
+      heroName: ''
+    };
+
     this.init();
   }
 
@@ -58,6 +71,7 @@ class AppController {
     this.setupGearAndHQ();
     this.setupHistoryTab();
     this.setupSettingsTab();
+    this.setupArchetypeWizard();
     this.renderAll();
   }
 
@@ -157,7 +171,12 @@ class AppController {
       this.openModal('modal-hero-point');
     });
 
-    // Tables Button
+    // Archetypes Button (Row 2 Right)
+    document.getElementById('btn-open-archetypes').addEventListener('click', () => {
+      this.openArchetypeWizard();
+    });
+
+    // Tables Button (Row 2 Right)
     document.getElementById('btn-open-tables').addEventListener('click', () => {
       this.openModal('modal-tables');
     });
@@ -182,7 +201,218 @@ class AppController {
   }
 
   // =======================================================
-  // 5. DICE ROLLER BAR & LOG
+  // 5. INTERACTIVE ARCHETYPE BUILDER WIZARD
+  // =======================================================
+  setupArchetypeWizard() {
+    document.getElementById('btn-close-archetype-wizard').addEventListener('click', () => {
+      this.closeModal('modal-archetype-wizard');
+    });
+
+    document.getElementById('btn-wizard-back').addEventListener('click', () => {
+      if (this.wizardState.step > 1) {
+        this.wizardState.step--;
+        this.renderWizardStep();
+      }
+    });
+
+    document.getElementById('btn-wizard-next').addEventListener('click', () => {
+      if (this.wizardState.step === 1) {
+        this.wizardState.step = 2;
+        this.renderWizardStep();
+      } else if (this.wizardState.step === 2) {
+        this.wizardState.step = 3;
+        this.renderWizardStep();
+      } else if (this.wizardState.step === 3) {
+        this.finishArchetypeWizard();
+      }
+    });
+  }
+
+  openArchetypeWizard() {
+    this.wizardState = {
+      step: 1,
+      selectedArchetypeId: 'battlesuit',
+      selectedSpecializationId: null,
+      selectedComplication: null,
+      heroName: ''
+    };
+    this.renderWizardStep();
+    this.openModal('modal-archetype-wizard');
+  }
+
+  renderWizardStep() {
+    const body = document.getElementById('archetype-wizard-body');
+    const backBtn = document.getElementById('btn-wizard-back');
+    const nextBtn = document.getElementById('btn-wizard-next');
+
+    backBtn.style.display = this.wizardState.step === 1 ? 'none' : 'inline-flex';
+    nextBtn.textContent = this.wizardState.step === 3 ? '⚡ Generate & Equip Hero' : 'Next Step ➜';
+
+    if (this.wizardState.step === 1) {
+      // Step 1: Select Archetype
+      let html = `
+        <div style="font-weight: 800; font-size: var(--font-size-md); color: var(--hero-cyan); margin-bottom: 0.35rem;">
+          Step 1: Choose Your Superhero Archetype
+        </div>
+        <p style="font-size: var(--font-size-xs); color: var(--text-muted); margin-bottom: 0.85rem;">
+          Select a core archetype from the Deluxe Hero's Handbook. Each is built to standard PL 10 (150 PP):
+        </p>
+        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.65rem;">
+      `;
+
+      ARCHETYPES.forEach(arch => {
+        const isSel = this.wizardState.selectedArchetypeId === arch.id;
+        html += `
+          <div class="wizard-option-card ${isSel ? 'selected' : ''}" data-arch-id="${arch.id}">
+            <div style="display: flex; justify-content: space-between; align-items: baseline;">
+              <strong style="color: ${isSel ? 'var(--hero-purple)' : 'var(--text-bright)'}; font-size: var(--font-size-sm);">${arch.name}</strong>
+              <span style="font-size: 0.65rem; color: var(--hero-gold); font-weight: 700;">PL ${arch.powerLevel}</span>
+            </div>
+            <div style="font-size: var(--font-size-xs); color: var(--hero-cyan); margin: 2px 0;">${arch.tagline}</div>
+            <div style="font-size: var(--font-size-xs); color: var(--text-muted);">${arch.concept}</div>
+          </div>
+        `;
+      });
+
+      html += `</div>`;
+      body.innerHTML = html;
+
+      body.querySelectorAll('[data-arch-id]').forEach(card => {
+        card.addEventListener('click', () => {
+          this.wizardState.selectedArchetypeId = card.dataset.archId;
+          this.wizardState.selectedSpecializationId = null;
+          this.renderWizardStep();
+        });
+      });
+
+    } else if (this.wizardState.step === 2) {
+      // Step 2: Select Specialization Package
+      const customData = ARCHETYPE_CUSTOMIZATION_OPTIONS[this.wizardState.selectedArchetypeId] || { specializations: [] };
+      const archDef = ARCHETYPES.find(a => a.id === this.wizardState.selectedArchetypeId);
+
+      if (!this.wizardState.selectedSpecializationId && customData.specializations.length > 0) {
+        this.wizardState.selectedSpecializationId = customData.specializations[0].id;
+      }
+
+      let html = `
+        <div style="font-weight: 800; font-size: var(--font-size-md); color: var(--hero-cyan); margin-bottom: 0.35rem;">
+          Step 2: Customization Package for ${archDef?.name}
+        </div>
+        <p style="font-size: var(--font-size-xs); color: var(--text-muted); margin-bottom: 0.85rem;">
+          Pick the power profile, combat specialization, and tactical focus defined in the rules:
+        </p>
+        <div style="display: flex; flex-direction: column; gap: 0.65rem;">
+      `;
+
+      customData.specializations.forEach(spec => {
+        const isSel = this.wizardState.selectedSpecializationId === spec.id;
+        html += `
+          <div class="wizard-option-card ${isSel ? 'selected' : ''}" data-spec-id="${spec.id}">
+            <div style="font-weight: 800; color: ${isSel ? 'var(--hero-purple)' : 'var(--text-bright)'}; font-size: var(--font-size-sm); margin-bottom: 2px;">
+              ${spec.name}
+            </div>
+            <div style="font-size: var(--font-size-xs); color: var(--text-muted); margin-bottom: 4px;">
+              ${spec.desc}
+            </div>
+            <div style="display: flex; gap: 1rem; font-size: 0.7rem; color: var(--hero-cyan); font-weight: 700;">
+              <span>⚡ Attack: ${spec.attackDescriptor}</span>
+              <span>🎯 Focus: ${spec.skillFocus}</span>
+            </div>
+          </div>
+        `;
+      });
+
+      html += `</div>`;
+      body.innerHTML = html;
+
+      body.querySelectorAll('[data-spec-id]').forEach(card => {
+        card.addEventListener('click', () => {
+          this.wizardState.selectedSpecializationId = card.dataset.specId;
+          this.renderWizardStep();
+        });
+      });
+
+    } else if (this.wizardState.step === 3) {
+      // Step 3: Hero Name & Core Complication
+      const customData = ARCHETYPE_CUSTOMIZATION_OPTIONS[this.wizardState.selectedArchetypeId] || { complications: [] };
+      const archDef = ARCHETYPES.find(a => a.id === this.wizardState.selectedArchetypeId);
+
+      if (!this.wizardState.selectedComplication && customData.complications.length > 0) {
+        this.wizardState.selectedComplication = customData.complications[0];
+      }
+
+      if (!this.wizardState.heroName) {
+        this.wizardState.heroName = archDef?.name || 'New Hero';
+      }
+
+      let html = `
+        <div style="font-weight: 800; font-size: var(--font-size-md); color: var(--hero-cyan); margin-bottom: 0.35rem;">
+          Step 3: Character Identity & Motivations
+        </div>
+        <div style="margin-bottom: 0.85rem;">
+          <label style="font-size: var(--font-size-xs); color: var(--text-muted); font-weight: 700; text-transform: uppercase;">Superhero Name</label>
+          <input type="text" id="wizard-hero-name" value="${this.wizardState.heroName}" style="width: 100%; font-size: var(--font-size-md); font-weight: 800; margin-top: 2px;">
+        </div>
+        <div style="font-weight: 800; font-size: var(--font-size-xs); color: var(--hero-gold); text-transform: uppercase; margin-bottom: 0.35rem;">
+          Select Primary Complication (Earns Hero Points in play)
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+      `;
+
+      customData.complications.forEach((comp, idx) => {
+        const isSel = this.wizardState.selectedComplication?.name === comp.name;
+        html += `
+          <div class="wizard-option-card ${isSel ? 'selected' : ''}" data-comp-idx="${idx}">
+            <strong style="color: ${isSel ? 'var(--hero-purple)' : 'var(--text-bright)'}; font-size: var(--font-size-xs);">
+              ${comp.type}: ${comp.name}
+            </strong>
+            <div style="font-size: var(--font-size-xs); color: var(--text-muted); margin-top: 2px;">
+              ${comp.desc}
+            </div>
+          </div>
+        `;
+      });
+
+      html += `</div>`;
+      body.innerHTML = html;
+
+      const nameInput = document.getElementById('wizard-hero-name');
+      nameInput.addEventListener('input', (e) => {
+        this.wizardState.heroName = e.target.value.trim();
+      });
+
+      body.querySelectorAll('[data-comp-idx]').forEach(card => {
+        card.addEventListener('click', () => {
+          const idx = parseInt(card.dataset.compIdx, 10);
+          this.wizardState.selectedComplication = customData.complications[idx];
+          this.renderWizardStep();
+        });
+      });
+    }
+  }
+
+  finishArchetypeWizard() {
+    const heroName = (document.getElementById('wizard-hero-name')?.value || this.wizardState.heroName || 'Champion').trim();
+    const newHero = buildCustomizedArchetype(
+      this.wizardState.selectedArchetypeId,
+      heroName,
+      this.wizardState.selectedSpecializationId,
+      this.wizardState.selectedComplication
+    );
+
+    storageManager.characters.push(newHero);
+    storageManager.activeId = newHero.id;
+    storageManager.saveAll();
+
+    this.char = newHero;
+    this.closeModal('modal-archetype-wizard');
+    this.populateMenuRoster();
+    this.renderAll();
+    alert(`Equipped ${newHero.name} (${newHero.concept})! Ready for action!`);
+  }
+
+  // =======================================================
+  // 6. DICE ROLLER BAR & LOG
   // =======================================================
   setupDiceRollerBar() {
     const rollBtn = document.getElementById('btn-action-roll-dice');
@@ -295,10 +525,9 @@ class AppController {
   }
 
   // =======================================================
-  // 6. TABLES POP-UP & POP-OUT MANAGER
+  // 7. TABLES POP-UP & POP-OUT MANAGER
   // =======================================================
   setupTables() {
-    // Populate Measurements Table
     const measTbody = document.querySelector('#table-measurements tbody');
     if (measTbody) {
       measTbody.innerHTML = MEASUREMENTS_TABLE.map(r => `
@@ -306,7 +535,6 @@ class AppController {
       `).join('');
     }
 
-    // Populate PL Guidelines
     const plTbody = document.querySelector('#table-pl-guidelines tbody');
     if (plTbody) {
       plTbody.innerHTML = POWER_LEVEL_GUIDELINES.map(g => `
@@ -314,7 +542,6 @@ class AppController {
       `).join('');
     }
 
-    // Populate Damage Conditions Table
     const dmgTbody = document.querySelector('#table-damage-conditions tbody');
     if (dmgTbody) {
       dmgTbody.innerHTML = DAMAGE_CONDITIONS_TABLE.map(d => `
@@ -322,7 +549,6 @@ class AppController {
       `).join('');
     }
 
-    // Populate Combat Maneuvers
     const manTbody = document.querySelector('#table-combat-maneuvers tbody');
     if (manTbody) {
       manTbody.innerHTML = COMBAT_MANEUVERS_TABLE.map(m => `
@@ -330,7 +556,6 @@ class AppController {
       `).join('');
     }
 
-    // Populate Material Toughness
     const matTbody = document.querySelector('#table-materials tbody');
     if (matTbody) {
       matTbody.innerHTML = MATERIAL_TOUGHNESS_TABLE.map(m => `
@@ -338,7 +563,6 @@ class AppController {
       `).join('');
     }
 
-    // Collapsible sections toggle
     document.querySelectorAll('.collapsible-header').forEach(header => {
       header.addEventListener('click', () => {
         const content = header.nextElementSibling;
@@ -346,7 +570,6 @@ class AppController {
       });
     });
 
-    // Expand / Collapse all
     document.getElementById('btn-tables-expand-all').addEventListener('click', () => {
       document.querySelectorAll('.collapsible-content').forEach(c => c.classList.remove('collapsed'));
     });
@@ -354,12 +577,10 @@ class AppController {
       document.querySelectorAll('.collapsible-content').forEach(c => c.classList.add('collapsed'));
     });
 
-    // Close Tables Modal
     document.getElementById('btn-close-tables').addEventListener('click', () => {
       this.closeModal('modal-tables');
     });
 
-    // Pop-Out Window Button
     document.getElementById('btn-tables-popout').addEventListener('click', () => {
       tablesManager.openPopout();
       this.closeModal('modal-tables');
@@ -367,11 +588,11 @@ class AppController {
   }
 
   // =======================================================
-  // 7. POINTER-ANCHORED RULES POPUP (Verbatim 3E text)
+  // 8. POINTER-ANCHORED RULES POPUP (Verbatim 3E text)
   // =======================================================
   setupPointerPopup() {
     const popup = document.getElementById('pointer-rules-popup');
-    window.tablesManager = tablesManager; // expose for child popout window
+    window.tablesManager = tablesManager;
 
     document.addEventListener('click', (e) => {
       const link = e.target.closest('.rules-link');
@@ -399,21 +620,19 @@ class AppController {
   }
 
   // =======================================================
-  // 8. MENU MODAL (Save, Save As, Load, Import/Export)
+  // 9. MENU MODAL (Save, Save As, Load, Import/Export)
   // =======================================================
   setupMenuModal() {
     document.getElementById('btn-close-menu').addEventListener('click', () => {
       this.closeModal('modal-menu');
     });
 
-    // Save
     document.getElementById('menu-btn-save').addEventListener('click', () => {
       this.saveAndAudit();
       this.closeModal('modal-menu');
       alert(`Character "${this.char.name}" saved!`);
     });
 
-    // Save As
     document.getElementById('menu-btn-save-as').addEventListener('click', () => {
       const clone = storageManager.cloneCharacter(this.char.id);
       if (clone) {
@@ -425,7 +644,6 @@ class AppController {
       }
     });
 
-    // Load Character from Roster
     document.getElementById('menu-btn-load-char').addEventListener('click', () => {
       const select = document.getElementById('menu-char-roster');
       storageManager.setActiveCharacter(select.value);
@@ -434,7 +652,6 @@ class AppController {
       this.closeModal('modal-menu');
     });
 
-    // Delete Character
     document.getElementById('menu-btn-delete-char').addEventListener('click', () => {
       if (confirm(`Delete character "${this.char.name}"?`)) {
         storageManager.deleteCharacter(this.char.id);
@@ -445,7 +662,6 @@ class AppController {
       }
     });
 
-    // New Freeform Hero
     document.getElementById('menu-btn-new-freeform').addEventListener('click', () => {
       const name = prompt('Enter superhero name for freeform creation:', 'New Champion');
       if (name) {
@@ -457,30 +673,16 @@ class AppController {
       }
     });
 
-    // Guided Archetypes
     document.getElementById('menu-btn-archetypes-wizard').addEventListener('click', () => {
-      const archName = prompt(`Select Archetype from:\n1. Battlesuit\n2. Martial Artist\n3. Mystic\n4. Paragon\n5. Speedster\n6. Crime Fighter\n7. Energy Controller\n8. Powerhouse\n9. Psychic\n10. Shapeshifter`, 'Battlesuit');
-      if (archName) {
-        const match = ARCHETYPES.find(a => a.name.toLowerCase().includes(archName.toLowerCase()) || a.id.toLowerCase().includes(archName.toLowerCase()));
-        if (match) {
-          const hero = storageManager.createFromArchetype(match.id, match.name);
-          this.char = hero;
-          this.populateMenuRoster();
-          this.renderAll();
-          this.closeModal('modal-menu');
-        } else {
-          alert('Archetype not recognized.');
-        }
-      }
+      this.closeModal('modal-menu');
+      this.openArchetypeWizard();
     });
 
-    // Export JSON
     document.getElementById('menu-btn-export').addEventListener('click', () => {
       storageManager.exportCharacterToJSON(this.char);
       this.closeModal('modal-menu');
     });
 
-    // Import JSON
     const fileInput = document.getElementById('menu-file-input');
     document.getElementById('menu-btn-import').addEventListener('click', () => {
       fileInput.click();
@@ -519,14 +721,13 @@ class AppController {
   }
 
   // =======================================================
-  // 9. HERO POINT SPEND MODAL
+  // 10. HERO POINT SPEND MODAL
   // =======================================================
   setupHeroPointModal() {
     document.getElementById('btn-close-hp-modal').addEventListener('click', () => {
       this.closeModal('modal-hero-point');
     });
 
-    // Reroll action (1-10 + 10)
     document.getElementById('btn-hp-exec-reroll').addEventListener('click', () => {
       if ((this.char.heroPoints || 0) <= 0) {
         alert('You have no Hero Points left!');
@@ -577,7 +778,7 @@ class AppController {
   }
 
   // =======================================================
-  // 10. POWER PROFILES (Official 3E Profiles Library)
+  // 11. POWER PROFILES (Official 3E Profiles Library)
   // =======================================================
   setupPowerProfiles() {
     const select = document.getElementById('power-profiles-select');
@@ -634,7 +835,7 @@ class AppController {
   }
 
   // =======================================================
-  // 11. CUSTOM POWER BUILDER
+  // 12. CUSTOM POWER BUILDER
   // =======================================================
   setupCustomPowerBuilder() {
     const effectSelect = document.getElementById('builder-base-effect');
@@ -656,7 +857,6 @@ class AppController {
       this.recalculateCustomBuilder();
     });
 
-    // Steppers for Rank
     document.getElementById('btn-builder-rank-plus').addEventListener('click', () => {
       const valEl = document.getElementById('builder-rank-val');
       valEl.textContent = parseInt(valEl.textContent, 10) + 1;
@@ -887,7 +1087,7 @@ class AppController {
   }
 
   // =======================================================
-  // 12. GEAR & HEADQUARTERS (HQ) TAB
+  // 13. GEAR & HEADQUARTERS (HQ) TAB
   // =======================================================
   setupGearAndHQ() {
     document.getElementById('btn-add-item-gear').addEventListener('click', () => {
@@ -906,7 +1106,6 @@ class AppController {
       this.renderGearTab(auditCharacter(this.char));
     });
 
-    // Populate HQ Size select
     const sizeSelect = document.getElementById('hq-size-select');
     sizeSelect.innerHTML = HQ_SIZES_TABLE.map(s => `
       <option value="${s.name}" data-ep="${s.ep}">${s.name} (${s.ep >= 0 ? `+${s.ep}` : s.ep} EP) - ${s.desc}</option>
@@ -919,7 +1118,6 @@ class AppController {
       this.renderGearTab(auditCharacter(this.char));
     });
 
-    // HQ Toughness Stepper
     document.getElementById('btn-hq-tough-plus').addEventListener('click', () => {
       if (!this.char.hq) this.char.hq = {};
       this.char.hq.toughness = (this.char.hq.toughness || 8) + 1;
@@ -934,7 +1132,6 @@ class AppController {
       this.renderGearTab(auditCharacter(this.char));
     });
 
-    // HQ Name
     const hqNameInput = document.getElementById('hq-name-input');
     hqNameInput.addEventListener('input', (e) => {
       if (!this.char.hq) this.char.hq = {};
@@ -942,7 +1139,6 @@ class AppController {
       storageManager.saveCharacter(this.char);
     });
 
-    // HQ Features checklist
     const featuresContainer = document.getElementById('hq-features-checklist');
     featuresContainer.innerHTML = HQ_FEATURES_LIST.map(f => `
       <label style="display: flex; align-items: center; gap: 0.35rem; background-color: var(--bg-input); padding: 0.3rem 0.5rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color); font-size: var(--font-size-xs); cursor: pointer;">
@@ -968,7 +1164,7 @@ class AppController {
   }
 
   // =======================================================
-  // 13. HISTORY & LORE TAB
+  // 14. HISTORY & LORE TAB
   // =======================================================
   setupHistoryTab() {
     const originText = document.getElementById('history-origin-text');
@@ -1008,7 +1204,7 @@ class AppController {
   }
 
   // =======================================================
-  // 14. SETTINGS & DISCORD
+  // 15. SETTINGS & DISCORD
   // =======================================================
   setupSettingsTab() {
     document.getElementById('settings-discord-url').value = discordIntegrator.webhookUrl;
@@ -1046,7 +1242,7 @@ class AppController {
   }
 
   // =======================================================
-  // 15. MASTER RENDER ALL
+  // 16. MASTER RENDER ALL
   // =======================================================
   saveAndAudit() {
     storageManager.saveCharacter(this.char);
@@ -1081,7 +1277,7 @@ class AppController {
 
     const conds = this.char.conditions || {};
     ['dazed', 'staggered', 'vulnerable', 'defenseless'].forEach(c => {
-      const btn = document.getElementById(`cond-btn-c`);
+      const btn = document.getElementById(`cond-btn-${c}`);
       if (btn) btn.classList.toggle('btn-danger', !!conds[c]);
     });
 
@@ -1250,7 +1446,7 @@ class AppController {
   }
 
   // =======================================================
-  // 16. ABILITIES & DEFENSES TAB
+  // 17. ABILITIES & DEFENSES TAB
   // =======================================================
   renderAbilitiesTab(audit) {
     document.getElementById('abilities-cost-display').textContent = `${audit.abilitiesCost} PP`;
@@ -1322,7 +1518,6 @@ class AppController {
       defGrid.appendChild(card);
     });
 
-    // PL Caps Report
     const pl2 = audit.powerLevel * 2;
     document.getElementById('pl-caps-report').innerHTML = `
       <div style="background-color: var(--bg-input); padding: 0.5rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
@@ -1338,7 +1533,7 @@ class AppController {
   }
 
   // =======================================================
-  // 17. SKILLS CATALOG TAB
+  // 18. SKILLS CATALOG TAB
   // =======================================================
   renderSkillsTab(audit) {
     document.getElementById('skills-cost-display').textContent = `${audit.skillsCost} PP`;
@@ -1420,7 +1615,7 @@ class AppController {
   }
 
   // =======================================================
-  // 18. ADVANTAGES CATALOG TAB
+  // 19. ADVANTAGES CATALOG TAB
   // =======================================================
   renderAdvantagesTab(audit) {
     document.getElementById('advantages-cost-display').textContent = `${audit.advantagesCost} PP`;
@@ -1542,7 +1737,7 @@ class AppController {
   }
 
   // =======================================================
-  // 19. PREBUILT OPTIONS MODAL (with conflict / illegal check)
+  // 20. PREBUILT OPTIONS MODAL
   // =======================================================
   openPrebuiltOptionsModal(title, optionsList, onSelectCallback) {
     document.getElementById('prebuilt-modal-title').textContent = title;
@@ -1571,7 +1766,7 @@ class AppController {
   }
 
   // =======================================================
-  // 20. POWERS TAB RENDER
+  // 21. POWERS TAB RENDER
   // =======================================================
   renderPowersTab(audit) {
     document.getElementById('powers-cost-display').textContent = `${audit.powersCost} PP`;
@@ -1631,7 +1826,7 @@ class AppController {
   }
 
   // =======================================================
-  // 21. GEAR & HQ RENDER
+  // 22. GEAR & HQ RENDER
   // =======================================================
   renderGearTab(audit) {
     let eqAdvRanks = 0;
@@ -1641,7 +1836,6 @@ class AppController {
     let gearSpent = 0;
     (this.char.gear || []).forEach(g => gearSpent += parseInt(g.cost, 10) || 0);
 
-    // Calculate HQ Cost
     const hq = this.char.hq || {};
     const sizeDef = HQ_SIZES_TABLE.find(s => s.name === hq.size) || { ep: 0 };
     const toughCost = Math.max(0, (hq.toughness || 8) - 8);
@@ -1651,7 +1845,6 @@ class AppController {
     document.getElementById('gear-ep-badge').textContent = `${gearSpent + hqTotalEp} / ${epBudget} EP Used`;
     document.getElementById('hq-ep-badge').textContent = `Total HQ: ${hqTotalEp} EP`;
 
-    // Render items tbody
     const tbody = document.getElementById('gear-items-tbody');
     tbody.innerHTML = '';
     (this.char.gear || []).forEach((item, idx) => {
@@ -1672,7 +1865,6 @@ class AppController {
       tbody.appendChild(row);
     });
 
-    // Sync HQ values
     document.getElementById('hq-name-input').value = hq.name || '';
     document.getElementById('hq-size-select').value = hq.size || 'Small';
     document.getElementById('hq-tough-val').textContent = hq.toughness || 8;
@@ -1683,7 +1875,7 @@ class AppController {
   }
 
   // =======================================================
-  // 22. HISTORY TAB RENDER
+  // 23. HISTORY TAB RENDER
   // =======================================================
   renderHistoryTab() {
     const list = document.getElementById('session-log-list');

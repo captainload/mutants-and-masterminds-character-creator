@@ -1,6 +1,7 @@
 /* =====================================================================
    Mutants & Masterminds 3E Character Architect & Interactive Record
    Engineered for 1080px display width with zero horizontal scrollbars.
+   Persistent two-row header AND persistent navigation tab row.
    Touchscreen-friendly steppers, compact two-row header, high density.
    ===================================================================== */
 
@@ -122,15 +123,19 @@ body {
 }
 
 /* =====================================================================
-   HEADER: TWO-ROW ARCHITECTURE
+   PERSISTENT HEADER WRAPPER (ROWS 1 & 2 + TAB ROW PINNED ON SCROLL)
    ===================================================================== */
-.header-container {
-  background: linear-gradient(180deg, #131c31 0%, #0c1424 100%);
-  border-bottom: 2px solid var(--border-color);
-  padding: 0.5rem 0.85rem;
+.persistent-header-wrapper {
   position: sticky;
   top: 0;
-  z-index: 500;
+  z-index: 1000;
+  background-color: var(--bg-header);
+  border-bottom: 2px solid var(--border-color);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.7);
+}
+
+.header-container {
+  padding: 0.45rem 0.85rem 0.35rem 0.85rem;
 }
 
 /* Row 1: Menu Button | Player | Character | Campaign | Title Badge */
@@ -138,7 +143,7 @@ body {
   display: flex;
   align-items: center;
   gap: 0.65rem;
-  margin-bottom: 0.4rem;
+  margin-bottom: 0.35rem;
 }
 
 .btn-menu {
@@ -210,7 +215,7 @@ body {
   margin-left: auto;
 }
 
-/* Row 2: PP Used ("#/# used") | Hero Points | Right: Tables Button */
+/* Row 2: PP Used ("#/# used") | Hero Points | Right: Archetypes & Tables Buttons */
 .header-row-2 {
   display: flex;
   align-items: center;
@@ -225,7 +230,13 @@ body {
 .row-2-left {
   display: flex;
   align-items: center;
-  gap: 1.25rem;
+  gap: 1.15rem;
+}
+
+.row-2-right {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .pp-status-badge {
@@ -251,6 +262,28 @@ body {
   display: flex;
   align-items: center;
   gap: 0.5rem;
+}
+
+.btn-archetype {
+  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+  color: #fff;
+  border: none;
+  font-size: var(--font-size-sm);
+  font-weight: 800;
+  padding: 0.4rem 0.85rem;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-height: 38px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+  transition: all 0.15s ease;
+}
+
+.btn-archetype:hover {
+  filter: brightness(1.15);
+  transform: translateY(-1px);
 }
 
 .btn-tables {
@@ -338,11 +371,11 @@ body {
 }
 
 /* =====================================================================
-   NAVIGATION TABS
+   PERSISTENT NAVIGATION TAB ROW
    ===================================================================== */
 .nav-tab-bar {
   background-color: #10192a;
-  border-bottom: 2px solid var(--border-color);
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
   display: flex;
   gap: 0.15rem;
   padding: 0 0.5rem;
@@ -356,8 +389,8 @@ body {
   color: var(--text-muted);
   font-size: var(--font-size-sm);
   font-weight: 800;
-  padding: 0.65rem 0.85rem;
-  min-height: 44px;
+  padding: 0.55rem 0.85rem;
+  min-height: 42px;
   cursor: pointer;
   white-space: nowrap;
   display: flex;
@@ -377,7 +410,7 @@ body {
   background-color: rgba(6, 182, 212, 0.08);
 }
 
-/* Main Body & Tabs Container */
+/* Main Content Area */
 .main-content {
   padding: 0.85rem;
 }
@@ -579,7 +612,7 @@ body {
 #pointer-rules-popup {
   position: absolute;
   display: none;
-  z-index: 2000;
+  z-index: 2500;
   width: 320px;
   max-width: 90vw;
   background: #1e293b;
@@ -612,7 +645,7 @@ body {
 }
 
 /* =====================================================================
-   TABLES POP-UP & MODAL
+   TABLES & WIZARD MODALS
    ===================================================================== */
 .modal-overlay {
   position: fixed;
@@ -625,7 +658,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1500;
+  z-index: 2000;
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.2s ease;
@@ -712,6 +745,27 @@ body {
 
 .collapsible-content.collapsed {
   display: none;
+}
+
+/* Wizard Option Card */
+.wizard-option-card {
+  background-color: var(--bg-input);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  padding: 0.75rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.wizard-option-card:hover {
+  border-color: var(--hero-cyan);
+  background-color: rgba(6, 182, 212, 0.05);
+}
+
+.wizard-option-card.selected {
+  border-color: var(--hero-purple);
+  background-color: rgba(139, 92, 246, 0.1);
+  box-shadow: 0 0 10px rgba(139, 92, 246, 0.3);
 }
 
 /* Standard Buttons */

@@ -1,0 +1,22 @@
+{
+  "name": "mutants-and-masterminds-character-creator",
+  "version": "1.0.0",
+  "description": "Mutants and Masterminds 3rd Edition Web Character Generator & Interactive Virtual Tabletop Record",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node test_engine.mjs"
+  },
+  "keywords": [
+    "mutants-and-masterminds",
+    "tabletop-rpg",
+    "green-ronin",
+    "character-creator",
+    "hero-lab",
+    "roll20",
+    "discord-bot"
+  ],
+  "author": "",
+  "license": "MIT"
+}

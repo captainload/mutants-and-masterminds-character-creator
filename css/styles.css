@@ -1,0 +1,1126 @@
+/* =====================================================================
+   Mutants & Masterminds 3e Character Creator & Interactive Record
+   Designed for 1080px+ desktop/laptop displays with font-scaling controls
+   ===================================================================== */
+
+:root {
+  /* Font Scaling Variables (Controlled by user) */
+  --font-size-xs: 0.75rem;
+  --font-size-sm: 0.85rem;
+  --font-size-base: 0.95rem;
+  --font-size-md: 1.05rem;
+  --font-size-lg: 1.25rem;
+  --font-size-xl: 1.5rem;
+  --font-size-2xl: 1.9rem;
+
+  /* Theme Colors */
+  --bg-app: #0f172a;
+  --bg-card: #1e293b;
+  --bg-card-hover: #26334d;
+  --bg-input: #0b1120;
+  --bg-header: #0d1527;
+  --border-color: #334155;
+  --border-focus: #3b82f6;
+
+  --text-main: #f8fafc;
+  --text-muted: #94a3b8;
+  --text-bright: #ffffff;
+
+  --hero-blue: #3b82f6;
+  --hero-cyan: #06b6d4;
+  --hero-gold: #f59e0b;
+  --hero-red: #ef4444;
+  --hero-green: #10b981;
+  --hero-purple: #8b5cf6;
+
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.6);
+  --glow-blue: 0 0 15px rgba(59, 130, 246, 0.35);
+  --glow-gold: 0 0 15px rgba(245, 158, 11, 0.35);
+}
+
+/* User font size modes */
+html[data-font-size="small"] {
+  --font-size-xs: 0.7rem;
+  --font-size-sm: 0.78rem;
+  --font-size-base: 0.88rem;
+  --font-size-md: 0.95rem;
+  --font-size-lg: 1.15rem;
+  --font-size-xl: 1.35rem;
+  --font-size-2xl: 1.7rem;
+}
+
+html[data-font-size="normal"] {
+  --font-size-xs: 0.75rem;
+  --font-size-sm: 0.85rem;
+  --font-size-base: 0.95rem;
+  --font-size-md: 1.05rem;
+  --font-size-lg: 1.25rem;
+  --font-size-xl: 1.5rem;
+  --font-size-2xl: 1.9rem;
+}
+
+html[data-font-size="large"] {
+  --font-size-xs: 0.82rem;
+  --font-size-sm: 0.92rem;
+  --font-size-base: 1.05rem;
+  --font-size-md: 1.18rem;
+  --font-size-lg: 1.38rem;
+  --font-size-xl: 1.65rem;
+  --font-size-2xl: 2.1rem;
+}
+
+html[data-font-size="xlarge"] {
+  --font-size-xs: 0.9rem;
+  --font-size-sm: 1.02rem;
+  --font-size-base: 1.18rem;
+  --font-size-md: 1.3rem;
+  --font-size-lg: 1.55rem;
+  --font-size-xl: 1.85rem;
+  --font-size-2xl: 2.3rem;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+  font-size: var(--font-size-base);
+  background-color: var(--bg-app);
+  color: var(--text-main);
+  line-height: 1.5;
+  min-width: 1080px;
+  overflow-x: auto;
+}
+
+/* App Header & Top Bar */
+.app-header {
+  background: linear-gradient(180deg, #131d36 0%, #0d1527 100%);
+  border-bottom: 2px solid #243452;
+  padding: 0.75rem 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: var(--shadow-md);
+}
+
+.brand-section {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+}
+
+.brand-logo-badge {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: #fff;
+  font-weight: 900;
+  font-size: var(--font-size-lg);
+  padding: 0.25rem 0.65rem;
+  border-radius: var(--radius-sm);
+  letter-spacing: 0.05em;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 0 10px rgba(239, 68, 68, 0.4);
+}
+
+.brand-title {
+  font-size: var(--font-size-lg);
+  font-weight: 800;
+  color: var(--text-bright);
+  letter-spacing: -0.02em;
+}
+
+.brand-sub {
+  font-size: var(--font-size-xs);
+  color: var(--hero-cyan);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+/* Quick Hero Stats Bar in Header */
+.header-hero-status {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.status-capsule {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background-color: var(--bg-card);
+  padding: 0.35rem 0.75rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+}
+
+.status-label {
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+  text-transform: uppercase;
+  font-weight: 700;
+}
+
+.status-value {
+  font-size: var(--font-size-md);
+  font-weight: 800;
+  color: var(--text-bright);
+}
+
+.status-value.gold {
+  color: var(--hero-gold);
+}
+
+.status-value.green {
+  color: var(--hero-green);
+}
+
+.status-value.red {
+  color: var(--hero-red);
+}
+
+/* Header Action Controls */
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.font-size-selector {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  background-color: var(--bg-card);
+  padding: 0.2rem 0.4rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-color);
+}
+
+.font-size-btn {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-weight: 700;
+  padding: 0.2rem 0.45rem;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: var(--font-size-xs);
+  transition: all 0.15s ease;
+}
+
+.font-size-btn:hover {
+  color: var(--text-bright);
+  background-color: var(--border-color);
+}
+
+.font-size-btn.active {
+  background-color: var(--hero-blue);
+  color: #fff;
+}
+
+/* Top Nav Tabs */
+.app-tabs {
+  background-color: #111a2e;
+  border-bottom: 1px solid var(--border-color);
+  padding: 0 1.5rem;
+  display: flex;
+  gap: 0.25rem;
+  overflow-x: auto;
+}
+
+.tab-btn {
+  background: none;
+  border: none;
+  border-bottom: 3px solid transparent;
+  color: var(--text-muted);
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+}
+
+.tab-btn:hover {
+  color: var(--text-bright);
+  background-color: rgba(255, 255, 255, 0.03);
+}
+
+.tab-btn.active {
+  color: var(--hero-cyan);
+  border-bottom-color: var(--hero-cyan);
+  background-color: rgba(6, 182, 212, 0.06);
+}
+
+/* Main Container Layout */
+.app-main {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 1.25rem;
+  padding: 1.25rem 1.5rem;
+  min-height: calc(100vh - 120px);
+}
+
+.tab-content {
+  display: none;
+}
+
+.tab-content.active {
+  display: block;
+}
+
+/* Sidebar: Live Roll20 Dice & Discord Echo Panel */
+.sidebar-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.side-card {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 1rem;
+  box-shadow: var(--shadow-sm);
+}
+
+.side-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.side-card-title {
+  font-size: var(--font-size-sm);
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+/* Hero Points HUD */
+.hero-points-hud {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: linear-gradient(135deg, #271b3e 0%, #1e1a38 100%);
+  border: 1px solid #7c3aed;
+  border-radius: var(--radius-md);
+  padding: 0.75rem 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.hero-points-counter {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.hp-number {
+  font-size: var(--font-size-2xl);
+  font-weight: 900;
+  color: #c084fc;
+  text-shadow: 0 0 12px rgba(192, 132, 252, 0.5);
+}
+
+.hp-label {
+  font-size: var(--font-size-xs);
+  font-weight: 800;
+  text-transform: uppercase;
+  color: #e9d5ff;
+}
+
+.btn-spend-hp {
+  background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);
+  color: #fff;
+  border: none;
+  font-weight: 800;
+  font-size: var(--font-size-sm);
+  padding: 0.45rem 0.85rem;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  box-shadow: 0 0 12px rgba(139, 92, 246, 0.4);
+  transition: all 0.15s ease;
+}
+
+.btn-spend-hp:hover {
+  filter: brightness(1.15);
+  transform: translateY(-1px);
+}
+
+/* Conditions & Bruise Tracker */
+.damage-tracker {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.bruise-box {
+  background-color: var(--bg-input);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  padding: 0.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.bruise-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.btn-step {
+  background-color: var(--border-color);
+  border: none;
+  color: var(--text-bright);
+  font-weight: 800;
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-step:hover {
+  background-color: var(--hero-blue);
+}
+
+.condition-pill {
+  padding: 0.35rem 0.5rem;
+  background-color: var(--bg-input);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  cursor: pointer;
+  text-align: center;
+  user-select: none;
+  transition: all 0.15s ease;
+}
+
+.condition-pill.active {
+  background-color: #ef4444;
+  color: #fff;
+  border-color: #f87171;
+  box-shadow: 0 0 8px rgba(239, 68, 68, 0.4);
+}
+
+/* Roll History / Log (Roll20 style) */
+.dice-log-container {
+  height: 380px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding-right: 0.3rem;
+}
+
+.dice-log-entry {
+  background-color: var(--bg-input);
+  border-left: 4px solid var(--hero-blue);
+  border-radius: var(--radius-sm);
+  padding: 0.6rem 0.75rem;
+  font-size: var(--font-size-xs);
+  animation: fadeIn 0.25s ease-out;
+}
+
+.dice-log-entry.success {
+  border-left-color: var(--hero-green);
+}
+
+.dice-log-entry.failure {
+  border-left-color: var(--hero-red);
+}
+
+.dice-log-entry.critical {
+  border-left-color: var(--hero-gold);
+  background-color: rgba(245, 158, 11, 0.08);
+}
+
+.dice-log-entry.hero-point {
+  border-left-color: var(--hero-purple);
+  background-color: rgba(139, 92, 246, 0.08);
+}
+
+.log-entry-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.25rem;
+}
+
+.log-entry-title {
+  font-weight: 800;
+  color: var(--text-bright);
+}
+
+.log-entry-time {
+  color: var(--text-muted);
+  font-size: 0.7rem;
+}
+
+.log-entry-roll {
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+  margin: 0.25rem 0;
+}
+
+.log-total {
+  font-size: var(--font-size-md);
+  font-weight: 900;
+  color: var(--text-bright);
+}
+
+.log-breakdown {
+  color: var(--text-muted);
+  font-family: monospace;
+}
+
+.log-outcome {
+  font-weight: 700;
+  margin-top: 0.25rem;
+}
+
+.log-outcome.success {
+  color: var(--hero-green);
+}
+
+.log-outcome.failure {
+  color: var(--hero-red);
+}
+
+.discord-echo-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  background-color: #5865f2;
+  color: #fff;
+  font-size: 0.65rem;
+  padding: 0.1rem 0.35rem;
+  border-radius: 3px;
+  font-weight: 700;
+  margin-top: 0.25rem;
+}
+
+/* Common Card & Section Layouts */
+.section-card {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 1.25rem;
+  margin-bottom: 1.25rem;
+  box-shadow: var(--shadow-sm);
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.section-title {
+  font-size: var(--font-size-md);
+  font-weight: 800;
+  color: var(--text-bright);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.section-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+/* Character Record (Sheet View Ala Roll20) */
+.char-sheet-grid {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 1.25rem;
+}
+
+.char-id-box {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.hero-name-input {
+  background-color: var(--bg-input);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  color: var(--text-bright);
+  font-size: var(--font-size-xl);
+  font-weight: 900;
+  padding: 0.5rem 0.75rem;
+  width: 100%;
+}
+
+.hero-name-input:focus {
+  border-color: var(--hero-blue);
+  outline: none;
+  box-shadow: var(--glow-blue);
+}
+
+.hero-tagline-input {
+  background-color: var(--bg-input);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  font-size: var(--font-size-sm);
+  padding: 0.35rem 0.5rem;
+  width: 100%;
+}
+
+/* Abilities Grid */
+.abilities-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.75rem;
+}
+
+.ability-box {
+  background-color: var(--bg-input);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 0.6rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  transition: transform 0.15s ease, border-color 0.15s ease;
+}
+
+.ability-box:hover {
+  border-color: var(--hero-blue);
+}
+
+.ability-name {
+  font-size: var(--font-size-xs);
+  font-weight: 800;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+.ability-score {
+  font-size: var(--font-size-2xl);
+  font-weight: 900;
+  color: var(--text-bright);
+  line-height: 1.2;
+}
+
+.ability-score.boosted {
+  color: var(--hero-cyan);
+}
+
+.ability-cost-tag {
+  font-size: 0.7rem;
+  color: var(--hero-gold);
+  font-weight: 700;
+}
+
+/* Defenses Grid */
+.defenses-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0.75rem;
+}
+
+.defense-box {
+  background-color: var(--bg-input);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 0.6rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.defense-name {
+  font-size: var(--font-size-xs);
+  font-weight: 800;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+.defense-score {
+  font-size: var(--font-size-xl);
+  font-weight: 900;
+  color: var(--text-bright);
+}
+
+/* Roll Buttons */
+.btn-roll {
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  color: #fff;
+  border: none;
+  font-weight: 800;
+  font-size: var(--font-size-xs);
+  padding: 0.35rem 0.65rem;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  transition: all 0.15s ease;
+  user-select: none;
+}
+
+.btn-roll:hover {
+  filter: brightness(1.15);
+  box-shadow: var(--glow-blue);
+  transform: translateY(-1px);
+}
+
+.btn-roll:active {
+  transform: translateY(0);
+}
+
+.btn-roll.btn-roll-defense {
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+}
+
+.btn-roll.btn-roll-defense:hover {
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.4);
+}
+
+.btn-roll.btn-roll-attack {
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+}
+
+.btn-roll.btn-roll-attack:hover {
+  box-shadow: 0 0 10px rgba(239, 68, 68, 0.4);
+}
+
+/* Attacks & Actions Quick List (Record Tab) */
+.attacks-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.attacks-table th {
+  text-align: left;
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+  text-transform: uppercase;
+  padding: 0.5rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.attacks-table td {
+  padding: 0.6rem 0.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  font-size: var(--font-size-sm);
+}
+
+.attacks-table tr:hover {
+  background-color: rgba(255, 255, 255, 0.02);
+}
+
+/* Power Cards (Hero Lab style) */
+.powers-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.power-card {
+  background-color: var(--bg-input);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 0.85rem;
+  position: relative;
+  transition: border-color 0.15s ease;
+}
+
+.power-card:hover {
+  border-color: #475569;
+}
+
+.power-card.device {
+  border-left: 4px solid var(--hero-gold);
+}
+
+.power-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 0.35rem;
+}
+
+.power-title {
+  font-size: var(--font-size-md);
+  font-weight: 800;
+  color: var(--text-bright);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.power-cost-tag {
+  background-color: rgba(245, 158, 11, 0.15);
+  color: var(--hero-gold);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  font-size: var(--font-size-xs);
+  font-weight: 800;
+  padding: 0.15rem 0.45rem;
+  border-radius: var(--radius-sm);
+}
+
+.power-descriptors {
+  font-size: var(--font-size-xs);
+  color: var(--hero-cyan);
+  font-weight: 600;
+  margin-bottom: 0.35rem;
+}
+
+.power-formula {
+  font-family: monospace;
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+  background-color: rgba(0, 0, 0, 0.3);
+  padding: 0.35rem 0.5rem;
+  border-radius: var(--radius-sm);
+  margin-bottom: 0.5rem;
+}
+
+.power-actions-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 0.5rem;
+}
+
+.power-buttons {
+  display: flex;
+  gap: 0.4rem;
+}
+
+/* Modals */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+
+.modal-overlay.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.modal-dialog {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  width: 90%;
+  max-width: 780px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+  animation: scaleUp 0.2s ease-out;
+}
+
+.modal-dialog.wide {
+  max-width: 980px;
+}
+
+.modal-header {
+  padding: 1rem 1.25rem;
+  background: linear-gradient(180deg, #1e293b 0%, #182234 100%);
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-title {
+  font-size: var(--font-size-lg);
+  font-weight: 800;
+  color: var(--text-bright);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.btn-close-modal {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 1.5rem;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.btn-close-modal:hover {
+  color: var(--text-bright);
+}
+
+.modal-body {
+  padding: 1.25rem;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.modal-footer {
+  padding: 1rem 1.25rem;
+  background-color: #151e30;
+  border-top: 1px solid var(--border-color);
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+
+/* Hero Point Option Cards in Modal */
+.hp-options-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem;
+}
+
+.hp-option-card {
+  background-color: var(--bg-input);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 0.85rem;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  transition: all 0.15s ease;
+}
+
+.hp-option-card:hover {
+  border-color: var(--hero-purple);
+  box-shadow: 0 0 10px rgba(139, 92, 246, 0.3);
+  transform: translateY(-2px);
+}
+
+.hp-option-title {
+  font-size: var(--font-size-md);
+  font-weight: 800;
+  color: #c084fc;
+}
+
+.hp-option-desc {
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+}
+
+/* Archetype Grid in Generator Modal */
+.archetypes-picker-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.85rem;
+}
+
+.archetype-card {
+  background-color: var(--bg-input);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.archetype-card:hover {
+  border-color: var(--hero-cyan);
+  box-shadow: 0 0 12px rgba(6, 182, 212, 0.3);
+  transform: translateY(-2px);
+}
+
+.archetype-card-name {
+  font-size: var(--font-size-md);
+  font-weight: 800;
+  color: var(--text-bright);
+}
+
+.archetype-card-tagline {
+  font-size: var(--font-size-xs);
+  color: var(--hero-cyan);
+  font-weight: 600;
+  margin: 0.25rem 0;
+}
+
+.archetype-card-concept {
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+  margin-bottom: 0.5rem;
+}
+
+/* Standard Inputs & Controls */
+input, select, textarea {
+  font-family: inherit;
+  font-size: var(--font-size-sm);
+  background-color: var(--bg-input);
+  border: 1px solid var(--border-color);
+  color: var(--text-bright);
+  padding: 0.45rem 0.65rem;
+  border-radius: var(--radius-sm);
+}
+
+input:focus, select:focus, textarea:focus {
+  border-color: var(--hero-blue);
+  outline: none;
+  box-shadow: var(--glow-blue);
+}
+
+.form-group {
+  margin-bottom: 0.85rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.75rem;
+}
+
+.form-label {
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.btn {
+  background-color: var(--border-color);
+  color: var(--text-bright);
+  border: none;
+  padding: 0.45rem 0.85rem;
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  transition: all 0.15s ease;
+}
+
+.btn:hover {
+  filter: brightness(1.15);
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  color: #fff;
+}
+
+.btn-success {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: #fff;
+}
+
+.btn-danger {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: #fff;
+}
+
+.btn-outline {
+  background: transparent;
+  border: 1px solid var(--border-color);
+}
+
+.btn-outline:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes scaleUp {
+  from { opacity: 0; transform: scale(0.97); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+/* Toast Notifications */
+#toast-container {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.toast {
+  background-color: #1e293b;
+  border: 1px solid var(--border-color);
+  color: var(--text-bright);
+  padding: 0.65rem 1rem;
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.toast.success {
+  border-color: var(--hero-green);
+  border-left-width: 4px;
+}
+
+.toast.error {
+  border-color: var(--hero-red);
+  border-left-width: 4px;
+}

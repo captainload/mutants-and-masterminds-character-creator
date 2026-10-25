@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="en" data-font-size="normal">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mutants & Masterminds 3e - Character Creator & Virtual Sheet</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+  <!-- Top Application Header -->
+  <header class="app-header">
+    <div class="brand-section">
+      <div class="brand-logo-badge">M&M 3e</div>
+      <div>
+        <div class="brand-title">Hero Architect & Interactive Record</div>
+        <div class="brand-sub">Mutants & Masterminds 3rd Edition • Green Ronin</div>
+      </div>
+    </div>
+
+    <!-- Power Points & Power Level Capsule -->
+    <div class="header-hero-status">
+      <div class="status-capsule">
+        <span class="status-label">Power Level:</span>
+        <span class="status-value gold" id="header-pl-display">PL 10</span>
+      </div>
+      <div class="status-capsule">
+        <span class="status-label">Power Points:</span>
+        <span class="status-value green" id="header-pp-display">0 / 150 PP</span>
+      </div>
+      <div class="status-capsule" id="header-pl-compliance-capsule">
+        <span class="status-label">Status:</span>
+        <span class="status-value green" id="header-compliance-display">Legal</span>
+      </div>
+    </div>
+
+    <!-- Top Action Controls -->
+    <div class="header-actions">
+      <!-- Font Size Selector -->
+      <div class="font-size-selector" title="Adjust display font size">
+        <span class="status-label" style="margin-right:2px;">Font:</span>
+        <button class="font-size-btn" data-size="small">S</button>
+        <button class="font-size-btn active" data-size="normal">M</button>
+        <button class="font-size-btn" data-size="large">L</button>
+        <button class="font-size-btn" data-size="xlarge">XL</button>
+      </div>
+
+      <!-- Character Roster Dropdown -->
+      <select id="char-roster-select" style="max-width: 160px; font-weight: 700;">
+        <!-- Populated via JS -->
+      </select>
+
+      <!-- Archetype Guided Generator -->
+      <button class="btn btn-primary" id="btn-open-archetypes">
+        ✨ Archetypes
+      </button>
+
+      <!-- New Freeform Hero -->
+      <button class="btn btn-outline" id="btn-new-freeform">
+        ➕ New Hero
+      </button>
+
+      <!-- JSON Export/Import -->
+      <button class="btn btn-outline" id="btn-export-char" title="Export Character to JSON">
+        💾 Export
+      </button>
+      <button class="btn btn-outline" id="btn-import-char" title="Import Character JSON">
+        📂 Import
+      </button>
+      <input type="file" id="import-file-input" style="display: none;" accept=".json,.mm3e.json">
+    </div>
+  </header>
+
+  <!-- Navigation Tabs -->
+  <nav class="app-tabs">
+    <button class="tab-btn active" data-tab="tab-record">📜 Character Record (Roll20)</button>
+    <button class="tab-btn" data-tab="tab-abilities">🧬 Abilities & Defenses</button>
+    <button class="tab-btn" data-tab="tab-skills">🎯 Skills</button>
+    <button class="tab-btn" data-tab="tab-advantages">🎖️ Advantages</button>
+    <button class="tab-btn" data-tab="tab-powers">⚡ Powers (Hero Lab)</button>
+    <button class="tab-btn" data-tab="tab-gear">🎒 Gear & Devices</button>
+    <button class="tab-btn" data-tab="tab-identity">🎭 Identity & Complications</button>
+    <button class="tab-btn" data-tab="tab-settings">⚙️ Settings & Discord</button>
+  </nav>
+
+  <!-- Main Body Layout -->
+  <main class="app-main">
+
+    <!-- Left Content Tabs Container -->
+    <div class="tabs-container">
+
+      <!-- ========================================== -->
+      <!-- TAB 1: CHARACTER RECORD (ROLL20 VTT SHEET) -->
+      <!-- ========================================== -->
+      <div class="tab-content active" id="tab-record">
+        
+        <!-- Hero Header Card -->
+        <div class="section-card">
+          <div class="char-sheet-grid">
+            <div class="char-id-box">
+              <input type="text" id="record-hero-name" class="hero-name-input" placeholder="Hero Name">
+              <input type="text" id="record-hero-tagline" class="hero-tagline-input" placeholder="Hero Archetype or Tagline">
+              <div style="display: flex; gap: 0.5rem;">
+                <input type="text" id="record-hero-identity" class="hero-tagline-input" placeholder="Secret Identity">
+              </div>
+            </div>
+            <div>
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                <span class="form-label">Core Combat Defenses & Saves</span>
+                <span style="font-size: var(--font-size-xs); color: var(--text-muted);">Click roll button to make immediate save</span>
+              </div>
+              <div class="defenses-grid" id="record-defenses-grid">
+                <!-- Rendered dynamically -->
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Combat Actions & Attacks Table -->
+        <div class="section-card">
+          <div class="section-header">
+            <div class="section-title">⚔️ Primary Attacks & Actions</div>
+            <div class="section-actions">
+              <button class="btn btn-roll" id="btn-roll-initiative">⚡ Roll Initiative</button>
+            </div>
+          </div>
+          <table class="attacks-table">
+            <thead>
+              <tr>
+                <th>Attack / Action</th>
+                <th>Range & Descriptor</th>
+                <th>Attack Bonus</th>
+                <th>Effect Rank & Resistance</th>
+                <th style="text-align: right;">Roll Action</th>
+              </tr>
+            </thead>
+            <tbody id="record-attacks-tbody">
+              <!-- Rendered dynamically -->
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Two Column: Quick Skills & Active Powers Overview -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem;">
+          
+          <!-- Skills Quick Checks Card -->
+          <div class="section-card">
+            <div class="section-header">
+              <div class="section-title">🎯 Trained & Key Skills</div>
+              <span style="font-size: var(--font-size-xs); color: var(--text-muted);">Click name or roll</span>
+            </div>
+            <div style="max-height: 380px; overflow-y: auto; padding-right: 0.25rem;">
+              <table class="attacks-table">
+                <thead>
+                  <tr>
+                    <th>Skill</th>
+                    <th>Mod</th>
+                    <th style="text-align: right;">Check</th>
+                  </tr>
+                </thead>
+                <tbody id="record-skills-tbody">
+                  <!-- Rendered dynamically -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Powers & Devices Summary Card -->
+          <div class="section-card">
+            <div class="section-header">
+              <div class="section-title">⚡ Powers & Devices Summary</div>
+              <button class="btn btn-outline" id="btn-goto-powers-tab" style="font-size: var(--font-size-xs);">+ Power Builder</button>
+            </div>
+            <div class="powers-list" id="record-powers-summary" style="max-height: 380px; overflow-y: auto; padding-right: 0.25rem;">
+              <!-- Rendered dynamically -->
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- ========================================== -->
+      <!-- TAB 2: ABILITIES & DEFENSES -->
+      <!-- ========================================== -->
+      <div class="tab-content" id="tab-abilities">
+        
+        <!-- Abilities Point Buy -->
+        <div class="section-card">
+          <div class="section-header">
+            <div class="section-title">🧬 Character Abilities (2 PP per Rank)</div>
+            <div class="status-capsule">
+              <span class="status-label">Abilities Total:</span>
+              <span class="status-value gold" id="abilities-total-pp">0 PP</span>
+            </div>
+          </div>
+          <p style="font-size: var(--font-size-xs); color: var(--text-muted); margin-bottom: 1rem;">
+            Abilities cost 2 Power Points per rank above 0. Ranks below 0 refund 2 Power Points per rank (minimum -5).
+          </p>
+          <div class="abilities-grid" id="abilities-editor-grid">
+            <!-- Populated via JS -->
+          </div>
+        </div>
+
+        <!-- Defenses Point Buy -->
+        <div class="section-card">
+          <div class="section-header">
+            <div class="section-title">🛡️ Defenses Point Buy (1 PP per Rank)</div>
+            <div class="status-capsule">
+              <span class="status-label">Defenses Total:</span>
+              <span class="status-value gold" id="defenses-total-pp">0 PP</span>
+            </div>
+          </div>
+          <p style="font-size: var(--font-size-xs); color: var(--text-muted); margin-bottom: 1rem;">
+            Bought ranks add to your base Ability score. Toughness is based on Stamina + Protection powers + Defensive Roll advantage.
+          </p>
+          <div class="defenses-grid" id="defenses-editor-grid">
+            <!-- Populated via JS -->
+          </div>
+        </div>
+
+        <!-- Power Level Compliance Breakdown -->
+        <div class="section-card">
+          <div class="section-header">
+            <div class="section-title">⚖️ Power Level Caps & Audit</div>
+            <span class="status-value green" id="caps-compliance-status">PL 10 Valid</span>
+          </div>
+          <div id="caps-audit-details">
+            <!-- Populated via JS -->
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ========================================== -->
+      <!-- TAB 3: SKILLS -->
+      <!-- ========================================== -->
+      <div class="tab-content" id="tab-skills">
+        <div class="section-card">
+          <div class="section-header">
+            <div class="section-title">🎯 Skills Point Buy (1 PP per 2 Ranks)</div>
+            <div class="status-capsule">
+              <span class="status-label">Skills Total:</span>
+              <span class="status-value gold" id="skills-total-pp">0 PP</span>
+            </div>
+          </div>
+          <p style="font-size: var(--font-size-xs); color: var(--text-muted); margin-bottom: 1rem;">
+            Total check modifier = Ability Modifier + Purchased Ranks. Skills cannot exceed PL + 10 limit (PL 10 limit is +20).
+          </p>
+          <table class="attacks-table">
+            <thead>
+              <tr>
+                <th>Skill Name</th>
+                <th>Base Ability</th>
+                <th>Ability Mod</th>
+                <th>Purchased Ranks</th>
+                <th>Total Check Bonus</th>
+                <th style="text-align: right;">Action</th>
+              </tr>
+            </thead>
+            <tbody id="skills-editor-tbody">
+              <!-- Populated via JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ========================================== -->
+      <!-- TAB 4: ADVANTAGES -->
+      <!-- ========================================== -->
+      <div class="tab-content" id="tab-advantages">
+        <div class="section-card">
+          <div class="section-header">
+            <div class="section-title">🎖️ Advantages Selection (1 PP per Rank)</div>
+            <div class="status-capsule">
+              <span class="status-label">Advantages Total:</span>
+              <span class="status-value gold" id="advantages-total-pp">0 PP</span>
+            </div>
+          </div>
+          <div style="display: flex; gap: 0.75rem; margin-bottom: 1rem;">
+            <input type="text" id="adv-search-input" placeholder="Search advantages..." style="flex: 1;">
+            <select id="adv-category-filter">
+              <option value="all">All Categories</option>
+              <option value="Combat">Combat</option>
+              <option value="Skill">Skill</option>
+              <option value="Fortune">Fortune</option>
+              <option value="General">General</option>
+            </select>
+          </div>
+          <div id="advantages-catalog-list" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 0.75rem;">
+            <!-- Populated via JS -->
+          </div>
+        </div>
+      </div>
+
+      <!-- ========================================== -->
+      <!-- TAB 5: POWERS (HERO LAB BUILDER) -->
+      <!-- ========================================== -->
+      <div class="tab-content" id="tab-powers">
+        <div class="section-card">
+          <div class="section-header">
+            <div class="section-title">⚡ Hero Lab Power Builder</div>
+            <div style="display: flex; gap: 0.75rem; align-items: center;">
+              <div class="status-capsule">
+                <span class="status-label">Powers Total:</span>
+                <span class="status-value gold" id="powers-total-pp">0 PP</span>
+              </div>
+              <button class="btn btn-primary" id="btn-open-power-builder">
+                ➕ Build New Power
+              </button>
+            </div>
+          </div>
+          <p style="font-size: var(--font-size-xs); color: var(--text-muted); margin-bottom: 1rem;">
+            Construct powers using base effects, modifiers (Extras & Flaws), Alternate Effects (arrays), and Removable devices. Fractional costs and Hero Lab rounding rules applied automatically.
+          </p>
+          <div class="powers-list" id="powers-builder-list">
+            <!-- Populated via JS -->
+          </div>
+        </div>
+      </div>
+
+      <!-- ========================================== -->
+      <!-- TAB 6: GEAR & DEVICES -->
+      <!-- ========================================== -->
+      <div class="tab-content" id="tab-gear">
+        <div class="section-card">
+          <div class="section-header">
+            <div class="section-title">🎒 Equipment & Gear (5 EP per Equipment Rank)</div>
+            <div class="status-capsule">
+              <span class="status-label">EP Budget:</span>
+              <span class="status-value gold" id="gear-ep-display">0 / 0 EP</span>
+            </div>
+          </div>
+          <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
+            <input type="text" id="new-gear-name" placeholder="Item name (e.g., Heavy Pistol, Body Armor, Night-Vision Goggles)" style="flex: 2;">
+            <input type="number" id="new-gear-cost" placeholder="EP Cost" style="width: 90px;" min="1" value="1">
+            <input type="text" id="new-gear-desc" placeholder="Details / Mechanics" style="flex: 2;">
+            <button class="btn btn-primary" id="btn-add-gear">Add Gear</button>
+          </div>
+          <table class="attacks-table">
+            <thead>
+              <tr>
+                <th>Item / Gear Name</th>
+                <th>EP Cost</th>
+                <th>Description / Effect</th>
+                <th style="text-align: right;">Action</th>
+              </tr>
+            </thead>
+            <tbody id="gear-tbody">
+              <!-- Populated via JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ========================================== -->
+      <!-- TAB 7: IDENTITY & COMPLICATIONS -->
+      <!-- ========================================== -->
+      <div class="tab-content" id="tab-identity">
+        <div class="section-card">
+          <div class="section-header">
+            <div class="section-title">🎭 Motivations & Complications (Earns Hero Points)</div>
+            <button class="btn btn-primary" id="btn-add-complication">➕ Add Complication</button>
+          </div>
+          <p style="font-size: var(--font-size-xs); color: var(--text-muted); margin-bottom: 1rem;">
+            When the Gamemaster brings a Complication into play during an encounter, the character receives 1 Hero Point!
+          </p>
+          <div id="complications-list" style="display: flex; flex-direction: column; gap: 0.75rem;">
+            <!-- Populated via JS -->
+          </div>
+        </div>
+
+        <div class="section-card">
+          <div class="section-header">
+            <div class="section-title">📝 Hero Bio, Appearance & Notes</div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Background & Origin Story</label>
+            <textarea id="hero-bio-input" rows="4" style="width: 100%;" placeholder="Describe the hero's origin, background, headquarters, or personal lore..."></textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- ========================================== -->
+      <!-- TAB 8: SETTINGS & DISCORD -->
+      <!-- ========================================== -->
+      <div class="tab-content" id="tab-settings">
+        <div class="section-card">
+          <div class="section-header">
+            <div class="section-title">🤖 Discord Bot & Webhook Integration</div>
+            <button class="btn btn-outline" id="btn-test-discord">🔔 Send Test Roll</button>
+          </div>
+          <p style="font-size: var(--font-size-xs); color: var(--text-muted); margin-bottom: 1rem;">
+            Echo all rolls, attacks, defense checks, and hero point spends directly to your tabletop Discord channel via Webhook.
+          </p>
+          <div class="form-group">
+            <label class="form-label">Discord Webhook URL</label>
+            <input type="text" id="discord-webhook-url" placeholder="https://discord.com/api/webhooks/...">
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Bot Display Name</label>
+              <input type="text" id="discord-bot-name" placeholder="M&M 3e Character Roller">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Bot Avatar Image URL</label>
+              <input type="text" id="discord-bot-avatar" placeholder="https://... (Optional image link)">
+            </div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 0.5rem; margin-top: 0.5rem;">
+            <input type="checkbox" id="discord-enabled-toggle" style="width: 18px; height: 18px;">
+            <label for="discord-enabled-toggle" style="font-weight: 700; cursor: pointer;">Enable automatic Discord roll echoing</label>
+          </div>
+          <button class="btn btn-primary" id="btn-save-discord" style="margin-top: 1rem;">Save Discord Settings</button>
+        </div>
+
+        <div class="section-card">
+          <div class="section-header">
+            <div class="section-title">⚙️ Campaign & Power Level Settings</div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Campaign Power Level (PL)</label>
+              <input type="number" id="settings-pl-input" min="1" max="25" value="10">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Power Points Budget (Default: PL × 15)</label>
+              <input type="number" id="settings-budget-input" min="1" max="500" value="150">
+            </div>
+          </div>
+          <button class="btn btn-primary" id="btn-save-pl-settings">Apply Campaign Settings</button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ========================================== -->
+    <!-- RIGHT SIDEBAR: ROLL20 VTT LOG & HUD -->
+    <!-- ========================================== -->
+    <aside class="sidebar-panel">
+
+      <!-- Hero Points Spending HUD -->
+      <div class="hero-points-hud">
+        <div class="hero-points-counter">
+          <span class="hp-number" id="sidebar-hp-number">1</span>
+          <div>
+            <div class="hp-label">Hero Points</div>
+            <div style="font-size: 0.7rem; color: #d8b4fe;">Turn the tide!</div>
+          </div>
+        </div>
+        <button class="btn-spend-hp" id="btn-open-hp-modal">
+          ⚡ Spend HP
+        </button>
+      </div>
+
+      <!-- Damage & Bruises Tracker -->
+      <div class="side-card">
+        <div class="side-card-header">
+          <div class="side-card-title">🩸 Damage & Bruises</div>
+          <button class="btn btn-outline" id="btn-reset-damage" style="font-size: 0.7rem; padding: 0.15rem 0.4rem;">Reset</button>
+        </div>
+        <div class="damage-tracker">
+          <div class="bruise-box">
+            <div>
+              <div style="font-size: var(--font-size-xs); font-weight: 800;">Bruises</div>
+              <div style="font-size: 0.7rem; color: var(--text-muted);">-1 Toughness each</div>
+            </div>
+            <div class="bruise-controls">
+              <button class="btn-step" id="btn-bruise-minus">-</button>
+              <span id="bruise-count-display" style="font-size: var(--font-size-md); font-weight: 900; min-width: 18px; text-align: center;">0</span>
+              <button class="btn-step" id="btn-bruise-plus">+</button>
+            </div>
+          </div>
+          <div class="condition-pill" id="cond-dazed" data-cond="dazed">Dazed</div>
+          <div class="condition-pill" id="cond-staggered" data-cond="staggered">Staggered</div>
+          <div class="condition-pill" id="cond-vulnerable" data-cond="vulnerable">Vulnerable</div>
+          <div class="condition-pill" id="cond-defenseless" data-cond="defenseless">Defenseless</div>
+        </div>
+      </div>
+
+      <!-- Quick d20 Check Roller -->
+      <div class="side-card">
+        <div class="side-card-header">
+          <div class="side-card-title">🎲 Quick d20 Roll</div>
+        </div>
+        <div style="display: flex; gap: 0.5rem; margin-bottom: 0.5rem;">
+          <input type="number" id="quick-roll-mod" placeholder="Mod" value="0" style="width: 70px;">
+          <input type="number" id="quick-roll-dc" placeholder="Target DC" style="width: 90px;">
+          <button class="btn btn-roll" id="btn-quick-roll" style="flex: 1;">Roll d20</button>
+        </div>
+      </div>
+
+      <!-- Roll20 Interactive Dice Log -->
+      <div class="side-card" style="flex: 1; display: flex; flex-direction: column;">
+        <div class="side-card-header">
+          <div class="side-card-title">📜 Roll Log (Roll20 Echo)</div>
+          <button class="btn btn-outline" id="btn-clear-log" style="font-size: 0.7rem; padding: 0.15rem 0.4rem;">Clear</button>
+        </div>
+        <div class="dice-log-container" id="dice-log-container">
+          <!-- Populated live on rolls -->
+        </div>
+      </div>
+
+    </aside>
+
+  </main>
+
+  <!-- ========================================== -->
+  <!-- MODAL 1: HERO POINT SPEND MODAL -->
+  <!-- ========================================== -->
+  <div class="modal-overlay" id="modal-hero-point">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <div class="modal-title">⚡ Spend Hero Point</div>
+        <button class="btn-close-modal" id="btn-close-hp-modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size: var(--font-size-xs); color: var(--text-muted); margin-bottom: 1rem;">
+          Select how your hero uses their determination to seize victory:
+        </p>
+        <div class="hp-options-grid">
+          
+          <div class="hp-option-card" data-spend="reroll">
+            <div class="hp-option-title">🎲 Reroll Any Check (1-10 + 10)</div>
+            <div class="hp-option-desc">
+              Reroll a failed check. If the new d20 die roll is 10 or less, add 10 to the result (guarantees a 11-20 die roll)!
+            </div>
+            <div style="margin-top: 0.5rem; display: flex; gap: 0.5rem;">
+              <select id="hp-reroll-target" style="flex: 1; font-size: var(--font-size-xs);">
+                <option value="attack">Last Attack Check</option>
+                <option value="toughness">Toughness Check</option>
+                <option value="dodge">Dodge Defense Check</option>
+                <option value="parry">Parry Defense Check</option>
+                <option value="will">Will Defense Check</option>
+                <option value="fortitude">Fortitude Defense Check</option>
+              </select>
+              <button class="btn btn-primary" id="btn-hp-exec-reroll" style="font-size: var(--font-size-xs);">Roll Reroll</button>
+            </div>
+          </div>
+
+          <div class="hp-option-card" data-spend="extra_effort">
+            <div class="hp-option-title">💪 Extra Effort Benefit</div>
+            <div class="hp-option-desc">
+              Gain one extra standard action, +2 bonus on check, power rank +1, or perform an alternate stunt without fatigue!
+            </div>
+            <button class="btn btn-outline" id="btn-hp-extra-effort" style="margin-top: 0.5rem; font-size: var(--font-size-xs);">Use Extra Effort</button>
+          </div>
+
+          <div class="hp-option-card" data-spend="edit_scene">
+            <div class="hp-option-title">🎬 Edit Scene</div>
+            <div class="hp-option-desc">
+              Introduce a plausible, convenient element into the scene (a fire hydrant, escape vent, or bystander you know).
+            </div>
+            <button class="btn btn-outline" id="btn-hp-edit-scene" style="margin-top: 0.5rem; font-size: var(--font-size-xs);">Edit Scene</button>
+          </div>
+
+          <div class="hp-option-card" data-spend="instant_counter">
+            <div class="hp-option-title">🛡️ Instant Counter</div>
+            <div class="hp-option-desc">
+              Counter an opponent's power or attack immediately without having readied a counter action.
+            </div>
+            <button class="btn btn-outline" id="btn-hp-instant-counter" style="margin-top: 0.5rem; font-size: var(--font-size-xs);">Instant Counter</button>
+          </div>
+
+          <div class="hp-option-card" data-spend="inspiration">
+            <div class="hp-option-title">💡 Inspiration</div>
+            <div class="hp-option-desc">
+              Receive a valuable clue, tactical insight, or sudden epiphany from the Gamemaster.
+            </div>
+            <button class="btn btn-outline" id="btn-hp-inspiration" style="margin-top: 0.5rem; font-size: var(--font-size-xs);">Get Inspiration</button>
+          </div>
+
+          <div class="hp-option-card" data-spend="escape_death">
+            <div class="hp-option-title">❤️ Recovery / Escape Death</div>
+            <div class="hp-option-desc">
+              Automatically recover immediately from your worst condition (e.g. remove Dazed, Staggered, or stabilize).
+            </div>
+            <button class="btn btn-outline" id="btn-hp-recovery" style="margin-top: 0.5rem; font-size: var(--font-size-xs);">Recover Condition</button>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- MODAL 2: ARCHETYPE GUIDED GENERATOR -->
+  <!-- ========================================== -->
+  <div class="modal-overlay" id="modal-archetypes">
+    <div class="modal-dialog wide">
+      <div class="modal-header">
+        <div class="modal-title">✨ Guided Archetype Character Generator</div>
+        <button class="btn-close-modal" id="btn-close-archetypes-modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size: var(--font-size-xs); color: var(--text-muted); margin-bottom: 1rem;">
+          Select an archetype from the Deluxe Hero's Handbook. This instantly sets up a complete, rules-legal PL 10 (150 PP) character with powers, defenses, skills, and advantages ready for customization:
+        </p>
+        <div class="archetypes-picker-grid" id="archetypes-picker-container">
+          <!-- Populated via JS -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- MODAL 3: HERO LAB POWER BUILDER MODAL -->
+  <!-- ========================================== -->
+  <div class="modal-overlay" id="modal-power-builder">
+    <div class="modal-dialog wide">
+      <div class="modal-header">
+        <div class="modal-title" id="builder-modal-title">⚡ Hero Lab Power Builder</div>
+        <button class="btn-close-modal" id="btn-close-power-builder">&times;</button>
+      </div>
+      <div class="modal-body">
+        
+        <!-- Live Cost Breakdown Banner -->
+        <div style="background-color: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.4); border-radius: var(--radius-md); padding: 0.75rem 1rem; margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center;">
+          <div>
+            <div style="font-size: var(--font-size-xs); text-transform: uppercase; color: var(--hero-gold); font-weight: 800;">Hero Lab Cost Formula</div>
+            <div id="builder-formula-display" style="font-family: monospace; font-size: var(--font-size-sm); color: var(--text-bright); font-weight: 700;">
+              Cost: 2 PP / rank × 10 ranks = 20 PP
+            </div>
+          </div>
+          <div style="text-align: right;">
+            <div style="font-size: var(--font-size-xs); color: var(--text-muted);">Total Power Points</div>
+            <div id="builder-total-pp-display" style="font-size: var(--font-size-xl); font-weight: 900; color: var(--hero-gold);">
+              20 PP
+            </div>
+          </div>
+        </div>
+
+        <!-- Power Core Attributes -->
+        <div class="form-row">
+          <div class="form-group" style="flex: 2;">
+            <label class="form-label">Power Name</label>
+            <input type="text" id="builder-power-name" placeholder="e.g., Repulsor Beam, Chi Strike, Telekinetic Shield">
+          </div>
+          <div class="form-group" style="flex: 2;">
+            <label class="form-label">Descriptor</label>
+            <input type="text" id="builder-power-descriptor" placeholder="e.g., Technology, Energy, Fire, Psionic">
+          </div>
+          <div class="form-group" style="width: 100px;">
+            <label class="form-label">Rank</label>
+            <input type="number" id="builder-power-rank" min="1" max="25" value="10">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group" style="flex: 2;">
+            <label class="form-label">Base Effect</label>
+            <select id="builder-base-effect">
+              <!-- Populated from POWER_EFFECTS_CATALOG -->
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Action</label>
+            <select id="builder-action">
+              <option value="Standard">Standard</option>
+              <option value="Move">Move</option>
+              <option value="Free">Free</option>
+              <option value="Reaction">Reaction</option>
+              <option value="None">None</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Range</label>
+            <select id="builder-range">
+              <option value="Personal">Personal</option>
+              <option value="Close">Close</option>
+              <option value="Ranged">Ranged</option>
+              <option value="Perception">Perception</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Duration</label>
+            <select id="builder-duration">
+              <option value="Instant">Instant</option>
+              <option value="Concentration">Concentration</option>
+              <option value="Sustained">Sustained</option>
+              <option value="Continuous">Continuous</option>
+              <option value="Permanent">Permanent</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Extras & Flaws Checklists -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 0.75rem;">
+          
+          <!-- Extras Container -->
+          <div style="background-color: var(--bg-input); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 0.75rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+              <span class="form-label" style="color: var(--hero-green);">➕ Extras (+Cost)</span>
+              <button class="btn btn-outline" id="btn-builder-add-extra" style="font-size: 0.7rem; padding: 0.2rem 0.4rem;">+ Add Extra</button>
+            </div>
+            <div id="builder-extras-list" style="display: flex; flex-direction: column; gap: 0.35rem; max-height: 180px; overflow-y: auto;">
+              <!-- Populated via JS -->
+            </div>
+          </div>
+
+          <!-- Flaws Container -->
+          <div style="background-color: var(--bg-input); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 0.75rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+              <span class="form-label" style="color: var(--hero-red);">➖ Flaws (-Cost & Devices)</span>
+              <button class="btn btn-outline" id="btn-builder-add-flaw" style="font-size: 0.7rem; padding: 0.2rem 0.4rem;">+ Add Flaw</button>
+            </div>
+            <div id="builder-flaws-list" style="display: flex; flex-direction: column; gap: 0.35rem; max-height: 180px; overflow-y: auto;">
+              <!-- Populated via JS -->
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Alternate Effects (Arrays) -->
+        <div style="background-color: var(--bg-input); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 0.75rem; margin-top: 0.75rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+            <div>
+              <span class="form-label" style="color: var(--hero-cyan);">🔄 Alternate Effects Array (1 PP Flat each)</span>
+              <div style="font-size: 0.7rem; color: var(--text-muted);">Secondary power configurations sharing the primary power point pool</div>
+            </div>
+            <button class="btn btn-outline" id="btn-builder-add-ae" style="font-size: 0.7rem; padding: 0.2rem 0.4rem;">+ Add Alt Effect</button>
+          </div>
+          <div id="builder-ae-list" style="display: flex; flex-direction: column; gap: 0.35rem;">
+            <!-- Populated via JS -->
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-top: 0.75rem;">
+          <label class="form-label">Rules Notes / Description</label>
+          <textarea id="builder-power-notes" rows="2" style="width: 100%;" placeholder="Describe the power's visual manifestation or special rules notes..."></textarea>
+        </div>
+
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" id="btn-cancel-power-builder">Cancel</button>
+        <button class="btn btn-primary" id="btn-save-power-builder">💾 Save Power</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container"></div>
+
+  <!-- Load Modules -->
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>

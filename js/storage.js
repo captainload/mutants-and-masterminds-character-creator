@@ -1,0 +1,175 @@
+/**
+ * Character State Storage & Management
+ * Supports auto-save, multi-character profiles, JSON export/import.
+ */
+
+import { ARCHETYPES } from './archetypes.js';
+
+const STORAGE_KEY = 'mm3e_characters_collection';
+const CURRENT_CHAR_KEY = 'mm3e_active_character_id';
+
+export class StorageManager {
+  constructor() {
+    this.characters = this.loadAll();
+    this.activeId = localStorage.getItem(CURRENT_CHAR_KEY);
+
+    if (this.characters.length === 0) {
+      // Seed with Battlesuit archetype as the starting default hero
+      const defaultHero = JSON.parse(JSON.stringify(ARCHETYPES[0]));
+      defaultHero.id = 'char_' + Date.now();
+      defaultHero.name = 'Apex Guardian';
+      defaultHero.heroPoints = 1;
+      defaultHero.bruises = 0;
+      defaultHero.conditions = { dazed: false, staggered: false, defenseless: false, vulnerable: false };
+      this.characters = [defaultHero];
+      this.activeId = defaultHero.id;
+      this.saveAll();
+    } else if (!this.activeId || !this.characters.some(c => c.id === this.activeId)) {
+      this.activeId = this.characters[0].id;
+    }
+  }
+
+  loadAll() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      return raw ? JSON.parse(raw) : [];
+    } catch (e) {
+      console.error('Error loading characters from localStorage', e);
+      return [];
+    }
+  }
+
+  saveAll() {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(this.characters));
+      localStorage.setItem(CURRENT_CHAR_KEY, this.activeId || '');
+    } catch (e) {
+      console.error('Error saving characters to localStorage', e);
+    }
+  }
+
+  getActiveCharacter() {
+    return this.characters.find(c => c.id === this.activeId) || this.characters[0];
+  }
+
+  setActiveCharacter(id) {
+    if (this.characters.some(c => c.id === id)) {
+      this.activeId = id;
+      this.saveAll();
+    }
+  }
+
+  saveCharacter(updatedChar) {
+    const idx = this.characters.findIndex(c => c.id === updatedChar.id);
+    if (idx !== -1) {
+      this.characters[idx] = JSON.parse(JSON.stringify(updatedChar));
+    } else {
+      this.characters.push(JSON.parse(JSON.stringify(updatedChar)));
+    }
+    this.saveAll();
+  }
+
+  createFreeformCharacter(name = 'New Hero', pl = 10, budget = 150) {
+    const newChar = {
+      id: 'char_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
+      name,
+      identity: 'Secret Identity',
+      powerLevel: pl,
+      powerPointsBudget: budget,
+      heroPoints: 1,
+      bruises: 0,
+      concept: 'Freeform custom superhero',
+      abilities: { str: 0, sta: 0, agi: 0, dex: 0, fgt: 0, int: 0, awe: 0, pre: 0 },
+      defenses: { dodge: 0, parry: 0, fortitude: 0, toughness: 0, will: 0 },
+      skills: [],
+      advantages: [],
+      powers: [],
+      gear: [],
+      complications: [
+        { type: 'Motivation', name: 'Justice', desc: 'Driven to fight crime and protect innocents.' }
+      ],
+      conditions: { dazed: false, staggered: false, defenseless: false, vulnerable: false }
+    };
+    this.characters.push(newChar);
+    this.activeId = newChar.id;
+    this.saveAll();
+    return newChar;
+  }
+
+  createFromArchetype(archetypeId, customName = null) {
+    const template = ARCHETYPES.find(a => a.id === archetypeId);
+    if (!template) throw new Error('Archetype not found');
+
+    const newChar = JSON.parse(JSON.stringify(template));
+    newChar.id = 'char_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4);
+    newChar.name = customName || `${template.name}`;
+    newChar.identity = 'Secret Identity';
+    newChar.heroPoints = 1;
+    newChar.bruises = 0;
+    newChar.conditions = { dazed: false, staggered: false, defenseless: false, vulnerable: false };
+
+    this.characters.push(newChar);
+    this.activeId = newChar.id;
+    this.saveAll();
+    return newChar;
+  }
+
+  cloneCharacter(charId) {
+    const original = this.characters.find(c => c.id === charId);
+    if (!original) return null;
+
+    const clone = JSON.parse(JSON.stringify(original));
+    clone.id = 'char_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4);
+    clone.name = `${original.name} (Copy)`;
+    this.characters.push(clone);
+    this.activeId = clone.id;
+    this.saveAll();
+    return clone;
+  }
+
+  deleteCharacter(charId) {
+    if (this.characters.length <= 1) {
+      alert('You must keep at least one character in your roster.');
+      return false;
+    }
+    this.characters = this.characters.filter(c => c.id !== charId);
+    if (this.activeId === charId) {
+      this.activeId = this.characters[0].id;
+    }
+    this.saveAll();
+    return true;
+  }
+
+  exportCharacterToJSON(char) {
+    const jsonStr = JSON.stringify(char, null, 2);
+    const blob = new Blob([jsonStr], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${char.name.toLowerCase().replace(/[^a-z0-9]/g, '_')}_pl${char.powerLevel}.mm3e.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  importCharacterFromJSON(jsonString) {
+    try {
+      const parsed = JSON.parse(jsonString);
+      if (!parsed.name || parsed.abilities === undefined) {
+        throw new Error('Invalid Mutants & Masterminds character data.');
+      }
+      parsed.id = 'char_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4);
+      parsed.name = `${parsed.name} (Imported)`;
+      this.characters.push(parsed);
+      this.activeId = parsed.id;
+      this.saveAll();
+      return parsed;
+    } catch (e) {
+      alert('Failed to import character: ' + e.message);
+      return null;
+    }
+  }
+}
+
+export const storageManager = new StorageManager();

@@ -1025,7 +1025,7 @@ class AppController {
   }
 
   async checkForUpdates({ isManual = false } = {}) {
-    const CURRENT_VERSION = '3.16';
+    const CURRENT_VERSION = '3.17';
     if (typeof window === 'undefined' || !window.location || !window.location.href || window.location.href === 'about:blank') return;
     try {
       const url = new URL('version.json', window.location.href);
@@ -1373,7 +1373,7 @@ class AppController {
       select.appendChild(optGroup);
     });
 
-    document.getElementById('btn-apply-profile').addEventListener('click', async () => {
+    document.getElementById('btn-apply-profile')?.addEventListener('click', async () => {
       const profileId = select.value;
       let matchedProfile = null;
       for (const grp of POWER_PROFILES_LIBRARY) {
@@ -1403,14 +1403,24 @@ class AppController {
       this.char.powers.push(newPower);
       if (!this.expandedPowerIds) this.expandedPowerIds = new Set();
       this.expandedPowerIds.add(newPower.id);
-      this.saveAndAudit();
-      this.renderAll();
+      this.refreshPowersState();
       await this.showAlertDialog(`Power Profile "${matchedProfile.name}" added to character!`, { title: 'Power Profile Added' });
     });
 
-    document.getElementById('btn-open-custom-power-builder').addEventListener('click', () => {
+    document.getElementById('btn-open-custom-power-builder')?.addEventListener('click', () => {
+      this.openCustomPowerBuilder(null);
+    });
+
+    document.getElementById('btn-quick-add-power')?.addEventListener('click', () => {
       this.addNewCustomPower();
     });
+  }
+
+  refreshPowersState() {
+    const audit = this.saveAndAudit();
+    this.renderHeaderStatus();
+    this.renderPowersTab(audit);
+    this.renderActionCenter(audit);
   }
 
   addNewCustomPower() {
@@ -1435,8 +1445,7 @@ class AppController {
     this.char.powers.push(newPower);
     if (!this.expandedPowerIds) this.expandedPowerIds = new Set();
     this.expandedPowerIds.add(newPower.id);
-    this.saveAndAudit();
-    this.renderAll();
+    this.refreshPowersState();
   }
 
   duplicatePower(powerId) {
@@ -1448,8 +1457,7 @@ class AppController {
     this.char.powers.push(clone);
     if (!this.expandedPowerIds) this.expandedPowerIds = new Set();
     this.expandedPowerIds.add(clone.id);
-    this.saveAndAudit();
-    this.renderAll();
+    this.refreshPowersState();
   }
 
   async deletePower(powerId) {
@@ -1463,8 +1471,7 @@ class AppController {
     if (confirmed) {
       this.char.powers = this.char.powers.filter(item => item.id !== powerId);
       if (this.expandedPowerIds) this.expandedPowerIds.delete(powerId);
-      this.saveAndAudit();
-      this.renderAll();
+      this.refreshPowersState();
     }
   }
 
@@ -1736,9 +1743,10 @@ class AppController {
     } else {
       this.char.powers.push(power);
     }
+    if (!this.expandedPowerIds) this.expandedPowerIds = new Set();
+    this.expandedPowerIds.add(power.id);
 
-    this.saveAndAudit();
-    this.renderAll();
+    this.refreshPowersState();
     this.closeModal('modal-power-builder');
   }
 
@@ -3715,6 +3723,7 @@ class AppController {
 
     const options = otherEffects.map(oe => `${oe.name || 'Unnamed Power'} (${oe.effect?.name || 'Effect'} Rank ${oe.rank || 1})`);
     this.openPrebuiltOptionsModal(
+      'Link With Existing Effect',
       options,
       (selectedOpt) => {
         const idx = options.indexOf(selectedOpt);
@@ -3739,10 +3748,8 @@ class AppController {
           if (linkedDef) power.extras.push({ ...linkedDef, rank: 1 });
         }
 
-        this.saveAndAudit();
-        this.renderPowersTab(auditCharacter(this.char));
-      },
-      'Link With Existing Effect'
+        this.refreshPowersState();
+      }
     );
   }
 
@@ -3856,8 +3863,7 @@ class AppController {
         badge.querySelector('.btn-del-imm-opt')?.addEventListener('click', () => {
           p.immunityOptions.splice(idx, 1);
           p.rank = Math.max(1, p.immunityOptions.reduce((acc, cur) => acc + (parseInt(cur.ranks, 10) || 1), 0));
-          this.saveAndAudit();
-          this.renderPowersTab(auditCharacter(this.char));
+          this.refreshPowersState();
         });
         assignedContainer.appendChild(badge);
       });
@@ -3891,8 +3897,7 @@ class AppController {
           row.querySelector('.btn-add-imm-item')?.addEventListener('click', () => {
             p.immunityOptions.push({ id: item.id, name: item.name, ranks: item.ranks });
             p.rank = Math.max(1, p.immunityOptions.reduce((acc, cur) => acc + (parseInt(cur.ranks, 10) || 1), 0));
-            this.saveAndAudit();
-            this.renderPowersTab(auditCharacter(this.char));
+            this.refreshPowersState();
           });
           catList.appendChild(row);
         });
@@ -3942,8 +3947,7 @@ class AppController {
         badge.querySelector('.btn-del-sens-opt')?.addEventListener('click', () => {
           p.sensesOptions.splice(idx, 1);
           p.rank = Math.max(1, p.sensesOptions.reduce((acc, cur) => acc + (parseInt(cur.ranks, 10) || 1), 0));
-          this.saveAndAudit();
-          this.renderPowersTab(auditCharacter(this.char));
+          this.refreshPowersState();
         });
         assignedContainer.appendChild(badge);
       });
@@ -3965,8 +3969,7 @@ class AppController {
         row.querySelector('.btn-add-sens-item')?.addEventListener('click', () => {
           p.sensesOptions.push({ id: item.id, name: item.name, ranks: item.ranks });
           p.rank = Math.max(1, p.sensesOptions.reduce((acc, cur) => acc + (parseInt(cur.ranks, 10) || 1), 0));
-          this.saveAndAudit();
-          this.renderPowersTab(auditCharacter(this.char));
+          this.refreshPowersState();
         });
         catList.appendChild(row);
       });
@@ -4065,6 +4068,11 @@ class AppController {
       if (!p.effect || typeof p.effect !== 'object') {
         const found = POWER_EFFECTS_CATALOG.find(e => e.id === p.effect) || POWER_EFFECTS_CATALOG[0];
         p.effect = found;
+      } else {
+        const fullEff = POWER_EFFECTS_CATALOG.find(e => e.id === p.effect.id);
+        if (fullEff) {
+          p.effect = { ...fullEff, ...p.effect };
+        }
       }
 
       // Compute derived range, duration, action, and area (Effective Stats Block)
@@ -4099,19 +4107,41 @@ class AppController {
           ${p.linkedEffects?.length ? `<span class="badge-tag linked">${p.linkedEffects.length} Linked</span>` : ''}
           ${!valResult.valid ? '<span class="badge-tag conflict" title="Rule conflicts detected">⚠️ Conflict</span>' : ''}
         </div>
-        <div class="power-card-header-actions" onclick="event.stopPropagation()">
-          <button class="btn btn-outline btn-duplicate-power" data-p-id="${p.id}" title="Duplicate Power" style="min-height: 28px; padding: 0.15rem 0.55rem; font-size: var(--font-size-sm);">📋 Duplicate</button>
-          <button class="btn btn-outline btn-delete-power" data-p-id="${p.id}" title="Delete Power" style="min-height: 28px; padding: 0.15rem 0.55rem; font-size: var(--font-size-sm); color: #fff; border-color: rgba(255, 255, 255, 0.25);">🗑️ Delete</button>
+        <div class="power-card-header-actions">
+          <button class="btn btn-outline btn-toggle-power-expand" style="min-height: 32px; padding: 0.2rem 0.65rem; font-size: var(--font-size-base); font-weight: 700;">${isExpanded ? '▲ Collapse' : '▼ Configure'}</button>
+          <button class="btn btn-outline btn-edit-power-modal" title="Open in 3E Power Builder Modal" style="min-height: 32px; padding: 0.2rem 0.65rem; font-size: var(--font-size-base); font-weight: 700; border-color: var(--hero-blue); color: #fff;">✏️ Builder</button>
+          <button class="btn btn-outline btn-duplicate-power" data-p-id="${p.id}" title="Duplicate Power" style="min-height: 32px; padding: 0.2rem 0.65rem; font-size: var(--font-size-base); font-weight: 700;">📋 Duplicate</button>
+          <button class="btn btn-outline btn-delete-power" data-p-id="${p.id}" title="Delete Power" style="min-height: 32px; padding: 0.2rem 0.65rem; font-size: var(--font-size-base); font-weight: 700; color: #fff; border-color: rgba(255, 255, 255, 0.25);">🗑️ Delete</button>
         </div>
       `;
 
-      header.addEventListener('click', () => {
+      header.addEventListener('click', (e) => {
+        if (e.target.closest('.power-card-header-actions')) return;
         if (this.expandedPowerIds.has(p.id)) {
           this.expandedPowerIds.delete(p.id);
         } else {
           this.expandedPowerIds.add(p.id);
         }
-        this.renderPowersTab(auditCharacter(this.char));
+        this.refreshPowersState();
+      });
+
+      header.querySelector('.power-card-header-actions')?.addEventListener('click', (e) => {
+        e.stopPropagation();
+      });
+
+      header.querySelector('.btn-toggle-power-expand')?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (this.expandedPowerIds.has(p.id)) {
+          this.expandedPowerIds.delete(p.id);
+        } else {
+          this.expandedPowerIds.add(p.id);
+        }
+        this.refreshPowersState();
+      });
+
+      header.querySelector('.btn-edit-power-modal')?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.openCustomPowerBuilder(p);
       });
 
       header.querySelector('.btn-duplicate-power')?.addEventListener('click', (e) => {
@@ -4172,6 +4202,7 @@ class AppController {
         row1.querySelector('.input-power-name')?.addEventListener('input', (e) => {
           p.name = e.target.value;
           this.saveAndAudit();
+          this.renderHeaderStatus();
         });
         row1.querySelector('.input-power-desc')?.addEventListener('input', (e) => {
           p.descriptor = e.target.value;
@@ -4181,23 +4212,19 @@ class AppController {
           const newEff = POWER_EFFECTS_CATALOG.find(eff => eff.id === e.target.value) || POWER_EFFECTS_CATALOG[0];
           p.effect = newEff;
           p.action = newEff.action || 'Standard';
-          this.saveAndAudit();
-          this.renderPowersTab(auditCharacter(this.char));
+          this.refreshPowersState();
         });
         row1.querySelector('.select-power-action')?.addEventListener('change', (e) => {
           p.action = e.target.value;
-          this.saveAndAudit();
-          this.renderPowersTab(auditCharacter(this.char));
+          this.refreshPowersState();
         });
         row1.querySelector('.btn-p-rank-minus')?.addEventListener('click', () => {
           p.rank = Math.max(1, (parseInt(p.rank, 10) || 1) - 1);
-          this.saveAndAudit();
-          this.renderPowersTab(auditCharacter(this.char));
+          this.refreshPowersState();
         });
         row1.querySelector('.btn-p-rank-plus')?.addEventListener('click', () => {
           p.rank = (parseInt(p.rank, 10) || 1) + 1;
-          this.saveAndAudit();
-          this.renderPowersTab(auditCharacter(this.char));
+          this.refreshPowersState();
         });
         body.appendChild(row1);
 
@@ -4311,26 +4338,29 @@ class AppController {
 
           exRow.querySelector('.btn-ex-minus')?.addEventListener('click', () => {
             ex.rank = Math.max(minR, r - 1);
-            this.saveAndAudit();
-            this.renderPowersTab(auditCharacter(this.char));
+            this.refreshPowersState();
           });
           exRow.querySelector('.btn-ex-plus')?.addEventListener('click', () => {
             ex.rank = Math.min(maxR, r + 1);
-            this.saveAndAudit();
-            this.renderPowersTab(auditCharacter(this.char));
+            this.refreshPowersState();
           });
           exRow.querySelector('.btn-remove-extra')?.addEventListener('click', () => {
             p.extras.splice(exIdx, 1);
-            this.saveAndAudit();
-            this.renderPowersTab(auditCharacter(this.char));
+            this.refreshPowersState();
           });
 
           extrasContainer.appendChild(exRow);
         });
 
         extrasCol.querySelector('.btn-add-extra')?.addEventListener('click', () => {
-          const selectedId = extrasCol.querySelector('.select-add-extra').value;
-          if (!selectedId) return;
+          let selectedId = extrasCol.querySelector('.select-add-extra').value;
+          if (!selectedId && legalExtras.length > 0) {
+            selectedId = legalExtras[0].id;
+          }
+          if (!selectedId) {
+            this.showAlertDialog('No extras available to add.', { title: 'Add Extra' });
+            return;
+          }
           const exDef = EXTRAS_CATALOG.find(e => e.id === selectedId);
           if (!exDef) return;
 
@@ -4356,8 +4386,7 @@ class AppController {
             isRanked: exDef.isRanked,
             rank: 1
           });
-          this.saveAndAudit();
-          this.renderPowersTab(auditCharacter(this.char));
+          this.refreshPowersState();
         });
 
         // --- Flaws Column ---
@@ -4417,26 +4446,29 @@ class AppController {
 
           flRow.querySelector('.btn-fl-minus')?.addEventListener('click', () => {
             fl.rank = Math.max(minR, r - 1);
-            this.saveAndAudit();
-            this.renderPowersTab(auditCharacter(this.char));
+            this.refreshPowersState();
           });
           flRow.querySelector('.btn-fl-plus')?.addEventListener('click', () => {
             fl.rank = Math.min(maxR, r + 1);
-            this.saveAndAudit();
-            this.renderPowersTab(auditCharacter(this.char));
+            this.refreshPowersState();
           });
           flRow.querySelector('.btn-remove-flaw')?.addEventListener('click', () => {
             p.flaws.splice(flIdx, 1);
-            this.saveAndAudit();
-            this.renderPowersTab(auditCharacter(this.char));
+            this.refreshPowersState();
           });
 
           flawsContainer.appendChild(flRow);
         });
 
         flawsCol.querySelector('.btn-add-flaw')?.addEventListener('click', () => {
-          const selectedId = flawsCol.querySelector('.select-add-flaw').value;
-          if (!selectedId) return;
+          let selectedId = flawsCol.querySelector('.select-add-flaw').value;
+          if (!selectedId && legalFlaws.length > 0) {
+            selectedId = legalFlaws[0].id;
+          }
+          if (!selectedId) {
+            this.showAlertDialog('No flaws available to add.', { title: 'Add Flaw' });
+            return;
+          }
           const flDef = FLAWS_CATALOG.find(f => f.id === selectedId);
           if (!flDef) return;
 
@@ -4459,8 +4491,7 @@ class AppController {
             discountPer5: flDef.discountPer5,
             rank: 1
           });
-          this.saveAndAudit();
-          this.renderPowersTab(auditCharacter(this.char));
+          this.refreshPowersState();
         });
 
         modGrid.appendChild(extrasCol);
@@ -4489,8 +4520,7 @@ class AppController {
 
         aeSection.querySelector('.cb-dynamic-array')?.addEventListener('change', (e) => {
           p.isDynamicArray = e.target.checked;
-          this.saveAndAudit();
-          this.renderPowersTab(auditCharacter(this.char));
+          this.refreshPowersState();
         });
 
         const aeContainer = aeSection.querySelector('.ae-items-container');
@@ -4513,8 +4543,7 @@ class AppController {
           });
           aeRow.querySelector('.btn-delete-ae')?.addEventListener('click', () => {
             p.alternateEffects.splice(aeIdx, 1);
-            this.saveAndAudit();
-            this.renderPowersTab(auditCharacter(this.char));
+            this.refreshPowersState();
           });
 
           aeContainer.appendChild(aeRow);
@@ -4528,8 +4557,7 @@ class AppController {
             isDynamic: false,
             rank: p.rank
           });
-          this.saveAndAudit();
-          this.renderPowersTab(auditCharacter(this.char));
+          this.refreshPowersState();
         });
 
         aeSection.querySelector('.btn-add-dynamic-ae')?.addEventListener('click', () => {
@@ -4541,8 +4569,7 @@ class AppController {
             rank: p.rank
           });
           p.isDynamicArray = true;
-          this.saveAndAudit();
-          this.renderPowersTab(auditCharacter(this.char));
+          this.refreshPowersState();
         });
 
         body.appendChild(aeSection);
@@ -4600,23 +4627,19 @@ class AppController {
           });
           leRow.querySelector('.select-le-effect')?.addEventListener('change', (e) => {
             le.effect = POWER_EFFECTS_CATALOG.find(eff => eff.id === e.target.value) || POWER_EFFECTS_CATALOG[0];
-            this.saveAndAudit();
-            this.renderPowersTab(auditCharacter(this.char));
+            this.refreshPowersState();
           });
           leRow.querySelector('.btn-le-minus')?.addEventListener('click', () => {
             le.rank = Math.max(1, (parseInt(le.rank, 10) || 1) - 1);
-            this.saveAndAudit();
-            this.renderPowersTab(auditCharacter(this.char));
+            this.refreshPowersState();
           });
           leRow.querySelector('.btn-le-plus')?.addEventListener('click', () => {
             le.rank = (parseInt(le.rank, 10) || 1) + 1;
-            this.saveAndAudit();
-            this.renderPowersTab(auditCharacter(this.char));
+            this.refreshPowersState();
           });
           leRow.querySelector('.btn-delete-le')?.addEventListener('click', () => {
             p.linkedEffects.splice(leIdx, 1);
-            this.saveAndAudit();
-            this.renderPowersTab(auditCharacter(this.char));
+            this.refreshPowersState();
           });
 
           linkedContainer.appendChild(leRow);
@@ -4651,7 +4674,7 @@ class AppController {
         });
         footerBar.querySelector('.btn-collapse-card')?.addEventListener('click', () => {
           this.expandedPowerIds.delete(p.id);
-          this.renderPowersTab(auditCharacter(this.char));
+          this.refreshPowersState();
         });
 
         body.appendChild(footerBar);

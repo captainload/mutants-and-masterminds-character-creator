@@ -6,8 +6,8 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Mutants & Masterminds 3E - Character Architect v3.16</title>
-  <link rel="stylesheet" href="css/styles.css?v=3.16">
+  <title>Mutants & Masterminds 3E - Character Architect v3.17</title>
+  <link rel="stylesheet" href="css/styles.css?v=3.17">
 </head>
 <body>
 
@@ -94,7 +94,7 @@
           </div>
 
           <div class="brand-label-compact">
-            M&M 3E Character Editor v3.16
+            M&M 3E Character Editor v3.17
           </div>
         </div>
 
@@ -429,15 +429,18 @@
           <div class="card-box-header">
             <div class="card-box-title">⚡ Official 3E Power Profiles Library</div>
           </div>
-          <div style="display: flex; gap: 0.65rem; align-items: center;">
-            <select id="power-profiles-select" style="flex: 1; font-weight: 700; min-height: 40px;">
+          <div style="display: flex; gap: 0.65rem; align-items: center; flex-wrap: wrap;">
+            <select id="power-profiles-select" style="flex: 1; min-width: 220px; font-weight: 700; min-height: 40px;">
               <!-- Populated from POWER_PROFILES_LIBRARY -->
             </select>
-            <button class="btn btn-primary" id="btn-apply-profile" style="min-height: 40px;">
-              ✨ Load Power Profile
+            <button class="btn btn-primary" id="btn-apply-profile" style="min-height: 40px; font-size: var(--font-size-base); font-weight: 800;">
+              ⚡ Load Power Profile
             </button>
-            <button class="btn btn-outline" id="btn-open-custom-power-builder" style="min-height: 40px;">
+            <button class="btn btn-outline" id="btn-open-custom-power-builder" style="min-height: 40px; font-size: var(--font-size-base); font-weight: 800; border-color: var(--hero-blue); color: #fff;">
               ➕ Build new power
+            </button>
+            <button class="btn btn-outline" id="btn-quick-add-power" style="min-height: 40px; font-size: var(--font-size-base); font-weight: 800; border-color: var(--hero-gold); color: var(--hero-gold);" title="Instantly add an in-place editable power card">
+              ⚡ Quick In-Place Effect
             </button>
           </div>
         </div>
@@ -1333,6 +1336,6 @@
     </div>
   </div>
 
-  <script type="module" src="js/app.js?v=3.16"></script>
+  <script type="module" src="js/app.js?v=3.17"></script>
 </body>
 </html>

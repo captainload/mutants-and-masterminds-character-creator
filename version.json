@@ -1,5 +1,5 @@
 {
-  "version": "3.16",
-  "updatedAt": "2026-10-26T20:25:00Z",
-  "releaseNotes": "Balanced Row 2 PP details font sizing to match interface hierarchy, and implemented remembered failed check reroll with M&M 3E Hero Point rules (1-10 + 10) and toughness damage reversal."
+  "version": "3.17",
+  "updatedAt": "2026-10-26T21:48:00Z",
+  "releaseNotes": "Fixed Powers tab button interactivity: resolved TypeError in linkExistingEffect parameter order, enabled Build New Power builder modal integration, added Quick In-Place Effect creation, enhanced modifier selection fallback, and unified all power adjustments with reactive state refresh across top-row PP and action center."
 }

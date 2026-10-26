@@ -28,16 +28,18 @@ export const SKILLS_LIST = [
     name: 'Acrobatics',
     ability: 'agi',
     trainedOnly: false,
+    hasSpecialty: true,
     desc: 'You can flip, tumble, balance, perform aerial maneuvers, and escape from grabs and restraints. You can use Acrobatics to make a feint in combat if you possess the Agile Feint advantage.',
-    options: []
+    options: ['Balancing', 'Acrobatic Feints', 'Tumbling & Breakfall', 'Escape Maneuvers', 'Aerial Maneuvers']
   },
   {
     id: 'athletics',
     name: 'Athletics',
     ability: 'str',
     trainedOnly: false,
+    hasSpecialty: true,
     desc: 'Athletics covers physical feats of strength, speed, and endurance including climbing sheer cliff faces, running across obstacles, leaping across chasms, and swimming against strong currents.',
-    options: []
+    options: ['Climbing', 'Swimming', 'Running & Sprinting', 'Jumping & Leaping', 'Brachiation']
   },
   {
     id: 'close_combat',
@@ -45,6 +47,7 @@ export const SKILLS_LIST = [
     ability: 'fgt',
     trainedOnly: true,
     hasSpecialty: true,
+    requiresOption3E: true,
     desc: 'Close Combat is the skill for making melee attacks with a specific weapon, unarmed style, or close power effect. Each close attack check uses Fighting + Close Combat rank for that specific weapon.',
     options: ['Unarmed', 'Swords', 'Short Blades', 'Clubs & Hammers', 'Axes', 'Spears', 'Chains & Whips', 'Grabbing & Wrestling']
   },
@@ -63,6 +66,7 @@ export const SKILLS_LIST = [
     ability: 'int',
     trainedOnly: true,
     hasSpecialty: true,
+    requiresOption3E: true,
     desc: 'Expertise covers a broad field of specialized knowledge, profession, or craft. Examples include Science, Magic, Criminal, Pop Culture, Law, Tactics, Streetwise, Engineering, Medicine, and History.',
     options: ['Science', 'Magic / Occult', 'Engineering', 'Criminal / Underworld', 'Law', 'Tactics / Military', 'Streetwise', 'Pop Culture', 'History', 'Medicine', 'Journalism', 'Art & Culture', 'Current Events', 'Philosophy']
   },
@@ -117,6 +121,7 @@ export const SKILLS_LIST = [
     ability: 'dex',
     trainedOnly: true,
     hasSpecialty: true,
+    requiresOption3E: true,
     desc: 'Ranged Combat measures your marksmanship with a particular ranged weapon type or power (e.g. Blasters, Bows, Firearms, Thrown, Slings).',
     options: ['Energy Blasters', 'Firearms / Pistols', 'Rifles & Snipers', 'Bows & Arrows', 'Thrown Weapons', 'Heavy Artillery', 'Magic Bolts']
   },

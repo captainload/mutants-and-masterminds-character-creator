@@ -95,4 +95,16 @@ const totalCost = calculatePowerCost(basePower);
 console.assert(totalCost === 29, `Expected total cost 29 PP, got ${totalCost} PP`);
 console.log(`✓ Power cost with Array & Linked Effects verified: ${totalCost} PP`);
 
-console.log('ALL v3.5 TEST CASES PASSED SUCCESSFULLY!');
+// 6. House Rule: Specializations (M&M 4E) vs Standard 3E
+const required3E = SKILLS_LIST.filter(s => s.requiresOption3E);
+console.assert(required3E.length === 3, `Expected 3 skills to require 3E options, found ${required3E.length}`);
+console.assert(required3E.some(s => s.id === 'close_combat'), 'close_combat must require 3E option');
+console.assert(required3E.some(s => s.id === 'expertise'), 'expertise must require 3E option');
+console.assert(required3E.some(s => s.id === 'ranged_combat'), 'ranged_combat must require 3E option');
+
+const athletics = SKILLS_LIST.find(s => s.id === 'athletics');
+console.assert(!athletics.requiresOption3E, 'Athletics must NOT require 3E option');
+console.assert(athletics.options.length > 0, 'Athletics must have house rule options defined');
+console.log('✓ Specialization house rule metadata verified');
+
+console.log('ALL v3.6 TEST CASES PASSED SUCCESSFULLY!');

@@ -908,7 +908,7 @@ class AppController {
   }
 
   async checkForUpdates({ isManual = false } = {}) {
-    const CURRENT_VERSION = '3.5';
+    const CURRENT_VERSION = '3.6';
     if (typeof window === 'undefined' || !window.location || !window.location.href || window.location.href === 'about:blank') return;
     try {
       const url = new URL('version.json', window.location.href);
@@ -1711,7 +1711,37 @@ class AppController {
       alert(`Applied: PL ${this.char.powerLevel} with ${this.char.powerPointsBudget} PP budget!`);
     });
 
+    // House Rule: Specializations (M&M 4E)
+    const specializationsToggle = document.getElementById('settings-toggle-specializations');
+    if (specializationsToggle) {
+      specializationsToggle.checked = this.isSpecializationRuleEnabled();
+      specializationsToggle.addEventListener('change', (e) => {
+        this.setSpecializationRule(e.target.checked);
+      });
+    }
+
     this.renderDiscordConfigsList();
+  }
+
+  isSpecializationRuleEnabled() {
+    if (this.char && this.char.settings && typeof this.char.settings.enableSpecializations === 'boolean') {
+      return this.char.settings.enableSpecializations;
+    }
+    if (typeof localStorage !== 'undefined') {
+      const saved = localStorage.getItem('mm3e_houserule_specializations');
+      if (saved !== null) return saved === 'true';
+    }
+    return false; // Default: disabled (official 3E rules)
+  }
+
+  setSpecializationRule(enabled) {
+    if (!this.char.settings) this.char.settings = {};
+    this.char.settings.enableSpecializations = !!enabled;
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem('mm3e_houserule_specializations', enabled ? 'true' : 'false');
+    }
+    this.saveAndAudit();
+    this.renderAll();
   }
 
   openSettingsFlyout() {
@@ -1719,6 +1749,12 @@ class AppController {
     const panel = document.getElementById('flyout-settings-panel');
     backdrop?.classList.add('open');
     panel?.classList.add('open');
+
+    const specializationsToggle = document.getElementById('settings-toggle-specializations');
+    if (specializationsToggle) {
+      specializationsToggle.checked = this.isSpecializationRuleEnabled();
+    }
+
     this.renderDiscordConfigsList();
   }
 
@@ -2496,24 +2532,53 @@ class AppController {
       skillsTbody.innerHTML = '';
 
       const skillsToRender = [];
+      const houseRuleActive = this.isSpecializationRuleEnabled();
 
       // 1. Add all skills that can be used untrained (trainedOnly === false)
       SKILLS_LIST.forEach(def => {
-        const existing = (this.char.skills || []).find(s => s.id === def.id);
-        const ranks = existing ? (parseInt(existing.ranks, 10) || 0) : 0;
+        const instances = (this.char.skills || []).filter(s => s.id === def.id);
         const baseAbVal = parseInt(this.char.abilities?.[def.ability], 10) || 0;
-        const totalBonus = baseAbVal + ranks;
 
         if (!def.trainedOnly) {
-          skillsToRender.push({
-            id: def.id,
-            name: def.name,
-            specialty: existing?.specialty || '',
-            ability: def.ability,
-            ranks,
-            isUntrained: ranks === 0,
-            baseBonus: totalBonus
-          });
+          if (!houseRuleActive && !def.requiresOption3E) {
+            // Standard 3E skill: specialty inactive when house rule is disabled
+            const ranks = instances.reduce((sum, i) => sum + (parseInt(i.ranks, 10) || 0), 0);
+            skillsToRender.push({
+              id: def.id,
+              name: def.name,
+              specialty: '', // Inactive
+              ability: def.ability,
+              ranks,
+              isUntrained: ranks === 0,
+              baseBonus: baseAbVal + ranks
+            });
+          } else {
+            // House rule active OR requiresOption3E
+            if (instances.length === 0) {
+              skillsToRender.push({
+                id: def.id,
+                name: def.name,
+                specialty: '',
+                ability: def.ability,
+                ranks: 0,
+                isUntrained: true,
+                baseBonus: baseAbVal
+              });
+            } else {
+              instances.forEach(inst => {
+                const ranks = parseInt(inst.ranks, 10) || 0;
+                skillsToRender.push({
+                  id: def.id,
+                  name: def.name,
+                  specialty: inst.specialty || '',
+                  ability: def.ability,
+                  ranks,
+                  isUntrained: ranks === 0,
+                  baseBonus: baseAbVal + ranks
+                });
+              });
+            }
+          }
         }
       });
 
@@ -2524,10 +2589,11 @@ class AppController {
           const def = SKILLS_LIST.find(s => s.id === sk.id);
           if (def && def.trainedOnly) {
             const baseAbVal = parseInt(this.char.abilities?.[def.ability], 10) || 0;
+            const isSpecialtyActive = houseRuleActive || def.requiresOption3E;
             skillsToRender.push({
               id: sk.id,
               name: def.name,
-              specialty: sk.specialty || '',
+              specialty: isSpecialtyActive ? (sk.specialty || '') : '',
               ability: def.ability,
               ranks,
               isUntrained: false,
@@ -2666,15 +2732,36 @@ class AppController {
   }
 
   // =======================================================
-  // 18. SKILLS CATALOG TAB
-  // =======================================================
-  // =======================================================
-  // 18. SKILLS CATALOG TAB (Supports Multiple Instances per Specialty)
+  // 18. SKILLS CATALOG TAB (Supports Multiple Instances per Specialty & House Rule)
   // =======================================================
   renderSkillsTab(audit) {
     document.getElementById('skills-cost-display').textContent = `${audit.skillsCost} PP`;
     const tbody = document.getElementById('skills-catalog-tbody');
     tbody.innerHTML = '';
+
+    const houseRuleActive = this.isSpecializationRuleEnabled();
+
+    // Synchronize both House Rule checkboxes
+    const hrSkillCb = document.getElementById('toggle-house-rule-specializations');
+    if (hrSkillCb) {
+      hrSkillCb.checked = houseRuleActive;
+      if (!hrSkillCb.dataset.wired) {
+        hrSkillCb.dataset.wired = 'true';
+        hrSkillCb.addEventListener('change', (e) => {
+          this.setSpecializationRule(e.target.checked);
+        });
+      }
+    }
+    const hrSettingsCb = document.getElementById('settings-toggle-specializations');
+    if (hrSettingsCb) {
+      hrSettingsCb.checked = houseRuleActive;
+      if (!hrSettingsCb.dataset.wired) {
+        hrSettingsCb.dataset.wired = 'true';
+        hrSettingsCb.addEventListener('change', (e) => {
+          this.setSpecializationRule(e.target.checked);
+        });
+      }
+    }
 
     // Ensure all skills have an instanceId
     if (this.char.skills) {
@@ -2685,12 +2772,14 @@ class AppController {
 
     SKILLS_LIST.forEach(skillDef => {
       const baseVal = parseInt(this.char.abilities?.[skillDef.ability], 10) || 0;
+      const allowsSpecialty = skillDef.requiresOption3E || houseRuleActive;
 
-      if (!skillDef.hasSpecialty) {
-        // Standard single skill
-        let existing = (this.char.skills || []).find(s => s.id === skillDef.id);
-        const ranks = existing ? (parseInt(existing.ranks, 10) || 0) : 0;
+      if (!allowsSpecialty) {
+        // Standard 3E skill row (Specialization house rule disabled, and not Close Combat/Expertise/Ranged Combat)
+        const instances = (this.char.skills || []).filter(s => s.id === skillDef.id);
+        const ranks = instances.reduce((sum, inst) => sum + (parseInt(inst.ranks, 10) || 0), 0);
         const totalBonus = baseVal + ranks;
+        const hasStoredSpecialty = instances.some(i => i.specialty);
 
         const row = document.createElement('tr');
         row.innerHTML = `
@@ -2698,34 +2787,38 @@ class AppController {
             <span class="rules-link" data-id="${skillDef.id}" data-type="skill" data-name="${skillDef.name}" data-cat="Official 3E Skill" style="cursor: pointer; font-weight: 700;">
               ${skillDef.name}
             </span>
+            ${skillDef.trainedOnly ? '<span style="font-size: 0.72rem; color: var(--hero-red); margin-left: 0.4rem; font-weight: 600;">[Trained Only]</span>' : ''}
+            ${hasStoredSpecialty ? '<span style="font-size: 0.7rem; color: var(--text-muted); margin-left: 0.4rem; font-style: italic;" title="Specialization inactive while House Rule is disabled (remembered in data)">[Specialty Inactive]</span>' : ''}
           </td>
           <td><strong style="color: var(--text-muted);">${skillDef.ability.toUpperCase()}</strong></td>
           <td>${baseVal >= 0 ? '+' : ''}${baseVal}</td>
           <td>
             <div class="stepper-control">
-              <button class="btn-stepper compact" data-skill="${skillDef.id}" data-dir="-1">-</button>
+              <button class="btn-stepper compact btn-std-minus" ${ranks <= 0 ? 'disabled' : ''}>-</button>
               <span class="stepper-value compact">${ranks}</span>
-              <button class="btn-stepper compact" data-skill="${skillDef.id}" data-dir="1">+</button>
+              <button class="btn-stepper compact btn-std-plus">+</button>
             </div>
           </td>
           <td><strong style="color: var(--hero-cyan); font-size: var(--font-size-md);">${totalBonus >= 0 ? '+' : ''}${totalBonus}</strong></td>
-          <td style="text-align: right;"></td>
+          <td style="text-align: right; color: var(--text-muted); font-size: var(--font-size-xs); font-style: italic;">
+            Standard 3E Skill
+          </td>
         `;
 
-        row.querySelectorAll('.btn-stepper').forEach(btn => {
-          btn.addEventListener('click', () => {
-            const dir = parseInt(btn.dataset.dir, 10);
-            this.updateSkillRanks(skillDef.id, skillDef.name, ranks + dir);
-          });
+        row.querySelector('.btn-std-minus')?.addEventListener('click', () => {
+          this.updateStandardSkillRanks(skillDef.id, skillDef.name, Math.max(0, ranks - 1));
+        });
+        row.querySelector('.btn-std-plus')?.addEventListener('click', () => {
+          this.updateStandardSkillRanks(skillDef.id, skillDef.name, ranks + 1);
         });
 
         tbody.appendChild(row);
       } else {
-        // Multi-instance specialty skill (Close Combat, Ranged Combat, Expertise)
+        // Multi-instance specialty skill (Close Combat, Ranged Combat, Expertise, OR any skill when house rule is active)
         const instances = (this.char.skills || []).filter(s => s.id === skillDef.id);
 
         if (instances.length === 0) {
-          // Render default 0-rank row with "+ Add Specialty"
+          // Render default 0-rank row with "+ Specialty"
           const totalBonus = baseVal;
           const row = document.createElement('tr');
           row.innerHTML = `
@@ -2733,6 +2826,7 @@ class AppController {
               <span class="rules-link" data-id="${skillDef.id}" data-type="skill" data-name="${skillDef.name}" data-cat="Official 3E Skill" style="cursor: pointer; font-weight: 700;">
                 ${skillDef.name}
               </span>
+              ${skillDef.trainedOnly ? '<span style="font-size: 0.72rem; color: var(--hero-red); margin-left: 0.4rem; font-weight: 600;">[Trained Only]</span>' : ''}
               <span style="font-size: 0.75rem; color: var(--text-muted); margin-left: 0.5rem; font-style: italic;">[No Specialty Assigned]</span>
             </td>
             <td><strong style="color: var(--text-muted);">${skillDef.ability.toUpperCase()}</strong></td>
@@ -2774,7 +2868,7 @@ class AppController {
                   ${skillDef.name}
                 </span>
                 <span class="skill-specialty-badge" style="font-size: 0.78rem; color: var(--hero-gold); margin-left: 0.5rem; font-weight: 800; cursor: pointer; text-decoration: underline dotted;" title="Click to edit specialty">
-                  [${specialty || 'Unspecified Specialty'}]
+                  [${specialty || 'General / Unspecified'}]
                 </span>
               </td>
               <td><strong style="color: var(--text-muted);">${skillDef.ability.toUpperCase()}</strong></td>
@@ -2822,7 +2916,7 @@ class AppController {
             tbody.appendChild(row);
           });
 
-          // Sub-row to Add Another Instance of this skill
+          // Sub-row to Add Another Specialty of this skill
           const addRow = document.createElement('tr');
           addRow.style.backgroundColor = 'rgba(255, 255, 255, 0.02)';
           addRow.innerHTML = `
@@ -2845,6 +2939,32 @@ class AppController {
     });
   }
 
+  updateStandardSkillRanks(id, name, newRanks) {
+    if (!this.char.skills) this.char.skills = [];
+    const validRanks = Math.max(0, newRanks);
+    let instances = this.char.skills.filter(s => s.id === id);
+
+    if (instances.length === 0) {
+      if (validRanks > 0) {
+        this.char.skills.push({
+          id,
+          instanceId: `sk_${id}_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`,
+          name,
+          specialty: '',
+          ranks: validRanks
+        });
+      }
+    } else {
+      instances[0].ranks = validRanks;
+      for (let i = 1; i < instances.length; i++) {
+        instances[i].ranks = 0;
+      }
+    }
+
+    this.saveAndAudit();
+    this.renderAll();
+  }
+
   addSkillInstance(id, name, specialty = '', ranks = 0) {
     if (!this.char.skills) this.char.skills = [];
     const newInst = {
@@ -2864,6 +2984,10 @@ class AppController {
     this.char.skills = this.char.skills.filter(s => s.instanceId !== instanceId);
     this.saveAndAudit();
     this.renderAll();
+  }
+
+  updateSkillRanks(id, name, newRanks) {
+    this.updateStandardSkillRanks(id, name, newRanks);
   }
 
   updateSkillRanks(id, name, newRanks) {

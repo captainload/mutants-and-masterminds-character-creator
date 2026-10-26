@@ -6,8 +6,8 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Mutants & Masterminds 3E - Character Architect v3.5</title>
-  <link rel="stylesheet" href="css/styles.css?v=3.5">
+  <title>Mutants & Masterminds 3E - Character Architect v3.6</title>
+  <link rel="stylesheet" href="css/styles.css?v=3.6">
 </head>
 <body>
 
@@ -94,7 +94,7 @@
           </div>
 
           <div class="brand-label-compact">
-            M&M 3E Character Editor v3.5
+            M&M 3E Character Editor v3.6
           </div>
         </div>
 
@@ -381,7 +381,13 @@
         <div class="card-box">
           <div class="card-box-header">
             <div class="card-box-title">🎯 Official Skills (1 PP per 2 Ranks)</div>
-            <span class="pp-status-value" id="skills-cost-display">0 PP</span>
+            <div style="display: flex; align-items: center; gap: 0.65rem;">
+              <label style="font-size: var(--font-size-xs); color: var(--text-muted); cursor: pointer; display: flex; align-items: center; gap: 0.35rem; background: rgba(0,0,0,0.3); padding: 0.25rem 0.6rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color);" title="Enable M&M 4E-style Specializations across all skills as a House Rule">
+                <input type="checkbox" id="toggle-house-rule-specializations" style="cursor: pointer;">
+                <span style="font-weight: 700; color: var(--hero-gold);">🎲 House Rule: Specializations (4E)</span>
+              </label>
+              <span class="pp-status-value" id="skills-cost-display">0 PP</span>
+            </div>
           </div>
           <p style="font-size: var(--font-size-xs); color: var(--text-muted); margin-bottom: 0.75rem;">
             Click on any skill name to view its verbatim description from the 3E rules. Use touch steppers to adjust ranks. Click "+ Specialty" to select prebuilt valid specialties.
@@ -775,6 +781,22 @@
         <button class="btn btn-primary" id="btn-apply-campaign-rules" style="width: 100%;">Apply to Current Character</button>
       </div>
 
+      <!-- HOUSE RULES & OPTIONAL SYSTEMS -->
+      <div class="card-box">
+        <div class="card-box-header">
+          <div class="card-box-title">🎲 House Rules & Optional Systems</div>
+        </div>
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.35rem 0;">
+          <div style="flex: 1; padding-right: 0.75rem;">
+            <strong style="font-size: var(--font-size-sm); color: var(--text-bright);">Expanded Skill Specializations (M&M 4E)</strong>
+            <p style="font-size: var(--font-size-xs); color: var(--text-muted); margin: 0.25rem 0 0 0;">
+              Allows all skills to take specialized instances (e.g., Athletics: Climbing, Stealth: Silent Movement, Technology: Hacking). When disabled, only official 3E skills requiring options (Close Combat, Expertise, Ranged Combat) use specialties.
+            </p>
+          </div>
+          <input type="checkbox" id="settings-toggle-specializations" style="transform: scale(1.3); cursor: pointer;">
+        </div>
+      </div>
+
     </div>
 
     <div class="flyout-footer">
@@ -1161,6 +1183,6 @@
     </div>
   </div>
 
-  <script type="module" src="js/app.js?v=3.5"></script>
+  <script type="module" src="js/app.js?v=3.6"></script>
 </body>
 </html>

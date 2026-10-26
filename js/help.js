@@ -215,8 +215,16 @@ export const HELP_SECTIONS = [
 
       <h4>Prebuilt Specialty Options</h4>
       <ul>
-        <li>For skills that require sub-specialties (e.g. <em>Expertise: Science, Expertise: Law, Close Combat: Swords, Ranged Combat: Guns</em>), clicking <strong>+ Specialty</strong> opens a prebuilt modal.</li>
-        <li>The system checks for exclusive or illegal selections, ensuring clear organization on your character sheet.</li>
+        <li>For skills that require sub-specialties in official 3E (<em>Close Combat: Swords, Expertise: Science, Ranged Combat: Firearms</em>), each instance focuses on that specific field or weapon.</li>
+        <li>The specialization picker provides prebuilt options as well as an "Other" field for custom specializations.</li>
+      </ul>
+
+      <h4>🎲 Optional House Rule: Expanded Specializations (M&M 4E)</h4>
+      <ul>
+        <li><strong>Standard 3E Mode (Default):</strong> Only skills requiring options (<em>Close Combat, Expertise, Ranged Combat</em>) take individual focused instances. All other skills are broad, single traits.</li>
+        <li><strong>House Rule Enabled:</strong> Extrapolates specializations across all 16 skills (e.g., <em>Athletics: Climbing, Stealth: Silent Movement, Technology: Hacking</em>) as popularized in M&M 4E.</li>
+        <li><strong>Persistent Memory:</strong> If you assign specializations to standard skills and later disable the house rule, those specializations become inactive (the skill rolls as standard), but remain remembered in data so re-enabling the rule immediately restores them.</li>
+        <li>Toggle this rule at any time via the checkbox on the Skills tab or in the Settings flyout (under House Rules).</li>
       </ul>
     `
   },

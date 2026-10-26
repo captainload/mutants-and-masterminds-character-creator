@@ -46,15 +46,16 @@ export const SKILLS_LIST = [
     trainedOnly: true,
     hasSpecialty: true,
     desc: 'Close Combat is the skill for making melee attacks with a specific weapon, unarmed style, or close power effect. Each close attack check uses Fighting + Close Combat rank for that specific weapon.',
-    options: ['Unarmed', 'Swords & Blades', 'Clubs & Hammers', 'Axes', 'Chains & Whips', 'Grabbing & Wrestling', 'Chi Strike']
+    options: ['Unarmed', 'Swords', 'Short Blades', 'Clubs & Hammers', 'Axes', 'Spears', 'Chains & Whips', 'Grabbing & Wrestling']
   },
   {
     id: 'deception',
     name: 'Deception',
     ability: 'pre',
     trainedOnly: false,
+    hasSpecialty: true,
     desc: 'Deception is the skill of misleading others: lying, bluffing, fast-talking, tricking an opponent in combat (feinting), creating disguises, and sending secret innuendo.',
-    options: []
+    options: ['Fast-Talking / Bluffing', 'Feinting in Combat', 'Disguise', 'Innuendo / Double Talk']
   },
   {
     id: 'expertise',
@@ -63,47 +64,52 @@ export const SKILLS_LIST = [
     trainedOnly: true,
     hasSpecialty: true,
     desc: 'Expertise covers a broad field of specialized knowledge, profession, or craft. Examples include Science, Magic, Criminal, Pop Culture, Law, Tactics, Streetwise, Engineering, Medicine, and History.',
-    options: ['Science', 'Magic / Occult', 'Engineering', 'Criminal / Underworld', 'Law', 'Tactics / Military', 'Streetwise', 'Pop Culture', 'History', 'Medicine', 'Journalism']
+    options: ['Science', 'Magic / Occult', 'Engineering', 'Criminal / Underworld', 'Law', 'Tactics / Military', 'Streetwise', 'Pop Culture', 'History', 'Medicine', 'Journalism', 'Art & Culture', 'Current Events', 'Philosophy']
   },
   {
     id: 'insight',
     name: 'Insight',
     ability: 'awe',
     trainedOnly: false,
+    hasSpecialty: true,
     desc: 'Insight lets you evaluate others, read emotional tells, detect lies, gauge intentions, sense mental influence or mind control, and resist combat feints and trickery.',
-    options: []
+    options: ['Detect Lies', 'Sense Intentions / Motives', 'Resist Feints', 'Mental Awareness']
   },
   {
     id: 'intimidation',
     name: 'Intimidation',
     ability: 'pre',
     trainedOnly: false,
+    hasSpecialty: true,
     desc: 'Intimidation is the art of getting what you want through overt force of personality, menace, or physical threat. It can be used to coerce cooperation or demoralize an opponent in combat.',
-    options: []
+    options: ['Coercion', 'Demoralize in Combat', 'Menacing Presence', 'Interrogation']
   },
   {
     id: 'investigation',
     name: 'Investigation',
     ability: 'int',
     trainedOnly: true,
+    hasSpecialty: true,
     desc: 'Investigation allows you to search crime scenes, uncover hidden evidence, follow paper trails, connect disparate clues, conduct forensic examinations, and interrogate persons of interest.',
-    options: []
+    options: ['Crime Scene Forensics', 'Evidence Gathering', 'Paper Trails / Records', 'Interrogation']
   },
   {
     id: 'perception',
     name: 'Perception',
     ability: 'awe',
     trainedOnly: false,
+    hasSpecialty: true,
     desc: 'Perception allows you to use all five senses to notice sensory details: spotting hidden adversaries, overhearing quiet conversations, smelling gas leaks, and noticing concealed items.',
-    options: []
+    options: ['Visual / Sight', 'Auditory / Hearing', 'Olfactory / Scent', 'Tracking']
   },
   {
     id: 'persuasion',
     name: 'Persuasion',
     ability: 'pre',
     trainedOnly: false,
+    hasSpecialty: true,
     desc: 'Persuasion is the ability to convince others of your point of view through reasoned argument, debate, charisma, diplomacy, and charm. It shifts target attitudes from hostile to helpful.',
-    options: []
+    options: ['Diplomacy & Mediation', 'Debate & Argument', 'Negotiation', 'Charm & Flattery']
   },
   {
     id: 'ranged_combat',
@@ -119,40 +125,45 @@ export const SKILLS_LIST = [
     name: 'Sleight of Hand',
     ability: 'dex',
     trainedOnly: true,
+    hasSpecialty: true,
     desc: 'Sleight of Hand covers manual dexterity for stage magic, palming small objects, pickpocketing, planting evidence on someone, and slipping out of handcuffs or bonds.',
-    options: []
+    options: ['Legerdemain / Prestidigitation', 'Pickpocketing', 'Concealing Objects', 'Escaping Restraints']
   },
   {
     id: 'stealth',
     name: 'Stealth',
     ability: 'agi',
     trainedOnly: false,
+    hasSpecialty: true,
     desc: 'Stealth is the skill of moving without making sound and avoiding detection by sight or other senses. It is opposed by a viewer’s Perception check.',
-    options: []
+    options: ['Shadows & Camouflage', 'Silent Movement', 'Crowd Blending', 'Infiltration']
   },
   {
     id: 'technology',
     name: 'Technology',
     ability: 'int',
     trainedOnly: true,
+    hasSpecialty: true,
     desc: 'Technology is the skill for building, inventing, repairing, modifying, and hacking electronic hardware, security systems, vehicles, mainframe networks, and super-science gadgets.',
-    options: []
+    options: ['Computers & Hacking', 'Electronics & Hardware', 'Security Systems', 'Invention & Engineering', 'Demolitions']
   },
   {
     id: 'treatment',
     name: 'Treatment',
     ability: 'int',
     trainedOnly: true,
+    hasSpecialty: true,
     desc: 'Treatment allows you to perform first aid, administer CPR, stabilize dying characters, perform complex trauma surgery, and treat poisons and diseases.',
-    options: []
+    options: ['First Aid & Stabilization', 'Surgery & Trauma', 'Toxins & Diseases', 'Psychological Care']
   },
   {
     id: 'vehicles',
     name: 'Vehicles',
     ability: 'dex',
     trainedOnly: true,
+    hasSpecialty: true,
     desc: 'Vehicles allows you to pilot and drive vehicles under stressful combat circumstances, including high-speed pursuit maneuvers in cars, motorcycles, helicopters, jets, and starships.',
-    options: []
+    options: ['Ground Vehicles (Cars/Bikes)', 'Air Vehicles (Planes/Helicopters)', 'Water Vehicles (Boats/Subs)', 'Space Vehicles (Starships)']
   }
 ];
 
@@ -724,62 +735,229 @@ export const POWER_EFFECTS_CATALOG = [
 ];
 
 export const EXTRAS_CATALOG = [
-  { id: 'accurate', name: 'Accurate', cost: 1, isFlat: true, desc: '+2 to attack check rolls with this power per rank of Accurate.' },
-  { id: 'affects_corporeal', name: 'Affects Corporeal', cost: 1, isFlat: false, desc: 'Can affect physical targets while you are Insubstantial.' },
-  { id: 'affects_insubstantial', name: 'Affects Insubstantial', cost: 1, isFlat: true, desc: 'Full effect against Insubstantial targets (Rank 1 half, Rank 2 full).' },
-  { id: 'affects_others', name: 'Affects Others', cost: 1, isFlat: false, desc: 'Can grant personal powers (Flight, Protection, etc.) to allies.' },
-  { id: 'area_burst', name: 'Area (Burst 30ft)', cost: 1, isFlat: false, desc: 'Affects all targets in 30ft radius. Targets make Dodge check for half effect.' },
-  { id: 'area_cone', name: 'Area (Cone 60ft)', cost: 1, isFlat: false, desc: 'Affects all targets in 60ft cone. Dodge check for half effect.' },
-  { id: 'area_line', name: 'Area (Line 30ft)', cost: 1, isFlat: false, desc: 'Affects all targets in 30ft line. Dodge check for half effect.' },
-  { id: 'area_shapeable', name: 'Area (Shapeable)', cost: 1, isFlat: false, desc: 'Affects 30 cubic feet shaped as desired. Dodge check for half effect.' },
-  { id: 'attack', name: 'Attack', cost: 0, isFlat: false, desc: 'Converts personal power into an attack resisted by Dodge.' },
-  { id: 'contagious', name: 'Contagious', cost: 1, isFlat: false, desc: 'Spreads to any person touching the affected target.' },
-  { id: 'cumulative', name: 'Cumulative', cost: 1, isFlat: false, desc: 'Affliction/Weaken degrees accumulate across multiple hits on same target.' },
-  { id: 'extended_range', name: 'Extended Range', cost: 1, isFlat: true, desc: 'Doubles short, medium, and long range increments.' },
-  { id: 'homing', name: 'Homing', cost: 1, isFlat: true, desc: 'Reroll missed attack checks once per round per rank of homing.' },
-  { id: 'impervious', name: 'Impervious', cost: 1, isFlat: false, desc: 'Ignores damage effects with rank <= half impervious rank.' },
-  { id: 'increased_range', name: 'Increased Range (Close -> Ranged)', cost: 1, isFlat: false, desc: 'Increases range by one step (Personal -> Close -> Ranged -> Perception).' },
-  { id: 'increased_range_2', name: 'Increased Range 2 (Close -> Perception)', cost: 2, isFlat: false, desc: 'Increases range by two steps, allowing automatic hits without attack check.' },
+  { id: 'accurate', name: 'Accurate', cost: 1, isFlat: true, isRanked: true, maxRank: 10, minRank: 1, desc: '+2 to attack check rolls with this power per rank of Accurate.' },
+  { id: 'affects_corporeal', name: '★ Affects Corporeal', cost: 1, isFlat: false, isUnique: true, desc: 'Can affect physical targets while you are Insubstantial.' },
+  { id: 'affects_insubstantial', name: '★ Affects Insubstantial', cost: 1, isFlat: true, isRanked: true, maxRank: 2, minRank: 1, isUnique: true, desc: 'Full effect against Insubstantial targets (Rank 1 half, Rank 2 full).' },
+  { id: 'affects_others', name: '★ Affects Others', cost: 1, isFlat: false, isUnique: true, desc: 'Can grant personal powers (Flight, Protection, etc.) to allies at Close range.' },
+  { id: 'area_burst', name: 'Area (Burst 30ft)', cost: 1, isFlat: false, isRanked: true, maxRank: 5, minRank: 1, desc: 'Affects all targets in 30ft radius (+30ft per additional rank). Targets make Dodge check for half effect.' },
+  { id: 'area_cone', name: 'Area (Cone 60ft)', cost: 1, isFlat: false, isRanked: true, maxRank: 5, minRank: 1, desc: 'Affects all targets in 60ft cone (+60ft per additional rank). Dodge check for half effect.' },
+  { id: 'area_line', name: 'Area (Line 30ft)', cost: 1, isFlat: false, isRanked: true, maxRank: 5, minRank: 1, desc: 'Affects all targets in 30ft line (+30ft per additional rank). Dodge check for half effect.' },
+  { id: 'area_shapeable', name: 'Area (Shapeable)', cost: 1, isFlat: false, isRanked: true, maxRank: 5, minRank: 1, desc: 'Affects 30 cubic feet shaped as desired (+30 cu ft per rank). Dodge check for half effect.' },
+  { id: 'attack', name: '★ Attack', cost: 0, isFlat: false, isUnique: true, desc: 'Converts personal power into an attack resisted by Dodge/Fortitude/Will.' },
+  { id: 'contagious', name: '★ Contagious', cost: 1, isFlat: false, isUnique: true, desc: 'Spreads to any person touching or in close contact with the affected target.' },
+  { id: 'cumulative', name: '★ Cumulative', cost: 1, isFlat: false, isUnique: true, desc: 'Affliction/Weaken/Nullify degrees accumulate across multiple hits on same target.' },
+  { id: 'progressive', name: '★ Progressive', cost: 2, isFlat: false, isUnique: true, desc: 'Target makes defense check each round until resisting; failure increases degree of affliction or weaken.' },
+  { id: 'extended_range', name: 'Extended Range', cost: 1, isFlat: true, isRanked: true, maxRank: 4, minRank: 1, desc: 'Doubles short, medium, and long range increments per rank.' },
+  { id: 'homing', name: '★ Homing', cost: 1, isFlat: true, isRanked: true, maxRank: 5, minRank: 1, isUnique: true, desc: 'Reroll missed attack checks once per round per rank of homing.' },
+  { id: 'impervious', name: '★ Impervious', cost: 1, isFlat: false, isUnique: true, isRanked: true, maxRankByEffect: true, minRank: 1, desc: 'Ignores damage effects with rank <= half impervious rank.' },
+  { id: 'increased_range', name: 'Increased Range', cost: 1, isFlat: false, isRanked: true, maxRank: 2, minRank: 1, desc: 'Increases range by one step per rank (Close -> Ranged [1 rank], Close -> Perception [2 ranks]).' },
+  { id: 'increased_duration', name: 'Increased Duration', cost: 1, isFlat: false, isRanked: true, maxRank: 3, minRank: 1, desc: 'Increases duration by one step per rank (Instant -> Concentration -> Sustained -> Continuous).' },
   { id: 'incurable', name: 'Incurable', cost: 1, isFlat: true, desc: 'Cannot be healed by ordinary Healing or Regeneration without Persistent.' },
-  { id: 'multiattack', name: 'Multiattack', cost: 1, isFlat: false, desc: 'Fires bursts for +2 or +5 damage bonus on high hits, or sprays multiple targets.' },
-  { id: 'penetrating', name: 'Penetrating', cost: 1, isFlat: false, desc: 'Overcomes Impervious Toughness up to the penetrating rank.' },
-  { id: 'precise', name: 'Precise', cost: 1, isFlat: true, desc: 'Fine manipulation, intricate details, precise aiming.' },
-  { id: 'reach', name: 'Reach (+5ft)', cost: 1, isFlat: true, desc: 'Extends melee attack reach by +5 feet per rank.' },
+  { id: 'multiattack', name: '★ Multiattack', cost: 1, isFlat: false, isUnique: true, desc: 'Fires bursts for +2 or +5 damage bonus on high hits, or sprays multiple targets.' },
+  { id: 'penetrating', name: '★ Penetrating', cost: 1, isFlat: false, isUnique: true, isRanked: true, maxRankByEffect: true, minRank: 1, desc: 'Overcomes Impervious Toughness up to the penetrating rank.' },
+  { id: 'precise', name: '★ Precise', cost: 1, isFlat: true, isUnique: true, desc: 'Fine manipulation, intricate details, precise aiming.' },
+  { id: 'reach', name: 'Reach (+5ft)', cost: 1, isFlat: true, isRanked: true, maxRank: 10, minRank: 1, desc: 'Extends melee attack reach by +5 feet per rank.' },
   { id: 'reaction', name: 'Reaction Action', cost: 3, isFlat: false, desc: 'Triggers automatically in response to specific stimulus without using your turn.' },
-  { id: 'reversible', name: 'Reversible', cost: 1, isFlat: true, desc: 'Can instantly undo the power’s effects at will as a free action.' },
-  { id: 'ricochet', name: 'Ricochet', cost: 1, isFlat: true, desc: 'Bounce attack around corners or off solid surfaces.' },
-  { id: 'secondary_effect', name: 'Secondary Effect', cost: 1, isFlat: false, desc: 'Target suffers full effect again on following round without another attack.' },
-  { id: 'selective', name: 'Selective', cost: 1, isFlat: false, desc: 'Choose exactly which targets are affected within an area effect.' },
-  { id: 'subtle', name: 'Subtle', cost: 1, isFlat: true, desc: 'Power display is imperceptible (Rank 1 DC 20 Perception, Rank 2 completely invisible).' },
+  { id: 'reversible', name: '★ Reversible', cost: 1, isFlat: true, isUnique: true, desc: 'Can instantly undo the power’s effects at will as a free action.' },
+  { id: 'ricochet', name: '★ Ricochet', cost: 1, isFlat: true, isRanked: true, maxRank: 5, minRank: 1, isUnique: true, desc: 'Bounce attack around corners or off solid surfaces.' },
+  { id: 'secondary_effect', name: '★ Secondary Effect', cost: 1, isFlat: false, isUnique: true, desc: 'Target suffers full effect again on following round without another attack.' },
+  { id: 'selective', name: '★ Selective', cost: 1, isFlat: false, isUnique: true, desc: 'Choose exactly which targets are affected within an area effect.' },
+  { id: 'split', name: '★ Split', cost: 1, isFlat: true, isRanked: true, maxRankByEffect: true, minRank: 1, isUnique: true, desc: 'Split power ranks among multiple targets within range.' },
+  { id: 'subtle', name: 'Subtle', cost: 1, isFlat: true, isRanked: true, maxRank: 2, minRank: 1, desc: 'Power display is imperceptible (Rank 1 DC 20 Perception, Rank 2 completely invisible).' },
   { id: 'sustained', name: 'Sustained Duration', cost: 1, isFlat: false, desc: 'Maintains effect round-to-round as a free action.' },
-  { id: 'triggered', name: 'Triggered', cost: 1, isFlat: true, desc: 'Sets a trap or delayed trigger activated by proximity or timer.' },
-  { id: 'variable_descriptor', name: 'Variable Descriptor', cost: 1, isFlat: true, desc: 'Change descriptor freely (Rank 1: any energy/element; Rank 2: any descriptor).' }
+  { id: 'continuous', name: 'Continuous Duration', cost: 1, isFlat: false, desc: 'Maintains effect even when incapacitated or unconscious until dismissed.' },
+  { id: 'triggered', name: '★ Triggered', cost: 1, isFlat: true, isRanked: true, maxRank: 5, minRank: 1, isUnique: true, desc: 'Sets a trap or delayed trigger activated by proximity or timer.' },
+  { id: 'variable_descriptor', name: 'Variable Descriptor', cost: 1, isFlat: true, isRanked: true, maxRank: 2, minRank: 1, desc: 'Change descriptor freely (Rank 1: any energy/element; Rank 2: any descriptor).' }
 ];
 
 export const FLAWS_CATALOG = [
   { id: 'activation_move', name: 'Activation (Move Action)', cost: 1, isFlat: true, desc: 'Takes a move action to activate before benefits apply.' },
   { id: 'activation_standard', name: 'Activation (Standard Action)', cost: 2, isFlat: true, desc: 'Takes a standard action to activate.' },
-  { id: 'check_required', name: 'Check Required (Skill DC 11+)', cost: 1, isFlat: false, desc: 'Requires successful skill check to activate.' },
+  { id: 'check_required', name: 'Check Required (Skill DC 11+)', cost: 1, isFlat: false, isRanked: true, maxRank: 10, minRank: 1, desc: 'Requires successful skill check to activate (DC 11 + rank).' },
   { id: 'concentration', name: 'Concentration Duration', cost: 1, isFlat: false, desc: 'Requires standard action each round to maintain.' },
-  { id: 'diminished_range', name: 'Diminished Range', cost: 1, isFlat: true, desc: 'Reduces ranged attack range brackets.' },
+  { id: 'diminished_range', name: '★ Diminished Range', cost: 1, isFlat: true, isRanked: true, maxRank: 3, minRank: 1, isUnique: true, desc: 'Reduces ranged attack range brackets (Rank 1: 10/25/50, Rank 2: 5/10/25, Rank 3: 2/5/10).' },
   { id: 'distracting', name: 'Distracting', cost: 1, isFlat: false, desc: 'You become vulnerable while using this power, halving active defenses.' },
   { id: 'easily_removable', name: 'Easily Removable (Device / Disarmable)', cost: 0, isFlat: false, isDevice: true, discountPer5: 2, desc: 'Handheld item easily knocked away or stolen (-2 PP per 5 PP total).' },
-  { id: 'fades', name: 'Fades', cost: 1, isFlat: false, desc: 'Loses 1 rank per use until restored by recharge or rest.' },
-  { id: 'feedback', name: 'Feedback', cost: 1, isFlat: false, desc: 'Damage inflicted on power manifestations damages you directly.' },
-  { id: 'grab_based', name: 'Grab-Based', cost: 1, isFlat: false, desc: 'Must first successfully grab or pin target before power takes effect.' },
-  { id: 'inaccurate', name: 'Inaccurate (-2 to hit)', cost: 1, isFlat: true, desc: '-2 penalty on attack checks per rank of Inaccurate.' },
-  { id: 'limited', name: 'Limited (Half Utility/Specific Targets)', cost: 1, isFlat: false, desc: 'Only works in limited conditions, against specific foes.' },
+  { id: 'fades', name: '★ Fades', cost: 1, isFlat: false, isUnique: true, desc: 'Loses 1 rank per use until restored by recharge or rest.' },
+  { id: 'feedback', name: '★ Feedback', cost: 1, isFlat: false, isUnique: true, desc: 'Damage inflicted on power manifestations damages you directly.' },
+  { id: 'grab_based', name: '★ Grab-Based', cost: 1, isFlat: false, isUnique: true, desc: 'Must first successfully grab or pin target before power takes effect.' },
+  { id: 'inaccurate', name: '★ Inaccurate (-2 to hit)', cost: 1, isFlat: true, isRanked: true, maxRank: 5, minRank: 1, isUnique: true, desc: '-2 penalty on attack checks per rank of Inaccurate.' },
+  { id: 'limited', name: 'Limited (Half Utility/Specific Targets)', cost: 1, isFlat: false, isRanked: true, maxRank: 2, minRank: 1, desc: 'Only works in limited conditions, against specific foes (-1/rank per tier of limitation).' },
   { id: 'noticeable', name: 'Noticeable', cost: 1, isFlat: true, desc: 'Power is clearly obvious and conspicuous even if continuous or passive.' },
-  { id: 'quirk', name: 'Quirk (Minor drawback)', cost: 1, isFlat: true, desc: 'Minor inconvenience or limitation (-1 PP flat).' },
-  { id: 'reduced_range', name: 'Reduced Range (Ranged -> Close)', cost: 1, isFlat: false, desc: 'Power range reduced by one step (Ranged to Close).' },
+  { id: 'quirk', name: 'Quirk (Minor drawback)', cost: 1, isFlat: true, isRanked: true, maxRank: 5, minRank: 1, desc: 'Minor inconvenience or limitation (-1 PP flat per quirk).' },
+  { id: 'reduced_range', name: 'Reduced Range', cost: 1, isFlat: false, isRanked: true, maxRank: 1, minRank: 1, desc: 'Power range reduced by one step (Perception -> Ranged, or Ranged -> Close).' },
   { id: 'removable', name: 'Removable (Worn Device / Suit / Belt)', cost: 0, isFlat: false, isDevice: true, discountPer5: 1, desc: 'Worn suit or gadget that can only be removed when immobilized (-1 PP per 5 PP total).' },
   { id: 'resistible', name: 'Resistible', cost: 1, isFlat: false, desc: 'Allows extra defense check (e.g. Will or Fortitude) to completely negate.' },
-  { id: 'sense_dependent', name: 'Sense-Dependent', cost: 1, isFlat: false, desc: 'Target must be able to perceive power with specific sense.' },
-  { id: 'side_effect', name: 'Side Effect', cost: 1, isFlat: false, desc: 'Suffers automatic negative backlash if power roll fails or is used.' },
+  { id: 'sense_dependent', name: '★ Sense-Dependent', cost: 1, isFlat: false, isUnique: true, desc: 'Target must be able to perceive power with specific sense.' },
+  { id: 'side_effect', name: 'Side Effect', cost: 1, isFlat: false, desc: 'Suffers automatic negative backlash if power roll fails or is used (-1 or -2/rank).' },
   { id: 'tiring', name: 'Tiring', cost: 1, isFlat: false, desc: 'Causes 1 degree of fatigue when used; can be offset with hero point.' },
   { id: 'uncontrolled', name: 'Uncontrolled', cost: 1, isFlat: false, desc: 'GM decides when and how the power triggers or manifests.' },
   { id: 'unreliable', name: 'Unreliable (5 uses or 50% fail)', cost: 1, isFlat: false, desc: 'Has 5 uses per scene or requires a DC 11 flat check before each use.' }
 ];
+
+export function computePowerRangeAndDuration(effect, extras = [], flaws = []) {
+  const baseRange = effect?.range || 'Personal';
+  const baseDuration = effect?.duration || 'Instant';
+
+  const rangeSteps = ['Personal', 'Close', 'Ranged', 'Perception'];
+  const durationSteps = ['Instant', 'Concentration', 'Sustained', 'Continuous', 'Permanent'];
+
+  let curRangeIdx = rangeSteps.indexOf(baseRange);
+  if (curRangeIdx === -1) curRangeIdx = 1;
+
+  let curDurIdx = durationSteps.indexOf(baseDuration);
+  if (curDurIdx === -1) curDurIdx = 0;
+
+  const rangeNotes = [];
+  const durationNotes = [];
+
+  const incRange = (extras || []).find(e => e.id === 'increased_range' || e.id === 'increased_range_2');
+  const redRange = (flaws || []).find(f => f.id === 'reduced_range');
+  const affectsOthers = (extras || []).find(e => e.id === 'affects_others');
+  const attackExtra = (extras || []).find(e => e.id === 'attack');
+  const reachExtra = (extras || []).find(e => e.id === 'reach');
+  const dimRange = (flaws || []).find(f => f.id === 'diminished_range');
+
+  if (baseRange === 'Personal' && (affectsOthers || attackExtra)) {
+    curRangeIdx = 1; // Converts Personal to Close
+    rangeNotes.push(affectsOthers ? 'Affects Others (+1/rank)' : 'Attack (+0)');
+  }
+
+  if (incRange) {
+    const ranks = incRange.id === 'increased_range_2' ? 2 : (parseInt(incRange.rank, 10) || 1);
+    curRangeIdx = Math.min(3, curRangeIdx + ranks);
+    rangeNotes.push(`+${ranks} Increased Range`);
+  }
+
+  if (redRange) {
+    const ranks = parseInt(redRange.rank, 10) || 1;
+    curRangeIdx = Math.max(1, curRangeIdx - ranks);
+    rangeNotes.push(`-${ranks} Reduced Range`);
+  }
+
+  const effectiveRange = rangeSteps[curRangeIdx] || baseRange;
+
+  if (effectiveRange === 'Close' && reachExtra) {
+    const reachRanks = parseInt(reachExtra.rank, 10) || 1;
+    rangeNotes.push(`Reach +${reachRanks * 5} ft`);
+  }
+  if (effectiveRange === 'Ranged' && dimRange) {
+    rangeNotes.push(`Diminished Range (${parseInt(dimRange.rank, 10) || 1} ranks)`);
+  }
+
+  // Duration derivation
+  const incDuration = (extras || []).find(e => e.id === 'sustained' || e.id === 'continuous' || e.id === 'increased_duration');
+  const concentrationFlaw = (flaws || []).find(f => f.id === 'concentration');
+
+  if (incDuration) {
+    if (incDuration.id === 'continuous') {
+      curDurIdx = 3;
+      durationNotes.push('Continuous (+1/rank)');
+    } else if (incDuration.id === 'sustained') {
+      curDurIdx = Math.max(curDurIdx, 2);
+      durationNotes.push('Sustained (+1/rank)');
+    } else {
+      const ranks = parseInt(incDuration.rank, 10) || 1;
+      curDurIdx = Math.min(3, curDurIdx + ranks);
+      durationNotes.push(`+${ranks} Increased Duration`);
+    }
+  }
+
+  if (concentrationFlaw) {
+    curDurIdx = 1;
+    durationNotes.push('Concentration (-1/rank)');
+  }
+
+  const effectiveDuration = durationSteps[curDurIdx] || baseDuration;
+
+  return {
+    baseRange,
+    effectiveRange,
+    rangeNotes: rangeNotes.join(', '),
+    baseDuration,
+    effectiveDuration,
+    durationNotes: durationNotes.join(', ')
+  };
+}
+
+export function validateModifierLegality(effect, extras = [], flaws = []) {
+  const errors = [];
+  const warnings = [];
+
+  const extraIds = new Set((extras || []).map(e => e.id));
+  const flawIds = new Set((flaws || []).map(f => f.id));
+
+  // Range and Duration Conflicts
+  if (extraIds.has('increased_range') && flawIds.has('reduced_range')) {
+    errors.push('Cannot combine Increased Range and Reduced Range on the same effect.');
+  }
+  if (flawIds.has('removable') && flawIds.has('easily_removable')) {
+    errors.push('A power cannot be both Removable and Easily Removable.');
+  }
+  if (flawIds.has('concentration') && (extraIds.has('sustained') || extraIds.has('continuous') || extraIds.has('increased_duration'))) {
+    errors.push('Cannot combine Concentration flaw with Increased Duration, Sustained, or Continuous extras.');
+  }
+  if (extraIds.has('cumulative') && extraIds.has('progressive')) {
+    warnings.push('Progressive already incorporates Cumulative benefits; taking both is redundant.');
+  }
+
+  const baseRange = effect?.range || 'Personal';
+  if (baseRange === 'Personal' && (extraIds.has('increased_range') || extraIds.has('increased_range_2')) && !extraIds.has('affects_others') && !extraIds.has('attack')) {
+    errors.push('Personal range powers must take Affects Others (+1/rank) or Attack (+0) before taking Increased Range.');
+  }
+  if ((baseRange === 'Personal' || baseRange === 'Close') && flawIds.has('reduced_range')) {
+    errors.push('Reduced Range cannot be applied to Personal or Close range effects.');
+  }
+  if (flawIds.has('grab_based') && baseRange !== 'Close' && !extraIds.has('attack') && !flawIds.has('reduced_range')) {
+    errors.push('Grab-Based flaw requires Close range.');
+  }
+  if (flawIds.has('diminished_range') && baseRange !== 'Ranged' && !extraIds.has('increased_range')) {
+    warnings.push('Diminished Range only applies to Ranged effects.');
+  }
+  if (extraIds.has('reach') && baseRange !== 'Close') {
+    warnings.push('Reach extra only applies to Close range effects.');
+  }
+
+  const hasArea = Array.from(extraIds).some(id => id.startsWith('area_'));
+  if (extraIds.has('selective') && !hasArea) {
+    warnings.push('Selective extra is designed to differentiate targets within an Area effect.');
+  }
+
+  // Attack checks
+  if (extraIds.has('multiattack') && !effect?.isAttack && !['damage', 'blast', 'affliction', 'move_object', 'weaken'].includes(effect?.id)) {
+    warnings.push('Multiattack is intended for attack effects.');
+  }
+  if (extraIds.has('penetrating') && effect?.id !== 'damage' && effect?.id !== 'blast') {
+    warnings.push('Penetrating is specifically designed to overcome Impervious on Damage effects.');
+  }
+
+  // Rank limits
+  const effectRank = parseInt(effect?.rank || 10, 10);
+  (extras || []).forEach(e => {
+    const def = EXTRAS_CATALOG.find(x => x.id === e.id);
+    const r = parseInt(e.rank, 10) || 1;
+    if (def?.maxRank && r > def.maxRank) {
+      errors.push(`${def.name} rank (${r}) exceeds maximum allowed rank of ${def.maxRank}.`);
+    }
+    if (def?.maxRankByEffect && r > effectRank) {
+      warnings.push(`${def.name} rank (${r}) cannot exceed the effect rank (${effectRank}).`);
+    }
+  });
+
+  (flaws || []).forEach(f => {
+    const def = FLAWS_CATALOG.find(x => x.id === f.id);
+    const r = parseInt(f.rank, 10) || 1;
+    if (def?.maxRank && r > def.maxRank) {
+      errors.push(`${def.name} rank (${r}) exceeds maximum allowed rank of ${def.maxRank}.`);
+    }
+  });
+
+  return {
+    valid: errors.length === 0,
+    errors,
+    warnings
+  };
+}
 
 export function calculatePowerCost(power) {
   if (power.isAlternateEffect) {
@@ -795,12 +973,12 @@ export function calculatePowerCost(power) {
     const extraDef = EXTRAS_CATALOG.find(e => e.id === extra.id);
     const unitCost = extraDef ? extraDef.cost : (extra.cost !== undefined ? extra.cost : 1);
     const isFlat = extraDef ? extraDef.isFlat : !!extra.isFlat;
+    const count = parseInt(extra.rank, 10) || 1;
 
     if (isFlat) {
-      const count = parseInt(extra.rank, 10) || 1;
       flatExtras += unitCost * count;
     } else {
-      extrasPerRank += unitCost;
+      extrasPerRank += unitCost * count;
     }
   });
 
@@ -817,12 +995,12 @@ export function calculatePowerCost(power) {
     const unitCost = flawDef ? flawDef.cost : (flaw.cost !== undefined ? flaw.cost : 1);
     const isFlat = flawDef ? flawDef.isFlat : !!flaw.isFlat;
     const isDevice = flawDef ? flawDef.isDevice : !!flaw.isDevice;
+    const count = parseInt(flaw.rank, 10) || 1;
 
     if (isFlat) {
-      const count = parseInt(flaw.rank, 10) || 1;
       flatFlaws += unitCost * count;
     } else if (!isDevice) {
-      flawsPerRank += unitCost;
+      flawsPerRank += unitCost * count;
     }
   });
 
@@ -844,6 +1022,16 @@ export function calculatePowerCost(power) {
   } else if (isRemovable) {
     const discount = Math.floor(subtotal / 5) * 1;
     subtotal = Math.max(1, subtotal - discount);
+  }
+
+  // Linked Effects sum their costs with primary power
+  (power.linkedEffects || []).forEach(le => {
+    subtotal += calculatePowerCost({ ...le, alternateEffects: [], linkedEffects: [] });
+  });
+
+  // Dynamic Array primary effect pays +1 PP
+  if (power.isDynamicArray) {
+    subtotal += 1;
   }
 
   let aeCost = 0;

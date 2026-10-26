@@ -1,5 +1,5 @@
 {
-  "version": "3.4",
-  "updatedAt": "2026-10-25T23:25:00Z",
-  "releaseNotes": "Added Discord channel editing permission notes in Help & Settings, enabled multiple instances of skills with different specialties, and added custom 'Other' input field to specialization lists."
+  "version": "3.5",
+  "updatedAt": "2026-10-26T00:15:00Z",
+  "releaseNotes": "Multi-skill specializations for all applicable skills, updated Close Combat options (swords, spears, short blades), legal modifier combination checks with unique ★ markers, derived range & duration from 3E modifiers with rank steppers, alternate effects (standard & dynamic), linked powers, and in-place collapsible power cards."
 }

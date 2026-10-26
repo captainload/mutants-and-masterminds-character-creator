@@ -1495,6 +1495,165 @@ button.action-save-card:active {
   }
 }
 
+/* =======================================================
+   COLLAPSIBLE POWER CARDS (In-Place Inline Editor)
+   ======================================================= */
+.power-card-collapsible {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  overflow: hidden;
+}
+
+.power-card-collapsible:hover {
+  border-color: rgba(6, 182, 212, 0.5);
+}
+
+.power-card-collapsible.device-card {
+  border-left: 4px solid var(--hero-gold);
+}
+
+.power-card-collapsible.expanded {
+  border-color: var(--hero-cyan);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+}
+
+.power-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0.85rem;
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.015);
+  user-select: none;
+  min-height: 42px;
+}
+
+.power-card-header:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.power-card-header-left {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  flex-wrap: wrap;
+  flex: 1;
+}
+
+.power-toggle-icon {
+  font-size: 0.75rem;
+  color: var(--hero-gold);
+  width: 14px;
+  text-align: center;
+}
+
+.power-title-name {
+  color: var(--text-bright);
+  font-size: var(--font-size-md);
+  font-weight: 800;
+}
+
+.power-title-sep {
+  color: var(--text-muted);
+}
+
+.power-title-effect {
+  color: var(--hero-cyan);
+  font-weight: 700;
+  font-size: var(--font-size-sm);
+}
+
+.power-title-details {
+  color: var(--text-muted);
+  font-size: var(--font-size-xs);
+  font-style: italic;
+}
+
+.power-card-header-actions {
+  display: flex;
+  gap: 0.35rem;
+  align-items: center;
+  margin-left: 0.5rem;
+}
+
+.badge-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.15rem 0.45rem;
+  border-radius: 3px;
+  font-size: 0.65rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.badge-tag.dynamic {
+  background: rgba(245, 158, 11, 0.2);
+  color: var(--hero-gold);
+  border: 1px solid rgba(245, 158, 11, 0.4);
+}
+
+.badge-tag.ae {
+  background: rgba(59, 130, 246, 0.2);
+  color: var(--hero-blue);
+  border: 1px solid rgba(59, 130, 246, 0.4);
+}
+
+.badge-tag.linked {
+  background: rgba(168, 85, 247, 0.2);
+  color: var(--hero-purple);
+  border: 1px solid rgba(168, 85, 247, 0.4);
+}
+
+.power-card-body {
+  padding: 0.85rem;
+  border-top: 1px solid var(--border-color);
+  background: rgba(15, 23, 42, 0.4);
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.power-section-box {
+  background-color: var(--bg-input);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  padding: 0.65rem 0.75rem;
+}
+
+.power-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.45rem;
+}
+
+.power-validation-alert {
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  border-radius: var(--radius-sm);
+  padding: 0.45rem 0.75rem;
+  color: #fca5a5;
+  font-size: var(--font-size-xs);
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.power-validation-warning {
+  background: rgba(245, 158, 11, 0.12);
+  border: 1px solid rgba(245, 158, 11, 0.4);
+  border-radius: var(--radius-sm);
+  padding: 0.45rem 0.75rem;
+  color: #fde68a;
+  font-size: var(--font-size-xs);
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
 
 
 

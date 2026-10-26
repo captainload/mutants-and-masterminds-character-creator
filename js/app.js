@@ -16,7 +16,9 @@ import {
   calculatePowerCost,
   auditCharacter,
   getStrengthLiftingCapacity,
-  getTraitDefinition
+  getTraitDefinition,
+  computePowerRangeAndDuration,
+  validateModifierLegality
 } from './rules.js';
 
 import {
@@ -44,6 +46,7 @@ class AppController {
     this.char = storageManager.getActiveCharacter();
     this.activePowerEditing = null;
     this.currentFileHandle = null;
+    this.expandedPowerIds = new Set();
 
     // Interactive Archetype Wizard State (No default archetype loaded)
     this.wizardState = {
@@ -905,7 +908,7 @@ class AppController {
   }
 
   async checkForUpdates({ isManual = false } = {}) {
-    const CURRENT_VERSION = '3.4';
+    const CURRENT_VERSION = '3.5';
     if (typeof window === 'undefined' || !window.location || !window.location.href || window.location.href === 'about:blank') return;
     try {
       const url = new URL('version.json', window.location.href);
@@ -1144,14 +1147,66 @@ class AppController {
 
       if (!this.char.powers) this.char.powers = [];
       this.char.powers.push(newPower);
+      if (!this.expandedPowerIds) this.expandedPowerIds = new Set();
+      this.expandedPowerIds.add(newPower.id);
       this.saveAndAudit();
       this.renderAll();
       alert(`Power Profile "${matchedProfile.name}" added to character!`);
     });
 
     document.getElementById('btn-open-custom-power-builder').addEventListener('click', () => {
-      this.openCustomPowerBuilder(null);
+      this.addNewCustomPower();
     });
+  }
+
+  addNewCustomPower() {
+    if (!this.char.powers) this.char.powers = [];
+    const baseEff = POWER_EFFECTS_CATALOG.find(e => e.id === 'damage') || POWER_EFFECTS_CATALOG[0];
+    const newPower = {
+      id: 'p_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
+      name: 'New Power',
+      descriptor: 'Energy',
+      rank: 10,
+      effect: baseEff,
+      action: baseEff.action || 'Standard',
+      range: baseEff.range || 'Close',
+      duration: baseEff.duration || 'Instant',
+      extras: [],
+      flaws: [],
+      alternateEffects: [],
+      linkedEffects: [],
+      isDynamicArray: false,
+      notes: ''
+    };
+    this.char.powers.push(newPower);
+    if (!this.expandedPowerIds) this.expandedPowerIds = new Set();
+    this.expandedPowerIds.add(newPower.id);
+    this.saveAndAudit();
+    this.renderAll();
+  }
+
+  duplicatePower(powerId) {
+    const original = (this.char.powers || []).find(p => p.id === powerId);
+    if (!original) return;
+    const clone = JSON.parse(JSON.stringify(original));
+    clone.id = 'p_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4);
+    clone.name = `${original.name} (Copy)`;
+    this.char.powers.push(clone);
+    if (!this.expandedPowerIds) this.expandedPowerIds = new Set();
+    this.expandedPowerIds.add(clone.id);
+    this.saveAndAudit();
+    this.renderAll();
+  }
+
+  deletePower(powerId) {
+    const p = (this.char.powers || []).find(p => p.id === powerId);
+    if (!p) return;
+    if (confirm(`Delete power "${p.name}"?`)) {
+      this.char.powers = this.char.powers.filter(item => item.id !== powerId);
+      if (this.expandedPowerIds) this.expandedPowerIds.delete(powerId);
+      this.saveAndAudit();
+      this.renderAll();
+    }
   }
 
   // =======================================================
@@ -1171,8 +1226,11 @@ class AppController {
       const def = POWER_EFFECTS_CATALOG.find(e => e.id === effectSelect.value);
       if (def) {
         document.getElementById('builder-action').value = def.action || 'Standard';
-        document.getElementById('builder-range').value = def.range || 'Close';
-        document.getElementById('builder-duration').value = def.duration || 'Instant';
+        const rd = computePowerRangeAndDuration(def);
+        const rEl = document.getElementById('builder-derived-range');
+        const dEl = document.getElementById('builder-derived-duration');
+        if (rEl) rEl.textContent = rd.effectiveRange;
+        if (dEl) dEl.textContent = rd.effectiveDuration;
       }
       this.recalculateCustomBuilder();
     });
@@ -1231,8 +1289,11 @@ class AppController {
       document.getElementById('builder-rank-val').textContent = powerToEdit.rank || 10;
       document.getElementById('builder-base-effect').value = powerToEdit.effect?.id || 'damage';
       document.getElementById('builder-action').value = powerToEdit.action || 'Standard';
-      document.getElementById('builder-range').value = powerToEdit.range || 'Close';
-      document.getElementById('builder-duration').value = powerToEdit.duration || 'Instant';
+      const rd = computePowerRangeAndDuration(powerToEdit.effect, powerToEdit.extras, powerToEdit.flaws);
+      const rEl = document.getElementById('builder-derived-range');
+      const dEl = document.getElementById('builder-derived-duration');
+      if (rEl) rEl.textContent = rd.effectiveRange;
+      if (dEl) dEl.textContent = rd.effectiveDuration;
       document.getElementById('builder-power-notes').value = powerToEdit.notes || '';
     } else {
       document.getElementById('builder-power-name').value = '';
@@ -1240,8 +1301,11 @@ class AppController {
       document.getElementById('builder-rank-val').textContent = '10';
       document.getElementById('builder-base-effect').value = 'damage';
       document.getElementById('builder-action').value = 'Standard';
-      document.getElementById('builder-range').value = 'Close';
-      document.getElementById('builder-duration').value = 'Instant';
+      const rd = computePowerRangeAndDuration(POWER_EFFECTS_CATALOG[0]);
+      const rEl = document.getElementById('builder-derived-range');
+      const dEl = document.getElementById('builder-derived-duration');
+      if (rEl) rEl.textContent = rd.effectiveRange;
+      if (dEl) dEl.textContent = rd.effectiveDuration;
       document.getElementById('builder-power-notes').value = '';
     }
 
@@ -1374,6 +1438,8 @@ class AppController {
       }
     });
 
+    const rd = computePowerRangeAndDuration(effect, extras, flaws);
+
     return {
       id: this.activePowerEditing ? this.activePowerEditing.id : ('p_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4)),
       name: document.getElementById('builder-power-name').value.trim() || `${effect.name} Power`,
@@ -1381,8 +1447,8 @@ class AppController {
       rank,
       effect,
       action: document.getElementById('builder-action').value,
-      range: document.getElementById('builder-range').value,
-      duration: document.getElementById('builder-duration').value,
+      range: rd.effectiveRange,
+      duration: rd.effectiveDuration,
       extras,
       flaws,
       alternateEffects,
@@ -2956,7 +3022,10 @@ class AppController {
 
     const otherInput = document.getElementById('prebuilt-other-input');
     const applyOtherBtn = document.getElementById('btn-prebuilt-apply-other');
-    if (otherInput) otherInput.value = '';
+    if (otherInput) {
+      otherInput.value = '';
+      otherInput.placeholder = 'Other';
+    }
 
     const applyOther = () => {
       const val = (otherInput?.value || '').trim();
@@ -2994,6 +3063,15 @@ class AppController {
       container.appendChild(btn);
     });
 
+    const otherOptionBtn = document.createElement('button');
+    otherOptionBtn.className = 'btn btn-outline';
+    otherOptionBtn.style.cssText = 'text-align: left; justify-content: flex-start; padding: 0.5rem 0.85rem; font-size: 0.88rem; border-style: dashed; color: var(--hero-gold);';
+    otherOptionBtn.textContent = '✏️ Other (Specify Custom Specialization...)';
+    otherOptionBtn.addEventListener('click', () => {
+      otherInput?.focus();
+    });
+    container.appendChild(otherOptionBtn);
+
     document.getElementById('btn-close-prebuilt').onclick = () => {
       this.closeModal('modal-prebuilt-options');
     };
@@ -3003,60 +3081,579 @@ class AppController {
   }
 
   // =======================================================
-  // 21. POWERS TAB RENDER
+  // 21. POWERS TAB RENDER (In-Place Collapsible Power Cards)
   // =======================================================
   renderPowersTab(audit) {
     document.getElementById('powers-cost-display').textContent = `${audit.powersCost} PP`;
     const list = document.getElementById('character-powers-list');
     list.innerHTML = '';
 
+    if (!this.expandedPowerIds) this.expandedPowerIds = new Set();
+
     if (!this.char.powers || this.char.powers.length === 0) {
       list.innerHTML = `<div style="text-align: center; padding: 1.5rem; color: var(--text-muted); font-size: var(--font-size-sm);">
-        No powers built yet. Choose a profile from the <strong>Power Profiles Library</strong> above or click <strong>Custom Power Builder</strong>.
+        No powers built yet. Choose a profile from the <strong>Power Profiles Library</strong> above or click <strong>➕ Custom Power Builder</strong> to build one in-place.
       </div>`;
       return;
     }
 
     this.char.powers.forEach((p, idx) => {
+      if (!p.id) p.id = 'p_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4);
+
+      // Ensure effect is valid
+      if (!p.effect || typeof p.effect !== 'object') {
+        const found = POWER_EFFECTS_CATALOG.find(e => e.id === p.effect) || POWER_EFFECTS_CATALOG[0];
+        p.effect = found;
+      }
+
+      // Compute derived range and duration (No manual dropdowns!)
+      const rd = computePowerRangeAndDuration(p.effect, p.extras, p.flaws);
+      p.range = rd.effectiveRange;
+      p.duration = rd.effectiveDuration;
+
+      // Validate legality of modifiers
+      const valResult = validateModifierLegality(p.effect, p.extras, p.flaws);
+
       const cost = calculatePowerCost(p);
-      const isDevice = p.flaws?.some(f => f.isDevice);
+      const isDevice = (p.flaws || []).some(f => f.isDevice);
+      const isExpanded = this.expandedPowerIds.has(p.id);
 
       const card = document.createElement('div');
-      card.style.cssText = `
-        background-color: var(--bg-input);
-        border: 1px solid var(--border-color);
-        ${isDevice ? 'border-left: 4px solid var(--hero-gold);' : ''}
-        border-radius: var(--radius-sm);
-        padding: 0.65rem 0.85rem;
+      card.className = `power-card-collapsible ${isExpanded ? 'expanded' : 'collapsed'}`;
+      if (isDevice) card.classList.add('device-card');
+
+      // Collapsed Single-Title-Line Header
+      const header = document.createElement('div');
+      header.className = 'power-card-header';
+      header.innerHTML = `
+        <div class="power-card-header-left">
+          <span class="power-toggle-icon">${isExpanded ? '▼' : '▶'}</span>
+          <strong class="power-title-name">⚡ ${p.name || 'Unnamed Power'}</strong>
+          <span class="power-title-sep">—</span>
+          <span class="power-title-effect">${p.effect?.name || 'Effect'} Rank ${p.rank || 1}</span>
+          <span class="power-title-details">(${cost} PP • ${rd.effectiveRange}, ${rd.effectiveDuration})</span>
+          ${p.isDynamicArray ? '<span class="badge-tag dynamic">Dynamic Array</span>' : ''}
+          ${p.alternateEffects?.length ? `<span class="badge-tag ae">${p.alternateEffects.length} AE</span>` : ''}
+          ${p.linkedEffects?.length ? `<span class="badge-tag linked">${p.linkedEffects.length} Linked</span>` : ''}
+          ${!valResult.valid ? '<span class="badge-tag" style="background: rgba(239, 68, 68, 0.25); color: var(--hero-red); border: 1px solid var(--hero-red);" title="Rule conflicts detected">⚠️ Conflict</span>' : ''}
+        </div>
+        <div class="power-card-header-actions" onclick="event.stopPropagation()">
+          <button class="btn btn-outline btn-duplicate-power" data-p-id="${p.id}" title="Duplicate Power" style="min-height: 26px; padding: 0.1rem 0.45rem; font-size: 0.72rem;">📋 Duplicate</button>
+          <button class="btn btn-danger btn-delete-power" data-p-id="${p.id}" title="Delete Power" style="min-height: 26px; padding: 0.1rem 0.45rem; font-size: 0.72rem;">🗑️ Delete</button>
+        </div>
       `;
 
-      card.innerHTML = `
-        <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 0.25rem;">
-          <strong style="color: var(--text-bright); font-size: var(--font-size-md);">⚡ <span class="rules-link" data-id="${p.effect?.id || ''}" data-type="power" data-name="${p.effect?.name || p.name}" data-cat="Power Effect" style="cursor: pointer; text-decoration: underline dotted;">${p.name}</span> (Rank ${p.rank})</strong>
-          <span class="pp-status-value">${cost} PP</span>
-        </div>
-        <div style="font-size: var(--font-size-xs); color: var(--hero-cyan); font-weight: 600;">
-          [${p.descriptor}] • ${p.action} • ${p.range} • ${p.duration}
-        </div>
-        ${p.notes ? `<div style="font-size: var(--font-size-xs); color: var(--text-muted); margin-top: 0.25rem;">${p.notes}</div>` : ''}
-        
-        <div style="display: flex; justify-content: flex-end; gap: 0.35rem; margin-top: 0.45rem;">
-          <button class="btn btn-outline" style="min-height: 28px; font-size: var(--font-size-xs);" data-edit-p="${p.id}">✏️ Edit</button>
-          <button class="btn btn-danger" style="min-height: 28px; font-size: var(--font-size-xs);" data-del-p="${p.id}">🗑️ Delete</button>
-        </div>
-      `;
-
-      card.querySelector('[data-edit-p]').addEventListener('click', () => {
-        this.openCustomPowerBuilder(p);
-      });
-
-      card.querySelector('[data-del-p]').addEventListener('click', () => {
-        if (confirm(`Delete "${p.name}"?`)) {
-          this.char.powers.splice(idx, 1);
-          this.saveAndAudit();
-          this.renderAll();
+      header.addEventListener('click', () => {
+        if (this.expandedPowerIds.has(p.id)) {
+          this.expandedPowerIds.delete(p.id);
+        } else {
+          this.expandedPowerIds.add(p.id);
         }
+        this.renderPowersTab(auditCharacter(this.char));
       });
+
+      header.querySelector('.btn-duplicate-power')?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.duplicatePower(p.id);
+      });
+
+      header.querySelector('.btn-delete-power')?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.deletePower(p.id);
+      });
+
+      card.appendChild(header);
+
+      if (isExpanded) {
+        // Expanded In-Place Editor Body
+        const body = document.createElement('div');
+        body.className = 'power-card-body';
+
+        // Row 1: Power Name, Descriptors, Rank Stepper, Action
+        const row1 = document.createElement('div');
+        row1.style.cssText = 'display: grid; grid-template-columns: 2fr 2fr 110px 130px; gap: 0.65rem;';
+        row1.innerHTML = `
+          <div>
+            <label style="font-size: var(--font-size-xs); font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 0.25rem;">Power Name</label>
+            <input type="text" class="input-power-name" value="${p.name || ''}" placeholder="e.g. Plasma Ray, Force Field" style="width: 100%;">
+          </div>
+          <div>
+            <label style="font-size: var(--font-size-xs); font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 0.25rem;">Descriptors</label>
+            <input type="text" class="input-power-desc" value="${p.descriptor || ''}" placeholder="e.g. Fire, Energy, Technology" style="width: 100%;">
+          </div>
+          <div>
+            <label style="font-size: var(--font-size-xs); font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 0.25rem;">Rank</label>
+            <div class="stepper-control" style="width: 100%;">
+              <button class="btn-stepper compact btn-p-rank-minus">-</button>
+              <span class="stepper-value compact val-p-rank">${p.rank || 1}</span>
+              <button class="btn-stepper compact btn-p-rank-plus">+</button>
+            </div>
+          </div>
+          <div>
+            <label style="font-size: var(--font-size-xs); font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 0.25rem;">Action</label>
+            <select class="select-power-action" style="width: 100%;">
+              ${['Standard', 'Move', 'Free', 'Reaction', 'None'].map(act => `<option value="${act}" ${p.action === act ? 'selected' : ''}>${act}</option>`).join('')}
+            </select>
+          </div>
+        `;
+
+        row1.querySelector('.input-power-name')?.addEventListener('input', (e) => {
+          p.name = e.target.value;
+          this.saveAndAudit();
+        });
+        row1.querySelector('.input-power-desc')?.addEventListener('input', (e) => {
+          p.descriptor = e.target.value;
+          this.saveAndAudit();
+        });
+        row1.querySelector('.btn-p-rank-minus')?.addEventListener('click', () => {
+          p.rank = Math.max(1, (parseInt(p.rank, 10) || 1) - 1);
+          this.saveAndAudit();
+          this.renderPowersTab(auditCharacter(this.char));
+        });
+        row1.querySelector('.btn-p-rank-plus')?.addEventListener('click', () => {
+          p.rank = (parseInt(p.rank, 10) || 1) + 1;
+          this.saveAndAudit();
+          this.renderPowersTab(auditCharacter(this.char));
+        });
+        row1.querySelector('.select-power-action')?.addEventListener('change', (e) => {
+          p.action = e.target.value;
+          this.saveAndAudit();
+          this.renderPowersTab(auditCharacter(this.char));
+        });
+        body.appendChild(row1);
+
+        // Row 2: Base Effect Selector, Derived Range Badge, Derived Duration Badge (NO DROPDOWNS!)
+        const row2 = document.createElement('div');
+        row2.style.cssText = 'display: grid; grid-template-columns: 2fr 1.5fr 1.5fr 120px; gap: 0.65rem; align-items: end;';
+        row2.innerHTML = `
+          <div>
+            <label style="font-size: var(--font-size-xs); font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 0.25rem;">Base Effect</label>
+            <select class="select-power-effect" style="width: 100%;">
+              ${POWER_EFFECTS_CATALOG.map(e => `<option value="${e.id}" ${p.effect?.id === e.id ? 'selected' : ''}>${e.name} (${e.baseCost} PP/rank) [Base: ${e.range}, ${e.duration}]</option>`).join('')}
+            </select>
+          </div>
+          <div>
+            <label style="font-size: var(--font-size-xs); font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 0.25rem;">Derived Range (3E Modifiers)</label>
+            <div style="min-height: 38px; display: flex; flex-direction: column; justify-content: center; padding: 0.3rem 0.6rem; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-sm);">
+              <span style="font-size: var(--font-size-sm); font-weight: 800; color: var(--hero-cyan);">${rd.effectiveRange}</span>
+              <span style="font-size: 0.68rem; color: var(--text-muted);">${rd.rangeNotes || 'Base ' + rd.baseRange}</span>
+            </div>
+          </div>
+          <div>
+            <label style="font-size: var(--font-size-xs); font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 0.25rem;">Derived Duration (3E Modifiers)</label>
+            <div style="min-height: 38px; display: flex; flex-direction: column; justify-content: center; padding: 0.3rem 0.6rem; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-sm);">
+              <span style="font-size: var(--font-size-sm); font-weight: 800; color: var(--hero-gold);">${rd.effectiveDuration}</span>
+              <span style="font-size: 0.68rem; color: var(--text-muted);">${rd.durationNotes || 'Base ' + rd.baseDuration}</span>
+            </div>
+          </div>
+          <div style="text-align: right; padding-bottom: 0.4rem;">
+            <span style="font-size: var(--font-size-xs); color: var(--text-muted); display: block;">Base Cost:</span>
+            <strong style="color: var(--hero-gold); font-size: var(--font-size-md);">${p.effect?.baseCost || 1} PP/rank</strong>
+          </div>
+        `;
+
+        row2.querySelector('.select-power-effect')?.addEventListener('change', (e) => {
+          const newEff = POWER_EFFECTS_CATALOG.find(eff => eff.id === e.target.value) || POWER_EFFECTS_CATALOG[0];
+          p.effect = newEff;
+          p.action = newEff.action || 'Standard';
+          this.saveAndAudit();
+          this.renderPowersTab(auditCharacter(this.char));
+        });
+        body.appendChild(row2);
+
+        // Validation Banner (Errors and Warnings)
+        if (valResult.errors.length > 0 || valResult.warnings.length > 0) {
+          const valBox = document.createElement('div');
+          valBox.style.cssText = 'display: flex; flex-direction: column; gap: 0.35rem;';
+          if (valResult.errors.length > 0) {
+            valBox.innerHTML += `
+              <div class="power-validation-alert">
+                <strong style="color: #ef4444;">⚠️ Rule Conflict Detected:</strong>
+                ${valResult.errors.map(err => `<div>• ${err}</div>`).join('')}
+              </div>
+            `;
+          }
+          if (valResult.warnings.length > 0) {
+            valBox.innerHTML += `
+              <div class="power-validation-warning">
+                <strong style="color: #f59e0b;">ℹ️ Modifier Advisory:</strong>
+                ${valResult.warnings.map(w => `<div>• ${w}</div>`).join('')}
+              </div>
+            `;
+          }
+          body.appendChild(valBox);
+        }
+
+        // Row 3: Modifiers (Extras & Flaws) with Steppers, Enforced Limits, and ★ Stars
+        const modGrid = document.createElement('div');
+        modGrid.style.cssText = 'display: grid; grid-template-columns: 1fr 1fr; gap: 0.65rem;';
+
+        // --- Extras Column ---
+        const extrasCol = document.createElement('div');
+        extrasCol.className = 'power-section-box';
+        extrasCol.innerHTML = `
+          <div class="power-section-header">
+            <span style="font-weight: 800; font-size: var(--font-size-xs); color: var(--hero-green);">➕ Extras (★ = Unique Modifier)</span>
+          </div>
+          <div style="display: flex; gap: 0.35rem; margin-bottom: 0.45rem;">
+            <select class="select-add-extra" style="flex: 1; font-size: var(--font-size-xs);">
+              ${EXTRAS_CATALOG.map(ex => `<option value="${ex.id}">${ex.name} (${ex.isFlat ? `+${ex.cost} flat` : `+${ex.cost}/rank`})</option>`).join('')}
+            </select>
+            <button class="btn btn-outline btn-add-extra" style="font-size: 0.72rem; min-height: 28px; padding: 0.15rem 0.5rem; white-space: nowrap;">+ Add Extra</button>
+          </div>
+          <div class="extras-items-container" style="display: flex; flex-direction: column; gap: 0.35rem;"></div>
+        `;
+
+        const extrasContainer = extrasCol.querySelector('.extras-items-container');
+        (p.extras || []).forEach((ex, exIdx) => {
+          const exDef = EXTRAS_CATALOG.find(e => e.id === ex.id) || ex;
+          const r = parseInt(ex.rank, 10) || 1;
+          const maxR = exDef.maxRankByEffect ? (parseInt(p.rank, 10) || 10) : (exDef.maxRank || 10);
+          const minR = exDef.minRank || 1;
+
+          const exRow = document.createElement('div');
+          exRow.style.cssText = 'display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.2); padding: 0.3rem 0.5rem; border-radius: 4px; border: 1px solid rgba(255,255,255,0.05);';
+          exRow.innerHTML = `
+            <div style="flex: 1;">
+              <span style="font-size: var(--font-size-xs); font-weight: 700; color: ${exDef.isUnique ? 'var(--hero-gold)' : 'var(--text-bright)'};">
+                ${exDef.name}
+              </span>
+              <span style="font-size: 0.68rem; color: var(--text-muted); margin-left: 0.35rem;">
+                ${exDef.isFlat ? `(+${exDef.cost} flat)` : `(+${exDef.cost}/rank)`}
+              </span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 0.4rem;">
+              ${exDef.isRanked ? `
+                <div class="stepper-control">
+                  <button class="btn-stepper compact btn-ex-minus" ${r <= minR ? 'disabled' : ''}>-</button>
+                  <span class="stepper-value compact">${r}</span>
+                  <button class="btn-stepper compact btn-ex-plus" ${r >= maxR ? 'disabled' : ''}>+</button>
+                </div>
+              ` : ''}
+              <button class="btn btn-outline btn-remove-extra" style="padding: 0.1rem 0.35rem; min-height: 24px; font-size: 0.68rem;">✕</button>
+            </div>
+          `;
+
+          exRow.querySelector('.btn-ex-minus')?.addEventListener('click', () => {
+            ex.rank = Math.max(minR, r - 1);
+            this.saveAndAudit();
+            this.renderPowersTab(auditCharacter(this.char));
+          });
+          exRow.querySelector('.btn-ex-plus')?.addEventListener('click', () => {
+            ex.rank = Math.min(maxR, r + 1);
+            this.saveAndAudit();
+            this.renderPowersTab(auditCharacter(this.char));
+          });
+          exRow.querySelector('.btn-remove-extra')?.addEventListener('click', () => {
+            p.extras.splice(exIdx, 1);
+            this.saveAndAudit();
+            this.renderPowersTab(auditCharacter(this.char));
+          });
+
+          extrasContainer.appendChild(exRow);
+        });
+
+        extrasCol.querySelector('.btn-add-extra')?.addEventListener('click', () => {
+          const selectedId = extrasCol.querySelector('.select-add-extra').value;
+          const exDef = EXTRAS_CATALOG.find(e => e.id === selectedId);
+          if (!p.extras) p.extras = [];
+          p.extras.push({
+            id: exDef.id,
+            name: exDef.name,
+            cost: exDef.cost,
+            isFlat: exDef.isFlat,
+            isRanked: exDef.isRanked,
+            rank: 1
+          });
+          this.saveAndAudit();
+          this.renderPowersTab(auditCharacter(this.char));
+        });
+
+        // --- Flaws Column ---
+        const flawsCol = document.createElement('div');
+        flawsCol.className = 'power-section-box';
+        flawsCol.innerHTML = `
+          <div class="power-section-header">
+            <span style="font-weight: 800; font-size: var(--font-size-xs); color: var(--hero-red);">➖ Flaws & Devices (★ = Unique Modifier)</span>
+          </div>
+          <div style="display: flex; gap: 0.35rem; margin-bottom: 0.45rem;">
+            <select class="select-add-flaw" style="flex: 1; font-size: var(--font-size-xs);">
+              ${FLAWS_CATALOG.map(fl => `<option value="${fl.id}">${fl.name} (${fl.isDevice ? `Device -${fl.discountPer5}/5` : fl.isFlat ? `-${fl.cost} flat` : `-${fl.cost}/rank`})</option>`).join('')}
+            </select>
+            <button class="btn btn-outline btn-add-flaw" style="font-size: 0.72rem; min-height: 28px; padding: 0.15rem 0.5rem; white-space: nowrap;">+ Add Flaw</button>
+          </div>
+          <div class="flaws-items-container" style="display: flex; flex-direction: column; gap: 0.35rem;"></div>
+        `;
+
+        const flawsContainer = flawsCol.querySelector('.flaws-items-container');
+        (p.flaws || []).forEach((fl, flIdx) => {
+          const flDef = FLAWS_CATALOG.find(f => f.id === fl.id) || fl;
+          const r = parseInt(fl.rank, 10) || 1;
+          const maxR = flDef.maxRank || 5;
+          const minR = flDef.minRank || 1;
+
+          const flRow = document.createElement('div');
+          flRow.style.cssText = 'display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.2); padding: 0.3rem 0.5rem; border-radius: 4px; border: 1px solid rgba(255,255,255,0.05);';
+          flRow.innerHTML = `
+            <div style="flex: 1;">
+              <span style="font-size: var(--font-size-xs); font-weight: 700; color: ${flDef.isUnique ? 'var(--hero-gold)' : 'var(--text-bright)'};">
+                ${flDef.name}
+              </span>
+              <span style="font-size: 0.68rem; color: var(--text-muted); margin-left: 0.35rem;">
+                ${flDef.isDevice ? `(Device -${flDef.discountPer5}/5 PP)` : flDef.isFlat ? `(-${flDef.cost} flat)` : `(-${flDef.cost}/rank)`}
+              </span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 0.4rem;">
+              ${flDef.isRanked ? `
+                <div class="stepper-control">
+                  <button class="btn-stepper compact btn-fl-minus" ${r <= minR ? 'disabled' : ''}>-</button>
+                  <span class="stepper-value compact">${r}</span>
+                  <button class="btn-stepper compact btn-fl-plus" ${r >= maxR ? 'disabled' : ''}>+</button>
+                </div>
+              ` : ''}
+              <button class="btn btn-outline btn-remove-flaw" style="padding: 0.1rem 0.35rem; min-height: 24px; font-size: 0.68rem;">✕</button>
+            </div>
+          `;
+
+          flRow.querySelector('.btn-fl-minus')?.addEventListener('click', () => {
+            fl.rank = Math.max(minR, r - 1);
+            this.saveAndAudit();
+            this.renderPowersTab(auditCharacter(this.char));
+          });
+          flRow.querySelector('.btn-fl-plus')?.addEventListener('click', () => {
+            fl.rank = Math.min(maxR, r + 1);
+            this.saveAndAudit();
+            this.renderPowersTab(auditCharacter(this.char));
+          });
+          flRow.querySelector('.btn-remove-flaw')?.addEventListener('click', () => {
+            p.flaws.splice(flIdx, 1);
+            this.saveAndAudit();
+            this.renderPowersTab(auditCharacter(this.char));
+          });
+
+          flawsContainer.appendChild(flRow);
+        });
+
+        flawsCol.querySelector('.btn-add-flaw')?.addEventListener('click', () => {
+          const selectedId = flawsCol.querySelector('.select-add-flaw').value;
+          const flDef = FLAWS_CATALOG.find(f => f.id === selectedId);
+          if (!p.flaws) p.flaws = [];
+          p.flaws.push({
+            id: flDef.id,
+            name: flDef.name,
+            cost: flDef.cost,
+            isFlat: flDef.isFlat,
+            isRanked: flDef.isRanked,
+            isDevice: flDef.isDevice,
+            discountPer5: flDef.discountPer5,
+            rank: 1
+          });
+          this.saveAndAudit();
+          this.renderPowersTab(auditCharacter(this.char));
+        });
+
+        modGrid.appendChild(extrasCol);
+        modGrid.appendChild(flawsCol);
+        body.appendChild(modGrid);
+
+        // Row 4: Power Arrays & Alternate Effects (Standard 1 PP, Dynamic 2 PP)
+        const aeSection = document.createElement('div');
+        aeSection.className = 'power-section-box';
+        aeSection.innerHTML = `
+          <div class="power-section-header">
+            <div>
+              <strong style="color: var(--hero-blue); font-size: var(--font-size-xs);">⚡ Power Array & Alternate Effects (AE)</strong>
+              <label style="font-size: 0.72rem; color: var(--text-muted); margin-left: 0.85rem; cursor: pointer;">
+                <input type="checkbox" class="cb-dynamic-array" ${p.isDynamicArray ? 'checked' : ''} style="vertical-align: middle; margin-right: 0.3rem;">
+                Dynamic Array (+1 PP base)
+              </label>
+            </div>
+            <div style="display: flex; gap: 0.35rem;">
+              <button class="btn btn-outline btn-add-standard-ae" style="font-size: 0.7rem; min-height: 26px; padding: 0.1rem 0.45rem;">➕ Standard AE (1 PP)</button>
+              <button class="btn btn-outline btn-add-dynamic-ae" style="font-size: 0.7rem; min-height: 26px; padding: 0.1rem 0.45rem; border-color: rgba(245, 158, 11, 0.5); color: var(--hero-gold);">➕ Dynamic AE (2 PP)</button>
+            </div>
+          </div>
+          <div class="ae-items-container" style="display: flex; flex-direction: column; gap: 0.3rem;"></div>
+        `;
+
+        aeSection.querySelector('.cb-dynamic-array')?.addEventListener('change', (e) => {
+          p.isDynamicArray = e.target.checked;
+          this.saveAndAudit();
+          this.renderPowersTab(auditCharacter(this.char));
+        });
+
+        const aeContainer = aeSection.querySelector('.ae-items-container');
+        (p.alternateEffects || []).forEach((ae, aeIdx) => {
+          const aeRow = document.createElement('div');
+          aeRow.style.cssText = 'display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.2); padding: 0.3rem 0.5rem; border-radius: 4px;';
+          aeRow.innerHTML = `
+            <div style="display: flex; align-items: center; gap: 0.5rem; flex: 1;">
+              <span class="badge-tag ${ae.isDynamic ? 'dynamic' : 'ae'}">${ae.isDynamic ? 'Dynamic (2 PP)' : 'Standard (1 PP)'}</span>
+              <input type="text" class="input-ae-name" value="${ae.name || 'Alternate Power'}" style="flex: 1; padding: 0.2rem 0.4rem; font-size: var(--font-size-xs);">
+            </div>
+            <div style="margin-left: 0.5rem;">
+              <button class="btn btn-danger btn-delete-ae" style="padding: 0.1rem 0.35rem; min-height: 24px; font-size: 0.68rem;">🗑️</button>
+            </div>
+          `;
+
+          aeRow.querySelector('.input-ae-name')?.addEventListener('input', (e) => {
+            ae.name = e.target.value;
+            this.saveAndAudit();
+          });
+          aeRow.querySelector('.btn-delete-ae')?.addEventListener('click', () => {
+            p.alternateEffects.splice(aeIdx, 1);
+            this.saveAndAudit();
+            this.renderPowersTab(auditCharacter(this.char));
+          });
+
+          aeContainer.appendChild(aeRow);
+        });
+
+        aeSection.querySelector('.btn-add-standard-ae')?.addEventListener('click', () => {
+          if (!p.alternateEffects) p.alternateEffects = [];
+          p.alternateEffects.push({
+            id: 'ae_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
+            name: `${p.name} (Alt Form)`,
+            isDynamic: false,
+            rank: p.rank
+          });
+          this.saveAndAudit();
+          this.renderPowersTab(auditCharacter(this.char));
+        });
+
+        aeSection.querySelector('.btn-add-dynamic-ae')?.addEventListener('click', () => {
+          if (!p.alternateEffects) p.alternateEffects = [];
+          p.alternateEffects.push({
+            id: 'ae_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
+            name: `${p.name} (Dynamic Alt)`,
+            isDynamic: true,
+            rank: p.rank
+          });
+          p.isDynamicArray = true;
+          this.saveAndAudit();
+          this.renderPowersTab(auditCharacter(this.char));
+        });
+
+        body.appendChild(aeSection);
+
+        // Row 5: Linked Powers
+        const linkedSection = document.createElement('div');
+        linkedSection.className = 'power-section-box';
+        linkedSection.innerHTML = `
+          <div class="power-section-header">
+            <div>
+              <strong style="color: var(--hero-purple); font-size: var(--font-size-xs);">🔗 Linked Powers (Simultaneous Actions)</strong>
+              <span style="font-size: 0.7rem; color: var(--text-muted); margin-left: 0.5rem;">Shares action (${p.action}), range (${rd.effectiveRange}), and duration (${rd.effectiveDuration}). Costs sum together.</span>
+            </div>
+            <button class="btn btn-outline btn-add-linked-effect" style="font-size: 0.7rem; min-height: 26px; padding: 0.1rem 0.45rem;">➕ Add Linked Effect</button>
+          </div>
+          <div class="linked-items-container" style="display: flex; flex-direction: column; gap: 0.35rem;"></div>
+        `;
+
+        const linkedContainer = linkedSection.querySelector('.linked-items-container');
+        (p.linkedEffects || []).forEach((le, leIdx) => {
+          const leCost = calculatePowerCost({ ...le, alternateEffects: [], linkedEffects: [] });
+          const leRow = document.createElement('div');
+          leRow.style.cssText = 'display: grid; grid-template-columns: 2fr 2fr 100px 70px 40px; gap: 0.4rem; align-items: center; background: rgba(0,0,0,0.2); padding: 0.3rem 0.5rem; border-radius: 4px;';
+          leRow.innerHTML = `
+            <div>
+              <input type="text" class="input-le-name" value="${le.name || 'Linked Effect'}" placeholder="Linked Effect Name" style="width: 100%; font-size: var(--font-size-xs); padding: 0.2rem 0.4rem;">
+            </div>
+            <div>
+              <select class="select-le-effect" style="width: 100%; font-size: var(--font-size-xs);">
+                ${POWER_EFFECTS_CATALOG.map(e => `<option value="${e.id}" ${le.effect?.id === e.id ? 'selected' : ''}>${e.name} (${e.baseCost} PP/rank)</option>`).join('')}
+              </select>
+            </div>
+            <div class="stepper-control">
+              <button class="btn-stepper compact btn-le-minus">-</button>
+              <span class="stepper-value compact">${le.rank || 1}</span>
+              <button class="btn-stepper compact btn-le-plus">+</button>
+            </div>
+            <div style="font-weight: 800; color: var(--hero-purple); font-size: var(--font-size-xs); text-align: right;">
+              +${leCost} PP
+            </div>
+            <div style="text-align: right;">
+              <button class="btn btn-danger btn-delete-le" style="padding: 0.1rem 0.35rem; min-height: 24px; font-size: 0.68rem;">🗑️</button>
+            </div>
+          `;
+
+          leRow.querySelector('.input-le-name')?.addEventListener('input', (e) => {
+            le.name = e.target.value;
+            this.saveAndAudit();
+          });
+          leRow.querySelector('.select-le-effect')?.addEventListener('change', (e) => {
+            le.effect = POWER_EFFECTS_CATALOG.find(eff => eff.id === e.target.value) || POWER_EFFECTS_CATALOG[0];
+            this.saveAndAudit();
+            this.renderPowersTab(auditCharacter(this.char));
+          });
+          leRow.querySelector('.btn-le-minus')?.addEventListener('click', () => {
+            le.rank = Math.max(1, (parseInt(le.rank, 10) || 1) - 1);
+            this.saveAndAudit();
+            this.renderPowersTab(auditCharacter(this.char));
+          });
+          leRow.querySelector('.btn-le-plus')?.addEventListener('click', () => {
+            le.rank = (parseInt(le.rank, 10) || 1) + 1;
+            this.saveAndAudit();
+            this.renderPowersTab(auditCharacter(this.char));
+          });
+          leRow.querySelector('.btn-delete-le')?.addEventListener('click', () => {
+            p.linkedEffects.splice(leIdx, 1);
+            this.saveAndAudit();
+            this.renderPowersTab(auditCharacter(this.char));
+          });
+
+          linkedContainer.appendChild(leRow);
+        });
+
+        linkedSection.querySelector('.btn-add-linked-effect')?.addEventListener('click', () => {
+          if (!p.linkedEffects) p.linkedEffects = [];
+          const affEff = POWER_EFFECTS_CATALOG.find(e => e.id === 'affliction') || POWER_EFFECTS_CATALOG[0];
+          p.linkedEffects.push({
+            id: 'le_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
+            name: 'Secondary Effect',
+            effect: affEff,
+            rank: p.rank || 10,
+            action: p.action,
+            range: rd.effectiveRange,
+            duration: rd.effectiveDuration,
+            extras: [],
+            flaws: []
+          });
+          this.saveAndAudit();
+          this.renderPowersTab(auditCharacter(this.char));
+        });
+
+        body.appendChild(linkedSection);
+
+        // Row 6: Notes & Collapse Bar
+        const footerBar = document.createElement('div');
+        footerBar.style.cssText = 'display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-color); padding-top: 0.65rem;';
+        footerBar.innerHTML = `
+          <div style="flex: 1; margin-right: 1rem;">
+            <input type="text" class="input-power-notes" value="${p.notes || ''}" placeholder="Power Notes & Mechanics (e.g. DC, special conditions)" style="width: 100%; font-size: var(--font-size-xs);">
+          </div>
+          <div style="display: flex; align-items: center; gap: 0.75rem;">
+            <div style="font-weight: 900; color: var(--hero-gold); font-size: var(--font-size-md);">
+              Total: ${cost} PP
+            </div>
+            <button class="btn btn-outline btn-collapse-card" style="font-size: var(--font-size-xs); min-height: 30px;">
+              ▲ Collapse Card
+            </button>
+          </div>
+        `;
+
+        footerBar.querySelector('.input-power-notes')?.addEventListener('input', (e) => {
+          p.notes = e.target.value;
+          this.saveAndAudit();
+        });
+        footerBar.querySelector('.btn-collapse-card')?.addEventListener('click', () => {
+          this.expandedPowerIds.delete(p.id);
+          this.renderPowersTab(auditCharacter(this.char));
+        });
+
+        body.appendChild(footerBar);
+        card.appendChild(body);
+      }
 
       list.appendChild(card);
     });

@@ -6,8 +6,8 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Mutants & Masterminds 3E - Character Architect v3.4</title>
-  <link rel="stylesheet" href="css/styles.css?v=3.4">
+  <title>Mutants & Masterminds 3E - Character Architect v3.5</title>
+  <link rel="stylesheet" href="css/styles.css?v=3.5">
 </head>
 <body>
 
@@ -94,7 +94,7 @@
           </div>
 
           <div class="brand-label-compact">
-            M&M 3E Character Editor v3.4
+            M&M 3E Character Editor v3.5
           </div>
         </div>
 
@@ -1079,23 +1079,16 @@
             </select>
           </div>
           <div>
-            <label style="font-size: var(--font-size-xs); font-weight: 700; color: var(--text-muted);">Range</label>
-            <select id="builder-range" style="width: 100%;">
-              <option value="Personal">Personal</option>
-              <option value="Close">Close</option>
-              <option value="Ranged">Ranged</option>
-              <option value="Perception">Perception</option>
-            </select>
+            <label style="font-size: var(--font-size-xs); font-weight: 700; color: var(--text-muted);">Range (Derived from 3E Modifiers)</label>
+            <div id="builder-derived-range" style="width: 100%; min-height: 38px; display: flex; align-items: center; padding: 0.35rem 0.65rem; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-sm); font-size: var(--font-size-sm); font-weight: 700; color: var(--hero-cyan);">
+              Close
+            </div>
           </div>
           <div>
-            <label style="font-size: var(--font-size-xs); font-weight: 700; color: var(--text-muted);">Duration</label>
-            <select id="builder-duration" style="width: 100%;">
-              <option value="Instant">Instant</option>
-              <option value="Concentration">Concentration</option>
-              <option value="Sustained">Sustained</option>
-              <option value="Continuous">Continuous</option>
-              <option value="Permanent">Permanent</option>
-            </select>
+            <label style="font-size: var(--font-size-xs); font-weight: 700; color: var(--text-muted);">Duration (Derived from 3E Modifiers)</label>
+            <div id="builder-derived-duration" style="width: 100%; min-height: 38px; display: flex; align-items: center; padding: 0.35rem 0.65rem; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-sm); font-size: var(--font-size-sm); font-weight: 700; color: var(--hero-gold);">
+              Instant
+            </div>
           </div>
         </div>
 
@@ -1168,6 +1161,6 @@
     </div>
   </div>
 
-  <script type="module" src="js/app.js?v=3.4"></script>
+  <script type="module" src="js/app.js?v=3.5"></script>
 </body>
 </html>

@@ -1034,9 +1034,152 @@ export function computePowerEffectiveStats(effect, extras = [], flaws = [], acti
   };
 }
 
+export function isModifierLegalForEffect(modifier, effect, extras = [], flaws = []) {
+  const extraIds = new Set((extras || []).map(e => e.id));
+  const flawIds = new Set((flaws || []).map(f => f.id));
+  const baseRange = effect?.range || 'Personal';
+  const effId = effect?.id || '';
+
+  // 1. Single instance rule: cannot add multiple instances of the same modifier
+  if (extraIds.has(modifier.id) || flawIds.has(modifier.id)) {
+    return { legal: false, reason: 'Already added (adjust ranks instead)' };
+  }
+
+  // 2. Removable / Easily Removable exclusivity
+  if (modifier.id === 'removable' && flawIds.has('easily_removable')) {
+    return { legal: false, reason: 'Incompatible with Easily Removable' };
+  }
+  if (modifier.id === 'easily_removable' && flawIds.has('removable')) {
+    return { legal: false, reason: 'Incompatible with Removable' };
+  }
+
+  // 3. Activation exclusivity
+  if (modifier.id === 'activation_move' && flawIds.has('activation_standard')) {
+    return { legal: false, reason: 'Incompatible with Standard Action Activation' };
+  }
+  if (modifier.id === 'activation_standard' && flawIds.has('activation_move')) {
+    return { legal: false, reason: 'Incompatible with Move Action Activation' };
+  }
+
+  // 4. Increased Range vs Reduced Range
+  if (modifier.id === 'increased_range' && flawIds.has('reduced_range')) {
+    return { legal: false, reason: 'Incompatible with Reduced Range' };
+  }
+  if (modifier.id === 'reduced_range' && extraIds.has('increased_range')) {
+    return { legal: false, reason: 'Incompatible with Increased Range' };
+  }
+
+  // 5. Range-specific constraints
+  if (modifier.id === 'increased_range') {
+    if (baseRange === 'Perception') return { legal: false, reason: 'Perception is already maximum range' };
+    if (baseRange === 'Personal' && !extraIds.has('affects_others') && !extraIds.has('attack')) {
+      return { legal: false, reason: 'Requires Affects Others or Attack first' };
+    }
+  }
+
+  if (modifier.id === 'reduced_range') {
+    if (baseRange === 'Personal' || baseRange === 'Close') {
+      return { legal: false, reason: 'Cannot reduce Close or Personal range' };
+    }
+  }
+
+  if (modifier.id === 'diminished_range') {
+    if (baseRange !== 'Ranged' && !extraIds.has('increased_range')) {
+      return { legal: false, reason: 'Only applies to Ranged powers' };
+    }
+  }
+
+  if (modifier.id === 'reach') {
+    if (baseRange !== 'Close') return { legal: false, reason: 'Reach only applies to Close range' };
+  }
+
+  if (modifier.id === 'grab_based') {
+    if (baseRange !== 'Close' && !flawIds.has('reduced_range')) {
+      return { legal: false, reason: 'Grab-Based requires Close range' };
+    }
+  }
+
+  // 6. Area constraints
+  if (modifier.id?.startsWith('area_') || modifier.id === 'area') {
+    if (baseRange === 'Personal' && !extraIds.has('affects_others') && !extraIds.has('attack')) {
+      return { legal: false, reason: 'Personal powers require Affects Others or Attack first' };
+    }
+    const hasOtherArea = Array.from(extraIds).some(id => id.startsWith('area_') && id !== modifier.id);
+    if (hasOtherArea) {
+      return { legal: false, reason: 'Cannot combine multiple Area shapes' };
+    }
+  }
+
+  if (modifier.id === 'selective') {
+    const hasArea = Array.from(extraIds).some(id => id.startsWith('area_'));
+    if (!hasArea) return { legal: false, reason: 'Requires an Area modifier' };
+  }
+
+  // 7. Duration constraints
+  if (modifier.id === 'concentration') {
+    if (extraIds.has('sustained') || extraIds.has('continuous') || extraIds.has('increased_duration')) {
+      return { legal: false, reason: 'Incompatible with Sustained/Continuous' };
+    }
+  }
+  if (modifier.id === 'sustained' || modifier.id === 'continuous' || modifier.id === 'increased_duration') {
+    if (flawIds.has('concentration')) {
+      return { legal: false, reason: 'Incompatible with Concentration flaw' };
+    }
+  }
+
+  // 8. Effect-specific constraints
+  if (modifier.id === 'penetrating') {
+    if (!['damage', 'blast'].includes(effId) && !effect?.isAttack) {
+      return { legal: false, reason: 'Only applies to Damage effects' };
+    }
+  }
+
+  if (modifier.id === 'cumulative') {
+    if (!['affliction', 'weaken', 'nullify'].includes(effId)) {
+      return { legal: false, reason: 'Only applies to Affliction, Weaken, or Nullify' };
+    }
+    if (extraIds.has('progressive')) {
+      return { legal: false, reason: 'Progressive already includes Cumulative' };
+    }
+  }
+
+  if (modifier.id === 'progressive') {
+    if (!['affliction', 'weaken'].includes(effId)) {
+      return { legal: false, reason: 'Only applies to Affliction or Weaken' };
+    }
+  }
+
+  if (modifier.id === 'affects_others' || modifier.id === 'attack') {
+    if (baseRange !== 'Personal') {
+      return { legal: false, reason: 'Only applies to Personal range powers' };
+    }
+  }
+
+  return { legal: true };
+}
+
 export function validateModifierLegality(effect, extras = [], flaws = []) {
   const errors = [];
   const warnings = [];
+
+  // Check for duplicate modifier instances
+  const seenExtras = new Set();
+  (extras || []).forEach(e => {
+    if (seenExtras.has(e.id)) {
+      const def = EXTRAS_CATALOG.find(x => x.id === e.id) || e;
+      errors.push(`Multiple instances of "${def.name}" detected. Adjust ranks on the existing modifier instead.`);
+    }
+    seenExtras.add(e.id);
+  });
+
+  const seenFlaws = new Set();
+  (flaws || []).forEach(f => {
+    if (seenFlaws.has(f.id)) {
+      const def = FLAWS_CATALOG.find(x => x.id === f.id) || f;
+      errors.push(`Multiple instances of "${def.name}" detected. Adjust ranks on the existing modifier instead.`);
+    }
+    seenFlaws.add(f.id);
+  });
 
   const extraIds = new Set((extras || []).map(e => e.id));
   const flawIds = new Set((flaws || []).map(f => f.id));
@@ -1048,11 +1191,14 @@ export function validateModifierLegality(effect, extras = [], flaws = []) {
   if (flawIds.has('removable') && flawIds.has('easily_removable')) {
     errors.push('A power cannot be both Removable and Easily Removable.');
   }
+  if (flawIds.has('activation_move') && flawIds.has('activation_standard')) {
+    errors.push('Cannot combine Move Action and Standard Action Activation flaws.');
+  }
   if (flawIds.has('concentration') && (extraIds.has('sustained') || extraIds.has('continuous') || extraIds.has('increased_duration'))) {
     errors.push('Cannot combine Concentration flaw with Increased Duration, Sustained, or Continuous extras.');
   }
   if (extraIds.has('cumulative') && extraIds.has('progressive')) {
-    warnings.push('Progressive already incorporates Cumulative benefits; taking both is redundant.');
+    errors.push('Progressive already incorporates Cumulative; combining both is illegal.');
   }
 
   const baseRange = effect?.range || 'Personal';
@@ -1062,19 +1208,28 @@ export function validateModifierLegality(effect, extras = [], flaws = []) {
   if ((baseRange === 'Personal' || baseRange === 'Close') && flawIds.has('reduced_range')) {
     errors.push('Reduced Range cannot be applied to Personal or Close range effects.');
   }
+  if (baseRange === 'Perception' && extraIds.has('increased_range')) {
+    errors.push('Perception range is already the maximum range and cannot take Increased Range.');
+  }
   if (flawIds.has('grab_based') && baseRange !== 'Close' && !extraIds.has('attack') && !flawIds.has('reduced_range')) {
     errors.push('Grab-Based flaw requires Close range.');
   }
   if (flawIds.has('diminished_range') && baseRange !== 'Ranged' && !extraIds.has('increased_range')) {
-    warnings.push('Diminished Range only applies to Ranged effects.');
+    errors.push('Diminished Range only applies to Ranged attack effects.');
   }
   if (extraIds.has('reach') && baseRange !== 'Close') {
-    warnings.push('Reach extra only applies to Close range effects.');
+    errors.push('Reach extra only applies to Close range effects.');
   }
 
-  const hasArea = Array.from(extraIds).some(id => id.startsWith('area_'));
-  if (extraIds.has('selective') && !hasArea) {
-    warnings.push('Selective extra is designed to differentiate targets within an Area effect.');
+  const areaExtras = (extras || []).filter(e => e.id?.startsWith('area_'));
+  if (areaExtras.length > 1) {
+    errors.push('Cannot combine multiple different Area shapes on the same effect.');
+  }
+  if (areaExtras.length > 0 && baseRange === 'Personal' && !extraIds.has('affects_others') && !extraIds.has('attack')) {
+    errors.push('Personal range powers must take Affects Others or Attack before applying Area.');
+  }
+  if (extraIds.has('selective') && areaExtras.length === 0) {
+    errors.push('Selective extra requires an Area modifier.');
   }
 
   // Attack checks
@@ -1082,7 +1237,16 @@ export function validateModifierLegality(effect, extras = [], flaws = []) {
     warnings.push('Multiattack is intended for attack effects.');
   }
   if (extraIds.has('penetrating') && effect?.id !== 'damage' && effect?.id !== 'blast') {
-    warnings.push('Penetrating is specifically designed to overcome Impervious on Damage effects.');
+    errors.push('Penetrating is specifically designed to overcome Impervious on Damage effects.');
+  }
+  if (extraIds.has('cumulative') && !['affliction', 'weaken', 'nullify'].includes(effect?.id)) {
+    errors.push('Cumulative only applies to Affliction, Weaken, or Nullify.');
+  }
+  if (extraIds.has('progressive') && !['affliction', 'weaken'].includes(effect?.id)) {
+    errors.push('Progressive only applies to Affliction or Weaken.');
+  }
+  if ((extraIds.has('affects_others') || extraIds.has('attack')) && baseRange !== 'Personal') {
+    errors.push('Affects Others and Attack extras only apply to Personal range effects.');
   }
 
   // Rank limits

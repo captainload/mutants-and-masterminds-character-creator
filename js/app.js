@@ -24,7 +24,8 @@ import {
   getTraitDefinition,
   computePowerRangeAndDuration,
   computePowerEffectiveStats,
-  validateModifierLegality
+  validateModifierLegality,
+  isModifierLegalForEffect
 } from './rules.js';
 
 import {
@@ -970,7 +971,7 @@ class AppController {
   }
 
   async checkForUpdates({ isManual = false } = {}) {
-    const CURRENT_VERSION = '3.12';
+    const CURRENT_VERSION = '3.13';
     if (typeof window === 'undefined' || !window.location || !window.location.href || window.location.href === 'about:blank') return;
     try {
       const url = new URL('version.json', window.location.href);
@@ -3907,22 +3908,28 @@ class AppController {
         const body = document.createElement('div');
         body.className = 'power-card-body';
 
-        // Row 1: Core Configuration (Power Name, Descriptors, Base Effect, Rank Stepper, Cost)
+        // Row 1: Core Configuration (Power Name, Descriptors, Base Effect, Action, Rank Stepper, Cost)
         const row1 = document.createElement('div');
-        row1.style.cssText = 'display: grid; grid-template-columns: 2fr 1.6fr 1.8fr 120px 80px; gap: 0.65rem; align-items: end;';
+        row1.style.cssText = 'display: grid; grid-template-columns: 2fr 1.3fr 1.6fr 115px 110px 75px; gap: 0.65rem; align-items: end;';
         row1.innerHTML = `
           <div>
             <label class="field-label">Power Name</label>
-            <input type="text" class="input-power-name" value="${p.name || ''}" placeholder="e.g. Plasma Ray, Force Field" style="width: 100%;">
+            <input type="text" class="input-power-name" value="${p.name || ''}" placeholder="e.g. Plasma Ray, Force Field" style="width: 100%; font-size: var(--font-size-base); min-height: 34px;">
           </div>
           <div>
             <label class="field-label">Descriptors</label>
-            <input type="text" class="input-power-desc" value="${p.descriptor || ''}" placeholder="e.g. Fire, Energy, Technology" style="width: 100%;">
+            <input type="text" class="input-power-desc" value="${p.descriptor || ''}" placeholder="e.g. Fire, Energy, Technology" style="width: 100%; font-size: var(--font-size-base); min-height: 34px;">
           </div>
           <div>
             <label class="field-label">Base Effect</label>
-            <select class="select-power-effect" style="width: 100%;">
+            <select class="select-power-effect" style="width: 100%; font-size: var(--font-size-base); min-height: 34px;">
               ${POWER_EFFECTS_CATALOG.map(e => `<option value="${e.id}" ${p.effect?.id === e.id ? 'selected' : ''}>${e.name} (${e.baseCost} PP/rk)</option>`).join('')}
+            </select>
+          </div>
+          <div>
+            <label class="field-label">Action</label>
+            <select class="select-power-action" style="width: 100%; font-size: var(--font-size-base); min-height: 34px;">
+              ${['Standard', 'Move', 'Free', 'Reaction', 'None'].map(act => `<option value="${act}" ${(p.action || effStats.action) === act ? 'selected' : ''}>${act}</option>`).join('')}
             </select>
           </div>
           <div>
@@ -3954,6 +3961,11 @@ class AppController {
           this.saveAndAudit();
           this.renderPowersTab(auditCharacter(this.char));
         });
+        row1.querySelector('.select-power-action')?.addEventListener('change', (e) => {
+          p.action = e.target.value;
+          this.saveAndAudit();
+          this.renderPowersTab(auditCharacter(this.char));
+        });
         row1.querySelector('.btn-p-rank-minus')?.addEventListener('click', () => {
           p.rank = Math.max(1, (parseInt(p.rank, 10) || 1) - 1);
           this.saveAndAudit();
@@ -3966,66 +3978,24 @@ class AppController {
         });
         body.appendChild(row1);
 
-        // Row 2: Unified Effective Stats Block (Action, Range, Duration, Area) Together in a Compact Block
+        // Row 2: Final Effect Stats Summary Bar (Action, Range, Duration, Area)
         const row2 = document.createElement('div');
-        row2.className = 'power-effective-stats-bar';
+        row2.className = 'power-stats-summary-bar power-effective-stats-bar';
         row2.innerHTML = `
-          <!-- Action Chip -->
-          <div class="effective-stat-chip stat-action">
-            <div class="effective-stat-header">
-              <span class="effective-stat-label">ACTION</span>
-              <span class="effective-stat-badge">3E Action</span>
-            </div>
-            <div class="effective-stat-content">
-              <select class="select-power-action effective-stat-dropdown" title="Effective action required to activate or use">
-                ${['Standard', 'Move', 'Free', 'Reaction', 'None'].map(act => `<option value="${act}" ${effStats.action === act ? 'selected' : ''}>${act}</option>`).join('')}
-              </select>
-            </div>
-            <div class="effective-stat-subnote" title="Base: ${effStats.baseAction}">Base: ${effStats.baseAction}</div>
+          <div class="stats-summary-left">
+            <span class="stats-summary-title">⚡ EFFECT STATS SUMMARY:</span>
+            <span class="stat-item effective-stat-chip stat-action"><span class="stat-lbl effective-stat-label">Action:</span> <strong class="stat-val effective-stat-val text-gold">${effStats.action}</strong></span>
+            <span class="stat-sep">•</span>
+            <span class="stat-item effective-stat-chip stat-range"><span class="stat-lbl effective-stat-label">Range:</span> <strong class="stat-val effective-stat-val text-gold">${effStats.effectiveRange}</strong></span>
+            <span class="stat-sep">•</span>
+            <span class="stat-item effective-stat-chip stat-duration"><span class="stat-lbl effective-stat-label">Duration:</span> <strong class="stat-val effective-stat-val text-gold">${effStats.effectiveDuration}</strong></span>
+            <span class="stat-sep">•</span>
+            <span class="stat-item effective-stat-chip stat-area"><span class="stat-lbl effective-stat-label">Area:</span> <strong class="stat-val effective-stat-val text-gold">${effStats.area}</strong></span>
           </div>
-
-          <!-- Range Chip -->
-          <div class="effective-stat-chip stat-range">
-            <div class="effective-stat-header">
-              <span class="effective-stat-label">RANGE</span>
-              <span class="effective-stat-badge">Derived</span>
-            </div>
-            <div class="effective-stat-content">
-              <strong class="effective-stat-val text-gold">${effStats.effectiveRange}</strong>
-            </div>
-            <div class="effective-stat-subnote" title="${effStats.rangeNotes || 'Base: ' + effStats.baseRange}">${effStats.rangeNotes || 'Base: ' + effStats.baseRange}</div>
-          </div>
-
-          <!-- Duration Chip -->
-          <div class="effective-stat-chip stat-duration">
-            <div class="effective-stat-header">
-              <span class="effective-stat-label">DURATION</span>
-              <span class="effective-stat-badge">Derived</span>
-            </div>
-            <div class="effective-stat-content">
-              <strong class="effective-stat-val text-gold">${effStats.effectiveDuration}</strong>
-            </div>
-            <div class="effective-stat-subnote" title="${effStats.durationNotes || 'Base: ' + effStats.baseDuration}">${effStats.durationNotes || 'Base: ' + effStats.baseDuration}</div>
-          </div>
-
-          <!-- Area Chip -->
-          <div class="effective-stat-chip stat-area">
-            <div class="effective-stat-header">
-              <span class="effective-stat-label">AREA</span>
-              <span class="effective-stat-badge">${effStats.area !== 'Single Target' && effStats.area !== 'Personal' ? '3E Area' : 'Target'}</span>
-            </div>
-            <div class="effective-stat-content">
-              <strong class="effective-stat-val text-gold">${effStats.area}</strong>
-            </div>
-            <div class="effective-stat-subnote" title="${effStats.areaNotes || (effStats.area === 'Personal' ? 'Self Only' : 'Single Target')}">${effStats.areaNotes || (effStats.area === 'Personal' ? 'Self Only' : 'Single Target')}</div>
+          <div class="stats-summary-notes">
+            ${[effStats.rangeNotes, effStats.durationNotes, effStats.areaNotes].filter(Boolean).join(' | ') || 'Standard Parameters'}
           </div>
         `;
-
-        row2.querySelector('.select-power-action')?.addEventListener('change', (e) => {
-          p.action = e.target.value;
-          this.saveAndAudit();
-          this.renderPowersTab(auditCharacter(this.char));
-        });
         body.appendChild(row2);
 
         // Power Effect Specific Configuration (Affliction, Immunity, Senses, Weaken, Nullify)
@@ -4064,17 +4034,26 @@ class AppController {
         // --- Extras Column ---
         const extrasCol = document.createElement('div');
         extrasCol.className = 'power-section-box';
+
+        const activeExtraIds = new Set((p.extras || []).map(e => e.id));
+        const legalExtras = EXTRAS_CATALOG.filter(ex => {
+          if (activeExtraIds.has(ex.id)) return false; // Prevent multiple instances of same modifier
+          return isModifierLegalForEffect(ex, p.effect, p.extras, p.flaws).legal;
+        });
+
         extrasCol.innerHTML = `
           <div class="power-section-header">
-            <span style="font-weight: 800; font-size: var(--font-size-xs); color: var(--hero-blue);">➕ Extras (★ = Unique Modifier)</span>
+            <span style="font-weight: 800; font-size: var(--font-size-base); color: var(--hero-blue);">➕ Extras (★ = Unique Modifier)</span>
           </div>
-          <div style="display: flex; gap: 0.35rem; margin-bottom: 0.45rem;">
-            <select class="select-add-extra" style="flex: 1; font-size: var(--font-size-xs);">
-              ${EXTRAS_CATALOG.map(ex => `<option value="${ex.id}">${ex.name} (${ex.isFlat ? `+${ex.cost} flat` : `+${ex.cost}/rank`})</option>`).join('')}
+          <div style="display: flex; gap: 0.45rem; margin-bottom: 0.5rem;">
+            <select class="select-add-extra" style="flex: 1; font-size: var(--font-size-sm); min-height: 32px;">
+              ${legalExtras.length === 0
+                ? '<option value="" disabled selected>No additional legal extras available</option>'
+                : '<option value="" disabled selected>Select extra to add...</option>' + legalExtras.map(ex => `<option value="${ex.id}">${ex.name} (${ex.isFlat ? `+${ex.cost} flat` : `+${ex.cost}/rank`})</option>`).join('')}
             </select>
-            <button class="btn btn-outline btn-add-extra" style="font-size: var(--font-size-xs); min-height: 28px; padding: 0.15rem 0.5rem; white-space: nowrap; border-color: var(--hero-blue); color: #fff;">+ Add Extra</button>
+            <button class="btn btn-outline btn-add-extra" style="font-size: var(--font-size-sm); min-height: 32px; padding: 0.2rem 0.65rem; white-space: nowrap; border-color: var(--hero-blue); color: #fff;" ${legalExtras.length === 0 ? 'disabled' : ''}>+ Add Extra</button>
           </div>
-          <div class="extras-items-container" style="display: flex; flex-direction: column; gap: 0.35rem;"></div>
+          <div class="extras-items-container" style="display: flex; flex-direction: column; gap: 0.4rem;"></div>
         `;
 
         const extrasContainer = extrasCol.querySelector('.extras-items-container');
@@ -4085,17 +4064,17 @@ class AppController {
           const minR = exDef.minRank || 1;
 
           const exRow = document.createElement('div');
-          exRow.style.cssText = 'display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.2); padding: 0.3rem 0.5rem; border-radius: 4px; border: 1px solid rgba(255,255,255,0.05);';
+          exRow.style.cssText = 'display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.25); padding: 0.4rem 0.65rem; border-radius: 4px; border: 1px solid rgba(255,255,255,0.08);';
           exRow.innerHTML = `
             <div style="flex: 1;">
-              <span style="font-size: var(--font-size-xs); font-weight: 700; color: ${exDef.isUnique ? 'var(--hero-gold)' : 'var(--text-bright)'};">
+              <span style="font-size: var(--font-size-base); font-weight: 700; color: ${exDef.isUnique ? 'var(--hero-gold)' : 'var(--text-bright)'};">
                 ${exDef.name}
               </span>
-              <span style="font-size: var(--font-size-xs); color: var(--text-muted); margin-left: 0.35rem;">
+              <span style="font-size: var(--font-size-sm); color: var(--text-muted); margin-left: 0.45rem;">
                 ${exDef.isFlat ? `(+${exDef.cost} flat)` : `(+${exDef.cost}/rank)`}
               </span>
             </div>
-            <div style="display: flex; align-items: center; gap: 0.4rem;">
+            <div style="display: flex; align-items: center; gap: 0.45rem;">
               ${exDef.isRanked ? `
                 <div class="stepper-control">
                   <button class="btn-stepper compact btn-ex-minus" ${r <= minR ? 'disabled' : ''}>-</button>
@@ -4103,7 +4082,7 @@ class AppController {
                   <button class="btn-stepper compact btn-ex-plus" ${r >= maxR ? 'disabled' : ''}>+</button>
                 </div>
               ` : ''}
-              <button class="btn btn-outline btn-remove-extra" style="padding: 0.1rem 0.35rem; min-height: 24px; font-size: var(--font-size-xs);">✕</button>
+              <button class="btn btn-outline btn-remove-extra" style="padding: 0.15rem 0.45rem; min-height: 28px; font-size: var(--font-size-sm); color: #fff; border-color: rgba(255,255,255,0.25);" title="Remove extra">✕</button>
             </div>
           `;
 
@@ -4128,6 +4107,7 @@ class AppController {
 
         extrasCol.querySelector('.btn-add-extra')?.addEventListener('click', () => {
           const selectedId = extrasCol.querySelector('.select-add-extra').value;
+          if (!selectedId) return;
           const exDef = EXTRAS_CATALOG.find(e => e.id === selectedId);
           if (!exDef) return;
 
@@ -4137,6 +4117,14 @@ class AppController {
           }
 
           if (!p.extras) p.extras = [];
+          if (p.extras.some(e => e.id === selectedId)) return; // Prevent duplicate
+
+          const legality = isModifierLegalForEffect(exDef, p.effect, p.extras, p.flaws);
+          if (!legality.legal) {
+            this.showAlertDialog(`Cannot add ${exDef.name}: ${legality.reason}`, { title: 'Illegal Modifier Combination' });
+            return;
+          }
+
           p.extras.push({
             id: exDef.id,
             name: exDef.name,
@@ -4152,17 +4140,26 @@ class AppController {
         // --- Flaws Column ---
         const flawsCol = document.createElement('div');
         flawsCol.className = 'power-section-box';
+
+        const activeFlawIds = new Set((p.flaws || []).map(f => f.id));
+        const legalFlaws = FLAWS_CATALOG.filter(fl => {
+          if (activeFlawIds.has(fl.id)) return false; // Prevent multiple instances of same modifier
+          return isModifierLegalForEffect(fl, p.effect, p.extras, p.flaws).legal;
+        });
+
         flawsCol.innerHTML = `
           <div class="power-section-header">
-            <span style="font-weight: 800; font-size: var(--font-size-xs); color: var(--hero-blue);">➖ Flaws & Devices (★ = Unique Modifier)</span>
+            <span style="font-weight: 800; font-size: var(--font-size-base); color: var(--hero-blue);">➖ Flaws (★ = Unique Modifier)</span>
           </div>
-          <div style="display: flex; gap: 0.35rem; margin-bottom: 0.45rem;">
-            <select class="select-add-flaw" style="flex: 1; font-size: var(--font-size-xs);">
-              ${FLAWS_CATALOG.map(fl => `<option value="${fl.id}">${fl.name} (${fl.isDevice ? `Device -${fl.discountPer5}/5` : fl.isFlat ? `-${fl.cost} flat` : `-${fl.cost}/rank`})</option>`).join('')}
+          <div style="display: flex; gap: 0.45rem; margin-bottom: 0.5rem;">
+            <select class="select-add-flaw" style="flex: 1; font-size: var(--font-size-sm); min-height: 32px;">
+              ${legalFlaws.length === 0
+                ? '<option value="" disabled selected>No additional legal flaws available</option>'
+                : '<option value="" disabled selected>Select flaw to add...</option>' + legalFlaws.map(fl => `<option value="${fl.id}">${fl.name} (${fl.isDevice ? `Device -${fl.discountPer5}/5` : fl.isFlat ? `-${fl.cost} flat` : `-${fl.cost}/rank`})</option>`).join('')}
             </select>
-            <button class="btn btn-outline btn-add-flaw" style="font-size: var(--font-size-xs); min-height: 28px; padding: 0.15rem 0.5rem; white-space: nowrap; border-color: var(--hero-blue); color: #fff;">+ Add Flaw</button>
+            <button class="btn btn-outline btn-add-flaw" style="font-size: var(--font-size-sm); min-height: 32px; padding: 0.2rem 0.65rem; white-space: nowrap; border-color: var(--hero-blue); color: #fff;" ${legalFlaws.length === 0 ? 'disabled' : ''}>+ Add Flaw</button>
           </div>
-          <div class="flaws-items-container" style="display: flex; flex-direction: column; gap: 0.35rem;"></div>
+          <div class="flaws-items-container" style="display: flex; flex-direction: column; gap: 0.4rem;"></div>
         `;
 
         const flawsContainer = flawsCol.querySelector('.flaws-items-container');
@@ -4173,17 +4170,17 @@ class AppController {
           const minR = flDef.minRank || 1;
 
           const flRow = document.createElement('div');
-          flRow.style.cssText = 'display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.2); padding: 0.3rem 0.5rem; border-radius: 4px; border: 1px solid rgba(255,255,255,0.05);';
+          flRow.style.cssText = 'display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.25); padding: 0.4rem 0.65rem; border-radius: 4px; border: 1px solid rgba(255,255,255,0.08);';
           flRow.innerHTML = `
             <div style="flex: 1;">
-              <span style="font-size: var(--font-size-xs); font-weight: 700; color: ${flDef.isUnique ? 'var(--hero-gold)' : 'var(--text-bright)'};">
+              <span style="font-size: var(--font-size-base); font-weight: 700; color: ${flDef.isUnique ? 'var(--hero-gold)' : 'var(--text-bright)'};">
                 ${flDef.name}
               </span>
-              <span style="font-size: var(--font-size-xs); color: var(--text-muted); margin-left: 0.35rem;">
+              <span style="font-size: var(--font-size-sm); color: var(--text-muted); margin-left: 0.45rem;">
                 ${flDef.isDevice ? `(Device -${flDef.discountPer5}/5 PP)` : flDef.isFlat ? `(-${flDef.cost} flat)` : `(-${flDef.cost}/rank)`}
               </span>
             </div>
-            <div style="display: flex; align-items: center; gap: 0.4rem;">
+            <div style="display: flex; align-items: center; gap: 0.45rem;">
               ${flDef.isRanked ? `
                 <div class="stepper-control">
                   <button class="btn-stepper compact btn-fl-minus" ${r <= minR ? 'disabled' : ''}>-</button>
@@ -4191,7 +4188,7 @@ class AppController {
                   <button class="btn-stepper compact btn-fl-plus" ${r >= maxR ? 'disabled' : ''}>+</button>
                 </div>
               ` : ''}
-              <button class="btn btn-outline btn-remove-flaw" style="padding: 0.1rem 0.35rem; min-height: 24px; font-size: var(--font-size-xs);">✕</button>
+              <button class="btn btn-outline btn-remove-flaw" style="padding: 0.15rem 0.45rem; min-height: 28px; font-size: var(--font-size-sm); color: #fff; border-color: rgba(255,255,255,0.25);" title="Remove flaw">✕</button>
             </div>
           `;
 
@@ -4216,8 +4213,19 @@ class AppController {
 
         flawsCol.querySelector('.btn-add-flaw')?.addEventListener('click', () => {
           const selectedId = flawsCol.querySelector('.select-add-flaw').value;
+          if (!selectedId) return;
           const flDef = FLAWS_CATALOG.find(f => f.id === selectedId);
+          if (!flDef) return;
+
           if (!p.flaws) p.flaws = [];
+          if (p.flaws.some(f => f.id === selectedId)) return; // Prevent duplicate
+
+          const legality = isModifierLegalForEffect(flDef, p.effect, p.extras, p.flaws);
+          if (!legality.legal) {
+            this.showAlertDialog(`Cannot add ${flDef.name}: ${legality.reason}`, { title: 'Illegal Modifier Combination' });
+            return;
+          }
+
           p.flaws.push({
             id: flDef.id,
             name: flDef.name,

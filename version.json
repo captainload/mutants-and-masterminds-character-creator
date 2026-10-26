@@ -1,5 +1,5 @@
 {
-  "version": "3.12",
-  "updatedAt": "2026-10-26T17:55:00Z",
-  "releaseNotes": "Standardized text colors by semantic hierarchy level across power effect stats, section headings, and category controls so elements of the same level share identical styling for intuitive visual scanning."
+  "version": "3.13",
+  "updatedAt": "2026-10-26T18:40:00Z",
+  "releaseNotes": "Expanded typography scale across the application for high readability, unified effect stats into a single horizontal summary bar, enforced single-instance modifier rules, added illegal modifier combination validation, and cleaned flaw/device labeling."
 }

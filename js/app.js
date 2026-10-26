@@ -76,7 +76,9 @@ class AppController {
     this.setupGearAndHQ();
     this.setupHistoryTab();
     this.setupArchetypeWizard();
+    this.setupUpdateChecker();
     this.renderAll();
+    this.checkForUpdates({ isManual: false });
   }
 
   // =======================================================
@@ -410,6 +412,7 @@ class AppController {
     );
 
     newHero.id = this.char.id; // overwrite active character slot
+    newHero.userApplied = true;
     this.char = newHero;
     storageManager.saveCharacter(this.char);
     this.closeModal('modal-archetype-wizard');
@@ -551,8 +554,7 @@ class AppController {
       resEl.innerHTML = `
         <strong style="color: #fff; margin-right: 0.4rem;">${roll.title}:</strong>
         <span style="font-size: 0.95rem; font-weight: 900; color: var(--hero-gold); margin-right: 0.4rem;">${roll.total}</span>
-        <span style="color: var(--text-muted); margin-right: 0.5rem;">[${formula}]</span>
-        <span style="color: var(--hero-gold); font-weight: 700;">⚡ Order ${roll.total}</span>
+        <span style="color: var(--text-muted);">[${formula}]</span>
       `;
       discordIntegrator.sendRollEmbed(roll);
       return;
@@ -859,6 +861,49 @@ class AppController {
       closeDropdown();
       helpManager.openToSection('help-overview');
     });
+
+    // 9. Check for Updates
+    document.getElementById('menu-action-updates')?.addEventListener('click', () => {
+      closeDropdown();
+      this.checkForUpdates({ isManual: true });
+    });
+  }
+
+  setupUpdateChecker() {
+    document.getElementById('btn-close-update-alert')?.addEventListener('click', () => this.closeModal('modal-update-alert'));
+    document.getElementById('btn-update-later')?.addEventListener('click', () => this.closeModal('modal-update-alert'));
+    document.getElementById('btn-update-reload')?.addEventListener('click', () => {
+      window.location.reload(true);
+    });
+  }
+
+  async checkForUpdates({ isManual = false } = {}) {
+    const CURRENT_VERSION = '3.0';
+    if (typeof window === 'undefined' || !window.location || !window.location.href || window.location.href === 'about:blank') return;
+    try {
+      const url = new URL('version.json', window.location.href);
+      url.searchParams.set('t', Date.now().toString());
+      const res = await fetch(url.toString(), { cache: 'no-store' });
+      if (!res.ok) {
+        if (isManual) alert('Could not check for updates (server responded with error).');
+        return;
+      }
+      const data = await res.json();
+      const remoteVersion = data.version;
+      if (remoteVersion && remoteVersion !== CURRENT_VERSION) {
+        const currEl = document.getElementById('update-curr-version');
+        const newEl = document.getElementById('update-new-version');
+        const notesEl = document.getElementById('update-notes');
+        if (currEl) currEl.textContent = `v${CURRENT_VERSION}`;
+        if (newEl) newEl.textContent = `v${remoteVersion}`;
+        if (notesEl) notesEl.textContent = data.releaseNotes || 'Bug fixes and performance improvements.';
+        this.openModal('modal-update-alert');
+      } else if (isManual) {
+        alert(`You are up to date! Mutants & Masterminds Character Editor is running the latest version (v${CURRENT_VERSION}).`);
+      }
+    } catch (err) {
+      if (isManual) alert('Could not check for updates. Please check your internet connection.');
+    }
   }
 
   setupCharacterModals() {

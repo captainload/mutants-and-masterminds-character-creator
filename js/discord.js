@@ -151,13 +151,7 @@ export class DiscordIntegrator {
       }
     ];
 
-    if (roll.rollType === 'initiative') {
-      fields.push({
-        name: 'Turn Order',
-        value: `Acts at Initiative **${roll.total}**`,
-        inline: true
-      });
-    } else if (roll.targetDC !== null && roll.targetDC !== undefined && roll.targetDC !== '') {
+    if (roll.rollType !== 'initiative' && roll.targetDC !== null && roll.targetDC !== undefined && roll.targetDC !== '') {
       fields.push({
         name: 'Target DC',
         value: `**${roll.targetDC}**`,

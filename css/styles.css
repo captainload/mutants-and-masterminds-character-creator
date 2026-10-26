@@ -1079,6 +1079,15 @@ input:focus, select:focus, textarea:focus {
   align-items: center;
 }
 
+.help-nav-bar {
+  padding: 0.5rem 1rem;
+  background-color: #0c1424;
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
 .help-filter-chips-container {
   padding: 0.5rem 1rem;
   background-color: #0c1424;

@@ -13,11 +13,8 @@ export class StorageManager {
     this.characters = this.loadAll();
     this.activeId = localStorage.getItem(CURRENT_CHAR_KEY);
 
-    // If the only saved character is the legacy pre-seeded Battlesuit ("Apex Guardian"), purge it
-    if (this.characters.length === 1 && this.isDefaultSeededHero(this.characters[0])) {
-      this.characters = [];
-      this.activeId = null;
-    }
+    // Purge any pre-seeded or default archetype (e.g. Battlesuit) from previous sessions
+    this.characters = this.characters.filter(c => !this.isPrebuiltArchetype(c));
 
     if (this.characters.length === 0) {
       // Create a clean, blank freeform hero by default (never seed an archetype)
@@ -27,14 +24,18 @@ export class StorageManager {
       this.saveAll();
     } else if (!this.activeId || !this.characters.some(c => c.id === this.activeId)) {
       this.activeId = this.characters[0].id;
+      this.saveAll();
     }
   }
 
-  isDefaultSeededHero(c) {
+  isPrebuiltArchetype(c) {
     if (!c) return false;
+    if (c.userApplied) return false; // User explicitly applied this archetype in wizard
     if (c.name === 'Apex Guardian') return true;
-    if (c.name === 'Battlesuit' && c.concept === 'Armored Paragon') return true;
-    if (Array.isArray(c.powers) && c.powers.some(p => p.name === 'Battlesuit Armor Plating')) return true;
+    if (c.name === 'Battlesuit') return true;
+    if (ARCHETYPES.some(a => a.name === c.name || a.id === c.id || a.id === c.archetypeId)) return true;
+    if (c.concept === 'Genius inventor or pilot inside an advanced powered exoskeleton armor suit.' || c.concept === 'Armored Paragon') return true;
+    if (Array.isArray(c.powers) && c.powers.some(p => (p.name || '').toLowerCase().includes('battlesuit'))) return true;
     return false;
   }
 

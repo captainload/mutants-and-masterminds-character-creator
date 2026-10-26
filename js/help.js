@@ -373,14 +373,13 @@ export const HELP_SECTIONS = [
 
 export class HelpManager {
   constructor() {
-    this.activeFilter = 'All';
     this.searchQuery = '';
   }
 
   init() {
     const searchInput = document.getElementById('help-search-input');
     const clearBtn = document.getElementById('btn-help-clear-search');
-    const filterContainer = document.getElementById('help-filter-chips');
+    const dropdown = document.getElementById('help-section-dropdown');
 
     if (searchInput) {
       searchInput.addEventListener('input', (e) => {
@@ -400,47 +399,33 @@ export class HelpManager {
       });
     }
 
-    if (filterContainer) {
-      filterContainer.addEventListener('click', (e) => {
-        const chip = e.target.closest('.help-filter-chip');
-        if (!chip) return;
-        filterContainer.querySelectorAll('.help-filter-chip').forEach(c => c.classList.remove('active'));
-        chip.classList.add('active');
-        this.activeFilter = chip.dataset.category || 'All';
-        this.render();
+    if (dropdown) {
+      dropdown.innerHTML = '<option value="">-- Table of Contents (Continuous Document) --</option>' +
+        HELP_SECTIONS.map((sec, idx) => `
+          <option value="${sec.id}">${idx + 1}. [${sec.category}] ${sec.title}</option>
+        `).join('');
+
+      dropdown.addEventListener('change', (e) => {
+        const secId = e.target.value;
+        if (secId) {
+          this.scrollToSection(secId);
+        }
       });
     }
   }
 
-  openToSection(sectionId) {
-    const modal = document.getElementById('modal-help');
-    if (!modal) return;
-    modal.classList.add('active');
-
-    // Reset search
-    this.searchQuery = '';
-    const searchInput = document.getElementById('help-search-input');
-    if (searchInput) searchInput.value = '';
-
-    // If sectionId matches, set filter to that section's category or All
-    const section = HELP_SECTIONS.find(s => s.id === sectionId);
-    if (section) {
-      this.activeFilter = section.category;
-      const chips = document.querySelectorAll('.help-filter-chip');
-      chips.forEach(c => {
-        if (c.dataset.category === section.category) {
-          c.classList.add('active');
-        } else {
-          c.classList.remove('active');
-        }
-      });
-    } else {
-      this.activeFilter = 'All';
+  scrollToSection(sectionId) {
+    // If a search query is filtering out the section, reset search to show the full document
+    if (this.searchQuery) {
+      const searchInput = document.getElementById('help-search-input');
+      if (searchInput) searchInput.value = '';
+      this.searchQuery = '';
+      this.render();
     }
 
-    this.render();
+    const dropdown = document.getElementById('help-section-dropdown');
+    if (dropdown) dropdown.value = sectionId;
 
-    // Scroll smoothly to target section
     setTimeout(() => {
       const targetEl = document.getElementById(sectionId);
       if (targetEl) {
@@ -448,7 +433,24 @@ export class HelpManager {
         targetEl.classList.add('help-target-highlight');
         setTimeout(() => targetEl.classList.remove('help-target-highlight'), 2200);
       }
-    }, 150);
+    }, 100);
+  }
+
+  openToSection(sectionId) {
+    const modal = document.getElementById('modal-help');
+    if (!modal) return;
+    modal.classList.add('active');
+
+    // Reset search so full continuous document is loaded
+    this.searchQuery = '';
+    const searchInput = document.getElementById('help-search-input');
+    if (searchInput) searchInput.value = '';
+
+    this.render();
+
+    if (sectionId) {
+      this.scrollToSection(sectionId);
+    }
   }
 
   render() {
@@ -456,11 +458,6 @@ export class HelpManager {
     if (!container) return;
 
     const filtered = HELP_SECTIONS.filter(sec => {
-      // Category filter
-      if (this.activeFilter !== 'All' && sec.category !== this.activeFilter) {
-        return false;
-      }
-      // Search query
       if (this.searchQuery) {
         const text = `${sec.title} ${sec.category} ${sec.summary} ${(sec.keywords || []).join(' ')} ${sec.contentHtml}`.toLowerCase();
         return text.includes(this.searchQuery);
@@ -473,18 +470,18 @@ export class HelpManager {
         <div style="text-align: center; padding: 2.5rem 1rem; color: var(--text-muted);">
           <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">🔍</div>
           <div style="font-size: var(--font-size-md); font-weight: 800; color: #fff;">No help topics found</div>
-          <div style="font-size: var(--font-size-sm); margin-top: 0.25rem;">Try different keywords or click "All" to view all sections.</div>
+          <div style="font-size: var(--font-size-sm); margin-top: 0.25rem;">Try different keywords or clear the search to view the full document.</div>
         </div>
       `;
       return;
     }
 
-    container.innerHTML = filtered.map(sec => `
+    container.innerHTML = filtered.map((sec, idx) => `
       <article class="help-article-card" id="${sec.id}">
         <div class="help-article-header">
           <div class="help-article-icon">${sec.icon}</div>
           <div style="flex: 1;">
-            <div class="help-article-category">${sec.category}</div>
+            <div class="help-article-category">Section ${idx + 1} • ${sec.category}</div>
             <h3 class="help-article-title">${sec.title}</h3>
           </div>
         </div>

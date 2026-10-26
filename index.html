@@ -6,8 +6,8 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Mutants & Masterminds 3E - Character Architect v2.9</title>
-  <link rel="stylesheet" href="css/styles.css?v=2.9">
+  <title>Mutants & Masterminds 3E - Character Architect v3.0</title>
+  <link rel="stylesheet" href="css/styles.css?v=3.0">
 </head>
 <body>
 
@@ -73,6 +73,10 @@
                 <span class="menu-item-icon">❓</span>
                 <span class="menu-item-text">Help & Documentation</span>
               </button>
+              <button class="menu-dropdown-item" id="menu-action-updates">
+                <span class="menu-item-icon">🔄</span>
+                <span class="menu-item-text">Check for Updates...</span>
+              </button>
             </div>
           </div>
 
@@ -92,7 +96,7 @@
           </div>
 
           <div class="brand-label-compact">
-            M&M 3E Character Editor v2.9
+            M&M 3E Character Editor v3.0
           </div>
         </div>
 
@@ -776,20 +780,13 @@
         <button class="btn btn-outline" id="btn-help-clear-search" style="min-height: 38px;">Clear</button>
       </div>
 
-      <div class="help-filter-chips-container" id="help-filter-chips">
-        <button class="help-filter-chip active" data-category="All">All Topics</button>
-        <button class="help-filter-chip" data-category="Getting Started">Getting Started</button>
-        <button class="help-filter-chip" data-category="Top Header">Top Header</button>
-        <button class="help-filter-chip" data-category="Persistent Tabs">Persistent Tabs</button>
-        <button class="help-filter-chip" data-category="Action Center">Action Center</button>
-        <button class="help-filter-chip" data-category="Abilities & Defenses">Abilities & Defenses</button>
-        <button class="help-filter-chip" data-category="Skills">Skills</button>
-        <button class="help-filter-chip" data-category="Advantages">Advantages</button>
-        <button class="help-filter-chip" data-category="Powers & Profiles">Powers & Profiles</button>
-        <button class="help-filter-chip" data-category="Gear & HQ">Gear & HQ</button>
-        <button class="help-filter-chip" data-category="History & Lore">History & Lore</button>
-        <button class="help-filter-chip" data-category="Discord Setup">Discord Setup</button>
-        <button class="help-filter-chip" data-category="Settings & UI">Settings & UI</button>
+      <div class="help-nav-bar" style="padding: 0.5rem 1rem; background-color: #0c1424; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; gap: 0.75rem;">
+        <label for="help-section-dropdown" style="font-size: var(--font-size-xs); font-weight: 800; color: var(--hero-cyan); white-space: nowrap; display: flex; align-items: center; gap: 0.35rem;">
+          <span>📖</span> Jump to Section:
+        </label>
+        <select id="help-section-dropdown" style="flex: 1; min-height: 34px; background-color: var(--bg-input); border: 1px solid var(--border-color); color: var(--text-bright); border-radius: var(--radius-sm); font-size: var(--font-size-xs); font-weight: 700; padding: 0.3rem 0.6rem;">
+          <option value="">-- Table of Contents (Continuous Document) --</option>
+        </select>
       </div>
 
       <div class="help-content-scroll" id="help-content-container">
@@ -1112,6 +1109,37 @@
     </div>
   </div>
 
-  <script type="module" src="js/app.js?v=2.9"></script>
+  <!-- ======================================================= -->
+  <!-- MODAL: PROGRAM UPDATE ALERT                             -->
+  <!-- ======================================================= -->
+  <div class="modal-overlay" id="modal-update-alert">
+    <div class="modal-container" style="max-width: 440px; border-color: var(--hero-gold);">
+      <div class="modal-header-bar" style="background: rgba(245, 158, 11, 0.15); border-bottom: 1px solid var(--hero-gold);">
+        <div class="modal-header-title" style="color: var(--hero-gold); display: flex; align-items: center; gap: 0.5rem;">
+          <span>🔄</span> Update Available
+        </div>
+        <button class="btn btn-outline" id="btn-close-update-alert" style="min-height: 26px; padding: 0.1rem 0.45rem;">✕</button>
+      </div>
+      <div style="padding: 1.25rem;">
+        <p style="font-size: var(--font-size-sm); margin-bottom: 0.65rem; color: #fff;">
+          A new version of <strong>Mutants & Masterminds Character Editor</strong> is available!
+        </p>
+        <div style="background: var(--bg-input); padding: 0.65rem 0.85rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color); margin-bottom: 1rem; font-size: var(--font-size-xs);">
+          <div>Current Version: <strong style="color: var(--text-muted);" id="update-curr-version">v2.9</strong></div>
+          <div style="margin-top: 0.25rem;">Latest Version: <strong style="color: var(--hero-gold);" id="update-new-version">v3.0</strong></div>
+          <div style="margin-top: 0.35rem; color: var(--text-muted); font-style: italic;" id="update-notes"></div>
+        </div>
+        <p style="font-size: var(--font-size-xs); color: var(--text-muted); margin-bottom: 1.1rem;">
+          Would you like to reload the application now to apply the newest updates?
+        </p>
+        <div style="display: flex; justify-content: flex-end; gap: 0.5rem;">
+          <button class="btn btn-outline" id="btn-update-later" style="min-height: 34px;">Later</button>
+          <button class="btn btn-primary" id="btn-update-reload" style="min-height: 34px;">🔄 Reload App Now</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="js/app.js?v=3.0"></script>
 </body>
 </html>

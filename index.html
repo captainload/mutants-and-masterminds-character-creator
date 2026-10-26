@@ -6,8 +6,8 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Mutants & Masterminds 3E - Character Architect v3.0</title>
-  <link rel="stylesheet" href="css/styles.css?v=3.0">
+  <title>Mutants & Masterminds 3E - Character Architect v3.1</title>
+  <link rel="stylesheet" href="css/styles.css?v=3.1">
 </head>
 <body>
 
@@ -96,7 +96,7 @@
           </div>
 
           <div class="brand-label-compact">
-            M&M 3E Character Editor v3.0
+            M&M 3E Character Editor v3.1
           </div>
         </div>
 
@@ -165,14 +165,17 @@
         <!-- Top Dice Roller Row: Notation | DC Stepper | Roll Button | Live Result -->
         <div class="dice-roller-bar" style="margin-bottom: 0.85rem; display: flex; align-items: center; gap: 0.5rem; flex-wrap: nowrap;">
           <span style="font-weight: 800; font-size: var(--font-size-sm); color: var(--hero-cyan); white-space: nowrap;">🎲 Roller:</span>
-          <input type="text" id="action-dice-input" class="dice-roller-input" placeholder="e.g. d20+8, 2d10" style="width: 110px; flex: 0 0 110px;">
+          <input type="text" id="action-dice-input" class="dice-roller-input" placeholder="e.g. d20+8, 2d10, 3d6+4" style="width: 175px; flex: 0 0 175px;">
           
-          <div style="display: flex; align-items: center; gap: 0.35rem; background: var(--bg-input); padding: 0.15rem 0.4rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color); white-space: nowrap;">
-            <span style="font-weight: 800; font-size: var(--font-size-xs); color: var(--text-muted);">DC:</span>
-            <div class="stepper-control">
-              <button class="btn-stepper compact" id="btn-action-dc-minus" title="Decrease DC">-</button>
+          <div id="action-dc-container" style="display: flex; align-items: center; gap: 0.35rem; background: var(--bg-input); padding: 0.15rem 0.45rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color); white-space: nowrap;">
+            <label style="display: flex; align-items: center; gap: 0.25rem; cursor: pointer; font-weight: 800; font-size: var(--font-size-xs); color: var(--text-muted); margin: 0; user-select: none;" title="Toggle to include a DC check for rolls">
+              <input type="checkbox" id="action-dc-enable" style="cursor: pointer; width: 14px; height: 14px; accent-color: var(--hero-blue);">
+              <span id="action-dc-label" style="color: var(--text-muted);">DC:</span>
+            </label>
+            <div class="stepper-control" id="action-dc-stepper-control" style="opacity: 0.45; transition: opacity 0.2s ease;">
+              <button class="btn-stepper compact" id="btn-action-dc-minus" title="Decrease DC" disabled>-</button>
               <span class="stepper-value compact" id="action-dc-val" style="min-width: 32px; font-weight: 800;">15</span>
-              <button class="btn-stepper compact" id="btn-action-dc-plus" title="Increase DC">+</button>
+              <button class="btn-stepper compact" id="btn-action-dc-plus" title="Increase DC" disabled>+</button>
             </div>
           </div>
 
@@ -1140,6 +1143,6 @@
     </div>
   </div>
 
-  <script type="module" src="js/app.js?v=3.0"></script>
+  <script type="module" src="js/app.js?v=3.1"></script>
 </body>
 </html>

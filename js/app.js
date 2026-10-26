@@ -420,6 +420,13 @@ class AppController {
     alert(`Archetype successfully applied! "${newHero.name}" is now the active character.`);
   }
 
+  getCurrentDC() {
+    const isDcActive = !!document.getElementById('action-dc-enable')?.checked;
+    if (!isDcActive) return null;
+    const dcValEl = document.getElementById('action-dc-val');
+    return parseInt(dcValEl?.textContent, 10) || 15;
+  }
+
   // =======================================================
   // 6. DICE ROLLER BAR & RESULT DISPLAY
   // =======================================================
@@ -427,14 +434,34 @@ class AppController {
     const rollBtn = document.getElementById('btn-action-roll-dice');
     const input = document.getElementById('action-dice-input');
     const dcValEl = document.getElementById('action-dc-val');
+    const dcCheckbox = document.getElementById('action-dc-enable');
+    const dcStepperControl = document.getElementById('action-dc-stepper-control');
+    const dcMinusBtn = document.getElementById('btn-action-dc-minus');
+    const dcPlusBtn = document.getElementById('btn-action-dc-plus');
+    const dcLabel = document.getElementById('action-dc-label');
     let targetDC = 15;
 
-    document.getElementById('btn-action-dc-minus')?.addEventListener('click', () => {
+    const updateDcState = () => {
+      const active = !!dcCheckbox?.checked;
+      if (dcStepperControl) dcStepperControl.style.opacity = active ? '1' : '0.45';
+      if (dcMinusBtn) dcMinusBtn.disabled = !active;
+      if (dcPlusBtn) dcPlusBtn.disabled = !active;
+      if (dcLabel) dcLabel.style.color = active ? 'var(--hero-cyan)' : 'var(--text-muted)';
+    };
+
+    dcCheckbox?.addEventListener('change', () => {
+      updateDcState();
+    });
+    updateDcState();
+
+    dcMinusBtn?.addEventListener('click', () => {
+      if (!dcCheckbox?.checked) return;
       targetDC = Math.max(0, targetDC - 1);
       if (dcValEl) dcValEl.textContent = targetDC;
     });
 
-    document.getElementById('btn-action-dc-plus')?.addEventListener('click', () => {
+    dcPlusBtn?.addEventListener('click', () => {
+      if (!dcCheckbox?.checked) return;
       targetDC++;
       if (dcValEl) dcValEl.textContent = targetDC;
     });
@@ -446,7 +473,7 @@ class AppController {
         return;
       }
       const notation = input.value.trim() || 'd20';
-      const dcCurrent = parseInt(dcValEl?.textContent, 10) || targetDC;
+      const dcCurrent = this.getCurrentDC();
 
       try {
         const roll = diceRoller.rollNotation(notation, this.char.name, dcCurrent);
@@ -878,7 +905,7 @@ class AppController {
   }
 
   async checkForUpdates({ isManual = false } = {}) {
-    const CURRENT_VERSION = '3.0';
+    const CURRENT_VERSION = '3.1';
     if (typeof window === 'undefined' || !window.location || !window.location.href || window.location.href === 'about:blank') return;
     try {
       const url = new URL('version.json', window.location.href);
@@ -1902,7 +1929,7 @@ class AppController {
             title: `${ab.name} Check`,
             characterName: this.char.name,
             modifier: effRank,
-            targetDC: currentDC,
+            targetDC: this.getCurrentDC(),
             rollType: 'ability',
             extraText: `Base ${abShort} (${baseRank >= 0 ? '+' + baseRank : baseRank})${mods.checkPenalty ? ` ${mods.checkPenalty} (Conditions)` : ''}`
           });
@@ -1983,7 +2010,7 @@ class AppController {
             title: `${def.name} Save`,
             characterName: this.char.name,
             modifier: effScore,
-            targetDC: currentDC,
+            targetDC: this.getCurrentDC(),
             rollType: def.id === 'toughness' ? 'toughness' : 'defense',
             extraText: modNotes.length > 0 ? `Modifiers: ${modNotes.join(', ')}` : ''
           });
@@ -2047,7 +2074,7 @@ class AppController {
           title: 'Unarmed Strike',
           characterName: this.char.name,
           modifier: unarmedEffBonus,
-          targetDC: currentDC,
+          targetDC: this.getCurrentDC(),
           rollType: 'attack',
           damageRank: str,
           descriptor: 'Close, Bludgeoning',
@@ -2085,7 +2112,7 @@ class AppController {
               title: p.name,
               characterName: this.char.name,
               modifier: effBonus,
-              targetDC: currentDC,
+              targetDC: this.getCurrentDC(),
               rollType: 'attack',
               damageRank: rank,
               descriptor: `${p.range}, ${p.descriptor}`,
@@ -2129,7 +2156,7 @@ class AppController {
               title: `${sk.name} Check`,
               characterName: this.char.name,
               modifier: effBonus,
-              targetDC: currentDC,
+              targetDC: this.getCurrentDC(),
               rollType: 'skill',
               extraText: effBonus !== baseBonus ? `Base +${baseBonus}${mods.checkPenalty ? ` ${mods.checkPenalty} (Conditions)` : ''}` : ''
             });

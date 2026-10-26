@@ -1,5 +1,5 @@
 {
-  "version": "3.15",
-  "updatedAt": "2026-10-26T19:55:00Z",
-  "releaseNotes": "Enlarged font sizes for tabs, advantage buttons, skill specialty controls, and top row buttons. Shortened Power Points to PP and Power Level to PL with new steppers, lock control, and overrun prevention."
+  "version": "3.16",
+  "updatedAt": "2026-10-26T20:25:00Z",
+  "releaseNotes": "Balanced Row 2 PP details font sizing to match interface hierarchy, and implemented remembered failed check reroll with M&M 3E Hero Point rules (1-10 + 10) and toughness damage reversal."
 }

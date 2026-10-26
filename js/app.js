@@ -64,6 +64,9 @@ class AppController {
       heroName: ''
     };
 
+    this.lastFailedCheck = null;
+    this.lastCheck = null;
+
     this.init();
   }
 
@@ -661,6 +664,13 @@ class AppController {
   }
 
   displayRollResult(roll) {
+    if (roll && roll.rollType !== 'initiative') {
+      this.lastCheck = roll;
+      if (roll.outcomeClass === 'failure' || roll.outcome === 'Failure') {
+        this.lastFailedCheck = roll;
+      }
+    }
+
     const resEl = document.getElementById('action-dice-result');
     if (!resEl) return;
 
@@ -1015,7 +1025,7 @@ class AppController {
   }
 
   async checkForUpdates({ isManual = false } = {}) {
-    const CURRENT_VERSION = '3.15';
+    const CURRENT_VERSION = '3.16';
     if (typeof window === 'undefined' || !window.location || !window.location.href || window.location.href === 'about:blank') return;
     try {
       const url = new URL('version.json', window.location.href);
@@ -1173,18 +1183,110 @@ class AppController {
         await this.showAlertDialog('You have no Hero Points left!', { title: 'Hero Points' });
         return;
       }
+
+      const targetCheck = this.lastFailedCheck || diceRoller.lastFailedCheck || this.lastCheck || diceRoller.mostRecentCheck;
+      if (!targetCheck) {
+        await this.showAlertDialog('No previous check has been rolled to reroll yet! Make an attack, resistance, or skill check first.', { title: 'No Check to Reroll' });
+        return;
+      }
+
+      // Revert previous failed check conditions if it was a toughness failure
+      if (targetCheck.rollType === 'toughness' && (targetCheck.outcomeClass === 'failure' || targetCheck.outcome === 'Failure')) {
+        if (targetCheck.appliedToughnessPenalties) {
+          const pen = targetCheck.appliedToughnessPenalties;
+          if (pen.bruiseAdded && (this.char.bruises || 0) > 0) {
+            this.char.bruises = Math.max(0, this.char.bruises - pen.bruiseAdded);
+          }
+          if (pen.dazedAdded && this.char.conditions) this.char.conditions.dazed = false;
+          if (pen.staggeredAdded && this.char.conditions) this.char.conditions.staggered = false;
+          if (pen.hinderedAdded && this.char.conditions) this.char.conditions.hindered = false;
+          if (pen.incapacitatedAdded && this.char.conditions) this.char.conditions.incapacitated = false;
+          if (pen.defenselessAdded && this.char.conditions) this.char.conditions.defenseless = false;
+          if (pen.stunnedAdded && this.char.conditions) this.char.conditions.stunned = false;
+          if (pen.unawareAdded && this.char.conditions) this.char.conditions.unaware = false;
+          if (pen.proneAdded && this.char.conditions) this.char.conditions.prone = false;
+        } else {
+          if ((this.char.bruises || 0) > 0) this.char.bruises--;
+          if (this.char.conditions) {
+            if (targetCheck.degrees >= 2) this.char.conditions.dazed = false;
+            if (targetCheck.degrees >= 3) {
+              this.char.conditions.staggered = false;
+              this.char.conditions.hindered = false;
+            }
+            if (targetCheck.degrees >= 4) {
+              this.char.conditions.incapacitated = false;
+              this.char.conditions.defenseless = false;
+              this.char.conditions.stunned = false;
+              this.char.conditions.unaware = false;
+              this.char.conditions.prone = false;
+            }
+          }
+        }
+      }
+
+      // Deduct 1 Hero Point
       this.char.heroPoints--;
-      const roll = diceRoller.rollCheck({
-        title: 'Hero Point Reroll',
+
+      // Reroll the exact check using M&M 3e Hero Point rule (1-10 + 10)
+      const reroll = diceRoller.rollCheck({
+        title: `${targetCheck.title || 'Check'} (HP Reroll)`,
         characterName: this.char.name,
-        modifier: parseInt(this.char.abilities?.fgt, 10) || 0,
+        modifier: targetCheck.modifier,
+        targetDC: targetCheck.targetDC,
+        critThreshold: targetCheck.critThreshold || 20,
         isHeroPointReroll: true,
-        rollType: 'hero_point'
+        rollType: targetCheck.rollType || 'general',
+        descriptor: targetCheck.descriptor || '',
+        damageRank: targetCheck.damageRank,
+        extraText: targetCheck.extraText ? `${targetCheck.extraText} [HP 1-10 + 10]` : '[HP 1-10 + 10]'
       });
-      discordIntegrator.sendHeroPointSpend(this.char.name, 'Reroll (1-10 + 10 Rule)', `Result: **${roll.total}**`);
-      discordIntegrator.sendRollEmbed(roll);
+
+      // If this was a toughness check and failed again, reapply damage penalties
+      if (reroll.rollType === 'toughness' && (reroll.outcomeClass === 'failure' || reroll.outcome === 'Failure')) {
+        reroll.appliedToughnessPenalties = {
+          bruiseAdded: 1,
+          dazedAdded: !this.char.conditions?.dazed && reroll.degrees >= 2,
+          staggeredAdded: !this.char.conditions?.staggered && reroll.degrees >= 3,
+          hinderedAdded: !this.char.conditions?.hindered && reroll.degrees >= 3,
+          incapacitatedAdded: !this.char.conditions?.incapacitated && reroll.degrees >= 4,
+          defenselessAdded: !this.char.conditions?.defenseless && reroll.degrees >= 4,
+          stunnedAdded: !this.char.conditions?.stunned && reroll.degrees >= 4,
+          unawareAdded: !this.char.conditions?.unaware && reroll.degrees >= 4,
+          proneAdded: !this.char.conditions?.prone && reroll.degrees >= 4
+        };
+        this.char.bruises = (this.char.bruises || 0) + 1;
+        if (!this.char.conditions) this.char.conditions = {};
+        if (reroll.degrees >= 2) this.char.conditions.dazed = true;
+        if (reroll.degrees >= 3) {
+          this.char.conditions.staggered = true;
+          this.char.conditions.dazed = true;
+          this.char.conditions.hindered = true;
+        }
+        if (reroll.degrees >= 4) {
+          this.char.conditions.incapacitated = true;
+          this.char.conditions.defenseless = true;
+          this.char.conditions.stunned = true;
+          this.char.conditions.unaware = true;
+          this.char.conditions.prone = true;
+        }
+        this.lastFailedCheck = reroll;
+        diceRoller.lastFailedCheck = reroll;
+      } else if (reroll.outcomeClass === 'success' || reroll.outcome === 'Success') {
+        // Successful reroll clears the failed check
+        this.lastFailedCheck = null;
+        diceRoller.lastFailedCheck = null;
+      }
+
+      discordIntegrator.sendHeroPointSpend(
+        this.char.name,
+        'Reroll (1-10 + 10 Rule)',
+        `Rerolled **${targetCheck.title || 'Previous Check'}**: **${reroll.total}** (${reroll.outcomeDescription || reroll.outcome || 'Total ' + reroll.total})`
+      );
+      discordIntegrator.sendRollEmbed(reroll);
       this.saveAndAudit();
       this.renderHeaderStatus();
+      this.renderActionCenter(auditCharacter(this.char));
+      this.displayRollResult(reroll);
       this.closeModal('modal-hero-point');
     });
 
@@ -1215,6 +1317,41 @@ class AppController {
         this.closeModal('modal-hero-point');
       });
     });
+  }
+
+  updateHeroPointModal() {
+    const targetCheck = this.lastFailedCheck || diceRoller.lastFailedCheck || this.lastCheck || diceRoller.mostRecentCheck;
+    const infoEl = document.getElementById('hp-reroll-target-info');
+    const btnEl = document.getElementById('btn-hp-exec-reroll');
+
+    if (infoEl) {
+      if (targetCheck) {
+        const isFailed = targetCheck.outcomeClass === 'failure' || targetCheck.outcome === 'Failure';
+        const dcText = (targetCheck.targetDC !== null && targetCheck.targetDC !== undefined && targetCheck.targetDC !== '') ? ` vs DC ${targetCheck.targetDC}` : '';
+        const modStr = (targetCheck.modifier !== undefined && targetCheck.modifier !== null) ? (targetCheck.modifier >= 0 ? `+${targetCheck.modifier}` : `${targetCheck.modifier}`) : '';
+        const outcomeDesc = targetCheck.outcomeDescription || targetCheck.outcome || (isFailed ? 'Failure' : 'Success');
+        infoEl.innerHTML = `
+          <div style="font-weight: 700; color: #fff;">
+            ${isFailed ? '⚠️ Failed Check:' : 'Last Check:'} 
+            <span style="color: var(--hero-gold);">${targetCheck.title || 'Check'}</span> 
+            <span style="color: var(--text-muted); font-size: var(--font-size-xs);">(${modStr || 'no mod'}${dcText})</span>
+          </div>
+          <div style="font-size: var(--font-size-xs); color: ${isFailed ? 'var(--hero-red)' : 'var(--hero-green)'}; margin-top: 0.2rem;">
+            Rolled: <strong>${targetCheck.total}</strong> [${targetCheck.extraText || `d20(${targetCheck.rawDie})${modStr}`}] &bull; ${outcomeDesc}
+          </div>
+        `;
+      } else {
+        infoEl.innerHTML = `<span style="color: var(--text-muted); font-style: italic;">No previous check recorded yet.</span>`;
+      }
+    }
+
+    if (btnEl) {
+      if (targetCheck) {
+        btnEl.textContent = `🎲 Reroll: ${targetCheck.title || 'Previous Check'}`;
+      } else {
+        btnEl.textContent = 'Reroll Previous Failed Check';
+      }
+    }
   }
 
   // =======================================================
@@ -2598,7 +2735,19 @@ class AppController {
           });
 
           if (def.id === 'toughness' && roll.outcomeClass === 'failure') {
+            roll.appliedToughnessPenalties = {
+              bruiseAdded: 1,
+              dazedAdded: !this.char.conditions?.dazed && roll.degrees >= 2,
+              staggeredAdded: !this.char.conditions?.staggered && roll.degrees >= 3,
+              hinderedAdded: !this.char.conditions?.hindered && roll.degrees >= 3,
+              incapacitatedAdded: !this.char.conditions?.incapacitated && roll.degrees >= 4,
+              defenselessAdded: !this.char.conditions?.defenseless && roll.degrees >= 4,
+              stunnedAdded: !this.char.conditions?.stunned && roll.degrees >= 4,
+              unawareAdded: !this.char.conditions?.unaware && roll.degrees >= 4,
+              proneAdded: !this.char.conditions?.prone && roll.degrees >= 4
+            };
             this.char.bruises = (this.char.bruises || 0) + 1;
+            if (!this.char.conditions) this.char.conditions = {};
             if (roll.degrees >= 2) this.char.conditions.dazed = true;
             if (roll.degrees >= 3) {
               this.char.conditions.staggered = true;
@@ -4635,6 +4784,9 @@ class AppController {
   }
 
   openModal(id) {
+    if (id === 'modal-hero-point') {
+      this.updateHeroPointModal();
+    }
     const el = document.getElementById(id);
     if (el) el.classList.add('active');
   }

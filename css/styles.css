@@ -247,15 +247,15 @@ body {
 }
 
 .pp-status-label {
-  font-size: var(--font-size-base);
+  font-size: var(--font-size-sm);
   font-weight: 800;
   color: var(--text-muted);
   text-transform: uppercase;
 }
 
 .pp-status-value {
-  font-size: var(--font-size-lg);
-  font-weight: 900;
+  font-size: var(--font-size-base);
+  font-weight: 800;
   color: var(--hero-gold);
 }
 

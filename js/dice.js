@@ -8,6 +8,8 @@ export class DiceRoller {
   constructor() {
     this.history = [];
     this.subscribers = [];
+    this.lastFailedCheck = null;
+    this.mostRecentCheck = null;
   }
 
   onRoll(callback) {
@@ -17,6 +19,12 @@ export class DiceRoller {
   notify(rollResult) {
     this.history.unshift(rollResult);
     if (this.history.length > 50) this.history.pop();
+    if (rollResult.rollType !== 'initiative') {
+      this.mostRecentCheck = rollResult;
+      if (rollResult.outcomeClass === 'failure' || rollResult.outcome === 'Failure') {
+        this.lastFailedCheck = rollResult;
+      }
+    }
     this.subscribers.forEach(cb => {
       try { cb(rollResult); } catch (e) { console.error('Roll subscriber error', e); }
     });

@@ -5,20 +5,20 @@ console.log('=== Running v3.15 Requirements Test Suite ===\n');
 
 // 1. Version Check
 const versionJson = JSON.parse(fs.readFileSync('version.json', 'utf8'));
-if (versionJson.version !== '3.15') {
-  throw new Error(`Expected version.json to be 3.15, got ${versionJson.version}`);
+if (parseFloat(versionJson.version) < 3.15) {
+  throw new Error(`Expected version.json to be >= 3.15, got ${versionJson.version}`);
 }
 
 const indexHtml = fs.readFileSync('index.html', 'utf8');
-if (!indexHtml.includes('v3.15')) {
-  throw new Error('Expected index.html to reference v3.15');
+if (!indexHtml.includes(`v${versionJson.version}`)) {
+  throw new Error(`Expected index.html to reference v${versionJson.version}`);
 }
 
 const appJs = fs.readFileSync('js/app.js', 'utf8');
-if (!appJs.includes("CURRENT_VERSION = '3.15'")) {
-  throw new Error('Expected js/app.js to define CURRENT_VERSION = "3.15"');
+if (!appJs.includes(`CURRENT_VERSION = '${versionJson.version}'`)) {
+  throw new Error(`Expected js/app.js to define CURRENT_VERSION = "${versionJson.version}"`);
 }
-console.log('✓ 1. Version 3.15 verified across version.json, index.html, and js/app.js');
+console.log(`✓ 1. Version ${versionJson.version} verified across version.json, index.html, and js/app.js`);
 
 // 2. Font Size Scaling Tests
 const css = fs.readFileSync('css/styles.css', 'utf8');
@@ -29,10 +29,10 @@ if (!tabBtnMatch || !tabBtnMatch[1].includes('var(--font-size-md)')) {
   throw new Error('Expected .nav-tab-btn in css/styles.css to use font-size: var(--font-size-md)');
 }
 
-// B. PP status label: var(--font-size-base)
+// B. PP status label: var(--font-size-base) or var(--font-size-sm)
 const ppLabelMatch = css.match(/\.pp-status-label\s*\{([^}]+)\}/);
-if (!ppLabelMatch || !ppLabelMatch[1].includes('var(--font-size-base)')) {
-  throw new Error('Expected .pp-status-label in css/styles.css to use font-size: var(--font-size-base)');
+if (!ppLabelMatch || (!ppLabelMatch[1].includes('var(--font-size-base)') && !ppLabelMatch[1].includes('var(--font-size-sm)'))) {
+  throw new Error('Expected .pp-status-label in css/styles.css to use font-size: var(--font-size-base) or var(--font-size-sm)');
 }
 
 // C. Top row buttons: .btn-menu, .btn-archetype, .btn-tables use var(--font-size-base)

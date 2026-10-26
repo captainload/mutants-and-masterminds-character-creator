@@ -79,6 +79,7 @@ class AppController {
     this.setupCustomPowerBuilder();
     this.setupGearAndHQ();
     this.setupHistoryTab();
+    this.setupAbilitiesDefensesModal();
     this.setupArchetypeWizard();
     this.setupUpdateChecker();
     this.renderAll();
@@ -204,6 +205,42 @@ class AppController {
   }
 
   // =======================================================
+  // 4b. ABILITIES & DEFENSES POP-UP DIALOG
+  // =======================================================
+  setupAbilitiesDefensesModal() {
+    const openBtn = document.getElementById('btn-open-abilities-dialog');
+    if (openBtn) {
+      openBtn.addEventListener('click', () => {
+        this.openModal('modal-abilities-defenses');
+      });
+    }
+    const editAbilitiesBtn = document.getElementById('btn-action-edit-abilities');
+    if (editAbilitiesBtn) {
+      editAbilitiesBtn.addEventListener('click', () => {
+        this.openModal('modal-abilities-defenses');
+      });
+    }
+    const editDefensesBtn = document.getElementById('btn-action-edit-defenses');
+    if (editDefensesBtn) {
+      editDefensesBtn.addEventListener('click', () => {
+        this.openModal('modal-abilities-defenses');
+      });
+    }
+    const closeBtn = document.getElementById('btn-close-abilities-dialog');
+    if (closeBtn) {
+      closeBtn.addEventListener('click', () => {
+        this.closeModal('modal-abilities-defenses');
+      });
+    }
+    const doneBtn = document.getElementById('btn-done-abilities-dialog');
+    if (doneBtn) {
+      doneBtn.addEventListener('click', () => {
+        this.closeModal('modal-abilities-defenses');
+      });
+    }
+  }
+
+  // =======================================================
   // 5. INTERACTIVE ARCHETYPE BUILDER WIZARD
   // =======================================================
   setupArchetypeWizard() {
@@ -218,10 +255,10 @@ class AppController {
       }
     });
 
-    document.getElementById('btn-wizard-next').addEventListener('click', () => {
+    document.getElementById('btn-wizard-next').addEventListener('click', async () => {
       if (this.wizardState.step === 1) {
         if (!this.wizardState.selectedArchetypeId) {
-          alert('Please select an archetype from the list before proceeding.');
+          await this.showAlertDialog('Please select an archetype from the list before proceeding.', { title: 'Selection Required' });
           return;
         }
         this.wizardState.step = 2;
@@ -230,7 +267,7 @@ class AppController {
         this.wizardState.step = 3;
         this.renderWizardStep();
       } else if (this.wizardState.step === 3) {
-        this.finishArchetypeWizard();
+        await this.finishArchetypeWizard();
       }
     });
   }
@@ -398,10 +435,11 @@ class AppController {
     }
   }
 
-  finishArchetypeWizard() {
+  async finishArchetypeWizard() {
     const activeName = this.char.name || 'Current Character';
-    const confirmed = window.confirm(
-      `⚠️ WARNING: Applying this archetype will overwrite all currently loaded character data for "${activeName}".\n\nAre you sure you want to proceed and replace the active character?`
+    const confirmed = await this.showConfirmDialog(
+      `⚠️ WARNING: Applying this archetype will overwrite all currently loaded character data for "${activeName}".\n\nAre you sure you want to proceed and replace the active character?`,
+      { title: 'Overwrite Character', confirmText: 'Apply Archetype', confirmClass: 'btn-danger' }
     );
     if (!confirmed) {
       return;
@@ -421,7 +459,7 @@ class AppController {
     storageManager.saveCharacter(this.char);
     this.closeModal('modal-archetype-wizard');
     this.renderAll();
-    alert(`Archetype successfully applied! "${newHero.name}" is now the active character.`);
+    await this.showAlertDialog(`Archetype successfully applied! "${newHero.name}" is now the active character.`, { title: 'Archetype Applied' });
   }
 
   getCurrentDC() {
@@ -470,7 +508,7 @@ class AppController {
       if (dcValEl) dcValEl.textContent = targetDC;
     });
 
-    const executeRoll = () => {
+    const executeRoll = async () => {
       const raw = input.value.trim().toLowerCase();
       if (raw === 'init' || raw === 'initiative' || raw === '/init' || raw === '/initiative') {
         document.getElementById('btn-roll-initiative')?.click();
@@ -483,7 +521,7 @@ class AppController {
         const roll = diceRoller.rollNotation(notation, this.char.name, dcCurrent);
         this.displayRollResult(roll);
       } catch (err) {
-        alert(err.message);
+        await this.showAlertDialog(err.message, { title: 'Dice Roll Error' });
       }
     };
 
@@ -823,9 +861,14 @@ class AppController {
     };
 
     // 1. New Freeform Hero
-    document.getElementById('menu-action-new')?.addEventListener('click', () => {
+    document.getElementById('menu-action-new')?.addEventListener('click', async () => {
       closeDropdown();
-      const name = prompt('Enter superhero name for freeform creation:', 'New Champion');
+      const name = await this.showPromptDialog({
+        title: 'New Superhero',
+        label: 'Enter superhero name for freeform creation:',
+        defaultValue: 'New Champion',
+        confirmText: 'Create Hero'
+      });
       if (name && name.trim()) {
         const newHero = storageManager.createFreeformCharacter(name.trim(), 10, 150);
         this.char = newHero;
@@ -862,7 +905,7 @@ class AppController {
       const file = e.target.files[0];
       if (!file) return;
       const reader = new FileReader();
-      reader.onload = (event) => {
+      reader.onload = async (event) => {
         try {
           const loadedChar = storageManager.parseMM3File(event.target.result);
           if (loadedChar) {
@@ -870,10 +913,10 @@ class AppController {
             this.currentFileHandle = null;
             this.saveAndAudit();
             this.loadCharacterToUI();
-            alert(`Successfully loaded "${loadedChar.name}"!`);
+            await this.showAlertDialog(`Successfully loaded "${loadedChar.name}"!`, { title: 'Character Loaded' });
           }
         } catch (err) {
-          alert('Failed to load character file: ' + err.message);
+          await this.showAlertDialog('Failed to load character file: ' + err.message, { title: 'Load Error' });
         }
       };
       reader.readAsText(file);
@@ -908,14 +951,14 @@ class AppController {
   }
 
   async checkForUpdates({ isManual = false } = {}) {
-    const CURRENT_VERSION = '3.7';
+    const CURRENT_VERSION = '3.8';
     if (typeof window === 'undefined' || !window.location || !window.location.href || window.location.href === 'about:blank') return;
     try {
       const url = new URL('version.json', window.location.href);
       url.searchParams.set('t', Date.now().toString());
       const res = await fetch(url.toString(), { cache: 'no-store' });
       if (!res.ok) {
-        if (isManual) alert('Could not check for updates (server responded with error).');
+        if (isManual) await this.showAlertDialog('Could not check for updates (server responded with error).', { title: 'Update Check' });
         return;
       }
       const data = await res.json();
@@ -929,10 +972,10 @@ class AppController {
         if (notesEl) notesEl.textContent = data.releaseNotes || 'Bug fixes and performance improvements.';
         this.openModal('modal-update-alert');
       } else if (isManual) {
-        alert(`You are up to date! Mutants & Masterminds Character Editor is running the latest version (v${CURRENT_VERSION}).`);
+        await this.showAlertDialog(`You are up to date! Mutants & Masterminds Character Editor is running the latest version (v${CURRENT_VERSION}).`, { title: 'Up to Date' });
       }
     } catch (err) {
-      if (isManual) alert('Could not check for updates. Please check your internet connection.');
+      if (isManual) await this.showAlertDialog('Could not check for updates. Please check your internet connection.', { title: 'Update Check' });
     }
   }
 
@@ -944,9 +987,14 @@ class AppController {
     document.getElementById('btn-cancel-load-modal')?.addEventListener('click', () => {
       this.closeModal('modal-load-character');
     });
-    document.getElementById('btn-load-modal-new-freeform')?.addEventListener('click', () => {
+    document.getElementById('btn-load-modal-new-freeform')?.addEventListener('click', async () => {
       this.closeModal('modal-load-character');
-      const name = prompt('Enter superhero name for freeform creation:', 'New Champion');
+      const name = await this.showPromptDialog({
+        title: 'New Superhero',
+        label: 'Enter superhero name for freeform creation:',
+        defaultValue: 'New Champion',
+        confirmText: 'Create Hero'
+      });
       if (name && name.trim()) {
         const newHero = storageManager.createFreeformCharacter(name.trim(), 10, 150);
         this.char = newHero;
@@ -964,7 +1012,7 @@ class AppController {
     document.getElementById('btn-confirm-save-as')?.addEventListener('click', async () => {
       const newName = (document.getElementById('save-as-hero-name')?.value || '').trim();
       if (!newName) {
-        alert('Please enter a superhero name.');
+        await this.showAlertDialog('Please enter a superhero name.', { title: 'Required Field' });
         return;
       }
       this.closeModal('modal-save-as');
@@ -1023,9 +1071,14 @@ class AppController {
         this.closeModal('modal-load-character');
       });
 
-      card.querySelector('.btn-delete-char')?.addEventListener('click', (e) => {
+      card.querySelector('.btn-delete-char')?.addEventListener('click', async (e) => {
         const id = e.currentTarget.dataset.id;
-        if (confirm(`Delete character "${c.name}"?`)) {
+        const confirmed = await this.showConfirmDialog(`Delete character "${c.name}"?`, {
+          title: 'Delete Character',
+          confirmText: 'Delete',
+          confirmClass: 'btn-danger'
+        });
+        if (confirmed) {
           storageManager.deleteCharacter(id);
           this.char = storageManager.getActiveCharacter();
           this.renderAll();
@@ -1051,9 +1104,9 @@ class AppController {
       this.closeModal('modal-hero-point');
     });
 
-    document.getElementById('btn-hp-exec-reroll').addEventListener('click', () => {
+    document.getElementById('btn-hp-exec-reroll').addEventListener('click', async () => {
       if ((this.char.heroPoints || 0) <= 0) {
-        alert('You have no Hero Points left!');
+        await this.showAlertDialog('You have no Hero Points left!', { title: 'Hero Points' });
         return;
       }
       this.char.heroPoints--;
@@ -1080,9 +1133,9 @@ class AppController {
     ];
 
     spendActions.forEach(action => {
-      document.getElementById(action.id)?.addEventListener('click', () => {
+      document.getElementById(action.id)?.addEventListener('click', async () => {
         if ((this.char.heroPoints || 0) <= 0) {
-          alert('You have no Hero Points left!');
+          await this.showAlertDialog('You have no Hero Points left!', { title: 'Hero Points' });
           return;
         }
         this.char.heroPoints--;
@@ -1119,7 +1172,7 @@ class AppController {
       select.appendChild(optGroup);
     });
 
-    document.getElementById('btn-apply-profile').addEventListener('click', () => {
+    document.getElementById('btn-apply-profile').addEventListener('click', async () => {
       const profileId = select.value;
       let matchedProfile = null;
       for (const grp of POWER_PROFILES_LIBRARY) {
@@ -1151,7 +1204,7 @@ class AppController {
       this.expandedPowerIds.add(newPower.id);
       this.saveAndAudit();
       this.renderAll();
-      alert(`Power Profile "${matchedProfile.name}" added to character!`);
+      await this.showAlertDialog(`Power Profile "${matchedProfile.name}" added to character!`, { title: 'Power Profile Added' });
     });
 
     document.getElementById('btn-open-custom-power-builder').addEventListener('click', () => {
@@ -1198,10 +1251,15 @@ class AppController {
     this.renderAll();
   }
 
-  deletePower(powerId) {
+  async deletePower(powerId) {
     const p = (this.char.powers || []).find(p => p.id === powerId);
     if (!p) return;
-    if (confirm(`Delete power "${p.name}"?`)) {
+    const confirmed = await this.showConfirmDialog(`Delete power "${p.name}"?`, {
+      title: 'Delete Power',
+      confirmText: 'Delete',
+      confirmClass: 'btn-danger'
+    });
+    if (confirmed) {
       this.char.powers = this.char.powers.filter(item => item.id !== powerId);
       if (this.expandedPowerIds) this.expandedPowerIds.delete(powerId);
       this.saveAndAudit();
@@ -1476,12 +1534,15 @@ class AppController {
   // 13. GEAR & HEADQUARTERS (HQ) TAB
   // =======================================================
   setupGearAndHQ() {
-    document.getElementById('btn-add-item-gear').addEventListener('click', () => {
+    document.getElementById('btn-add-item-gear').addEventListener('click', async () => {
       const name = document.getElementById('new-item-name').value.trim();
       const cost = parseInt(document.getElementById('new-item-cost').value, 10) || 1;
       const desc = document.getElementById('new-item-desc').value.trim();
 
-      if (!name) { alert('Enter gear name.'); return; }
+      if (!name) {
+        await this.showAlertDialog('Please enter a gear name.', { title: 'Required Field' });
+        return;
+      }
       if (!this.char.gear) this.char.gear = [];
       this.char.gear.push({ name, cost, desc });
 
@@ -1567,25 +1628,63 @@ class AppController {
       storageManager.saveCharacter(this.char);
     });
 
-    document.getElementById('btn-add-session-entry').addEventListener('click', () => {
+    const openAddSessionModal = () => {
+      this.editingSessionId = null;
+      const titleEl = document.getElementById('modal-session-title');
+      if (titleEl) titleEl.innerHTML = '<span>📜</span> Log Game Session Entry';
+
       const now = new Date();
-      const dateStr = now.toLocaleDateString();
-      const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-      const title = prompt('Enter game session title:', `Session of ${dateStr}`);
-      if (!title) return;
-      const notes = prompt('Enter session notes / recap:', 'Infiltration into villain stronghold; gained 1 PP.');
+      const dateInput = document.getElementById('input-session-date');
+      const timeInput = document.getElementById('input-session-time');
+      const titleInput = document.getElementById('input-session-title');
+      const notesInput = document.getElementById('input-session-notes');
+
+      if (dateInput) dateInput.value = now.toLocaleDateString();
+      if (timeInput) timeInput.value = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      if (titleInput) titleInput.value = `Session of ${now.toLocaleDateString()}`;
+      if (notesInput) notesInput.value = '';
+
+      this.openModal('modal-log-session');
+      setTimeout(() => titleInput?.focus(), 50);
+    };
+
+    document.getElementById('btn-add-session-entry')?.addEventListener('click', openAddSessionModal);
+    document.getElementById('btn-close-session-modal')?.addEventListener('click', () => this.closeModal('modal-log-session'));
+    document.getElementById('btn-cancel-session-modal')?.addEventListener('click', () => this.closeModal('modal-log-session'));
+
+    document.getElementById('btn-save-session-entry')?.addEventListener('click', async () => {
+      const title = (document.getElementById('input-session-title')?.value || '').trim();
+      if (!title) {
+        await this.showAlertDialog('Please enter a session title.', { title: 'Required Field' });
+        return;
+      }
+      const date = (document.getElementById('input-session-date')?.value || new Date().toLocaleDateString()).trim();
+      const time = (document.getElementById('input-session-time')?.value || new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })).trim();
+      const notes = (document.getElementById('input-session-notes')?.value || '').trim();
 
       if (!this.char.historyLog) this.char.historyLog = [];
-      this.char.historyLog.unshift({
-        id: 'sess_' + Date.now(),
-        date: dateStr,
-        time: timeStr,
-        title,
-        notes: notes || ''
-      });
+
+      if (this.editingSessionId) {
+        const item = this.char.historyLog.find(s => s.id === this.editingSessionId);
+        if (item) {
+          item.title = title;
+          item.date = date;
+          item.time = time;
+          item.notes = notes;
+        }
+      } else {
+        this.char.historyLog.unshift({
+          id: 'sess_' + Date.now(),
+          date,
+          time,
+          title,
+          notes
+        });
+      }
 
       this.saveAndAudit();
       this.renderHistoryTab();
+      this.closeModal('modal-log-session');
     });
   }
 
@@ -1639,7 +1738,7 @@ class AppController {
     });
 
     // Discord Save Editor
-    document.getElementById('btn-discord-save-editor')?.addEventListener('click', () => {
+    document.getElementById('btn-discord-save-editor')?.addEventListener('click', async () => {
       const mode = typeBot?.checked ? 'bot' : 'webhook';
       const configData = {
         id: this.editingDiscordConfigId || undefined,
@@ -1656,11 +1755,11 @@ class AppController {
       };
 
       if (mode === 'webhook' && !configData.webhookUrl) {
-        alert('Please enter a Discord Webhook URL.');
+        await this.showAlertDialog('Please enter a Discord Webhook URL.', { title: 'Required Field' });
         return;
       }
       if (mode === 'bot' && (!configData.botToken || !configData.channelId)) {
-        alert('Please enter both Bot Token and Channel ID for Bot mode.');
+        await this.showAlertDialog('Please enter both Bot Token and Channel ID for Bot mode.', { title: 'Required Field' });
         return;
       }
 
@@ -1686,9 +1785,9 @@ class AppController {
 
       try {
         await discordIntegrator.testConfig(tempConfig);
-        alert(`Test message successfully posted to ${tempConfig.getDisplayName()}!`);
+        await this.showAlertDialog(`Test message successfully posted to ${tempConfig.getDisplayName()}!`, { title: 'Discord Connected' });
       } catch (err) {
-        alert(`Discord Test Failed: ${err.message}`);
+        await this.showAlertDialog(`Discord Test Failed: ${err.message}`, { title: 'Discord Error' });
       }
     });
 
@@ -1703,12 +1802,12 @@ class AppController {
     if (campaignPlInput) campaignPlInput.value = this.char.powerLevel || 10;
     if (campaignBudgetInput) campaignBudgetInput.value = this.char.powerPointsBudget || 150;
 
-    document.getElementById('btn-apply-campaign-rules')?.addEventListener('click', () => {
+    document.getElementById('btn-apply-campaign-rules')?.addEventListener('click', async () => {
       this.char.powerLevel = parseInt(campaignPlInput?.value, 10) || 10;
       this.char.powerPointsBudget = parseInt(campaignBudgetInput?.value, 10) || 150;
       this.saveAndAudit();
       this.renderAll();
-      alert(`Applied: PL ${this.char.powerLevel} with ${this.char.powerPointsBudget} PP budget!`);
+      await this.showAlertDialog(`Applied: PL ${this.char.powerLevel} with ${this.char.powerPointsBudget} PP budget!`, { title: 'Campaign Rules Updated' });
     });
 
     // House Rule: Specializations (M&M 4E)
@@ -1810,9 +1909,9 @@ class AppController {
       card.querySelector('.cfg-btn-test')?.addEventListener('click', async () => {
         try {
           await discordIntegrator.testConfig(cfg);
-          alert(`Test roll card sent to ${cfg.getDisplayName()}!`);
+          await this.showAlertDialog(`Test roll card sent to ${cfg.getDisplayName()}!`, { title: 'Discord Connected' });
         } catch (err) {
-          alert(`Test failed: ${err.message}`);
+          await this.showAlertDialog(`Test failed: ${err.message}`, { title: 'Discord Error' });
         }
       });
 
@@ -1820,8 +1919,13 @@ class AppController {
         this.openDiscordConfigEditor(cfg.id);
       });
 
-      card.querySelector('.cfg-btn-delete')?.addEventListener('click', () => {
-        if (confirm(`Remove Discord channel "${cfg.getDisplayName()}"?`)) {
+      card.querySelector('.cfg-btn-delete')?.addEventListener('click', async () => {
+        const confirmed = await this.showConfirmDialog(`Remove Discord channel "${cfg.getDisplayName()}"?`, {
+          title: 'Remove Discord Channel',
+          confirmText: 'Remove',
+          confirmClass: 'btn-danger'
+        });
+        if (confirmed) {
           discordIntegrator.deleteConfig(cfg.id);
           this.renderDiscordConfigsList();
         }
@@ -1914,7 +2018,12 @@ class AppController {
     let targetChar = this.char;
     if (forceSaveAs) {
       const suggestedCloneName = cloneName || `${this.char.name} (Clone)`;
-      const newName = cloneName || prompt('Enter superhero name for this clone / copy:', suggestedCloneName);
+      const newName = cloneName || await this.showPromptDialog({
+        title: 'Save As (Clone Character)',
+        label: 'Enter superhero name for this clone / copy:',
+        defaultValue: suggestedCloneName,
+        confirmText: 'Save Clone'
+      });
       if (!newName || !newName.trim()) return; // User cancelled
       // Clone character object
       targetChar = JSON.parse(JSON.stringify(this.char));
@@ -1956,7 +2065,7 @@ class AppController {
 
         this.saveAndAudit();
         this.loadCharacterToUI();
-        alert(`Successfully saved "${targetChar.name}" to ${handle.name || 'file'}!`);
+        await this.showAlertDialog(`Successfully saved "${targetChar.name}" to ${handle.name || 'file'}!`, { title: 'Character Saved' });
         return;
       } catch (err) {
         if (err.name === 'AbortError') return; // User cancelled dialog
@@ -1968,11 +2077,14 @@ class AppController {
     storageManager.exportCharacterToMM3(targetChar);
     this.saveAndAudit();
     this.loadCharacterToUI();
-    alert(`Saved "${targetChar.name}" as ${suggestedFileName}!`);
+    await this.showAlertDialog(`Saved "${targetChar.name}" as ${suggestedFileName}!`, { title: 'Character Saved' });
   }
 
   async loadCharacterFile() {
-    const confirmLoad = confirm('Loading a character file will replace the current hero in the workspace. Any unsaved changes will be overwritten. Proceed?');
+    const confirmLoad = await this.showConfirmDialog(
+      'Loading a character file will replace the current hero in the workspace. Any unsaved changes will be overwritten. Proceed?',
+      { title: 'Load Character File', confirmText: 'Load File', confirmClass: 'btn-danger' }
+    );
     if (!confirmLoad) return;
 
     if (typeof window !== 'undefined' && window.showOpenFilePicker) {
@@ -1995,7 +2107,7 @@ class AppController {
         this.currentFileHandle = handle;
         this.saveAndAudit();
         this.loadCharacterToUI();
-        alert(`Successfully loaded "${loadedChar.name}" from ${file.name}!`);
+        await this.showAlertDialog(`Successfully loaded "${loadedChar.name}" from ${file.name}!`, { title: 'Character Loaded' });
         return;
       } catch (err) {
         if (err.name === 'AbortError') return; // User cancelled
@@ -3037,58 +3149,76 @@ class AppController {
       const isSelected = !!existing;
       const currentRank = existing ? (parseInt(existing.rank, 10) || 1) : 0;
 
-      const card = document.createElement('div');
-      card.style.cssText = `
-        background-color: var(--bg-input);
+      const row = document.createElement('div');
+      row.className = 'advantage-list-row';
+      row.style.cssText = `
+        background-color: var(--bg-card);
         border: 1px solid ${isSelected ? 'var(--hero-blue)' : 'var(--border-color)'};
+        ${isSelected ? 'box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.25);' : ''}
         border-radius: var(--radius-sm);
-        padding: 0.65rem;
+        padding: 0.65rem 0.85rem;
         display: flex;
-        flex-direction: column;
+        flex-direction: row;
+        align-items: center;
         justify-content: space-between;
+        gap: 1rem;
+        transition: border-color 0.15s ease;
       `;
 
-      const previewDesc = (advDef.desc.split('\n')[0] || advDef.desc).substring(0, 110);
-      card.innerHTML = `
-        <div>
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
-            <span class="rules-link" data-id="${advDef.id}" data-type="advantage" data-name="${advDef.name}" data-cat="${advDef.category} Advantage">
+      row.innerHTML = `
+        <div style="flex: 1; min-width: 0;">
+          <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 0.45rem; margin-bottom: 0.25rem;">
+            <span class="rules-link" data-id="${advDef.id}" data-type="advantage" data-name="${advDef.name}" data-cat="${advDef.category} Advantage" style="font-weight: 700; font-size: var(--font-size-sm); color: var(--hero-cyan);">
               ${advDef.name}
             </span>
-            <span style="font-size: var(--font-size-xs); background: rgba(255,255,255,0.06); padding: 0.1rem 0.35rem; border-radius: 3px;">${advDef.category}</span>
+            <span style="font-size: var(--font-size-xs); background: rgba(255,255,255,0.08); padding: 0.1rem 0.4rem; border-radius: 4px; color: var(--text-muted); font-weight: 600;">
+              ${advDef.category}
+            </span>
+            ${isSelected ? `
+              <span style="font-size: var(--font-size-xs); background: rgba(37, 99, 235, 0.2); border: 1px solid rgba(59, 130, 246, 0.4); color: #93c5fd; padding: 0.1rem 0.45rem; border-radius: 4px; font-weight: 700;">
+                Rank ${currentRank}${advDef.maxRank > 1 ? ` / ${advDef.maxRank}` : ''}
+              </span>
+            ` : ''}
+            ${existing?.note ? `
+              <span style="font-size: var(--font-size-xs); background: rgba(234, 179, 8, 0.15); border: 1px solid rgba(234, 179, 8, 0.35); color: var(--hero-gold); padding: 0.1rem 0.45rem; border-radius: 4px; font-weight: 600;">
+                🏷️ ${existing.note}
+              </span>
+            ` : ''}
           </div>
-          <div style="font-size: var(--font-size-xs); color: var(--text-muted);">${previewDesc}...</div>
-          ${existing?.note ? `<div style="font-size: var(--font-size-xs); color: var(--hero-gold); margin-top: 0.25rem;">[${existing.note}]</div>` : ''}
+          <div style="font-size: var(--font-size-xs); color: var(--text-muted); line-height: 1.45;">
+            ${advDef.desc}
+          </div>
         </div>
 
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.5rem; border-top: 1px solid var(--border-color); padding-top: 0.45rem;">
+        <div style="display: flex; align-items: center; gap: 0.5rem; flex-shrink: 0;">
           ${advDef.maxRank > 1 ? `
-            <div class="stepper-control">
-              <button class="btn-stepper compact" data-adv="${advDef.id}" data-dir="-1">-</button>
-              <span class="stepper-value compact">${currentRank}</span>
-              <button class="btn-stepper compact" data-adv="${advDef.id}" data-dir="1">+</button>
+            <div class="stepper-control" style="background: rgba(0,0,0,0.25);">
+              <button class="btn-stepper compact" data-adv="${advDef.id}" data-dir="-1" title="Decrease Rank" ${currentRank <= 0 ? 'disabled style="opacity:0.4;cursor:not-allowed;"' : ''}>-</button>
+              <span class="stepper-value compact" style="min-width: 24px; font-weight: 700;">${currentRank}</span>
+              <button class="btn-stepper compact" data-adv="${advDef.id}" data-dir="1" title="Increase Rank" ${currentRank >= advDef.maxRank ? 'disabled style="opacity:0.4;cursor:not-allowed;"' : ''}>+</button>
             </div>
-          ` : `<span></span>`}
+          ` : ''}
 
-          <div style="display: flex; gap: 0.35rem;">
-            ${advDef.hasOptions ? `
-              <button class="btn btn-outline" style="min-height: 32px; font-size: var(--font-size-xs);" data-opt-adv="${advDef.id}">+ Option</button>
-            ` : ''}
-            <button class="btn ${isSelected ? 'btn-danger' : 'btn-primary'}" style="min-height: 32px; font-size: var(--font-size-xs);" data-toggle-adv="${advDef.id}">
-              ${isSelected ? 'Remove' : '+ Add'}
+          ${advDef.hasOptions ? `
+            <button class="btn btn-outline" style="min-height: 30px; font-size: var(--font-size-xs); padding: 0.2rem 0.5rem;" data-opt-adv="${advDef.id}">
+              ${existing?.note ? '✏️ Option' : '+ Option'}
             </button>
-          </div>
+          ` : ''}
+
+          <button class="btn ${isSelected ? 'btn-danger' : 'btn-primary'}" style="min-height: 30px; font-size: var(--font-size-xs); min-width: 68px; padding: 0.2rem 0.6rem;" data-toggle-adv="${advDef.id}">
+            ${isSelected ? 'Remove' : '+ Add'}
+          </button>
         </div>
       `;
 
-      card.querySelectorAll('.btn-stepper').forEach(btn => {
+      row.querySelectorAll('.btn-stepper').forEach(btn => {
         btn.addEventListener('click', () => {
           const dir = parseInt(btn.dataset.dir, 10);
           this.setAdvantageRank(advDef.id, advDef.name, currentRank + dir, advDef.maxRank);
         });
       });
 
-      card.querySelector('[data-toggle-adv]').addEventListener('click', () => {
+      row.querySelector('[data-toggle-adv]').addEventListener('click', () => {
         if (!this.char.advantages) this.char.advantages = [];
         if (isSelected) {
           this.char.advantages = this.char.advantages.filter(a => a.id !== advDef.id);
@@ -3099,7 +3229,7 @@ class AppController {
       });
 
       if (advDef.hasOptions) {
-        card.querySelector('[data-opt-adv]').addEventListener('click', () => {
+        row.querySelector('[data-opt-adv]').addEventListener('click', () => {
           this.openPrebuiltOptionsModal(`Select Option for ${advDef.name}`, advDef.options, (selected) => {
             let item = (this.char.advantages || []).find(a => a.id === advDef.id);
             if (!item) {
@@ -3113,7 +3243,7 @@ class AppController {
         });
       }
 
-      grid.appendChild(card);
+      grid.appendChild(row);
     });
 
     const searchBox = document.getElementById('adv-search-box');
@@ -3156,13 +3286,13 @@ class AppController {
       otherInput.placeholder = 'Other';
     }
 
-    const applyOther = () => {
+    const applyOther = async () => {
       const val = (otherInput?.value || '').trim();
       if (val) {
         onSelectCallback(val);
         this.closeModal('modal-prebuilt-options');
       } else {
-        alert('Please enter a custom specialization name or choose one from the list below.');
+        await this.showAlertDialog('Please enter a custom specialization name or choose one from the list below.', { title: 'Input Required' });
       }
     };
 
@@ -3845,7 +3975,7 @@ class AppController {
     list.innerHTML = '';
 
     if (!this.char.historyLog || this.char.historyLog.length === 0) {
-      list.innerHTML = `<div style="text-align: center; color: var(--text-muted); font-size: var(--font-size-xs); padding: 1rem;">
+      list.innerHTML = `<div style="text-align: center; color: var(--text-muted); font-size: var(--font-size-xs); padding: 1.5rem;">
         No game sessions logged yet. Click "+ Log Game Session" to record session recaps, dates, and campaign notes.
       </div>`;
       return;
@@ -3854,21 +3984,57 @@ class AppController {
     this.char.historyLog.forEach((sess, idx) => {
       const entry = document.createElement('div');
       entry.className = 'history-entry';
+      entry.style.cssText = `
+        background-color: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-sm);
+        padding: 0.75rem 1rem;
+        margin-bottom: 0.5rem;
+      `;
       entry.innerHTML = `
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.25rem;">
-          <strong style="color: var(--hero-cyan);">${sess.title}</strong>
-          <span style="font-size: var(--font-size-xs); color: var(--text-muted);">${sess.date} • ${sess.time}</span>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
+          <strong style="color: var(--hero-cyan); font-size: var(--font-size-sm);">${sess.title}</strong>
+          <span style="font-size: var(--font-size-xs); color: var(--text-muted); font-weight: 600;">${sess.date} • ${sess.time}</span>
         </div>
-        <div style="font-size: var(--font-size-xs); color: var(--text-bright);">${sess.notes}</div>
-        <div style="text-align: right; margin-top: 0.25rem;">
-          <button class="btn btn-danger" style="min-height: 24px; padding: 0.1rem 0.35rem; font-size: var(--font-size-xs);">Delete</button>
+        <div style="font-size: var(--font-size-xs); color: var(--text-bright); line-height: 1.45; white-space: pre-line;">${sess.notes || '<span style="color: var(--text-muted); font-style: italic;">No session notes recorded.</span>'}</div>
+        <div style="display: flex; justify-content: flex-end; gap: 0.4rem; margin-top: 0.5rem; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 0.4rem;">
+          <button class="btn btn-outline btn-edit-session" style="min-height: 26px; padding: 0.15rem 0.5rem; font-size: var(--font-size-xs);">✏️ Edit</button>
+          <button class="btn btn-danger btn-delete-session" style="min-height: 26px; padding: 0.15rem 0.5rem; font-size: var(--font-size-xs);">🗑️ Delete</button>
         </div>
       `;
-      entry.querySelector('button').addEventListener('click', () => {
-        this.char.historyLog.splice(idx, 1);
-        this.saveAndAudit();
-        this.renderHistoryTab();
+
+      entry.querySelector('.btn-edit-session')?.addEventListener('click', () => {
+        this.editingSessionId = sess.id;
+        const titleEl = document.getElementById('modal-session-title');
+        if (titleEl) titleEl.innerHTML = '<span>✏️</span> Edit Game Session Entry';
+
+        const dateInput = document.getElementById('input-session-date');
+        const timeInput = document.getElementById('input-session-time');
+        const titleInput = document.getElementById('input-session-title');
+        const notesInput = document.getElementById('input-session-notes');
+
+        if (dateInput) dateInput.value = sess.date;
+        if (timeInput) timeInput.value = sess.time;
+        if (titleInput) titleInput.value = sess.title;
+        if (notesInput) notesInput.value = sess.notes || '';
+
+        this.openModal('modal-log-session');
+        setTimeout(() => titleInput?.focus(), 50);
       });
+
+      entry.querySelector('.btn-delete-session')?.addEventListener('click', async () => {
+        const confirmed = await this.showConfirmDialog(`Delete session "${sess.title}"?`, {
+          title: 'Delete Session Entry',
+          confirmText: 'Delete',
+          confirmClass: 'btn-danger'
+        });
+        if (confirmed) {
+          this.char.historyLog.splice(idx, 1);
+          this.saveAndAudit();
+          this.renderHistoryTab();
+        }
+      });
+
       list.appendChild(entry);
     });
   }
@@ -3881,6 +4047,131 @@ class AppController {
   closeModal(id) {
     const el = document.getElementById(id);
     if (el) el.classList.remove('active');
+  }
+
+  showAlertDialog(message, { title = 'Notification', icon = 'ℹ️' } = {}) {
+    return new Promise((resolve) => {
+      const titleEl = document.getElementById('alert-dialog-title');
+      if (titleEl) titleEl.innerHTML = `<span>${icon}</span> ${title}`;
+      const msgEl = document.getElementById('alert-dialog-message');
+      if (msgEl) msgEl.textContent = message;
+
+      const okBtn = document.getElementById('btn-alert-dialog-ok');
+      const closeBtn = document.getElementById('btn-alert-dialog-close');
+
+      const onDone = () => {
+        this.closeModal('modal-alert-dialog');
+        okBtn?.removeEventListener('click', onDone);
+        closeBtn?.removeEventListener('click', onDone);
+        resolve();
+      };
+
+      okBtn?.addEventListener('click', onDone);
+      closeBtn?.addEventListener('click', onDone);
+      this.openModal('modal-alert-dialog');
+      setTimeout(() => okBtn?.focus(), 50);
+    });
+  }
+
+  showConfirmDialog(message, { title = 'Confirm Action', confirmText = 'Confirm', confirmClass = 'btn-primary' } = {}) {
+    return new Promise((resolve) => {
+      const titleEl = document.getElementById('confirm-dialog-title');
+      if (titleEl) titleEl.textContent = title;
+      const msgEl = document.getElementById('confirm-dialog-message');
+      if (msgEl) msgEl.textContent = message;
+
+      const okBtn = document.getElementById('btn-confirm-dialog-ok');
+      const cancelBtn = document.getElementById('btn-confirm-dialog-cancel');
+      const closeBtn = document.getElementById('btn-confirm-dialog-close');
+
+      if (okBtn) {
+        okBtn.textContent = confirmText;
+        okBtn.className = `btn ${confirmClass}`;
+      }
+
+      const cleanup = () => {
+        okBtn?.removeEventListener('click', onOk);
+        cancelBtn?.removeEventListener('click', onCancel);
+        closeBtn?.removeEventListener('click', onCancel);
+      };
+
+      const onOk = () => {
+        cleanup();
+        this.closeModal('modal-confirm-dialog');
+        resolve(true);
+      };
+
+      const onCancel = () => {
+        cleanup();
+        this.closeModal('modal-confirm-dialog');
+        resolve(false);
+      };
+
+      okBtn?.addEventListener('click', onOk);
+      cancelBtn?.addEventListener('click', onCancel);
+      closeBtn?.addEventListener('click', onCancel);
+      this.openModal('modal-confirm-dialog');
+      setTimeout(() => okBtn?.focus(), 50);
+    });
+  }
+
+  showPromptDialog({ title = 'Input Required', label = '', defaultValue = '', placeholder = '', confirmText = 'OK' } = {}) {
+    return new Promise((resolve) => {
+      const titleEl = document.getElementById('prompt-dialog-title');
+      if (titleEl) titleEl.textContent = title;
+      const labelEl = document.getElementById('prompt-dialog-label');
+      if (labelEl) labelEl.textContent = label;
+
+      const input = document.getElementById('prompt-dialog-input');
+      if (input) {
+        input.value = defaultValue;
+        input.placeholder = placeholder;
+      }
+
+      const okBtn = document.getElementById('btn-prompt-dialog-ok');
+      const cancelBtn = document.getElementById('btn-prompt-dialog-cancel');
+      const closeBtn = document.getElementById('btn-prompt-dialog-close');
+
+      if (okBtn) okBtn.textContent = confirmText;
+
+      const cleanup = () => {
+        okBtn?.removeEventListener('click', onOk);
+        cancelBtn?.removeEventListener('click', onCancel);
+        closeBtn?.removeEventListener('click', onCancel);
+        input?.removeEventListener('keydown', onKeyDown);
+      };
+
+      const onOk = () => {
+        const val = input ? input.value : '';
+        cleanup();
+        this.closeModal('modal-prompt-dialog');
+        resolve(val);
+      };
+
+      const onCancel = () => {
+        cleanup();
+        this.closeModal('modal-prompt-dialog');
+        resolve(null);
+      };
+
+      const onKeyDown = (e) => {
+        if (e.key === 'Enter') onOk();
+        if (e.key === 'Escape') onCancel();
+      };
+
+      okBtn?.addEventListener('click', onOk);
+      cancelBtn?.addEventListener('click', onCancel);
+      closeBtn?.addEventListener('click', onCancel);
+      input?.addEventListener('keydown', onKeyDown);
+
+      this.openModal('modal-prompt-dialog');
+      setTimeout(() => {
+        if (input) {
+          input.focus();
+          input.select();
+        }
+      }, 50);
+    });
   }
 }
 

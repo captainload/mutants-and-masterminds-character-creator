@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Mutants & Masterminds 3E - Character Architect v3.7</title>
+  <title>Mutants & Masterminds 3E - Character Architect v3.8</title>
   <link rel="stylesheet" href="css/styles.css?v=3.6">
 </head>
 <body>
@@ -94,7 +94,7 @@
           </div>
 
           <div class="brand-label-compact">
-            M&M 3E Character Editor v3.7
+            M&M 3E Character Editor v3.8
           </div>
         </div>
 
@@ -137,10 +137,9 @@
 
       </header>
 
-      <!-- Persistent Navigation Tab Bar (7 Focused Tabs) -->
+      <!-- Persistent Navigation Tab Bar (6 Focused Tabs) -->
       <nav class="nav-tab-bar">
         <button class="nav-tab-btn active" data-tab="tab-action">⚔️ Action Center</button>
-        <button class="nav-tab-btn" data-tab="tab-abilities">🧬 Abilities & Defenses</button>
         <button class="nav-tab-btn" data-tab="tab-skills">🎯 Skills</button>
         <button class="nav-tab-btn" data-tab="tab-advantages">🎖️ Advantages</button>
         <button class="nav-tab-btn" data-tab="tab-powers">⚡ Powers & Profiles</button>
@@ -194,7 +193,10 @@
             <div class="card-box" style="margin-bottom: 0.5rem; padding: 0.5rem 0.75rem;">
               <div class="card-box-header" style="margin-bottom: 0.35rem;">
                 <div class="card-box-title">🧬 Abilities</div>
-                <span style="font-size: var(--font-size-xs); color: var(--text-muted);">Click card to roll d20 + modifier</span>
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                  <span style="font-size: var(--font-size-xs); color: var(--text-muted);">Click card to roll</span>
+                  <button class="btn btn-outline" id="btn-action-edit-abilities" style="font-size: var(--font-size-xs); min-height: 24px; padding: 0.1rem 0.45rem;" title="Edit Abilities & Defenses">✏️ Edit</button>
+                </div>
               </div>
               <div id="action-abilities-grid" style="display: grid; grid-template-columns: repeat(8, 1fr); gap: 0.35rem;">
                 <!-- Populated via JS -->
@@ -205,7 +207,10 @@
             <div class="card-box" style="margin-bottom: 0.5rem; padding: 0.5rem 0.75rem;">
               <div class="card-box-header" style="margin-bottom: 0.35rem;">
                 <div class="card-box-title">🛡️ Defenses & Resistance Checks</div>
-                <span style="font-size: var(--font-size-xs); color: var(--text-muted);">Click card to roll d20 + defense score</span>
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                  <span style="font-size: var(--font-size-xs); color: var(--text-muted);">Click card to roll</span>
+                  <button class="btn btn-outline" id="btn-action-edit-defenses" style="font-size: var(--font-size-xs); min-height: 24px; padding: 0.1rem 0.45rem;" title="Edit Abilities & Defenses">✏️ Edit</button>
+                </div>
               </div>
               <div id="action-defenses-grid" style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.35rem;">
                 <!-- Populated via JS -->
@@ -276,6 +281,11 @@
           <!-- Right Sidebar Column -->
           <div class="action-side-col">
             
+            <!-- Quick Edit: Abilities & Defenses Button -->
+            <button class="btn btn-primary" id="btn-open-abilities-dialog" style="width: 100%; min-height: 40px; margin-bottom: 0.65rem; font-size: var(--font-size-sm); font-weight: 800; display: flex; align-items: center; justify-content: center; gap: 0.5rem; background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); border-color: #3b82f6; box-shadow: 0 2px 8px rgba(37, 99, 235, 0.4);">
+              <span>🛡️</span> Edit Abilities & Defenses
+            </button>
+
             <!-- Damage & Conditions Tracker -->
             <div class="card-box">
               <div class="card-box-header">
@@ -338,44 +348,7 @@
       </div>
 
       <!-- =================================================== -->
-      <!-- TAB 2: ABILITIES & DEFENSES                         -->
-      <!-- =================================================== -->
-      <div class="tab-pane" id="tab-abilities">
-        
-        <div class="card-box" style="margin-bottom: 0.65rem; padding: 0.55rem 0.75rem;">
-          <div class="card-box-header" style="margin-bottom: 0.35rem;">
-            <div class="card-box-title">🧬 Abilities (2 PP per Rank)</div>
-            <span class="pp-status-value" id="abilities-cost-display">0 PP</span>
-          </div>
-          <div id="abilities-stepper-grid" style="display: grid; grid-template-columns: repeat(8, 1fr); gap: 0.35rem;">
-            <!-- Populated via JS -->
-          </div>
-        </div>
-
-        <div class="card-box" style="margin-bottom: 0.65rem; padding: 0.55rem 0.75rem;">
-          <div class="card-box-header" style="margin-bottom: 0.35rem;">
-            <div class="card-box-title">🛡️ Defenses Point Buy (1 PP per Rank)</div>
-            <span class="pp-status-value" id="defenses-cost-display">0 PP</span>
-          </div>
-          <div id="defenses-stepper-grid" style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.35rem;">
-            <!-- Populated via JS -->
-          </div>
-        </div>
-
-        <div class="card-box">
-          <div class="card-box-header">
-            <div class="card-box-title">⚖️ Power Level Caps & Characteristics</div>
-            <span id="pl-compliance-pill" style="font-weight: 800; font-size: var(--font-size-xs); padding: 0.2rem 0.6rem; border-radius: 4px; background: rgba(16,185,129,0.15); color: var(--hero-green);">PL 10 Legal</span>
-          </div>
-          <div id="pl-caps-report" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.65rem; font-size: var(--font-size-xs);">
-            <!-- Populated via JS -->
-          </div>
-        </div>
-
-      </div>
-
-      <!-- =================================================== -->
-      <!-- TAB 3: SKILLS CATALOG                               -->
+      <!-- TAB 2: SKILLS CATALOG                               -->
       <!-- =================================================== -->
       <div class="tab-pane" id="tab-skills">
         <div class="card-box">
@@ -429,7 +402,7 @@
               <option value="General">General</option>
             </select>
           </div>
-          <div id="advantages-catalog-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 0.65rem;">
+          <div id="advantages-catalog-grid" style="display: flex; flex-direction: column; gap: 0.5rem;">
             <!-- Populated via JS -->
           </div>
         </div>
@@ -1183,6 +1156,154 @@
     </div>
   </div>
 
-  <script type="module" src="js/app.js?v=3.6"></script>
+  <!-- ======================================================= -->
+  <!-- MODAL: EDIT ABILITIES & DEFENSES                        -->
+  <!-- ======================================================= -->
+  <div class="modal-overlay" id="modal-abilities-defenses">
+    <div class="modal-container" style="max-width: 960px; max-height: 92vh;">
+      <div class="modal-header-bar">
+        <div class="modal-header-title" style="display: flex; align-items: center; gap: 0.5rem;">
+          <span>🛡️</span> Edit Abilities & Defenses
+        </div>
+        <div style="display: flex; align-items: center; gap: 0.75rem;">
+          <span style="font-size: var(--font-size-xs); color: var(--text-muted);">Abilities: <strong id="abilities-cost-display" style="color: var(--hero-gold);">0 PP</strong></span>
+          <span style="font-size: var(--font-size-xs); color: var(--text-muted);">Defenses: <strong id="defenses-cost-display" style="color: var(--hero-gold);">0 PP</strong></span>
+          <button class="btn btn-outline" id="btn-close-abilities-dialog" style="min-height: 28px; padding: 0.1rem 0.5rem;">✕</button>
+        </div>
+      </div>
+      <div class="modal-scroll-body" style="padding: 1rem; display: flex; flex-direction: column; gap: 0.75rem;">
+        
+        <div class="card-box" style="margin-bottom: 0; padding: 0.65rem 0.85rem;">
+          <div class="card-box-header" style="margin-bottom: 0.35rem;">
+            <div class="card-box-title">🧬 Abilities (2 PP per Rank)</div>
+          </div>
+          <div id="abilities-stepper-grid" style="display: grid; grid-template-columns: repeat(8, 1fr); gap: 0.35rem;">
+            <!-- Populated via JS -->
+          </div>
+        </div>
+
+        <div class="card-box" style="margin-bottom: 0; padding: 0.65rem 0.85rem;">
+          <div class="card-box-header" style="margin-bottom: 0.35rem;">
+            <div class="card-box-title">🛡️ Defenses Point Buy (1 PP per Rank)</div>
+          </div>
+          <div id="defenses-stepper-grid" style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.35rem;">
+            <!-- Populated via JS -->
+          </div>
+        </div>
+
+        <div class="card-box" style="margin-bottom: 0;">
+          <div class="card-box-header">
+            <div class="card-box-title">⚖️ Power Level Caps & Characteristics</div>
+            <span id="pl-compliance-pill" style="font-weight: 800; font-size: var(--font-size-xs); padding: 0.2rem 0.6rem; border-radius: 4px; background: rgba(16,185,129,0.15); color: var(--hero-green);">PL 10 Legal</span>
+          </div>
+          <div id="pl-caps-report" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.65rem; font-size: var(--font-size-xs);">
+            <!-- Populated via JS -->
+          </div>
+        </div>
+
+      </div>
+      <div class="modal-header-bar" style="background: #10192a; justify-content: flex-end; gap: 0.5rem;">
+        <button class="btn btn-primary" id="btn-done-abilities-dialog">Done</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================= -->
+  <!-- MODAL: LOG GAME SESSION ENTRY                           -->
+  <!-- ======================================================= -->
+  <div class="modal-overlay" id="modal-log-session">
+    <div class="modal-container" style="max-width: 520px;">
+      <div class="modal-header-bar">
+        <div class="modal-header-title" id="modal-session-title">📜 Log Game Session Entry</div>
+        <button class="btn btn-outline" id="btn-close-session-modal" style="min-height: 28px; padding: 0.1rem 0.5rem;">✕</button>
+      </div>
+      <div class="modal-scroll-body" style="padding: 1.25rem; display: flex; flex-direction: column; gap: 0.75rem;">
+        <div>
+          <label style="font-size: var(--font-size-xs); font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 0.35rem;">Session Title</label>
+          <input type="text" id="input-session-title" style="width: 100%; font-size: var(--font-size-sm); font-weight: 700;" placeholder="e.g. Infiltration of STAR Labs">
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.65rem;">
+          <div>
+            <label style="font-size: var(--font-size-xs); font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 0.35rem;">Date</label>
+            <input type="text" id="input-session-date" style="width: 100%; font-size: var(--font-size-xs);">
+          </div>
+          <div>
+            <label style="font-size: var(--font-size-xs); font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 0.35rem;">Time / Session #</label>
+            <input type="text" id="input-session-time" style="width: 100%; font-size: var(--font-size-xs);">
+          </div>
+        </div>
+        <div>
+          <label style="font-size: var(--font-size-xs); font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 0.35rem;">Recap & Campaign Notes</label>
+          <textarea id="input-session-notes" rows="4" style="width: 100%; font-size: var(--font-size-xs);" placeholder="What happened in this session, villain encounters, PP awarded, key plot points..."></textarea>
+        </div>
+      </div>
+      <div class="modal-header-bar" style="background: #10192a; justify-content: flex-end; gap: 0.5rem;">
+        <button class="btn btn-outline" id="btn-cancel-session-modal">Cancel</button>
+        <button class="btn btn-primary" id="btn-save-session-entry">💾 Save Session Entry</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================= -->
+  <!-- MODAL: REUSABLE HTML CONFIRM DIALOG                     -->
+  <!-- ======================================================= -->
+  <div class="modal-overlay" id="modal-confirm-dialog">
+    <div class="modal-container" style="max-width: 480px;">
+      <div class="modal-header-bar">
+        <div class="modal-header-title" id="confirm-dialog-title">Confirm Action</div>
+        <button class="btn btn-outline" id="btn-confirm-dialog-close" style="min-height: 28px; padding: 0.1rem 0.5rem;">✕</button>
+      </div>
+      <div class="modal-scroll-body" style="padding: 1.25rem;">
+        <p id="confirm-dialog-message" style="font-size: var(--font-size-sm); color: var(--text-main); line-height: 1.5; white-space: pre-line;">
+          Are you sure you want to proceed?
+        </p>
+      </div>
+      <div class="modal-header-bar" style="background: #10192a; justify-content: flex-end; gap: 0.5rem;">
+        <button class="btn btn-outline" id="btn-confirm-dialog-cancel">Cancel</button>
+        <button class="btn btn-primary" id="btn-confirm-dialog-ok">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================= -->
+  <!-- MODAL: REUSABLE HTML PROMPT DIALOG                      -->
+  <!-- ======================================================= -->
+  <div class="modal-overlay" id="modal-prompt-dialog">
+    <div class="modal-container" style="max-width: 480px;">
+      <div class="modal-header-bar">
+        <div class="modal-header-title" id="prompt-dialog-title">Input Required</div>
+        <button class="btn btn-outline" id="btn-prompt-dialog-close" style="min-height: 28px; padding: 0.1rem 0.5rem;">✕</button>
+      </div>
+      <div class="modal-scroll-body" style="padding: 1.25rem;">
+        <label id="prompt-dialog-label" style="font-size: var(--font-size-xs); font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 0.35rem;"></label>
+        <input type="text" id="prompt-dialog-input" style="width: 100%; font-size: var(--font-size-sm); font-weight: 700;">
+      </div>
+      <div class="modal-header-bar" style="background: #10192a; justify-content: flex-end; gap: 0.5rem;">
+        <button class="btn btn-outline" id="btn-prompt-dialog-cancel">Cancel</button>
+        <button class="btn btn-primary" id="btn-prompt-dialog-ok">OK</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================= -->
+  <!-- MODAL: REUSABLE HTML ALERT DIALOG                       -->
+  <!-- ======================================================= -->
+  <div class="modal-overlay" id="modal-alert-dialog">
+    <div class="modal-container" style="max-width: 460px;">
+      <div class="modal-header-bar">
+        <div class="modal-header-title" id="alert-dialog-title">Notification</div>
+        <button class="btn btn-outline" id="btn-alert-dialog-close" style="min-height: 28px; padding: 0.1rem 0.5rem;">✕</button>
+      </div>
+      <div class="modal-scroll-body" style="padding: 1.25rem;">
+        <p id="alert-dialog-message" style="font-size: var(--font-size-sm); color: var(--text-main); line-height: 1.5; white-space: pre-line;">
+        </p>
+      </div>
+      <div class="modal-header-bar" style="background: #10192a; justify-content: flex-end;">
+        <button class="btn btn-primary" id="btn-alert-dialog-ok">OK</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="js/app.js?v=3.8"></script>
 </body>
 </html>

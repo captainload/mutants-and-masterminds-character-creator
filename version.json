@@ -1,5 +1,5 @@
 {
-  "version": "3.7",
-  "updatedAt": "2026-10-26T13:15:00Z",
-  "releaseNotes": "Enforced 10pt minimum font size across the entire application for clear legibility. Added support for assigned-focus skills with a strict 1-rank limit (including Languages and Skill Mastery), where each purchased rank represents a distinct assigned focus or language."
+  "version": "3.8",
+  "updatedAt": "2026-10-26T14:00:00Z",
+  "releaseNotes": "Replaced browser pop-ups (alert, prompt, confirm) with custom HTML dialogs including full game session logger. Converted Abilities & Defenses to an interactive pop-up accessible via the new Action Center button. Transformed the Advantages catalog into an expansive, readable list layout."
 }

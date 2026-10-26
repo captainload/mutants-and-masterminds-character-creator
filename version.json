@@ -1,5 +1,5 @@
 {
-  "version": "3.9",
-  "updatedAt": "2026-10-26T15:30:00Z",
-  "releaseNotes": "Added '+ Build new power' builder button. Added 3E rules trait description popups to Abilities & Defenses 'i' info buttons. Added Linked effects picker with 'no other effects' warning modal. Added rich configuration editors for Affliction (degrees of failure), Immunity ('+' multi-item catalog), Senses, Weaken, and Nullify."
+  "version": "3.10",
+  "updatedAt": "2026-10-26T16:15:00Z",
+  "releaseNotes": "Standardized application color palette across all controls, headings, and labels. Unified power effect stats into a compact 4-chip block displaying Action, Range, Duration, and Area together in both expanded and collapsed power views."
 }

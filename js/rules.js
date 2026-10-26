@@ -1000,6 +1000,40 @@ export function computePowerRangeAndDuration(effect, extras = [], flaws = []) {
   };
 }
 
+export function computePowerEffectiveStats(effect, extras = [], flaws = [], action = null) {
+  const rd = computePowerRangeAndDuration(effect, extras, flaws);
+  const baseAction = effect?.action || 'Standard';
+  const effectiveAction = action || baseAction;
+
+  // Area calculation
+  let effectiveArea = 'Single Target';
+  let areaNotes = '';
+  const areaExtras = (extras || []).filter(e => e.id?.startsWith('area_') || e.id === 'area');
+  if (areaExtras.length > 0) {
+    const descriptions = areaExtras.map(ae => {
+      const rk = parseInt(ae.rank, 10) || 1;
+      if (ae.id === 'area_burst') return `Burst (${30 * rk} ft radius)`;
+      if (ae.id === 'area_cone') return `Cone (${60 * rk} ft)`;
+      if (ae.id === 'area_line') return `Line (${30 * rk} ft)`;
+      if (ae.id === 'area_shapeable') return `Shapeable (${30 * rk} cu ft)`;
+      return `${ae.name || 'Area'} (${rk})`;
+    });
+    effectiveArea = descriptions.join(', ');
+    const hasSelective = (extras || []).some(e => e.id === 'selective');
+    if (hasSelective) areaNotes = 'Selective';
+  } else if (rd.effectiveRange === 'Personal') {
+    effectiveArea = 'Personal';
+  }
+
+  return {
+    ...rd,
+    action: effectiveAction,
+    baseAction,
+    area: effectiveArea,
+    areaNotes
+  };
+}
+
 export function validateModifierLegality(effect, extras = [], flaws = []) {
   const errors = [];
   const warnings = [];

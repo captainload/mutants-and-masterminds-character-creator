@@ -6,8 +6,8 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Mutants & Masterminds 3E - Character Architect v3.9</title>
-  <link rel="stylesheet" href="css/styles.css?v=3.9">
+  <title>Mutants & Masterminds 3E - Character Architect v3.10</title>
+  <link rel="stylesheet" href="css/styles.css?v=3.10">
 </head>
 <body>
 
@@ -94,7 +94,7 @@
           </div>
 
           <div class="brand-label-compact">
-            M&M 3E Character Editor v3.9
+            M&M 3E Character Editor v3.10
           </div>
         </div>
 
@@ -591,7 +591,7 @@
           This will duplicate the current character sheet into a new independent slot, preserving all powers, abilities, and history.
         </p>
       </div>
-      <div class="modal-header-bar" style="background: #10192a; justify-content: flex-end; gap: 0.5rem;">
+      <div class="modal-footer-bar">
         <button class="btn btn-outline" id="btn-cancel-save-as">Cancel</button>
         <button class="btn btn-primary" id="btn-confirm-save-as">Save As Clone</button>
       </div>
@@ -1058,13 +1058,13 @@
           </div>
         </div>
 
-        <div style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 0.65rem; margin-bottom: 0.65rem;">
+        <div style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 1fr; gap: 0.65rem; margin-bottom: 0.65rem;">
           <div>
-            <label style="font-size: var(--font-size-xs); font-weight: 700; color: var(--text-muted);">Base Effect</label>
+            <label class="field-label">Base Effect</label>
             <select id="builder-base-effect" style="width: 100%;"></select>
           </div>
           <div>
-            <label style="font-size: var(--font-size-xs); font-weight: 700; color: var(--text-muted);">Action</label>
+            <label class="field-label">Action</label>
             <select id="builder-action" style="width: 100%;">
               <option value="Standard">Standard</option>
               <option value="Move">Move</option>
@@ -1074,15 +1074,21 @@
             </select>
           </div>
           <div>
-            <label style="font-size: var(--font-size-xs); font-weight: 700; color: var(--text-muted);">Range (Derived from 3E Modifiers)</label>
+            <label class="field-label">Range (Effective)</label>
             <div id="builder-derived-range" style="width: 100%; min-height: 38px; display: flex; align-items: center; padding: 0.35rem 0.65rem; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-sm); font-size: var(--font-size-sm); font-weight: 700; color: var(--hero-cyan);">
               Close
             </div>
           </div>
           <div>
-            <label style="font-size: var(--font-size-xs); font-weight: 700; color: var(--text-muted);">Duration (Derived from 3E Modifiers)</label>
+            <label class="field-label">Duration (Effective)</label>
             <div id="builder-derived-duration" style="width: 100%; min-height: 38px; display: flex; align-items: center; padding: 0.35rem 0.65rem; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-sm); font-size: var(--font-size-sm); font-weight: 700; color: var(--hero-gold);">
               Instant
+            </div>
+          </div>
+          <div>
+            <label class="field-label">Area (Effective)</label>
+            <div id="builder-derived-area" style="width: 100%; min-height: 38px; display: flex; align-items: center; padding: 0.35rem 0.65rem; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-sm); font-size: var(--font-size-sm); font-weight: 700; color: var(--hero-purple);">
+              Single Target
             </div>
           </div>
         </div>
@@ -1210,7 +1216,7 @@
         </div>
 
       </div>
-      <div class="modal-header-bar" style="background: #10192a; justify-content: flex-end; gap: 0.5rem;">
+      <div class="modal-footer-bar">
         <button class="btn btn-primary" id="btn-done-abilities-dialog">Done</button>
       </div>
     </div>
@@ -1245,7 +1251,7 @@
           <textarea id="input-session-notes" rows="4" style="width: 100%; font-size: var(--font-size-xs);" placeholder="What happened in this session, villain encounters, PP awarded, key plot points..."></textarea>
         </div>
       </div>
-      <div class="modal-header-bar" style="background: #10192a; justify-content: flex-end; gap: 0.5rem;">
+      <div class="modal-footer-bar">
         <button class="btn btn-outline" id="btn-cancel-session-modal">Cancel</button>
         <button class="btn btn-primary" id="btn-save-session-entry">💾 Save Session Entry</button>
       </div>
@@ -1266,7 +1272,7 @@
           Are you sure you want to proceed?
         </p>
       </div>
-      <div class="modal-header-bar" style="background: #10192a; justify-content: flex-end; gap: 0.5rem;">
+      <div class="modal-footer-bar">
         <button class="btn btn-outline" id="btn-confirm-dialog-cancel">Cancel</button>
         <button class="btn btn-primary" id="btn-confirm-dialog-ok">Confirm</button>
       </div>
@@ -1283,10 +1289,10 @@
         <button class="btn btn-outline" id="btn-prompt-dialog-close" style="min-height: 28px; padding: 0.1rem 0.5rem;">✕</button>
       </div>
       <div class="modal-scroll-body" style="padding: 1.25rem;">
-        <label id="prompt-dialog-label" style="font-size: var(--font-size-xs); font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 0.35rem;"></label>
+        <label id="prompt-dialog-label" class="field-label" style="display: block; margin-bottom: 0.35rem;"></label>
         <input type="text" id="prompt-dialog-input" style="width: 100%; font-size: var(--font-size-sm); font-weight: 700;">
       </div>
-      <div class="modal-header-bar" style="background: #10192a; justify-content: flex-end; gap: 0.5rem;">
+      <div class="modal-footer-bar">
         <button class="btn btn-outline" id="btn-prompt-dialog-cancel">Cancel</button>
         <button class="btn btn-primary" id="btn-prompt-dialog-ok">OK</button>
       </div>
@@ -1306,12 +1312,12 @@
         <p id="alert-dialog-message" style="font-size: var(--font-size-sm); color: var(--text-main); line-height: 1.5; white-space: pre-line;">
         </p>
       </div>
-      <div class="modal-header-bar" style="background: #10192a; justify-content: flex-end;">
+      <div class="modal-footer-bar">
         <button class="btn btn-primary" id="btn-alert-dialog-ok">OK</button>
       </div>
     </div>
   </div>
 
-  <script type="module" src="js/app.js?v=3.9"></script>
+  <script type="module" src="js/app.js?v=3.10"></script>
 </body>
 </html>

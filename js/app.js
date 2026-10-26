@@ -23,6 +23,7 @@ import {
   getStrengthLiftingCapacity,
   getTraitDefinition,
   computePowerRangeAndDuration,
+  computePowerEffectiveStats,
   validateModifierLegality
 } from './rules.js';
 
@@ -969,7 +970,7 @@ class AppController {
   }
 
   async checkForUpdates({ isManual = false } = {}) {
-    const CURRENT_VERSION = '3.9';
+    const CURRENT_VERSION = '3.10';
     if (typeof window === 'undefined' || !window.location || !window.location.href || window.location.href === 'about:blank') return;
     try {
       const url = new URL('version.json', window.location.href);
@@ -1365,11 +1366,13 @@ class AppController {
       document.getElementById('builder-rank-val').textContent = powerToEdit.rank || 10;
       document.getElementById('builder-base-effect').value = powerToEdit.effect?.id || 'damage';
       document.getElementById('builder-action').value = powerToEdit.action || 'Standard';
-      const rd = computePowerRangeAndDuration(powerToEdit.effect, powerToEdit.extras, powerToEdit.flaws);
+      const effStats = computePowerEffectiveStats(powerToEdit.effect, powerToEdit.extras, powerToEdit.flaws, powerToEdit.action);
       const rEl = document.getElementById('builder-derived-range');
       const dEl = document.getElementById('builder-derived-duration');
-      if (rEl) rEl.textContent = rd.effectiveRange;
-      if (dEl) dEl.textContent = rd.effectiveDuration;
+      const aEl = document.getElementById('builder-derived-area');
+      if (rEl) rEl.textContent = effStats.effectiveRange;
+      if (dEl) dEl.textContent = effStats.effectiveDuration;
+      if (aEl) aEl.textContent = effStats.area;
       document.getElementById('builder-power-notes').value = powerToEdit.notes || '';
     } else {
       document.getElementById('builder-power-name').value = '';
@@ -1377,11 +1380,13 @@ class AppController {
       document.getElementById('builder-rank-val').textContent = '10';
       document.getElementById('builder-base-effect').value = 'damage';
       document.getElementById('builder-action').value = 'Standard';
-      const rd = computePowerRangeAndDuration(POWER_EFFECTS_CATALOG[0]);
+      const effStats = computePowerEffectiveStats(POWER_EFFECTS_CATALOG[0]);
       const rEl = document.getElementById('builder-derived-range');
       const dEl = document.getElementById('builder-derived-duration');
-      if (rEl) rEl.textContent = rd.effectiveRange;
-      if (dEl) dEl.textContent = rd.effectiveDuration;
+      const aEl = document.getElementById('builder-derived-area');
+      if (rEl) rEl.textContent = effStats.effectiveRange;
+      if (dEl) dEl.textContent = effStats.effectiveDuration;
+      if (aEl) aEl.textContent = effStats.area;
       document.getElementById('builder-power-notes').value = '';
     }
 
@@ -1482,8 +1487,15 @@ class AppController {
   recalculateCustomBuilder() {
     const power = this.collectPowerFromBuilder();
     const cost = calculatePowerCost(power);
+    const effStats = computePowerEffectiveStats(power.effect, power.extras, power.flaws, power.action);
+    const rEl = document.getElementById('builder-derived-range');
+    const dEl = document.getElementById('builder-derived-duration');
+    const aEl = document.getElementById('builder-derived-area');
+    if (rEl) rEl.textContent = effStats.effectiveRange;
+    if (dEl) dEl.textContent = effStats.effectiveDuration;
+    if (aEl) aEl.textContent = effStats.area;
     document.getElementById('builder-total-pp-display').textContent = `${cost} PP`;
-    document.getElementById('builder-formula-display').textContent = `Rank ${power.rank} • Cost: ${cost} Power Points`;
+    document.getElementById('builder-formula-display').textContent = `Rank ${power.rank} • Cost: ${cost} Power Points • ${effStats.effectiveRange}, ${effStats.effectiveDuration}, ${effStats.area}`;
   }
 
   collectPowerFromBuilder() {
@@ -3831,10 +3843,11 @@ class AppController {
         p.effect = found;
       }
 
-      // Compute derived range and duration (No manual dropdowns!)
-      const rd = computePowerRangeAndDuration(p.effect, p.extras, p.flaws);
-      p.range = rd.effectiveRange;
-      p.duration = rd.effectiveDuration;
+      // Compute derived range, duration, action, and area (Effective Stats Block)
+      const effStats = computePowerEffectiveStats(p.effect, p.extras, p.flaws, p.action);
+      const rd = effStats;
+      p.range = effStats.effectiveRange;
+      p.duration = effStats.effectiveDuration;
 
       // Validate legality of modifiers
       const valResult = validateModifierLegality(p.effect, p.extras, p.flaws);
@@ -3847,7 +3860,7 @@ class AppController {
       card.className = `power-card-collapsible ${isExpanded ? 'expanded' : 'collapsed'}`;
       if (isDevice) card.classList.add('device-card');
 
-      // Collapsed Single-Title-Line Header
+      // Collapsed Single-Title-Line Header with All Effective Stats
       const header = document.createElement('div');
       header.className = 'power-card-header';
       header.innerHTML = `
@@ -3856,11 +3869,11 @@ class AppController {
           <strong class="power-title-name">⚡ ${p.name || 'Unnamed Power'}</strong>
           <span class="power-title-sep">—</span>
           <span class="power-title-effect">${p.effect?.name || 'Effect'} Rank ${p.rank || 1}</span>
-          <span class="power-title-details">(${cost} PP • ${rd.effectiveRange}, ${rd.effectiveDuration})</span>
+          <span class="power-title-details">(${cost} PP • ${effStats.action} • ${effStats.effectiveRange} • ${effStats.effectiveDuration} • ${effStats.area})</span>
           ${p.isDynamicArray ? '<span class="badge-tag dynamic">Dynamic Array</span>' : ''}
           ${p.alternateEffects?.length ? `<span class="badge-tag ae">${p.alternateEffects.length} AE</span>` : ''}
           ${p.linkedEffects?.length ? `<span class="badge-tag linked">${p.linkedEffects.length} Linked</span>` : ''}
-          ${!valResult.valid ? '<span class="badge-tag" style="background: rgba(239, 68, 68, 0.25); color: var(--hero-red); border: 1px solid var(--hero-red);" title="Rule conflicts detected">⚠️ Conflict</span>' : ''}
+          ${!valResult.valid ? '<span class="badge-tag conflict" title="Rule conflicts detected">⚠️ Conflict</span>' : ''}
         </div>
         <div class="power-card-header-actions" onclick="event.stopPropagation()">
           <button class="btn btn-outline btn-duplicate-power" data-p-id="${p.id}" title="Duplicate Power" style="min-height: 26px; padding: 0.1rem 0.45rem; font-size: var(--font-size-xs);">📋 Duplicate</button>
@@ -3894,31 +3907,35 @@ class AppController {
         const body = document.createElement('div');
         body.className = 'power-card-body';
 
-        // Row 1: Power Name, Descriptors, Rank Stepper, Action
+        // Row 1: Core Configuration (Power Name, Descriptors, Base Effect, Rank Stepper, Cost)
         const row1 = document.createElement('div');
-        row1.style.cssText = 'display: grid; grid-template-columns: 2fr 2fr 110px 130px; gap: 0.65rem;';
+        row1.style.cssText = 'display: grid; grid-template-columns: 2fr 1.6fr 1.8fr 120px 80px; gap: 0.65rem; align-items: end;';
         row1.innerHTML = `
           <div>
-            <label style="font-size: var(--font-size-xs); font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 0.25rem;">Power Name</label>
+            <label class="field-label">Power Name</label>
             <input type="text" class="input-power-name" value="${p.name || ''}" placeholder="e.g. Plasma Ray, Force Field" style="width: 100%;">
           </div>
           <div>
-            <label style="font-size: var(--font-size-xs); font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 0.25rem;">Descriptors</label>
+            <label class="field-label">Descriptors</label>
             <input type="text" class="input-power-desc" value="${p.descriptor || ''}" placeholder="e.g. Fire, Energy, Technology" style="width: 100%;">
           </div>
           <div>
-            <label style="font-size: var(--font-size-xs); font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 0.25rem;">Rank</label>
+            <label class="field-label">Base Effect</label>
+            <select class="select-power-effect" style="width: 100%;">
+              ${POWER_EFFECTS_CATALOG.map(e => `<option value="${e.id}" ${p.effect?.id === e.id ? 'selected' : ''}>${e.name} (${e.baseCost} PP/rk)</option>`).join('')}
+            </select>
+          </div>
+          <div>
+            <label class="field-label">Rank</label>
             <div class="stepper-control" style="width: 100%;">
               <button class="btn-stepper compact btn-p-rank-minus">-</button>
               <span class="stepper-value compact val-p-rank">${p.rank || 1}</span>
               <button class="btn-stepper compact btn-p-rank-plus">+</button>
             </div>
           </div>
-          <div>
-            <label style="font-size: var(--font-size-xs); font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 0.25rem;">Action</label>
-            <select class="select-power-action" style="width: 100%;">
-              ${['Standard', 'Move', 'Free', 'Reaction', 'None'].map(act => `<option value="${act}" ${p.action === act ? 'selected' : ''}>${act}</option>`).join('')}
-            </select>
+          <div style="text-align: right; padding-bottom: 0.35rem;">
+            <span class="field-label" style="display: block; margin-bottom: 0.15rem;">Cost</span>
+            <strong style="color: var(--hero-gold); font-size: var(--font-size-md);">${cost} PP</strong>
           </div>
         `;
 
@@ -3930,6 +3947,13 @@ class AppController {
           p.descriptor = e.target.value;
           this.saveAndAudit();
         });
+        row1.querySelector('.select-power-effect')?.addEventListener('change', (e) => {
+          const newEff = POWER_EFFECTS_CATALOG.find(eff => eff.id === e.target.value) || POWER_EFFECTS_CATALOG[0];
+          p.effect = newEff;
+          p.action = newEff.action || 'Standard';
+          this.saveAndAudit();
+          this.renderPowersTab(auditCharacter(this.char));
+        });
         row1.querySelector('.btn-p-rank-minus')?.addEventListener('click', () => {
           p.rank = Math.max(1, (parseInt(p.rank, 10) || 1) - 1);
           this.saveAndAudit();
@@ -3940,47 +3964,65 @@ class AppController {
           this.saveAndAudit();
           this.renderPowersTab(auditCharacter(this.char));
         });
-        row1.querySelector('.select-power-action')?.addEventListener('change', (e) => {
-          p.action = e.target.value;
-          this.saveAndAudit();
-          this.renderPowersTab(auditCharacter(this.char));
-        });
         body.appendChild(row1);
 
-        // Row 2: Base Effect Selector, Derived Range Badge, Derived Duration Badge (NO DROPDOWNS!)
+        // Row 2: Unified Effective Stats Block (Action, Range, Duration, Area) Together in a Compact Block
         const row2 = document.createElement('div');
-        row2.style.cssText = 'display: grid; grid-template-columns: 2fr 1.5fr 1.5fr 120px; gap: 0.65rem; align-items: end;';
+        row2.className = 'power-effective-stats-bar';
         row2.innerHTML = `
-          <div>
-            <label style="font-size: var(--font-size-xs); font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 0.25rem;">Base Effect</label>
-            <select class="select-power-effect" style="width: 100%;">
-              ${POWER_EFFECTS_CATALOG.map(e => `<option value="${e.id}" ${p.effect?.id === e.id ? 'selected' : ''}>${e.name} (${e.baseCost} PP/rank) [Base: ${e.range}, ${e.duration}]</option>`).join('')}
-            </select>
-          </div>
-          <div>
-            <label style="font-size: var(--font-size-xs); font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 0.25rem;">Derived Range (3E Modifiers)</label>
-            <div style="min-height: 38px; display: flex; flex-direction: column; justify-content: center; padding: 0.3rem 0.6rem; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-sm);">
-              <span style="font-size: var(--font-size-sm); font-weight: 800; color: var(--hero-cyan);">${rd.effectiveRange}</span>
-              <span style="font-size: var(--font-size-xs); color: var(--text-muted);">${rd.rangeNotes || 'Base ' + rd.baseRange}</span>
+          <!-- Action Chip -->
+          <div class="effective-stat-chip stat-action">
+            <div class="effective-stat-header">
+              <span class="effective-stat-label">ACTION</span>
+              <span class="effective-stat-badge">3E Action</span>
             </div>
-          </div>
-          <div>
-            <label style="font-size: var(--font-size-xs); font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 0.25rem;">Derived Duration (3E Modifiers)</label>
-            <div style="min-height: 38px; display: flex; flex-direction: column; justify-content: center; padding: 0.3rem 0.6rem; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-sm);">
-              <span style="font-size: var(--font-size-sm); font-weight: 800; color: var(--hero-gold);">${rd.effectiveDuration}</span>
-              <span style="font-size: var(--font-size-xs); color: var(--text-muted);">${rd.durationNotes || 'Base ' + rd.baseDuration}</span>
+            <div class="effective-stat-content">
+              <select class="select-power-action effective-stat-dropdown" title="Effective action required to activate or use">
+                ${['Standard', 'Move', 'Free', 'Reaction', 'None'].map(act => `<option value="${act}" ${effStats.action === act ? 'selected' : ''}>${act}</option>`).join('')}
+              </select>
             </div>
+            <div class="effective-stat-subnote" title="Base: ${effStats.baseAction}">Base: ${effStats.baseAction}</div>
           </div>
-          <div style="text-align: right; padding-bottom: 0.4rem;">
-            <span style="font-size: var(--font-size-xs); color: var(--text-muted); display: block;">Base Cost:</span>
-            <strong style="color: var(--hero-gold); font-size: var(--font-size-md);">${p.effect?.baseCost || 1} PP/rank</strong>
+
+          <!-- Range Chip -->
+          <div class="effective-stat-chip stat-range">
+            <div class="effective-stat-header">
+              <span class="effective-stat-label">RANGE</span>
+              <span class="effective-stat-badge">Derived</span>
+            </div>
+            <div class="effective-stat-content">
+              <strong class="effective-stat-val text-cyan">${effStats.effectiveRange}</strong>
+            </div>
+            <div class="effective-stat-subnote" title="${effStats.rangeNotes || 'Base: ' + effStats.baseRange}">${effStats.rangeNotes || 'Base: ' + effStats.baseRange}</div>
+          </div>
+
+          <!-- Duration Chip -->
+          <div class="effective-stat-chip stat-duration">
+            <div class="effective-stat-header">
+              <span class="effective-stat-label">DURATION</span>
+              <span class="effective-stat-badge">Derived</span>
+            </div>
+            <div class="effective-stat-content">
+              <strong class="effective-stat-val text-gold">${effStats.effectiveDuration}</strong>
+            </div>
+            <div class="effective-stat-subnote" title="${effStats.durationNotes || 'Base: ' + effStats.baseDuration}">${effStats.durationNotes || 'Base: ' + effStats.baseDuration}</div>
+          </div>
+
+          <!-- Area Chip -->
+          <div class="effective-stat-chip stat-area">
+            <div class="effective-stat-header">
+              <span class="effective-stat-label">AREA</span>
+              <span class="effective-stat-badge">${effStats.area !== 'Single Target' && effStats.area !== 'Personal' ? '3E Area' : 'Target'}</span>
+            </div>
+            <div class="effective-stat-content">
+              <strong class="effective-stat-val text-purple">${effStats.area}</strong>
+            </div>
+            <div class="effective-stat-subnote" title="${effStats.areaNotes || (effStats.area === 'Personal' ? 'Self Only' : 'Single Target')}">${effStats.areaNotes || (effStats.area === 'Personal' ? 'Self Only' : 'Single Target')}</div>
           </div>
         `;
 
-        row2.querySelector('.select-power-effect')?.addEventListener('change', (e) => {
-          const newEff = POWER_EFFECTS_CATALOG.find(eff => eff.id === e.target.value) || POWER_EFFECTS_CATALOG[0];
-          p.effect = newEff;
-          p.action = newEff.action || 'Standard';
+        row2.querySelector('.select-power-action')?.addEventListener('change', (e) => {
+          p.action = e.target.value;
           this.saveAndAudit();
           this.renderPowersTab(auditCharacter(this.char));
         });
@@ -4291,16 +4333,22 @@ class AppController {
         const linkedContainer = linkedSection.querySelector('.linked-items-container');
         (p.linkedEffects || []).forEach((le, leIdx) => {
           const leCost = calculatePowerCost({ ...le, alternateEffects: [], linkedEffects: [] });
+          const leStats = computePowerEffectiveStats(le.effect, le.extras, le.flaws, p.action);
           const leRow = document.createElement('div');
-          leRow.style.cssText = 'display: grid; grid-template-columns: 2fr 2fr 100px 70px 40px; gap: 0.4rem; align-items: center; background: rgba(0,0,0,0.2); padding: 0.3rem 0.5rem; border-radius: 4px;';
+          leRow.style.cssText = 'display: grid; grid-template-columns: 1.8fr 1.8fr 2fr 90px 65px 36px; gap: 0.4rem; align-items: center; background: rgba(0,0,0,0.2); padding: 0.3rem 0.5rem; border-radius: 4px;';
           leRow.innerHTML = `
             <div>
               <input type="text" class="input-le-name" value="${le.name || 'Linked Effect'}" placeholder="Linked Effect Name" style="width: 100%; font-size: var(--font-size-xs); padding: 0.2rem 0.4rem;">
             </div>
             <div>
               <select class="select-le-effect" style="width: 100%; font-size: var(--font-size-xs);">
-                ${POWER_EFFECTS_CATALOG.map(e => `<option value="${e.id}" ${le.effect?.id === e.id ? 'selected' : ''}>${e.name} (${e.baseCost} PP/rank)</option>`).join('')}
+                ${POWER_EFFECTS_CATALOG.map(e => `<option value="${e.id}" ${le.effect?.id === e.id ? 'selected' : ''}>${e.name} (${e.baseCost} PP/rk)</option>`).join('')}
               </select>
+            </div>
+            <div style="font-size: var(--font-size-xs); color: var(--text-muted); background: rgba(0,0,0,0.25); padding: 0.2rem 0.4rem; border-radius: 3px; display: flex; gap: 0.35rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="Stats: ${leStats.action} • ${leStats.effectiveRange} • ${leStats.effectiveDuration} • ${leStats.area}">
+              <span class="text-gold" style="font-weight: 700;">${leStats.action}</span> •
+              <span class="text-cyan">${leStats.effectiveRange}</span> •
+              <span class="text-purple">${leStats.area}</span>
             </div>
             <div class="stepper-control">
               <button class="btn-stepper compact btn-le-minus">-</button>

@@ -1611,6 +1611,179 @@ button.action-save-card:active {
   border: 1px solid rgba(168, 85, 247, 0.4);
 }
 
+.badge-tag.conflict {
+  background: rgba(239, 68, 68, 0.2);
+  color: var(--hero-red);
+  border: 1px solid rgba(239, 68, 68, 0.4);
+}
+
+.badge-tag.legal {
+  background: rgba(16, 185, 129, 0.2);
+  color: var(--hero-green);
+  border: 1px solid rgba(16, 185, 129, 0.4);
+}
+
+/* =====================================================================
+   STANDARDIZED COLOR SYSTEM & THEMATIC CLASSES
+   ===================================================================== */
+.text-gold { color: var(--hero-gold) !important; }
+.text-cyan { color: var(--hero-cyan) !important; }
+.text-blue { color: var(--hero-blue) !important; }
+.text-green { color: var(--hero-green) !important; }
+.text-red { color: var(--hero-red) !important; }
+.text-purple { color: var(--hero-purple) !important; }
+.text-muted { color: var(--text-muted) !important; }
+.text-bright { color: var(--text-bright) !important; }
+
+/* Standardized Field Labels */
+.field-label, label {
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* Standardized Section Headings */
+.heading-section {
+  font-size: var(--font-size-sm);
+  font-weight: 800;
+  color: var(--hero-gold);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.heading-section.defense { color: var(--hero-cyan); }
+.heading-section.extras { color: var(--hero-green); }
+.heading-section.flaws { color: var(--hero-red); }
+.heading-section.array { color: var(--hero-purple); }
+
+/* Standardized Modal Footer */
+.modal-footer-bar {
+  padding: 0.65rem 1rem;
+  background: #10192a;
+  border-top: 1px solid var(--border-color);
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+/* =====================================================================
+   COMPACT EFFECTIVE STATS BLOCK FOR POWER EFFECTS
+   (Action, Range, Duration, Area)
+   ===================================================================== */
+.power-effective-stats-bar {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.5rem;
+  background: rgba(0, 0, 0, 0.32);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  padding: 0.45rem;
+  box-sizing: border-box;
+}
+
+.effective-stat-chip {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  padding: 0.35rem 0.5rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 0.2rem;
+  min-height: 62px;
+  box-sizing: border-box;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.effective-stat-chip:hover {
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.effective-stat-chip.stat-action {
+  border-left: 3px solid var(--hero-gold);
+}
+
+.effective-stat-chip.stat-range {
+  border-left: 3px solid var(--hero-cyan);
+}
+
+.effective-stat-chip.stat-duration {
+  border-left: 3px solid var(--hero-blue);
+}
+
+.effective-stat-chip.stat-area {
+  border-left: 3px solid var(--hero-purple);
+}
+
+.effective-stat-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.effective-stat-label {
+  font-size: var(--font-size-xs);
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+}
+
+.effective-stat-chip.stat-action .effective-stat-label { color: var(--hero-gold); }
+.effective-stat-chip.stat-range .effective-stat-label { color: var(--hero-cyan); }
+.effective-stat-chip.stat-duration .effective-stat-label { color: var(--hero-blue); }
+.effective-stat-chip.stat-area .effective-stat-label { color: var(--hero-purple); }
+
+.effective-stat-badge {
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+  opacity: 0.8;
+}
+
+.effective-stat-content {
+  display: flex;
+  align-items: center;
+  min-height: 26px;
+}
+
+.effective-stat-val {
+  font-size: var(--font-size-sm);
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.effective-stat-dropdown {
+  width: 100%;
+  font-size: var(--font-size-xs);
+  font-weight: 800;
+  padding: 0.15rem 0.35rem;
+  min-height: 26px;
+  background-color: var(--bg-input);
+  border: 1px solid var(--border-color);
+  color: var(--hero-gold);
+  border-radius: var(--radius-sm);
+}
+
+.effective-stat-dropdown:focus {
+  border-color: var(--hero-gold);
+}
+
+.effective-stat-subnote {
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.2;
+}
+
 .power-card-body {
   padding: 0.85rem;
   border-top: 1px solid var(--border-color);

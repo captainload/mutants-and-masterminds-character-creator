@@ -11,7 +11,7 @@ const CURRENT_CHAR_KEY = 'mm3e_active_character_id';
 export class StorageManager {
   constructor() {
     this.characters = this.loadAll();
-    this.activeId = localStorage.getItem(CURRENT_CHAR_KEY);
+    this.activeId = typeof localStorage !== 'undefined' ? localStorage.getItem(CURRENT_CHAR_KEY) : null;
 
     // Purge any pre-seeded or default archetype (e.g. Battlesuit) from previous sessions
     this.characters = this.characters.filter(c => !this.isPrebuiltArchetype(c));
@@ -66,6 +66,7 @@ export class StorageManager {
 
   loadAll() {
     try {
+      if (typeof localStorage === 'undefined') return [];
       const raw = localStorage.getItem(STORAGE_KEY);
       return raw ? JSON.parse(raw) : [];
     } catch (e) {
@@ -76,6 +77,7 @@ export class StorageManager {
 
   saveAll() {
     try {
+      if (typeof localStorage === 'undefined') return;
       localStorage.setItem(STORAGE_KEY, JSON.stringify(this.characters));
       localStorage.setItem(CURRENT_CHAR_KEY, this.activeId || '');
     } catch (e) {
@@ -154,6 +156,39 @@ export class StorageManager {
     }
     this.saveAll();
     return true;
+  }
+
+  exportCharacterToMM3(char) {
+    const payload = {
+      format: 'MM3',
+      schemaVersion: '3.0',
+      exportedAt: new Date().toISOString(),
+      character: char
+    };
+    const jsonStr = JSON.stringify(payload, null, 2);
+    const blob = new Blob([jsonStr], { type: 'application/x-mm3' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    const cleanName = (char.name || 'Hero').trim().replace(/[^a-zA-Z0-9_\- ]/g, '');
+    a.download = `${cleanName}.mm3`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  parseMM3File(contentString) {
+    try {
+      const parsed = JSON.parse(contentString);
+      const charData = parsed.character || parsed;
+      if (!charData || !charData.name || charData.abilities === undefined) {
+        throw new Error('File does not contain valid M&M 3E character data.');
+      }
+      return charData;
+    } catch (e) {
+      throw new Error('Failed to parse MM3 file: ' + e.message);
+    }
   }
 
   exportCharacterToJSON(char) {

@@ -6,8 +6,8 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Mutants & Masterminds 3E - Character Architect v3.2</title>
-  <link rel="stylesheet" href="css/styles.css?v=3.2">
+  <title>Mutants & Masterminds 3E - Character Architect v3.3</title>
+  <link rel="stylesheet" href="css/styles.css?v=3.3">
 </head>
 <body>
 
@@ -41,27 +41,25 @@
               </button>
               <button class="menu-dropdown-item" id="menu-action-save">
                 <span class="menu-item-icon">💾</span>
-                <span class="menu-item-text">Save Character</span>
+                <span class="menu-item-text">Save (.MM3)</span>
+                <span class="menu-item-subtext">Overwrite</span>
               </button>
               <button class="menu-dropdown-item" id="menu-action-save-as">
                 <span class="menu-item-icon">📑</span>
-                <span class="menu-item-text">Save As (Clone)...</span>
+                <span class="menu-item-text">Save As... (.MM3)</span>
+                <span class="menu-item-subtext">Clone</span>
               </button>
               <button class="menu-dropdown-item" id="menu-action-load">
                 <span class="menu-item-icon">📂</span>
-                <span class="menu-item-text">Load Character...</span>
+                <span class="menu-item-text">Load Character... (.MM3)</span>
               </button>
               <div class="menu-dropdown-separator"></div>
-              <div class="menu-dropdown-heading">Import / Export</div>
-              <button class="menu-dropdown-item" id="menu-action-export">
-                <span class="menu-item-icon">📤</span>
-                <span class="menu-item-text">Export Character (JSON)</span>
+              <div class="menu-dropdown-heading">Export</div>
+              <button class="menu-dropdown-item" id="menu-action-export-pdf">
+                <span class="menu-item-icon">📄</span>
+                <span class="menu-item-text">Export Character (PDF)</span>
               </button>
-              <button class="menu-dropdown-item" id="menu-action-import">
-                <span class="menu-item-icon">📥</span>
-                <span class="menu-item-text">Import Character (JSON)</span>
-              </button>
-              <input type="file" id="menu-file-input" style="display: none;" accept=".json,.mm3e.json">
+              <input type="file" id="menu-file-input" style="display: none;" accept=".mm3,.MM3,.json">
               <div class="menu-dropdown-separator"></div>
               <div class="menu-dropdown-heading">System & Options</div>
               <button class="menu-dropdown-item" id="menu-action-settings">
@@ -96,7 +94,7 @@
           </div>
 
           <div class="brand-label-compact">
-            M&M 3E Character Editor v3.2
+            M&M 3E Character Editor v3.3
           </div>
         </div>
 
@@ -203,14 +201,31 @@
               </div>
             </div>
 
-            <!-- Core Combat Defenses & Saves -->
+            <!-- Core Combat Defenses & Resistance Checks -->
             <div class="card-box" style="margin-bottom: 0.5rem; padding: 0.5rem 0.75rem;">
               <div class="card-box-header" style="margin-bottom: 0.35rem;">
-                <div class="card-box-title">🛡️ Saving Throws & Defenses</div>
-                <button class="btn btn-touch-roll" id="btn-roll-initiative" style="min-height: 28px; font-size: 0.88rem; font-weight: 800; padding: 0.2rem 0.65rem;">⚡ Roll Initiative</button>
+                <div class="card-box-title">🛡️ Defenses & Resistance Checks</div>
+                <span style="font-size: var(--font-size-xs); color: var(--text-muted);">Click card to roll d20 + defense score</span>
               </div>
               <div id="action-defenses-grid" style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.35rem;">
                 <!-- Populated via JS -->
+              </div>
+            </div>
+
+            <!-- Initiative & Movement Speeds (Tertiary Stats) -->
+            <div class="card-box" id="action-initiative-movement-box" style="margin-bottom: 0.5rem; padding: 0.45rem 0.75rem;">
+              <div style="display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; flex-wrap: wrap;">
+                <!-- Left: Initiative Roll Button & Formula -->
+                <div style="display: flex; align-items: center; gap: 0.6rem;">
+                  <button class="btn btn-touch-roll" id="btn-roll-initiative" style="min-height: 32px; font-size: 0.92rem; font-weight: 800; padding: 0.25rem 0.85rem; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: #000; border: none; box-shadow: 0 2px 6px rgba(245, 158, 11, 0.35);">
+                    ⚡ Roll Initiative (+0)
+                  </button>
+                  <span id="action-init-formula" style="font-size: var(--font-size-xs); color: var(--text-muted); white-space: nowrap;"></span>
+                </div>
+                <!-- Right: Tertiary Stats - Movement Speeds Across Possessed Modes -->
+                <div style="display: flex; align-items: center; gap: 0.45rem; flex-wrap: wrap;" id="action-movement-speeds">
+                  <!-- Populated via JS: Ground, Swimming, Flight, Space, Leaping, etc. -->
+                </div>
               </div>
             </div>
 
@@ -235,11 +250,11 @@
               </table>
             </div>
 
-            <!-- Trained & Known Skills Quick List -->
+            <!-- Trained & Untrained Skills Quick List -->
             <div class="card-box">
               <div class="card-box-header">
-                <div class="card-box-title">🎯 Trained Skills & Quick Checks</div>
-                <span style="font-size: var(--font-size-xs); color: var(--text-muted);">Click skill name for official rule description</span>
+                <div class="card-box-title">🎯 Skills (Untrained & Trained Checks)</div>
+                <span style="font-size: var(--font-size-xs); color: var(--text-muted);">All untrained skills + trained specialties • Click name for rules</span>
               </div>
               <table class="dense-table">
                 <thead>
@@ -1143,6 +1158,6 @@
     </div>
   </div>
 
-  <script type="module" src="js/app.js?v=3.2"></script>
+  <script type="module" src="js/app.js?v=3.3"></script>
 </body>
 </html>

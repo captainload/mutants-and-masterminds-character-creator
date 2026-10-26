@@ -1,5 +1,5 @@
 {
-  "version": "3.2",
-  "updatedAt": "2026-10-25T21:55:00Z",
-  "releaseNotes": "Removed check and save buttons from Action Center cards, converted cards directly into roll buttons, and enlarged button typography."
+  "version": "3.3",
+  "updatedAt": "2026-10-25T23:05:00Z",
+  "releaseNotes": "Adjusted terminology to 3E Resistance Checks, added dedicated Initiative and Movement Speeds block, included untrained skills in Action Center, and upgraded file I/O to .MM3 folder browser format and PDF export."
 }

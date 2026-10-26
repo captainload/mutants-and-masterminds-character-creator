@@ -43,6 +43,7 @@ class AppController {
   constructor() {
     this.char = storageManager.getActiveCharacter();
     this.activePowerEditing = null;
+    this.currentFileHandle = null;
 
     // Interactive Archetype Wizard State (No default archetype loaded)
     this.wizardState = {
@@ -829,48 +830,47 @@ class AppController {
       }
     });
 
-    // 2. Save Character
-    document.getElementById('menu-action-save')?.addEventListener('click', () => {
+    // 2. Save (.MM3) - Overwrite existing file version
+    document.getElementById('menu-action-save')?.addEventListener('click', async () => {
       closeDropdown();
-      this.saveAndAudit();
-      alert(`Character "${this.char.name}" saved!`);
+      await this.saveCharacterFile({ forceSaveAs: false });
     });
 
-    // 3. Save As (Clone)...
-    document.getElementById('menu-action-save-as')?.addEventListener('click', () => {
+    // 3. Save As... (.MM3) - Clone with different name
+    document.getElementById('menu-action-save-as')?.addEventListener('click', async () => {
       closeDropdown();
-      this.openSaveAsModal();
+      await this.saveCharacterFile({ forceSaveAs: true });
     });
 
-    // 4. Load Character...
-    document.getElementById('menu-action-load')?.addEventListener('click', () => {
+    // 4. Load Character... (.MM3) - Load from file
+    document.getElementById('menu-action-load')?.addEventListener('click', async () => {
       closeDropdown();
-      this.openLoadCharacterModal();
+      await this.loadCharacterFile();
     });
 
-    // 5. Export JSON
-    document.getElementById('menu-action-export')?.addEventListener('click', () => {
+    // 5. Export Character (PDF)
+    document.getElementById('menu-action-export-pdf')?.addEventListener('click', () => {
       closeDropdown();
-      storageManager.exportCharacterToJSON(this.char);
+      window.print();
     });
 
-    // 6. Import JSON
     const fileInput = document.getElementById('menu-file-input');
-    document.getElementById('menu-action-import')?.addEventListener('click', () => {
-      closeDropdown();
-      fileInput?.click();
-    });
-
     fileInput?.addEventListener('change', (e) => {
       const file = e.target.files[0];
       if (!file) return;
       const reader = new FileReader();
       reader.onload = (event) => {
-        const imported = storageManager.importCharacterFromJSON(event.target.result);
-        if (imported) {
-          this.char = imported;
-          this.renderAll();
-          alert(`Imported ${imported.name}!`);
+        try {
+          const loadedChar = storageManager.parseMM3File(event.target.result);
+          if (loadedChar) {
+            this.char = loadedChar;
+            this.currentFileHandle = null;
+            this.saveAndAudit();
+            this.loadCharacterToUI();
+            alert(`Successfully loaded "${loadedChar.name}"!`);
+          }
+        } catch (err) {
+          alert('Failed to load character file: ' + err.message);
         }
       };
       reader.readAsText(file);
@@ -905,7 +905,7 @@ class AppController {
   }
 
   async checkForUpdates({ isManual = false } = {}) {
-    const CURRENT_VERSION = '3.2';
+    const CURRENT_VERSION = '3.3';
     if (typeof window === 'undefined' || !window.location || !window.location.href || window.location.href === 'about:blank') return;
     try {
       const url = new URL('version.json', window.location.href);
@@ -958,21 +958,14 @@ class AppController {
     document.getElementById('btn-cancel-save-as')?.addEventListener('click', () => {
       this.closeModal('modal-save-as');
     });
-    document.getElementById('btn-confirm-save-as')?.addEventListener('click', () => {
+    document.getElementById('btn-confirm-save-as')?.addEventListener('click', async () => {
       const newName = (document.getElementById('save-as-hero-name')?.value || '').trim();
       if (!newName) {
         alert('Please enter a superhero name.');
         return;
       }
-      const clone = storageManager.cloneCharacter(this.char.id);
-      if (clone) {
-        clone.name = newName;
-        storageManager.saveCharacter(clone);
-        this.char = clone;
-        this.renderAll();
-        this.closeModal('modal-save-as');
-        alert(`Cloned and saved as "${newName}"!`);
-      }
+      this.closeModal('modal-save-as');
+      await this.saveCharacterFile({ forceSaveAs: true, cloneName: newName });
     });
   }
 
@@ -1813,11 +1806,281 @@ class AppController {
   }
 
   // =======================================================
+  // 15b. FILE MANAGEMENT (.MM3 FILESYSTEM & PDF EXPORT)
+  // =======================================================
+  async saveCharacterFile({ forceSaveAs = false, cloneName = '' } = {}) {
+    let targetChar = this.char;
+    if (forceSaveAs) {
+      const suggestedCloneName = cloneName || `${this.char.name} (Clone)`;
+      const newName = cloneName || prompt('Enter superhero name for this clone / copy:', suggestedCloneName);
+      if (!newName || !newName.trim()) return; // User cancelled
+      // Clone character object
+      targetChar = JSON.parse(JSON.stringify(this.char));
+      targetChar.id = 'char_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4);
+      targetChar.name = newName.trim();
+      this.char = targetChar;
+      this.currentFileHandle = null;
+    }
+
+    const payload = {
+      format: 'MM3',
+      schemaVersion: '3.0',
+      exportedAt: new Date().toISOString(),
+      character: targetChar
+    };
+    const fileContent = JSON.stringify(payload, null, 2);
+    const suggestedFileName = `${(targetChar.name || 'Hero').trim().replace(/[^a-zA-Z0-9_\- ]/g, '')}.mm3`;
+
+    // Modern browsers with File System Access API (Folder tree browser)
+    if (typeof window !== 'undefined' && window.showSaveFilePicker) {
+      try {
+        let handle = this.currentFileHandle;
+        if (forceSaveAs || !handle) {
+          handle = await window.showSaveFilePicker({
+            id: 'mm3_character_editor',
+            startIn: 'documents',
+            suggestedName: suggestedFileName,
+            types: [{
+              description: 'Mutants & Masterminds Character File (*.mm3)',
+              accept: { 'application/x-mm3': ['.mm3'], 'application/json': ['.mm3', '.json'] }
+            }]
+          });
+          this.currentFileHandle = handle;
+        }
+
+        const writable = await handle.createWritable();
+        await writable.write(fileContent);
+        await writable.close();
+
+        this.saveAndAudit();
+        this.loadCharacterToUI();
+        alert(`Successfully saved "${targetChar.name}" to ${handle.name || 'file'}!`);
+        return;
+      } catch (err) {
+        if (err.name === 'AbortError') return; // User cancelled dialog
+        console.warn('File System Access API failed, falling back to download:', err);
+      }
+    }
+
+    // Fallback: download .mm3 file
+    storageManager.exportCharacterToMM3(targetChar);
+    this.saveAndAudit();
+    this.loadCharacterToUI();
+    alert(`Saved "${targetChar.name}" as ${suggestedFileName}!`);
+  }
+
+  async loadCharacterFile() {
+    const confirmLoad = confirm('Loading a character file will replace the current hero in the workspace. Any unsaved changes will be overwritten. Proceed?');
+    if (!confirmLoad) return;
+
+    if (typeof window !== 'undefined' && window.showOpenFilePicker) {
+      try {
+        const [handle] = await window.showOpenFilePicker({
+          id: 'mm3_character_editor',
+          startIn: 'documents',
+          types: [{
+            description: 'Mutants & Masterminds Character File (*.mm3)',
+            accept: { 'application/x-mm3': ['.mm3'], 'application/json': ['.mm3', '.json'] }
+          }]
+        });
+        if (!handle) return;
+
+        const file = await handle.getFile();
+        const text = await file.text();
+        const loadedChar = storageManager.parseMM3File(text);
+
+        this.char = loadedChar;
+        this.currentFileHandle = handle;
+        this.saveAndAudit();
+        this.loadCharacterToUI();
+        alert(`Successfully loaded "${loadedChar.name}" from ${file.name}!`);
+        return;
+      } catch (err) {
+        if (err.name === 'AbortError') return; // User cancelled
+        console.warn('File System Access API open failed, falling back to file input:', err);
+      }
+    }
+
+    // Fallback: file input
+    const fileInput = document.getElementById('menu-file-input');
+    fileInput?.click();
+  }
+
+  computeMovementModes(mods) {
+    const SPEED_TABLE = {
+      '-2': { rate: '6 ft/rnd', mph: '0.5 mph' },
+      '-1': { rate: '15 ft/rnd', mph: '1 mph' },
+      '0': { rate: '30 ft/rnd', mph: '2 mph' },
+      '1': { rate: '60 ft/rnd', mph: '4 mph' },
+      '2': { rate: '120 ft/rnd', mph: '8 mph' },
+      '3': { rate: '250 ft/rnd', mph: '16 mph' },
+      '4': { rate: '500 ft/rnd', mph: '30 mph' },
+      '5': { rate: '900 ft/rnd', mph: '60 mph' },
+      '6': { rate: '1,800 ft/rnd', mph: '120 mph' },
+      '7': { rate: '1/2 mi/rnd', mph: '250 mph' },
+      '8': { rate: '1 mi/rnd', mph: '500 mph' },
+      '9': { rate: '2 mi/rnd', mph: '1,000 mph' },
+      '10': { rate: '4 mi/rnd', mph: '2,000 mph' },
+      '11': { rate: '8 mi/rnd', mph: '4,000 mph' },
+      '12': { rate: '16 mi/rnd', mph: '8,000 mph' },
+      '13': { rate: '30 mi/rnd', mph: '16,000 mph' },
+      '14': { rate: '60 mi/rnd', mph: '32,000 mph' }
+    };
+
+    const getSpeedEntry = (rank) => {
+      if (SPEED_TABLE[rank]) return SPEED_TABLE[rank];
+      if (rank < -2) return { rate: `${Math.max(1, Math.floor(6 / Math.pow(2, -2 - rank)))} ft/rnd`, mph: '<0.5 mph' };
+      const dist = Math.round(60 * Math.pow(2, rank - 14));
+      return { rate: `${dist.toLocaleString()} mi/rnd`, mph: `${(dist * 500).toLocaleString()} mph` };
+    };
+
+    const modes = [];
+    let speedRank = 0;
+    let flightRank = 0;
+    let swimRank = null;
+    let leapRank = 0;
+    let burrowRank = 0;
+    let teleportRank = 0;
+    let spaceRank = 0;
+    const specialModes = [];
+
+    (this.char.powers || []).forEach(p => {
+      const effId = p.effect?.id || '';
+      const name = (p.name || '').toLowerCase();
+      const rank = parseInt(p.rank, 10) || 1;
+
+      if (effId === 'speed' || name.includes('super-speed') || (name.includes('speed') && !name.includes('remote'))) {
+        speedRank = Math.max(speedRank, rank);
+      }
+      if (effId === 'flight' || name.includes('flight') || name.includes('fly') || name.includes('wings')) {
+        flightRank = Math.max(flightRank, rank);
+      }
+      if (effId === 'swimming' || name.includes('swim') || name.includes('aquatic')) {
+        swimRank = Math.max(swimRank !== null ? swimRank : -2, rank);
+      }
+      if (effId === 'leaping' || name.includes('leap') || name.includes('jump')) {
+        leapRank = Math.max(leapRank, rank);
+      }
+      if (effId === 'burrowing' || name.includes('burrow') || name.includes('tunnel')) {
+        burrowRank = Math.max(burrowRank, rank);
+      }
+      if (effId === 'teleport' || name.includes('teleport')) {
+        teleportRank = Math.max(teleportRank, rank);
+      }
+      if (effId === 'movement' || name.includes('space travel') || name.includes('space flight')) {
+        if (name.includes('space') || (p.descriptor || '').toLowerCase().includes('space')) {
+          spaceRank = Math.max(spaceRank, rank);
+        } else if (name.includes('wall') || (p.descriptor || '').toLowerCase().includes('wall')) {
+          specialModes.push({ mode: 'Wall-Crawl', icon: '🧗', rate: 'At Speed', mph: '' });
+        } else if (name.includes('water') || (p.descriptor || '').toLowerCase().includes('water')) {
+          specialModes.push({ mode: 'Water-Walk', icon: '🌊', rate: 'At Speed', mph: '' });
+        }
+      }
+    });
+
+    // 1. Ground Mode
+    if (mods.isImmobilized) {
+      modes.push({ mode: 'Ground', icon: '🚶', rate: '0 ft (Immobilized)', mph: '0 mph', desc: 'Cannot move due to condition' });
+    } else if (mods.isProne) {
+      modes.push({ mode: 'Ground (Prone)', icon: '🚶', rate: '6 ft/rnd (Crawling)', mph: '0.5 mph', desc: 'Prone crawling speed' });
+    } else {
+      let groundRank = speedRank;
+      if (mods.isHindered) groundRank = Math.max(-2, groundRank - 1);
+      const entry = getSpeedEntry(groundRank);
+      modes.push({
+        mode: speedRank > 0 ? `Ground (Rank ${groundRank})` : 'Ground',
+        icon: '🚶',
+        rate: entry.rate,
+        mph: entry.mph,
+        desc: `Standard ground running speed${mods.isHindered ? ' (Hindered: -1 rank)' : ''}`
+      });
+    }
+
+    // 2. Swimming Mode (Always possessed: base -2 / 6 ft, or powered)
+    const effSwimRank = swimRank !== null ? swimRank : -2;
+    const swimEntry = getSpeedEntry(effSwimRank);
+    modes.push({
+      mode: swimRank !== null ? `Swim (Rank ${effSwimRank})` : 'Swim',
+      icon: '🏊',
+      rate: swimEntry.rate,
+      mph: swimEntry.mph,
+      desc: 'Aquatic swimming movement speed'
+    });
+
+    // 3. Flight Mode (If possessed)
+    if (flightRank > 0) {
+      const flightEntry = getSpeedEntry(flightRank);
+      modes.push({
+        mode: `Flight (Rank ${flightRank})`,
+        icon: '🦅',
+        rate: flightEntry.rate,
+        mph: flightEntry.mph,
+        desc: 'Aerial flight speed'
+      });
+    }
+
+    // 4. Space Mode (If possessed)
+    if (spaceRank > 0) {
+      const spaceDesc = spaceRank === 1 ? 'Sub-light' : spaceRank === 2 ? 'Interstellar' : 'Intergalactic';
+      modes.push({
+        mode: `Space (Rank ${spaceRank})`,
+        icon: '🚀',
+        rate: spaceDesc,
+        mph: spaceRank >= 2 ? 'FTL' : 'Sub-light',
+        desc: 'Space Travel capability'
+      });
+    }
+
+    // 5. Leaping Mode (If possessed)
+    if (leapRank > 0) {
+      const leapEntry = getSpeedEntry(leapRank);
+      modes.push({
+        mode: `Leap (Rank ${leapRank})`,
+        icon: '🦘',
+        rate: leapEntry.rate,
+        mph: '',
+        desc: 'Standing leap distance without run-up'
+      });
+    }
+
+    // 6. Burrowing Mode (If possessed)
+    if (burrowRank > 0) {
+      const burrowEntry = getSpeedEntry(burrowRank);
+      modes.push({
+        mode: `Burrow (Rank ${burrowRank})`,
+        icon: '⛏️',
+        rate: burrowEntry.rate,
+        mph: burrowEntry.mph,
+        desc: 'Tunneling underground speed'
+      });
+    }
+
+    // 7. Teleportation Mode (If possessed)
+    if (teleportRank > 0) {
+      const teleEntry = getSpeedEntry(teleportRank);
+      modes.push({
+        mode: `Teleport (Rank ${teleportRank})`,
+        icon: '🌀',
+        rate: teleEntry.rate,
+        mph: 'Instant',
+        desc: 'Instant displacement range per move action'
+      });
+    }
+
+    specialModes.forEach(sm => modes.push(sm));
+    return modes;
+  }
+
+  // =======================================================
   // 16. MASTER RENDER ALL
   // =======================================================
   saveAndAudit() {
     storageManager.saveCharacter(this.char);
     return auditCharacter(this.char);
+  }
+
+  loadCharacterToUI() {
+    this.renderAll();
   }
 
   renderAll() {
@@ -1947,20 +2210,7 @@ class AppController {
       });
     }
 
-    // 5. Render Defenses Grid in Action Center
-    const initBtn = document.getElementById('btn-roll-initiative');
-    if (initBtn) {
-      const agi = parseInt(this.char.abilities?.agi, 10) || 0;
-      let impInitRanks = 0;
-      (this.char.advantages || []).forEach(a => {
-        if (a.id === 'improved_initiative') impInitRanks += parseInt(a.rank, 10) || 1;
-      });
-      const baseMod = agi + (impInitRanks * 4);
-      const effMod = baseMod + mods.checkPenalty;
-      initBtn.textContent = `⚡ Roll Initiative (${effMod >= 0 ? '+' + effMod : effMod})`;
-      initBtn.title = `Roll Initiative: d20 + ${effMod} (AGI ${agi >= 0 ? '+' + agi : agi}${impInitRanks > 0 ? ` + Improved Init ${impInitRanks * 4}` : ''}${mods.checkPenalty ? ` ${mods.checkPenalty} Cond` : ''})`;
-    }
-
+    // 5. Render Defenses & Resistance Checks in Action Center
     const defGrid = document.getElementById('action-defenses-grid');
     if (defGrid) {
       defGrid.innerHTML = '';
@@ -1995,7 +2245,7 @@ class AppController {
         btn.type = 'button';
         btn.className = 'action-save-card action-roll-card';
         btn.setAttribute('data-def', def.id);
-        btn.title = `Roll ${def.name} Save (+${effScore})`;
+        btn.title = `Roll ${def.name} Resistance (+${effScore})`;
 
         btn.innerHTML = `
           <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 0.15rem;">
@@ -2020,11 +2270,11 @@ class AppController {
         btn.addEventListener('click', (e) => {
           if (e.target.closest('.rules-link')) return;
           const roll = diceRoller.rollCheck({
-            title: `${def.name} Save`,
+            title: `${def.name} Resistance`,
             characterName: this.char.name,
             modifier: effScore,
             targetDC: this.getCurrentDC(),
-            rollType: def.id === 'toughness' ? 'toughness' : 'defense',
+            rollType: def.id === 'toughness' ? 'toughness' : 'resistance',
             extraText: modNotes.length > 0 ? `Modifiers: ${modNotes.join(', ')}` : ''
           });
 
@@ -2051,6 +2301,42 @@ class AppController {
         });
 
         defGrid.appendChild(btn);
+      });
+    }
+
+    // 5b. Render Dedicated Initiative & Movement Speeds Block
+    const initBtn = document.getElementById('btn-roll-initiative');
+    const initFormula = document.getElementById('action-init-formula');
+    if (initBtn) {
+      const agi = parseInt(this.char.abilities?.agi, 10) || 0;
+      let impInitRanks = 0;
+      (this.char.advantages || []).forEach(a => {
+        if (a.id === 'improved_initiative') impInitRanks += parseInt(a.rank, 10) || 1;
+      });
+      const baseMod = agi + (impInitRanks * 4);
+      const effMod = baseMod + mods.checkPenalty;
+      initBtn.textContent = `⚡ Roll Initiative (${effMod >= 0 ? '+' + effMod : effMod})`;
+      initBtn.title = `Roll Initiative: d20 + ${effMod}`;
+      if (initFormula) {
+        initFormula.textContent = `(AGI ${agi >= 0 ? '+' + agi : agi}${impInitRanks > 0 ? `, Imp Init +${impInitRanks * 4}` : ''}${mods.checkPenalty ? ` ${mods.checkPenalty} Cond` : ''})`;
+      }
+    }
+
+    const movementContainer = document.getElementById('action-movement-speeds');
+    if (movementContainer) {
+      movementContainer.innerHTML = '';
+      const modes = this.computeMovementModes(mods);
+      modes.forEach(m => {
+        const badge = document.createElement('div');
+        badge.className = 'movement-badge';
+        badge.innerHTML = `
+          <span>${m.icon}</span>
+          <strong>${m.mode}:</strong>
+          <span class="movement-rate">${m.rate}</span>
+          ${m.mph ? `<span class="movement-mph">(${m.mph})</span>` : ''}
+        `;
+        badge.title = m.desc || `${m.mode} movement rate`;
+        movementContainer.appendChild(badge);
       });
     }
 
@@ -2138,45 +2424,89 @@ class AppController {
       });
     }
 
-    // 7. Render Skills Table in Action Center
+    // 7. Render Skills Table in Action Center (All Untrained Skills + Trained Skills)
     const skillsTbody = document.getElementById('action-skills-tbody');
     if (skillsTbody) {
       skillsTbody.innerHTML = '';
-      const dcValEl = document.getElementById('action-dc-val');
-      const currentDC = parseInt(dcValEl?.textContent, 10) || 15;
 
-      audit.computedSkills.forEach(sk => {
-        if (sk.ranks > 0) {
-          const skillDef = SKILLS_LIST.find(s => s.id === sk.id);
-          const baseBonus = sk.totalBonus;
-          const effBonus = baseBonus + mods.checkPenalty;
+      const skillsToRender = [];
 
-          const row = document.createElement('tr');
-          row.innerHTML = `
-            <td>
-              <span class="rules-link" data-id="${sk.id}" data-type="skill" data-name="${sk.name}" data-cat="Official 3E Skill">
-                ${sk.name}${sk.specialty ? ` (${sk.specialty})` : ''}
-              </span>
-            </td>
-            <td>${sk.ability.toUpperCase()}</td>
-            <td><strong style="color: ${effBonus !== baseBonus ? 'var(--hero-red)' : 'var(--hero-cyan)'}; font-size: var(--font-size-md);">${effBonus >= 0 ? '+' : ''}${effBonus}</strong></td>
-            <td style="text-align: right;">
-              <button class="btn-touch-roll" style="min-height: 32px;">🎲 Roll</button>
-            </td>
-          `;
-          row.querySelector('button')?.addEventListener('click', () => {
-            const roll = diceRoller.rollCheck({
-              title: `${sk.name} Check`,
-              characterName: this.char.name,
-              modifier: effBonus,
-              targetDC: this.getCurrentDC(),
-              rollType: 'skill',
-              extraText: effBonus !== baseBonus ? `Base +${baseBonus}${mods.checkPenalty ? ` ${mods.checkPenalty} (Conditions)` : ''}` : ''
-            });
-            this.displayRollResult(roll);
+      // 1. Add all skills that can be used untrained (trainedOnly === false)
+      SKILLS_LIST.forEach(def => {
+        const existing = (this.char.skills || []).find(s => s.id === def.id);
+        const ranks = existing ? (parseInt(existing.ranks, 10) || 0) : 0;
+        const baseAbVal = parseInt(this.char.abilities?.[def.ability], 10) || 0;
+        const totalBonus = baseAbVal + ranks;
+
+        if (!def.trainedOnly) {
+          skillsToRender.push({
+            id: def.id,
+            name: def.name,
+            specialty: existing?.specialty || '',
+            ability: def.ability,
+            ranks,
+            isUntrained: ranks === 0,
+            baseBonus: totalBonus
           });
-          skillsTbody.appendChild(row);
         }
+      });
+
+      // 2. Add any trained-only skills where character has ranks
+      (this.char.skills || []).forEach(sk => {
+        const ranks = parseInt(sk.ranks, 10) || 0;
+        if (ranks > 0) {
+          const def = SKILLS_LIST.find(s => s.id === sk.id);
+          if (def && def.trainedOnly) {
+            const baseAbVal = parseInt(this.char.abilities?.[def.ability], 10) || 0;
+            skillsToRender.push({
+              id: sk.id,
+              name: def.name,
+              specialty: sk.specialty || '',
+              ability: def.ability,
+              ranks,
+              isUntrained: false,
+              baseBonus: baseAbVal + ranks
+            });
+          }
+        }
+      });
+
+      // Sort alphabetically by skill name
+      skillsToRender.sort((a, b) => a.name.localeCompare(b.name));
+
+      skillsToRender.forEach(sk => {
+        const effBonus = sk.baseBonus + mods.checkPenalty;
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>
+            <span class="rules-link" data-id="${sk.id}" data-type="skill" data-name="${sk.name}" data-cat="Official 3E Skill" style="cursor: pointer; font-weight: 700;">
+              ${sk.name}${sk.specialty ? ` (${sk.specialty})` : ''}
+            </span>
+            ${sk.isUntrained 
+              ? `<span style="font-size: 0.68rem; background: rgba(255,255,255,0.06); padding: 0.1rem 0.35rem; border-radius: 3px; color: var(--text-muted); margin-left: 0.4rem;">Untrained</span>`
+              : `<span style="font-size: 0.68rem; background: rgba(37,99,235,0.15); border: 1px solid rgba(37,99,235,0.3); padding: 0.1rem 0.35rem; border-radius: 3px; color: var(--hero-cyan); margin-left: 0.4rem;">Rank ${sk.ranks}</span>`
+            }
+          </td>
+          <td><strong style="color: var(--text-muted);">${sk.ability.toUpperCase()}</strong></td>
+          <td><strong style="color: ${effBonus !== sk.baseBonus ? 'var(--hero-red)' : 'var(--hero-cyan)'}; font-size: var(--font-size-md); font-weight: 900;">${effBonus >= 0 ? '+' : ''}${effBonus}</strong></td>
+          <td style="text-align: right;">
+            <button class="btn-touch-roll" style="min-height: 28px; padding: 0.2rem 0.65rem; font-size: 0.88rem;">🎲 Roll</button>
+          </td>
+        `;
+
+        row.querySelector('button')?.addEventListener('click', () => {
+          const roll = diceRoller.rollCheck({
+            title: `${sk.name} Check`,
+            characterName: this.char.name,
+            modifier: effBonus,
+            targetDC: this.getCurrentDC(),
+            rollType: 'skill',
+            extraText: effBonus !== sk.baseBonus ? `Base +${sk.baseBonus}${mods.checkPenalty ? ` ${mods.checkPenalty} (Conditions)` : ''}` : ''
+          });
+          this.displayRollResult(roll);
+        });
+
+        skillsTbody.appendChild(row);
       });
     }
   }

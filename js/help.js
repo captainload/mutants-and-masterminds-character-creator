@@ -37,18 +37,17 @@ export const HELP_SECTIONS = [
     category: 'Top Header',
     title: 'Header Row 1: Menu & Identity',
     icon: '☰',
-    keywords: ['menu', 'dropdown', 'save', 'save as', 'load', 'export', 'import', 'json', 'player', 'hero', 'campaign', 'version'],
+    keywords: ['menu', 'dropdown', 'save', 'save as', 'load', 'export', 'pdf', 'mm3', 'player', 'hero', 'campaign', 'version'],
     summary: 'The top menu drop-down, character identity fields, campaign tracking, and file I/O.',
     contentHtml: `
       <h4>☰ Menu Drop-Down</h4>
       <p>The <strong>☰ Menu</strong> button on the left of Row 1 opens an instantaneous drop-down menu containing all primary character and application functions:</p>
       <ul>
         <li><strong>➕ New Freeform Hero:</strong> Creates a blank slate PL 10 hero with 150 Power Points, resetting all fields.</li>
-        <li><strong>💾 Quick Save:</strong> Saves the active hero's full state directly into your browser's persistent storage.</li>
-        <li><strong>📑 Save As (Clone)...:</strong> Clones the current hero under a new name, allowing you to branch out alternate versions or build team members without losing the original.</li>
-        <li><strong>📂 Load Character...:</strong> Opens the character switcher dialog to choose between any previously saved heroes or delete old records.</li>
-        <li><strong>📤 Export Character (JSON):</strong> Downloads your complete character as a portable <code>.json</code> file for safe offline backups or sharing with your Game Master and fellow players.</li>
-        <li><strong>📥 Import Character (JSON):</strong> Uploads any previously exported character JSON file and restores it into your roster.</li>
+        <li><strong>💾 Save (.MM3):</strong> Overwrites the active hero file directly using the system folder tree browser (defaulting to <code>[User Folder]\\MM3 Character Editor</code>).</li>
+        <li><strong>📑 Save As... (.MM3):</strong> Clones the current hero under a new name and invokes the system folder tree browser to save as an independent <code>.mm3</code> file.</li>
+        <li><strong>📂 Load Character... (.MM3):</strong> Invokes the system folder tree browser to select and load any <code>.mm3</code> character file.</li>
+        <li><strong>📄 Export Character (PDF):</strong> Prepares a printable character sheet and opens the browser PDF export dialog.</li>
         <li><strong>⚙️ Settings:</strong> Opens the fly-out settings dialog to configure Discord channels (webhooks & bot tokens), font sizes, and campaign defaults.</li>
         <li><strong>❓ Help & Documentation:</strong> Opens this comprehensive, searchable user manual.</li>
       </ul>
@@ -128,21 +127,27 @@ export const HELP_SECTIONS = [
     category: 'Action Center',
     title: 'Action Center & Virtual Tabletop',
     icon: '🎯',
-    keywords: ['dice', 'roller', 'notation', 'd20', 'attacks', 'defenses', 'saving throw', 'damage dc', 'critical hit', 'bruises', 'conditions', 'staggered', 'dazed'],
-    summary: 'Dice roller supporting standard dice notation, quick saving throws, attack DC calculations, and bruise tracking.',
+    keywords: ['dice', 'roller', 'notation', 'd20', 'attacks', 'defenses', 'resistance check', 'movement', 'speeds', 'damage dc', 'critical hit', 'bruises', 'conditions', 'staggered', 'dazed'],
+    summary: 'Dice roller supporting standard dice notation, quick resistance checks, movement speeds, attack DC calculations, and bruise tracking.',
     contentHtml: `
       <h4>🎲 Dice Roller Bar (Dice Notation Support)</h4>
       <ul>
         <li>At the top of the Action Center is a dedicated dice roller input supporting standard dice notation (e.g. <code>d20+8</code>, <code>1d20+12</code>, <code>3d6+4</code>, <code>2d10-1</code>).</li>
-        <li><strong>Quick Roll d20:</strong> Rolls a single d20 with your custom modifier.</li>
+        <li><strong>DC Toggle:</strong> Easily enable or disable checking against a target DC using the stepper toggle.</li>
         <li><strong>Hero Point Reroll:</strong> Automatically applies the 3E rule (rolls 1–10 receive +10, ensuring an 11–20 result).</li>
         <li>Rolls display raw die values, modifiers, totals, success degrees, and echo color-coded cards to Discord.</li>
       </ul>
 
-      <h4>Initiative & Core Defenses Quick-Roll</h4>
+      <h4>Defenses & Resistance Checks Quick-Roll</h4>
       <ul>
-        <li>One-click roll buttons for <strong>Initiative</strong>, <strong>Dodge</strong>, <strong>Parry</strong>, <strong>Fortitude</strong>, <strong>Toughness</strong>, and <strong>Will</strong>.</li>
-        <li>Calculates exact modifiers including ability scores, defense ranks, advantages (e.g. <em>Improved Initiative</em>), and bruise penalties.</li>
+        <li>In M&M 3E, saves are known as <strong>Resistance Checks</strong>. One-click cards roll <strong>Dodge</strong>, <strong>Parry</strong>, <strong>Fortitude</strong>, <strong>Toughness</strong>, and <strong>Will</strong> resistance checks.</li>
+        <li>Calculates exact modifiers including ability scores, defense ranks, active conditions, and bruise penalties.</li>
+      </ul>
+
+      <h4>Initiative & Tertiary Movement Speeds</h4>
+      <ul>
+        <li><strong>Initiative:</strong> Dedicated roll button displaying Agility modifier, Improved Initiative advantage ranks, and condition penalties.</li>
+        <li><strong>Movement Modes:</strong> Displays standard tactical movement rates (distance per round and MPH) for all modes possessed by the character (Ground, Swimming, Flight, Leaping, Space, Burrowing, Teleport).</li>
       </ul>
 
       <h4>Attacks Roster & Damage DCs</h4>

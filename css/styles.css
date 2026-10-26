@@ -1369,5 +1369,132 @@ button.action-save-card:active {
   }
 }
 
+/* Movement Speeds & Tertiary Badges */
+.movement-badge {
+  background: rgba(15, 23, 42, 0.7);
+  border: 1px solid var(--border-color);
+  padding: 0.2rem 0.45rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.78rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  white-space: nowrap;
+}
+
+.movement-badge strong {
+  color: var(--hero-cyan);
+}
+
+.movement-badge .movement-rate {
+  color: #fff;
+  font-weight: 700;
+}
+
+.movement-badge .movement-mph {
+  color: var(--text-muted);
+  font-size: 0.72rem;
+}
+
+/* Print Stylesheet for PDF Export */
+@media print {
+  @page {
+    margin: 0.45in;
+    size: letter portrait;
+  }
+
+  body {
+    background: #fff !important;
+    color: #000 !important;
+    font-size: 9.5pt !important;
+  }
+
+  #width-warning-banner,
+  .app-header,
+  .dice-roller-bar,
+  .nav-tabs-bar,
+  .btn,
+  button,
+  .stepper-control,
+  .modal-overlay,
+  .flyout-drawer,
+  .flyout-backdrop,
+  .brand-label-compact {
+    display: none !important;
+  }
+
+  .app-wrapper {
+    max-width: 100% !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+    background: #fff !important;
+    border: none !important;
+  }
+
+  .main-content {
+    padding: 0 !important;
+  }
+
+  .tab-pane {
+    display: block !important;
+  }
+
+  .card-box {
+    background: #fff !important;
+    border: 1px solid #94a3b8 !important;
+    color: #000 !important;
+    box-shadow: none !important;
+    margin-bottom: 6pt !important;
+    padding: 5pt !important;
+    page-break-inside: avoid;
+  }
+
+  .card-box-title {
+    color: #0f172a !important;
+    font-weight: 800 !important;
+  }
+
+  table {
+    color: #000 !important;
+    border-collapse: collapse !important;
+    width: 100% !important;
+  }
+
+  th, td {
+    border: 1px solid #cbd5e1 !important;
+    color: #000 !important;
+    padding: 2.5pt 4pt !important;
+  }
+
+  button.action-roll-card,
+  .action-ability-card,
+  .action-save-card {
+    background: #f8fafc !important;
+    border: 1px solid #cbd5e1 !important;
+    color: #000 !important;
+    box-shadow: none !important;
+  }
+
+  .action-ability-card span,
+  .action-save-card span,
+  .action-ability-card strong,
+  .action-save-card strong {
+    color: #0f172a !important;
+  }
+
+  .movement-badge {
+    background: #f1f5f9 !important;
+    border: 1px solid #cbd5e1 !important;
+    color: #000 !important;
+  }
+
+  .movement-badge strong,
+  .movement-badge .movement-rate,
+  .movement-badge .movement-mph {
+    color: #0f172a !important;
+  }
+}
+
+
 
 

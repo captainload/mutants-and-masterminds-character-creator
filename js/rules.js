@@ -718,6 +718,8 @@ export const POWER_EFFECTS_CATALOG = [
   { id: 'enhanced_trait', name: 'Enhanced Trait', baseCost: 1, action: 'Free', range: 'Personal', duration: 'Sustained', resist: 'None', desc: 'Superhuman boost to an Ability (+2/rank), Defense (+1/rank), Skill, or Advantage.' },
   { id: 'comprehend', name: 'Comprehend', baseCost: 2, action: 'None', range: 'Personal', duration: 'Permanent', resist: 'None', desc: 'Understand all spoken tongues, read all languages, speak to animals or machines.' },
   { id: 'burrowing', name: 'Burrowing', baseCost: 1, action: 'Free', range: 'Personal', duration: 'Sustained', resist: 'None', isMovement: true, desc: 'Tunnel rapidly through soil, rock, or reinforced concrete.' },
+  { id: 'swimming', name: 'Swimming', baseCost: 1, action: 'Free', range: 'Personal', duration: 'Sustained', resist: 'None', isMovement: true, desc: 'Swimming allows rapid aquatic propulsion through water (Rank 1: 4 MPH / 60 ft/rnd).' },
+  { id: 'movement', name: 'Movement', baseCost: 2, action: 'Free', range: 'Personal', duration: 'Sustained', resist: 'None', isMovement: true, desc: 'Specialized movement modes: Dimensional Travel, Environmental Adaptation, Permeate, Space Travel, Swinging, Time Travel, Trackless, Wall-Crawling, Water-Walking.' },
   { id: 'mind_reading', name: 'Mind Reading', baseCost: 2, action: 'Standard', range: 'Perception', duration: 'Sustained', resist: 'Will', dcBase: 10, isAttack: true, desc: 'Read target thoughts, memories, surface consciousness, or deep secrets.' }
 ];
 

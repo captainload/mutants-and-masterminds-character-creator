@@ -970,7 +970,7 @@ class AppController {
   }
 
   async checkForUpdates({ isManual = false } = {}) {
-    const CURRENT_VERSION = '3.10';
+    const CURRENT_VERSION = '3.11';
     if (typeof window === 'undefined' || !window.location || !window.location.href || window.location.href === 'about:blank') return;
     try {
       const url = new URL('version.json', window.location.href);
@@ -3623,11 +3623,11 @@ class AppController {
       const assignedContainer = box.querySelector('.assigned-immunities-list');
       p.immunityOptions.forEach((opt, idx) => {
         const badge = document.createElement('span');
-        badge.style.cssText = 'display: inline-flex; align-items: center; gap: 0.35rem; background: rgba(56, 189, 248, 0.18); border: 1px solid var(--hero-cyan); border-radius: 4px; padding: 0.15rem 0.4rem; font-size: var(--font-size-xs); color: #fff;';
+        badge.style.cssText = 'display: inline-flex; align-items: center; gap: 0.35rem; background: rgba(59, 130, 246, 0.18); border: 1px solid var(--hero-blue); border-radius: 4px; padding: 0.15rem 0.4rem; font-size: var(--font-size-xs); color: #fff;';
         badge.innerHTML = `
           <strong>${opt.name}</strong>
           <span style="color: var(--hero-gold); font-weight: 700;">(${opt.ranks} rk)</span>
-          <button type="button" class="btn-del-imm-opt" data-idx="${idx}" style="background: none; border: none; color: #ef4444; cursor: pointer; padding: 0; font-size: var(--font-size-xs); line-height: 1;" title="Remove immunity">✕</button>
+          <button type="button" class="btn-del-imm-opt" data-idx="${idx}" style="background: none; border: none; color: #fff; cursor: pointer; padding: 0; font-size: var(--font-size-xs); line-height: 1; opacity: 0.8;" title="Remove immunity">✕</button>
         `;
         badge.querySelector('.btn-del-imm-opt')?.addEventListener('click', () => {
           p.immunityOptions.splice(idx, 1);
@@ -3658,9 +3658,9 @@ class AppController {
           row.innerHTML = `
             <div style="flex: 1; margin-right: 0.5rem;">
               <span style="color: var(--text-bright);">${item.name}</span>
-              <span style="color: var(--hero-cyan); font-weight: 700; margin-left: 0.35rem;">(${item.ranks} ${item.ranks === 1 ? 'rank' : 'ranks'})</span>
+              <span style="color: var(--hero-blue); font-weight: 700; margin-left: 0.35rem;">(${item.ranks} ${item.ranks === 1 ? 'rank' : 'ranks'})</span>
             </div>
-            <button type="button" class="btn btn-outline btn-add-imm-item" style="padding: 0.1rem 0.5rem; min-height: 24px; font-size: var(--font-size-xs); white-space: nowrap;">
+            <button type="button" class="btn btn-outline btn-add-imm-item" style="padding: 0.1rem 0.5rem; min-height: 24px; font-size: var(--font-size-xs); white-space: nowrap; border-color: var(--hero-blue); color: #fff;">
               ➕ Add
             </button>
           `;
@@ -3687,7 +3687,7 @@ class AppController {
       box.innerHTML = `
         <div class="power-section-header">
           <div>
-            <strong style="color: var(--hero-gold); font-size: var(--font-size-xs);">👁️ Senses Configuration (Total: ${totalRanks} Ranks)</strong>
+            <strong style="color: var(--hero-blue); font-size: var(--font-size-xs);">👁️ Senses Configuration (Total: ${totalRanks} Ranks)</strong>
             <span style="font-size: var(--font-size-xs); color: var(--text-muted); margin-left: 0.5rem;">Click "+" next to any sensory trait to assign it</span>
           </div>
         </div>
@@ -3709,11 +3709,11 @@ class AppController {
       const assignedContainer = box.querySelector('.assigned-senses-list');
       p.sensesOptions.forEach((opt, idx) => {
         const badge = document.createElement('span');
-        badge.style.cssText = 'display: inline-flex; align-items: center; gap: 0.35rem; background: rgba(168, 85, 247, 0.18); border: 1px solid var(--hero-purple); border-radius: 4px; padding: 0.15rem 0.4rem; font-size: var(--font-size-xs); color: #fff;';
+        badge.style.cssText = 'display: inline-flex; align-items: center; gap: 0.35rem; background: rgba(59, 130, 246, 0.18); border: 1px solid var(--hero-blue); border-radius: 4px; padding: 0.15rem 0.4rem; font-size: var(--font-size-xs); color: #fff;';
         badge.innerHTML = `
           <strong>${opt.name}</strong>
           <span style="color: var(--hero-gold); font-weight: 700;">(${opt.ranks} rk)</span>
-          <button type="button" class="btn-del-sens-opt" data-idx="${idx}" style="background: none; border: none; color: #ef4444; cursor: pointer; padding: 0; font-size: var(--font-size-xs); line-height: 1;" title="Remove sense">✕</button>
+          <button type="button" class="btn-del-sens-opt" data-idx="${idx}" style="background: none; border: none; color: #fff; cursor: pointer; padding: 0; font-size: var(--font-size-xs); line-height: 1; opacity: 0.8;" title="Remove sense">✕</button>
         `;
         badge.querySelector('.btn-del-sens-opt')?.addEventListener('click', () => {
           p.sensesOptions.splice(idx, 1);
@@ -3731,10 +3731,10 @@ class AppController {
         row.innerHTML = `
           <div style="flex: 1; margin-right: 0.5rem;">
             <span style="color: var(--text-bright);">${item.name}</span>
-            <span style="color: var(--hero-cyan); font-weight: 700; margin-left: 0.35rem;">(${item.ranks} ${item.ranks === 1 ? 'rank' : 'ranks'})</span>
+            <span style="color: var(--hero-blue); font-weight: 700; margin-left: 0.35rem;">(${item.ranks} ${item.ranks === 1 ? 'rank' : 'ranks'})</span>
             <span style="color: var(--text-muted); font-size: var(--font-size-xs); margin-left: 0.4rem;">- ${item.desc}</span>
           </div>
-          <button type="button" class="btn btn-outline btn-add-sens-item" style="padding: 0.1rem 0.5rem; min-height: 24px; font-size: var(--font-size-xs); white-space: nowrap;">
+          <button type="button" class="btn btn-outline btn-add-sens-item" style="padding: 0.1rem 0.5rem; min-height: 24px; font-size: var(--font-size-xs); white-space: nowrap; border-color: var(--hero-blue); color: #fff;">
             ➕ Add
           </button>
         `;
@@ -3877,7 +3877,7 @@ class AppController {
         </div>
         <div class="power-card-header-actions" onclick="event.stopPropagation()">
           <button class="btn btn-outline btn-duplicate-power" data-p-id="${p.id}" title="Duplicate Power" style="min-height: 26px; padding: 0.1rem 0.45rem; font-size: var(--font-size-xs);">📋 Duplicate</button>
-          <button class="btn btn-danger btn-delete-power" data-p-id="${p.id}" title="Delete Power" style="min-height: 26px; padding: 0.1rem 0.45rem; font-size: var(--font-size-xs);">🗑️ Delete</button>
+          <button class="btn btn-outline btn-delete-power" data-p-id="${p.id}" title="Delete Power" style="min-height: 26px; padding: 0.1rem 0.45rem; font-size: var(--font-size-xs); color: #fff; border-color: rgba(255, 255, 255, 0.25);">🗑️ Delete</button>
         </div>
       `;
 
@@ -3991,7 +3991,7 @@ class AppController {
               <span class="effective-stat-badge">Derived</span>
             </div>
             <div class="effective-stat-content">
-              <strong class="effective-stat-val text-cyan">${effStats.effectiveRange}</strong>
+              <strong class="effective-stat-val text-blue">${effStats.effectiveRange}</strong>
             </div>
             <div class="effective-stat-subnote" title="${effStats.rangeNotes || 'Base: ' + effStats.baseRange}">${effStats.rangeNotes || 'Base: ' + effStats.baseRange}</div>
           </div>
@@ -4015,7 +4015,7 @@ class AppController {
               <span class="effective-stat-badge">${effStats.area !== 'Single Target' && effStats.area !== 'Personal' ? '3E Area' : 'Target'}</span>
             </div>
             <div class="effective-stat-content">
-              <strong class="effective-stat-val text-purple">${effStats.area}</strong>
+              <strong class="effective-stat-val text-blue">${effStats.area}</strong>
             </div>
             <div class="effective-stat-subnote" title="${effStats.areaNotes || (effStats.area === 'Personal' ? 'Self Only' : 'Single Target')}">${effStats.areaNotes || (effStats.area === 'Personal' ? 'Self Only' : 'Single Target')}</div>
           </div>
@@ -4041,7 +4041,7 @@ class AppController {
           if (valResult.errors.length > 0) {
             valBox.innerHTML += `
               <div class="power-validation-alert">
-                <strong style="color: #ef4444;">⚠️ Rule Conflict Detected:</strong>
+                <strong style="color: var(--hero-blue);">⚠️ Rule Conflict Detected:</strong>
                 ${valResult.errors.map(err => `<div>• ${err}</div>`).join('')}
               </div>
             `;
@@ -4049,7 +4049,7 @@ class AppController {
           if (valResult.warnings.length > 0) {
             valBox.innerHTML += `
               <div class="power-validation-warning">
-                <strong style="color: #f59e0b;">ℹ️ Modifier Advisory:</strong>
+                <strong style="color: var(--hero-gold);">ℹ️ Modifier Advisory:</strong>
                 ${valResult.warnings.map(w => `<div>• ${w}</div>`).join('')}
               </div>
             `;
@@ -4066,13 +4066,13 @@ class AppController {
         extrasCol.className = 'power-section-box';
         extrasCol.innerHTML = `
           <div class="power-section-header">
-            <span style="font-weight: 800; font-size: var(--font-size-xs); color: var(--hero-green);">➕ Extras (★ = Unique Modifier)</span>
+            <span style="font-weight: 800; font-size: var(--font-size-xs); color: var(--hero-blue);">➕ Extras (★ = Unique Modifier)</span>
           </div>
           <div style="display: flex; gap: 0.35rem; margin-bottom: 0.45rem;">
             <select class="select-add-extra" style="flex: 1; font-size: var(--font-size-xs);">
               ${EXTRAS_CATALOG.map(ex => `<option value="${ex.id}">${ex.name} (${ex.isFlat ? `+${ex.cost} flat` : `+${ex.cost}/rank`})</option>`).join('')}
             </select>
-            <button class="btn btn-outline btn-add-extra" style="font-size: var(--font-size-xs); min-height: 28px; padding: 0.15rem 0.5rem; white-space: nowrap;">+ Add Extra</button>
+            <button class="btn btn-outline btn-add-extra" style="font-size: var(--font-size-xs); min-height: 28px; padding: 0.15rem 0.5rem; white-space: nowrap; border-color: var(--hero-blue); color: #fff;">+ Add Extra</button>
           </div>
           <div class="extras-items-container" style="display: flex; flex-direction: column; gap: 0.35rem;"></div>
         `;
@@ -4154,13 +4154,13 @@ class AppController {
         flawsCol.className = 'power-section-box';
         flawsCol.innerHTML = `
           <div class="power-section-header">
-            <span style="font-weight: 800; font-size: var(--font-size-xs); color: var(--hero-red);">➖ Flaws & Devices (★ = Unique Modifier)</span>
+            <span style="font-weight: 800; font-size: var(--font-size-xs); color: var(--hero-gold);">➖ Flaws & Devices (★ = Unique Modifier)</span>
           </div>
           <div style="display: flex; gap: 0.35rem; margin-bottom: 0.45rem;">
             <select class="select-add-flaw" style="flex: 1; font-size: var(--font-size-xs);">
               ${FLAWS_CATALOG.map(fl => `<option value="${fl.id}">${fl.name} (${fl.isDevice ? `Device -${fl.discountPer5}/5` : fl.isFlat ? `-${fl.cost} flat` : `-${fl.cost}/rank`})</option>`).join('')}
             </select>
-            <button class="btn btn-outline btn-add-flaw" style="font-size: var(--font-size-xs); min-height: 28px; padding: 0.15rem 0.5rem; white-space: nowrap;">+ Add Flaw</button>
+            <button class="btn btn-outline btn-add-flaw" style="font-size: var(--font-size-xs); min-height: 28px; padding: 0.15rem 0.5rem; white-space: nowrap; border-color: var(--hero-gold); color: #fff;">+ Add Flaw</button>
           </div>
           <div class="flaws-items-container" style="display: flex; flex-direction: column; gap: 0.35rem;"></div>
         `;
@@ -4249,7 +4249,7 @@ class AppController {
               </label>
             </div>
             <div style="display: flex; gap: 0.35rem;">
-              <button class="btn btn-outline btn-add-standard-ae" style="font-size: var(--font-size-xs); min-height: 26px; padding: 0.1rem 0.45rem;">➕ Standard AE (1 PP)</button>
+              <button class="btn btn-outline btn-add-standard-ae" style="font-size: var(--font-size-xs); min-height: 26px; padding: 0.1rem 0.45rem; border-color: var(--hero-blue); color: #fff;">➕ Standard AE (1 PP)</button>
               <button class="btn btn-outline btn-add-dynamic-ae" style="font-size: var(--font-size-xs); min-height: 26px; padding: 0.1rem 0.45rem; border-color: rgba(245, 158, 11, 0.5); color: var(--hero-gold);">➕ Dynamic AE (2 PP)</button>
             </div>
           </div>
@@ -4272,7 +4272,7 @@ class AppController {
               <input type="text" class="input-ae-name" value="${ae.name || 'Alternate Power'}" style="flex: 1; padding: 0.2rem 0.4rem; font-size: var(--font-size-xs);">
             </div>
             <div style="margin-left: 0.5rem;">
-              <button class="btn btn-danger btn-delete-ae" style="padding: 0.1rem 0.35rem; min-height: 24px; font-size: var(--font-size-xs);">🗑️</button>
+              <button class="btn btn-outline btn-delete-ae" style="padding: 0.1rem 0.35rem; min-height: 24px; font-size: var(--font-size-xs); color: #fff; border-color: rgba(255, 255, 255, 0.25);">🗑️</button>
             </div>
           `;
 
@@ -4322,10 +4322,10 @@ class AppController {
         linkedSection.innerHTML = `
           <div class="power-section-header">
             <div>
-              <strong style="color: var(--hero-purple); font-size: var(--font-size-xs);">🔗 Linked Powers (Simultaneous Actions)</strong>
+              <strong style="color: var(--hero-blue); font-size: var(--font-size-xs);">🔗 Linked Powers (Simultaneous Actions)</strong>
               <span style="font-size: var(--font-size-xs); color: var(--text-muted); margin-left: 0.5rem;">Shares action (${p.action}), range (${rd.effectiveRange}), and duration (${rd.effectiveDuration}). Costs sum together.</span>
             </div>
-            <button class="btn btn-outline btn-add-linked-effect" style="font-size: var(--font-size-xs); min-height: 26px; padding: 0.1rem 0.45rem;">➕ Add Linked Effect</button>
+            <button class="btn btn-outline btn-add-linked-effect" style="font-size: var(--font-size-xs); min-height: 26px; padding: 0.1rem 0.45rem; border-color: var(--hero-blue); color: #fff;">➕ Add Linked Effect</button>
           </div>
           <div class="linked-items-container" style="display: flex; flex-direction: column; gap: 0.35rem;"></div>
         `;
@@ -4347,19 +4347,19 @@ class AppController {
             </div>
             <div style="font-size: var(--font-size-xs); color: var(--text-muted); background: rgba(0,0,0,0.25); padding: 0.2rem 0.4rem; border-radius: 3px; display: flex; gap: 0.35rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="Stats: ${leStats.action} • ${leStats.effectiveRange} • ${leStats.effectiveDuration} • ${leStats.area}">
               <span class="text-gold" style="font-weight: 700;">${leStats.action}</span> •
-              <span class="text-cyan">${leStats.effectiveRange}</span> •
-              <span class="text-purple">${leStats.area}</span>
+              <span class="text-blue">${leStats.effectiveRange}</span> •
+              <span class="text-blue">${leStats.area}</span>
             </div>
             <div class="stepper-control">
               <button class="btn-stepper compact btn-le-minus">-</button>
               <span class="stepper-value compact">${le.rank || 1}</span>
               <button class="btn-stepper compact btn-le-plus">+</button>
             </div>
-            <div style="font-weight: 800; color: var(--hero-purple); font-size: var(--font-size-xs); text-align: right;">
+            <div style="font-weight: 800; color: var(--hero-gold); font-size: var(--font-size-xs); text-align: right;">
               +${leCost} PP
             </div>
             <div style="text-align: right;">
-              <button class="btn btn-danger btn-delete-le" style="padding: 0.1rem 0.35rem; min-height: 24px; font-size: var(--font-size-xs);">🗑️</button>
+              <button class="btn btn-outline btn-delete-le" style="padding: 0.1rem 0.35rem; min-height: 24px; font-size: var(--font-size-xs); color: #fff; border-color: rgba(255, 255, 255, 0.25);">🗑️</button>
             </div>
           `;
 

@@ -1,5 +1,5 @@
 {
-  "version": "3.10",
-  "updatedAt": "2026-10-26T16:15:00Z",
-  "releaseNotes": "Standardized application color palette across all controls, headings, and labels. Unified power effect stats into a compact 4-chip block displaying Action, Range, Duration, and Area together in both expanded and collapsed power views."
+  "version": "3.11",
+  "updatedAt": "2026-10-26T17:25:00Z",
+  "releaseNotes": "Standardized power cards to strictly three colors (white, gold, and blue) for optimal visual flow and harmony. Maintained 10pt minimum font size across the entire application."
 }

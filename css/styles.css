@@ -1501,6 +1501,7 @@ button.action-save-card:active {
 
 /* =======================================================
    COLLAPSIBLE POWER CARDS (In-Place Inline Editor)
+   Strictly Three Colors: White, Gold, and Blue
    ======================================================= */
 .power-card-collapsible {
   background-color: var(--bg-card);
@@ -1511,7 +1512,7 @@ button.action-save-card:active {
 }
 
 .power-card-collapsible:hover {
-  border-color: rgba(6, 182, 212, 0.5);
+  border-color: rgba(59, 130, 246, 0.6);
 }
 
 .power-card-collapsible.device-card {
@@ -1519,8 +1520,8 @@ button.action-save-card:active {
 }
 
 .power-card-collapsible.expanded {
-  border-color: var(--hero-cyan);
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+  border-color: var(--hero-blue);
+  box-shadow: 0 4px 14px rgba(59, 130, 246, 0.25);
 }
 
 .power-card-header {
@@ -1564,7 +1565,7 @@ button.action-save-card:active {
 }
 
 .power-title-effect {
-  color: var(--hero-cyan);
+  color: var(--hero-blue);
   font-weight: 700;
   font-size: var(--font-size-sm);
 }
@@ -1606,21 +1607,21 @@ button.action-save-card:active {
 }
 
 .badge-tag.linked {
-  background: rgba(168, 85, 247, 0.2);
-  color: var(--hero-purple);
-  border: 1px solid rgba(168, 85, 247, 0.4);
+  background: rgba(59, 130, 246, 0.2);
+  color: var(--hero-blue);
+  border: 1px solid rgba(59, 130, 246, 0.4);
 }
 
 .badge-tag.conflict {
-  background: rgba(239, 68, 68, 0.2);
-  color: var(--hero-red);
-  border: 1px solid rgba(239, 68, 68, 0.4);
+  background: rgba(245, 158, 11, 0.2);
+  color: var(--hero-gold);
+  border: 1px solid rgba(245, 158, 11, 0.4);
 }
 
 .badge-tag.legal {
-  background: rgba(16, 185, 129, 0.2);
-  color: var(--hero-green);
-  border: 1px solid rgba(16, 185, 129, 0.4);
+  background: rgba(59, 130, 246, 0.2);
+  color: var(--hero-blue);
+  border: 1px solid rgba(59, 130, 246, 0.4);
 }
 
 /* =====================================================================
@@ -1710,15 +1711,15 @@ button.action-save-card:active {
 }
 
 .effective-stat-chip.stat-range {
-  border-left: 3px solid var(--hero-cyan);
-}
-
-.effective-stat-chip.stat-duration {
   border-left: 3px solid var(--hero-blue);
 }
 
+.effective-stat-chip.stat-duration {
+  border-left: 3px solid var(--hero-gold);
+}
+
 .effective-stat-chip.stat-area {
-  border-left: 3px solid var(--hero-purple);
+  border-left: 3px solid var(--hero-blue);
 }
 
 .effective-stat-header {
@@ -1737,9 +1738,9 @@ button.action-save-card:active {
 }
 
 .effective-stat-chip.stat-action .effective-stat-label { color: var(--hero-gold); }
-.effective-stat-chip.stat-range .effective-stat-label { color: var(--hero-cyan); }
-.effective-stat-chip.stat-duration .effective-stat-label { color: var(--hero-blue); }
-.effective-stat-chip.stat-area .effective-stat-label { color: var(--hero-purple); }
+.effective-stat-chip.stat-range .effective-stat-label { color: var(--hero-blue); }
+.effective-stat-chip.stat-duration .effective-stat-label { color: var(--hero-gold); }
+.effective-stat-chip.stat-area .effective-stat-label { color: var(--hero-blue); }
 
 .effective-stat-badge {
   font-size: var(--font-size-xs);
@@ -1808,11 +1809,11 @@ button.action-save-card:active {
 }
 
 .power-validation-alert {
-  background: rgba(239, 68, 68, 0.12);
-  border: 1px solid rgba(239, 68, 68, 0.4);
+  background: rgba(59, 130, 246, 0.12);
+  border: 1px solid var(--hero-blue);
   border-radius: var(--radius-sm);
   padding: 0.45rem 0.75rem;
-  color: #fca5a5;
+  color: #ffffff;
   font-size: var(--font-size-xs);
   display: flex;
   flex-direction: column;
@@ -1821,10 +1822,10 @@ button.action-save-card:active {
 
 .power-validation-warning {
   background: rgba(245, 158, 11, 0.12);
-  border: 1px solid rgba(245, 158, 11, 0.4);
+  border: 1px solid var(--hero-gold);
   border-radius: var(--radius-sm);
   padding: 0.45rem 0.75rem;
-  color: #fde68a;
+  color: #ffffff;
   font-size: var(--font-size-xs);
   display: flex;
   flex-direction: column;

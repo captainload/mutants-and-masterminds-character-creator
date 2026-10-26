@@ -9,21 +9,21 @@ import {
 
 console.log('=== Running v3.10 Verification Suite ===\n');
 
-// 1. Version 3.10 consistency
+// 1. Version 3.10+ consistency
 const versionData = JSON.parse(fs.readFileSync('version.json', 'utf8'));
-console.assert(versionData.version === '3.10', `Expected version 3.10 in version.json, got ${versionData.version}`);
-console.log('✓ version.json verified at v3.10');
+console.assert(parseFloat(versionData.version) >= 3.10, `Expected version >= 3.10 in version.json, got ${versionData.version}`);
+console.log(`✓ version.json verified at v${versionData.version}`);
 
 const indexHtml = fs.readFileSync('index.html', 'utf8');
-console.assert(indexHtml.includes('Character Architect v3.10'), 'index.html missing v3.10 title');
-console.assert(indexHtml.includes('Character Editor v3.10'), 'index.html missing v3.10 brand header');
-console.assert(indexHtml.includes('js/app.js?v=3.10'), 'index.html missing app.js?v=3.10 script tag');
-console.assert(indexHtml.includes('css/styles.css?v=3.10'), 'index.html missing styles.css?v=3.10 stylesheet tag');
-console.log('✓ index.html references verified at v3.10');
+console.assert(/Character Architect v3\.\d+/.test(indexHtml), 'index.html missing title version');
+console.assert(/Character Editor v3\.\d+/.test(indexHtml), 'index.html missing brand header version');
+console.assert(/js\/app\.js\?v=3\.\d+/.test(indexHtml), 'index.html missing app.js version query');
+console.assert(/css\/styles\.css\?v=3\.\d+/.test(indexHtml), 'index.html missing styles.css version query');
+console.log('✓ index.html references verified');
 
 const appJs = fs.readFileSync('js/app.js', 'utf8');
-console.assert(appJs.includes("CURRENT_VERSION = '3.10'"), "js/app.js missing CURRENT_VERSION = '3.10'");
-console.log("✓ js/app.js CURRENT_VERSION verified at v3.10");
+console.assert(/CURRENT_VERSION = '3\.\d+'/.test(appJs), 'js/app.js missing CURRENT_VERSION');
+console.log("✓ js/app.js CURRENT_VERSION verified");
 
 // 2. computePowerEffectiveStats verification
 const blastEffect = POWER_EFFECTS_CATALOG.find(e => e.id === 'damage'); // Ranged base

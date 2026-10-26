@@ -13,6 +13,11 @@ import {
   POWER_EFFECTS_CATALOG,
   EXTRAS_CATALOG,
   FLAWS_CATALOG,
+  AFFLICTION_CONDITIONS,
+  IMMUNITY_OPTIONS_CATALOG,
+  WEAKEN_CONFIG_OPTIONS,
+  NULLIFY_CONFIG_OPTIONS,
+  SENSES_OPTIONS_CATALOG,
   calculatePowerCost,
   auditCharacter,
   getStrengthLiftingCapacity,
@@ -823,6 +828,19 @@ class AppController {
     });
   }
 
+  showTraitRulesDialog(id, type, name) {
+    const trait = getTraitDefinition(id, type, name);
+    if (!trait) return;
+    const cat = trait.traitType ? (trait.traitType.charAt(0).toUpperCase() + trait.traitType.slice(1)) : (type ? type.charAt(0).toUpperCase() + type.slice(1) : 'Official 3E Rule');
+    const title = `${trait.name || name}${trait.short ? ` (${trait.short})` : ''} • ${cat}`;
+    let body = trait.desc || 'No official rules description available.';
+    if (trait.ability) {
+      const ab = ABILITIES.find(a => a.id === trait.ability);
+      body += `\n\nGoverning Ability: ${ab ? `${ab.name} (${ab.short})` : trait.ability.toUpperCase()}`;
+    }
+    this.showAlertDialog(body, { title, icon: '📖' });
+  }
+
   // =======================================================
   // 9. MENU DROP-DOWN & CHARACTER MODALS
   // =======================================================
@@ -951,7 +969,7 @@ class AppController {
   }
 
   async checkForUpdates({ isManual = false } = {}) {
-    const CURRENT_VERSION = '3.8';
+    const CURRENT_VERSION = '3.9';
     if (typeof window === 'undefined' || !window.location || !window.location.href || window.location.href === 'about:blank') return;
     try {
       const url = new URL('version.json', window.location.href);
@@ -2404,7 +2422,9 @@ class AppController {
         `;
 
         btn.querySelector('.rules-info-badge')?.addEventListener('click', (e) => {
+          e.preventDefault();
           e.stopPropagation();
+          this.showTraitRulesDialog(ab.id, 'ability', ab.name);
         });
 
         btn.addEventListener('click', (e) => {
@@ -2478,7 +2498,9 @@ class AppController {
         `;
 
         btn.querySelector('.rules-info-badge')?.addEventListener('click', (e) => {
+          e.preventDefault();
           e.stopPropagation();
+          this.showTraitRulesDialog(def.id, 'defense', def.name);
         });
 
         btn.addEventListener('click', (e) => {
@@ -2788,10 +2810,13 @@ class AppController {
       card.innerHTML = `
         <div style="width: 100%;">
           <div style="display: flex; justify-content: space-between; align-items: baseline; width: 100%;">
-            <span class="rules-link" data-id="${ab.id}" data-type="ability" data-name="${ab.name}" data-cat="Ability" style="font-weight: 800; font-size: var(--font-size-sm); color: var(--hero-gold); cursor: pointer;" title="${ab.name}">${ab.short}</span>
+            <div style="display: flex; align-items: center; gap: 0.25rem;">
+              <span class="rules-link" data-id="${ab.id}" data-type="ability" data-name="${ab.name}" data-cat="Ability" style="font-weight: 800; font-size: var(--font-size-sm); color: var(--hero-gold); cursor: pointer;" title="Click for rules">${ab.short}</span>
+              <span class="rules-info-badge" style="font-size: var(--font-size-xs); opacity: 0.8; cursor: pointer; padding: 1px 3px;" title="View ${ab.name} rules">ℹ️</span>
+            </div>
             <span style="font-size: var(--font-size-xs); color: var(--text-muted); font-weight: 600;">${val * 2} PP</span>
           </div>
-          <div style="font-size: var(--font-size-xs); color: var(--text-muted); text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${ab.name}">${ab.name}</div>
+          <div style="font-size: var(--font-size-xs); color: var(--text-muted); text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer;" class="ability-name-label" title="Click for rules">${ab.name}</div>
         </div>
         <div class="stepper-control compact" style="justify-content: center;">
           <button class="btn-stepper compact" data-ab="${ab.id}" data-dir="-1" title="Decrease ${ab.name}">-</button>
@@ -2802,6 +2827,15 @@ class AppController {
           ${ab.id === 'str' ? `Lift: ${getStrengthLiftingCapacity(val)}` : `Mod: ${val >= 0 ? `+${val}` : val}`}
         </div>
       `;
+
+      const openAbRules = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        this.showTraitRulesDialog(ab.id, 'ability', ab.name);
+      };
+      card.querySelector('.rules-link')?.addEventListener('click', openAbRules);
+      card.querySelector('.rules-info-badge')?.addEventListener('click', openAbRules);
+      card.querySelector('.ability-name-label')?.addEventListener('click', openAbRules);
 
       card.querySelectorAll('.btn-stepper').forEach(btn => {
         btn.addEventListener('click', () => {
@@ -2839,9 +2873,10 @@ class AppController {
       `;
       card.innerHTML = `
         <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
-          <div>
-            <span class="rules-link" data-id="${def.id}" data-type="defense" data-name="${def.name}" data-cat="Defense" style="font-weight: 800; font-size: var(--font-size-sm); color: var(--hero-cyan); cursor: pointer;" title="${def.name}">${def.name}</span>
-            <span style="font-size: var(--font-size-xs); color: var(--text-muted); margin-left: 0.25rem;">[${abName}]</span>
+          <div style="display: flex; align-items: center; gap: 0.25rem;">
+            <span class="rules-link" data-id="${def.id}" data-type="defense" data-name="${def.name}" data-cat="Defense" style="font-weight: 800; font-size: var(--font-size-sm); color: var(--hero-cyan); cursor: pointer;" title="Click for rules">${def.name}</span>
+            <span class="rules-info-badge" style="font-size: var(--font-size-xs); opacity: 0.8; cursor: pointer; padding: 1px 3px;" title="View ${def.name} rules">ℹ️</span>
+            <span style="font-size: var(--font-size-xs); color: var(--text-muted); margin-left: 0.15rem;">[${abName}]</span>
           </div>
           <div style="display: flex; align-items: baseline; gap: 0.35rem;">
             <span style="font-size: var(--font-size-xs); color: var(--text-muted);">Total:</span>
@@ -2862,6 +2897,14 @@ class AppController {
           </div>
         </div>
       `;
+
+      const openDefRules = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        this.showTraitRulesDialog(def.id, 'defense', def.name);
+      };
+      card.querySelector('.rules-link')?.addEventListener('click', openDefRules);
+      card.querySelector('.rules-info-badge')?.addEventListener('click', openDefRules);
 
       card.querySelectorAll('.btn-stepper').forEach(btn => {
         btn.addEventListener('click', () => {
@@ -3424,6 +3467,344 @@ class AppController {
     setTimeout(() => otherInput?.focus(), 50);
   }
 
+  async linkExistingEffect(power) {
+    const otherEffects = (this.char.powers || []).filter(item => item.id !== power.id);
+    if (otherEffects.length === 0) {
+      await this.showAlertDialog('No other effects added yet. Create another effect on this character first before linking.', {
+        title: 'No Other Effects Added Yet',
+        icon: '⚠️'
+      });
+      return;
+    }
+
+    const options = otherEffects.map(oe => `${oe.name || 'Unnamed Power'} (${oe.effect?.name || 'Effect'} Rank ${oe.rank || 1})`);
+    this.openPrebuiltOptionsModal(
+      options,
+      (selectedOpt) => {
+        const idx = options.indexOf(selectedOpt);
+        const chosen = idx >= 0 ? otherEffects[idx] : otherEffects.find(oe => selectedOpt.startsWith(oe.name));
+        if (!chosen) return;
+        if (!power.linkedEffects) power.linkedEffects = [];
+        power.linkedEffects.push({
+          id: 'le_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
+          name: chosen.name || chosen.effect?.name || 'Linked Effect',
+          effect: chosen.effect || POWER_EFFECTS_CATALOG[0],
+          rank: chosen.rank || 1,
+          action: power.action,
+          range: power.effect?.range || 'Personal',
+          duration: power.effect?.duration || 'Instant',
+          extras: chosen.extras ? JSON.parse(JSON.stringify(chosen.extras)) : [],
+          flaws: chosen.flaws ? JSON.parse(JSON.stringify(chosen.flaws)) : []
+        });
+
+        if (!power.extras) power.extras = [];
+        if (!power.extras.some(ex => ex.id === 'linked')) {
+          const linkedDef = EXTRAS_CATALOG.find(x => x.id === 'linked');
+          if (linkedDef) power.extras.push({ ...linkedDef, rank: 1 });
+        }
+
+        this.saveAndAudit();
+        this.renderPowersTab(auditCharacter(this.char));
+      },
+      'Link With Existing Effect'
+    );
+  }
+
+  renderEffectConfigSection(p) {
+    const effId = p.effect?.id;
+    if (!['affliction', 'immunity', 'weaken', 'nullify', 'senses'].includes(effId)) {
+      return null;
+    }
+
+    const box = document.createElement('div');
+    box.className = 'power-section-box';
+    box.style.borderLeft = '3px solid var(--hero-gold)';
+    box.style.marginTop = '0.5rem';
+
+    if (effId === 'affliction') {
+      if (!p.afflictionConfig) {
+        p.afflictionConfig = {
+          resistedBy: 'Fortitude',
+          degree1: 'Dazed',
+          degree2: 'Stunned',
+          degree3: 'Incapacitated'
+        };
+      }
+      box.innerHTML = `
+        <div class="power-section-header">
+          <strong style="color: var(--hero-gold); font-size: var(--font-size-xs);">⚙️ Affliction Configuration (3E Degrees of Failure)</strong>
+          <span style="font-size: var(--font-size-xs); color: var(--text-muted);">Configure resistance defense and condition per degree</span>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 0.5rem; margin-top: 0.4rem;">
+          <div>
+            <label style="font-size: var(--font-size-xs); color: var(--text-muted); display: block; margin-bottom: 0.2rem;">Resisted / Overcome By:</label>
+            <select class="select-aff-resisted" style="width: 100%; font-size: var(--font-size-xs);">
+              ${AFFLICTION_CONDITIONS.resistedBy.map(d => `<option value="${d}" ${p.afflictionConfig.resistedBy === d ? 'selected' : ''}>${d}</option>`).join('')}
+            </select>
+          </div>
+          <div>
+            <label style="font-size: var(--font-size-xs); color: var(--text-muted); display: block; margin-bottom: 0.2rem;">1st Degree (Failure by 1-5):</label>
+            <select class="select-aff-deg1" style="width: 100%; font-size: var(--font-size-xs);">
+              ${AFFLICTION_CONDITIONS.degree1.map(c => `<option value="${c}" ${p.afflictionConfig.degree1 === c ? 'selected' : ''}>${c}</option>`).join('')}
+            </select>
+          </div>
+          <div>
+            <label style="font-size: var(--font-size-xs); color: var(--text-muted); display: block; margin-bottom: 0.2rem;">2nd Degree (Failure by 6-10):</label>
+            <select class="select-aff-deg2" style="width: 100%; font-size: var(--font-size-xs);">
+              ${AFFLICTION_CONDITIONS.degree2.map(c => `<option value="${c}" ${p.afflictionConfig.degree2 === c ? 'selected' : ''}>${c}</option>`).join('')}
+            </select>
+          </div>
+          <div>
+            <label style="font-size: var(--font-size-xs); color: var(--text-muted); display: block; margin-bottom: 0.2rem;">3rd Degree (Failure by 11+):</label>
+            <select class="select-aff-deg3" style="width: 100%; font-size: var(--font-size-xs);">
+              ${AFFLICTION_CONDITIONS.degree3.map(c => `<option value="${c}" ${p.afflictionConfig.degree3 === c ? 'selected' : ''}>${c}</option>`).join('')}
+            </select>
+          </div>
+        </div>
+      `;
+
+      box.querySelector('.select-aff-resisted')?.addEventListener('change', (e) => {
+        p.afflictionConfig.resistedBy = e.target.value;
+        this.saveAndAudit();
+      });
+      box.querySelector('.select-aff-deg1')?.addEventListener('change', (e) => {
+        p.afflictionConfig.degree1 = e.target.value;
+        this.saveAndAudit();
+      });
+      box.querySelector('.select-aff-deg2')?.addEventListener('change', (e) => {
+        p.afflictionConfig.degree2 = e.target.value;
+        this.saveAndAudit();
+      });
+      box.querySelector('.select-aff-deg3')?.addEventListener('change', (e) => {
+        p.afflictionConfig.degree3 = e.target.value;
+        this.saveAndAudit();
+      });
+    } else if (effId === 'immunity') {
+      if (!Array.isArray(p.immunityOptions)) {
+        p.immunityOptions = [];
+      }
+      const totalRanks = p.immunityOptions.reduce((acc, cur) => acc + (parseInt(cur.ranks, 10) || 1), 0);
+
+      box.innerHTML = `
+        <div class="power-section-header">
+          <div>
+            <strong style="color: var(--hero-gold); font-size: var(--font-size-xs);">🛡️ Immunity Configuration (Total: ${totalRanks} Ranks)</strong>
+            <span style="font-size: var(--font-size-xs); color: var(--text-muted); margin-left: 0.5rem;">Click "+" next to any immunity option to assign it</span>
+          </div>
+        </div>
+        <div style="margin-top: 0.4rem; margin-bottom: 0.5rem;">
+          <label style="font-size: var(--font-size-xs); color: var(--text-muted); display: block; margin-bottom: 0.25rem;">Assigned Immunities:</label>
+          <div class="assigned-immunities-list" style="display: flex; flex-wrap: wrap; gap: 0.35rem; min-height: 28px; align-items: center; background: rgba(0,0,0,0.2); padding: 0.35rem; border-radius: var(--radius-sm);">
+            ${p.immunityOptions.length === 0 ? '<span style="font-size: var(--font-size-xs); color: var(--text-muted); font-style: italic;">No immunities specifically configured yet. Click "+" on options below.</span>' : ''}
+          </div>
+        </div>
+        <div>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
+            <label style="font-size: var(--font-size-xs); color: var(--text-muted);">Available 3E Immunity Options:</label>
+            <input type="text" class="input-filter-immunity" placeholder="Search immunities..." style="font-size: var(--font-size-xs); padding: 0.15rem 0.4rem; max-width: 180px;">
+          </div>
+          <div class="immunity-options-catalog-list" style="max-height: 190px; overflow-y: auto; display: flex; flex-direction: column; gap: 0.25rem; background: rgba(0,0,0,0.25); padding: 0.4rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+          </div>
+        </div>
+      `;
+
+      const assignedContainer = box.querySelector('.assigned-immunities-list');
+      p.immunityOptions.forEach((opt, idx) => {
+        const badge = document.createElement('span');
+        badge.style.cssText = 'display: inline-flex; align-items: center; gap: 0.35rem; background: rgba(56, 189, 248, 0.18); border: 1px solid var(--hero-cyan); border-radius: 4px; padding: 0.15rem 0.4rem; font-size: var(--font-size-xs); color: #fff;';
+        badge.innerHTML = `
+          <strong>${opt.name}</strong>
+          <span style="color: var(--hero-gold); font-weight: 700;">(${opt.ranks} rk)</span>
+          <button type="button" class="btn-del-imm-opt" data-idx="${idx}" style="background: none; border: none; color: #ef4444; cursor: pointer; padding: 0; font-size: var(--font-size-xs); line-height: 1;" title="Remove immunity">✕</button>
+        `;
+        badge.querySelector('.btn-del-imm-opt')?.addEventListener('click', () => {
+          p.immunityOptions.splice(idx, 1);
+          p.rank = Math.max(1, p.immunityOptions.reduce((acc, cur) => acc + (parseInt(cur.ranks, 10) || 1), 0));
+          this.saveAndAudit();
+          this.renderPowersTab(auditCharacter(this.char));
+        });
+        assignedContainer.appendChild(badge);
+      });
+
+      const catList = box.querySelector('.immunity-options-catalog-list');
+      const renderCatalog = (filterText = '') => {
+        catList.innerHTML = '';
+        const filterLower = filterText.toLowerCase();
+        const filtered = IMMUNITY_OPTIONS_CATALOG.filter(item => !filterText || item.name.toLowerCase().includes(filterLower) || item.category.toLowerCase().includes(filterLower));
+        
+        let curCat = '';
+        filtered.forEach(item => {
+          if (item.category !== curCat) {
+            curCat = item.category;
+            const catHeader = document.createElement('div');
+            catHeader.style.cssText = 'font-size: var(--font-size-xs); font-weight: 800; color: var(--hero-gold); text-transform: uppercase; margin-top: 0.35rem; margin-bottom: 0.15rem; padding-bottom: 0.1rem; border-bottom: 1px solid rgba(255,255,255,0.08);';
+            catHeader.textContent = curCat;
+            catList.appendChild(catHeader);
+          }
+          const row = document.createElement('div');
+          row.style.cssText = 'display: flex; justify-content: space-between; align-items: center; padding: 0.2rem 0.4rem; background: rgba(255,255,255,0.03); border-radius: 3px; font-size: var(--font-size-xs);';
+          row.innerHTML = `
+            <div style="flex: 1; margin-right: 0.5rem;">
+              <span style="color: var(--text-bright);">${item.name}</span>
+              <span style="color: var(--hero-cyan); font-weight: 700; margin-left: 0.35rem;">(${item.ranks} ${item.ranks === 1 ? 'rank' : 'ranks'})</span>
+            </div>
+            <button type="button" class="btn btn-outline btn-add-imm-item" style="padding: 0.1rem 0.5rem; min-height: 24px; font-size: var(--font-size-xs); white-space: nowrap;">
+              ➕ Add
+            </button>
+          `;
+          row.querySelector('.btn-add-imm-item')?.addEventListener('click', () => {
+            p.immunityOptions.push({ id: item.id, name: item.name, ranks: item.ranks });
+            p.rank = Math.max(1, p.immunityOptions.reduce((acc, cur) => acc + (parseInt(cur.ranks, 10) || 1), 0));
+            this.saveAndAudit();
+            this.renderPowersTab(auditCharacter(this.char));
+          });
+          catList.appendChild(row);
+        });
+      };
+
+      renderCatalog();
+      box.querySelector('.input-filter-immunity')?.addEventListener('input', (e) => {
+        renderCatalog(e.target.value);
+      });
+    } else if (effId === 'senses') {
+      if (!Array.isArray(p.sensesOptions)) {
+        p.sensesOptions = [];
+      }
+      const totalRanks = p.sensesOptions.reduce((acc, cur) => acc + (parseInt(cur.ranks, 10) || 1), 0);
+
+      box.innerHTML = `
+        <div class="power-section-header">
+          <div>
+            <strong style="color: var(--hero-gold); font-size: var(--font-size-xs);">👁️ Senses Configuration (Total: ${totalRanks} Ranks)</strong>
+            <span style="font-size: var(--font-size-xs); color: var(--text-muted); margin-left: 0.5rem;">Click "+" next to any sensory trait to assign it</span>
+          </div>
+        </div>
+        <div style="margin-top: 0.4rem; margin-bottom: 0.5rem;">
+          <label style="font-size: var(--font-size-xs); color: var(--text-muted); display: block; margin-bottom: 0.25rem;">Assigned Senses:</label>
+          <div class="assigned-senses-list" style="display: flex; flex-wrap: wrap; gap: 0.35rem; min-height: 28px; align-items: center; background: rgba(0,0,0,0.2); padding: 0.35rem; border-radius: var(--radius-sm);">
+            ${p.sensesOptions.length === 0 ? '<span style="font-size: var(--font-size-xs); color: var(--text-muted); font-style: italic;">No senses configured yet. Click "+" on options below.</span>' : ''}
+          </div>
+        </div>
+        <div>
+          <div style="margin-bottom: 0.35rem;">
+            <label style="font-size: var(--font-size-xs); color: var(--text-muted);">Available 3E Senses Options:</label>
+          </div>
+          <div class="senses-options-catalog-list" style="max-height: 180px; overflow-y: auto; display: flex; flex-direction: column; gap: 0.25rem; background: rgba(0,0,0,0.25); padding: 0.4rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+          </div>
+        </div>
+      `;
+
+      const assignedContainer = box.querySelector('.assigned-senses-list');
+      p.sensesOptions.forEach((opt, idx) => {
+        const badge = document.createElement('span');
+        badge.style.cssText = 'display: inline-flex; align-items: center; gap: 0.35rem; background: rgba(168, 85, 247, 0.18); border: 1px solid var(--hero-purple); border-radius: 4px; padding: 0.15rem 0.4rem; font-size: var(--font-size-xs); color: #fff;';
+        badge.innerHTML = `
+          <strong>${opt.name}</strong>
+          <span style="color: var(--hero-gold); font-weight: 700;">(${opt.ranks} rk)</span>
+          <button type="button" class="btn-del-sens-opt" data-idx="${idx}" style="background: none; border: none; color: #ef4444; cursor: pointer; padding: 0; font-size: var(--font-size-xs); line-height: 1;" title="Remove sense">✕</button>
+        `;
+        badge.querySelector('.btn-del-sens-opt')?.addEventListener('click', () => {
+          p.sensesOptions.splice(idx, 1);
+          p.rank = Math.max(1, p.sensesOptions.reduce((acc, cur) => acc + (parseInt(cur.ranks, 10) || 1), 0));
+          this.saveAndAudit();
+          this.renderPowersTab(auditCharacter(this.char));
+        });
+        assignedContainer.appendChild(badge);
+      });
+
+      const catList = box.querySelector('.senses-options-catalog-list');
+      SENSES_OPTIONS_CATALOG.forEach(item => {
+        const row = document.createElement('div');
+        row.style.cssText = 'display: flex; justify-content: space-between; align-items: center; padding: 0.2rem 0.4rem; background: rgba(255,255,255,0.03); border-radius: 3px; font-size: var(--font-size-xs);';
+        row.innerHTML = `
+          <div style="flex: 1; margin-right: 0.5rem;">
+            <span style="color: var(--text-bright);">${item.name}</span>
+            <span style="color: var(--hero-cyan); font-weight: 700; margin-left: 0.35rem;">(${item.ranks} ${item.ranks === 1 ? 'rank' : 'ranks'})</span>
+            <span style="color: var(--text-muted); font-size: var(--font-size-xs); margin-left: 0.4rem;">- ${item.desc}</span>
+          </div>
+          <button type="button" class="btn btn-outline btn-add-sens-item" style="padding: 0.1rem 0.5rem; min-height: 24px; font-size: var(--font-size-xs); white-space: nowrap;">
+            ➕ Add
+          </button>
+        `;
+        row.querySelector('.btn-add-sens-item')?.addEventListener('click', () => {
+          p.sensesOptions.push({ id: item.id, name: item.name, ranks: item.ranks });
+          p.rank = Math.max(1, p.sensesOptions.reduce((acc, cur) => acc + (parseInt(cur.ranks, 10) || 1), 0));
+          this.saveAndAudit();
+          this.renderPowersTab(auditCharacter(this.char));
+        });
+        catList.appendChild(row);
+      });
+    } else if (effId === 'weaken') {
+      if (!p.weakenConfig) {
+        p.weakenConfig = { resistedBy: 'Fortitude', trait: 'Strength' };
+      }
+      box.innerHTML = `
+        <div class="power-section-header">
+          <strong style="color: var(--hero-gold); font-size: var(--font-size-xs);">⚙️ Weaken Configuration</strong>
+          <span style="font-size: var(--font-size-xs); color: var(--text-muted);">Configure resistance defense and targeted trait</span>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-top: 0.4rem;">
+          <div>
+            <label style="font-size: var(--font-size-xs); color: var(--text-muted); display: block; margin-bottom: 0.2rem;">Resisted / Overcome By:</label>
+            <select class="select-weaken-resisted" style="width: 100%; font-size: var(--font-size-xs);">
+              ${WEAKEN_CONFIG_OPTIONS.resistedBy.map(d => `<option value="${d}" ${p.weakenConfig.resistedBy === d ? 'selected' : ''}>${d}</option>`).join('')}
+            </select>
+          </div>
+          <div>
+            <label style="font-size: var(--font-size-xs); color: var(--text-muted); display: block; margin-bottom: 0.2rem;">Targeted Trait:</label>
+            <select class="select-weaken-trait" style="width: 100%; font-size: var(--font-size-xs);">
+              ${WEAKEN_CONFIG_OPTIONS.traits.map(t => `<option value="${t}" ${p.weakenConfig.trait === t ? 'selected' : ''}>${t}</option>`).join('')}
+            </select>
+          </div>
+        </div>
+      `;
+
+      box.querySelector('.select-weaken-resisted')?.addEventListener('change', (e) => {
+        p.weakenConfig.resistedBy = e.target.value;
+        this.saveAndAudit();
+      });
+      box.querySelector('.select-weaken-trait')?.addEventListener('change', (e) => {
+        p.weakenConfig.trait = e.target.value;
+        this.saveAndAudit();
+      });
+    } else if (effId === 'nullify') {
+      if (!p.nullifyConfig) {
+        p.nullifyConfig = { descriptor: 'Magic', scope: 'Single Descriptor (+0 cost)' };
+      }
+      box.innerHTML = `
+        <div class="power-section-header">
+          <strong style="color: var(--hero-gold); font-size: var(--font-size-xs);">⚙️ Nullify Configuration</strong>
+          <span style="font-size: var(--font-size-xs); color: var(--text-muted);">Configure nullified descriptor and scope</span>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-top: 0.4rem;">
+          <div>
+            <label style="font-size: var(--font-size-xs); color: var(--text-muted); display: block; margin-bottom: 0.2rem;">Target Descriptor:</label>
+            <select class="select-nullify-desc" style="width: 100%; font-size: var(--font-size-xs);">
+              ${NULLIFY_CONFIG_OPTIONS.descriptors.map(d => `<option value="${d}" ${p.nullifyConfig.descriptor === d ? 'selected' : ''}>${d}</option>`).join('')}
+            </select>
+          </div>
+          <div>
+            <label style="font-size: var(--font-size-xs); color: var(--text-muted); display: block; margin-bottom: 0.2rem;">Scope:</label>
+            <select class="select-nullify-scope" style="width: 100%; font-size: var(--font-size-xs);">
+              ${NULLIFY_CONFIG_OPTIONS.scopes.map(s => `<option value="${s}" ${p.nullifyConfig.scope === s ? 'selected' : ''}>${s}</option>`).join('')}
+            </select>
+          </div>
+        </div>
+      `;
+
+      box.querySelector('.select-nullify-desc')?.addEventListener('change', (e) => {
+        p.nullifyConfig.descriptor = e.target.value;
+        this.saveAndAudit();
+      });
+      box.querySelector('.select-nullify-scope')?.addEventListener('change', (e) => {
+        p.nullifyConfig.scope = e.target.value;
+        this.saveAndAudit();
+      });
+    }
+
+    return box;
+  }
+
   // =======================================================
   // 21. POWERS TAB RENDER (In-Place Collapsible Power Cards)
   // =======================================================
@@ -3436,7 +3817,7 @@ class AppController {
 
     if (!this.char.powers || this.char.powers.length === 0) {
       list.innerHTML = `<div style="text-align: center; padding: 1.5rem; color: var(--text-muted); font-size: var(--font-size-sm);">
-        No powers built yet. Choose a profile from the <strong>Power Profiles Library</strong> above or click <strong>➕ Custom Power Builder</strong> to build one in-place.
+        No powers built yet. Choose a profile from the <strong>Power Profiles Library</strong> above or click <strong>➕ Build new power</strong> to build one in-place.
       </div>`;
       return;
     }
@@ -3605,6 +3986,12 @@ class AppController {
         });
         body.appendChild(row2);
 
+        // Power Effect Specific Configuration (Affliction, Immunity, Senses, Weaken, Nullify)
+        const configSection = this.renderEffectConfigSection(p);
+        if (configSection) {
+          body.appendChild(configSection);
+        }
+
         // Validation Banner (Errors and Warnings)
         if (valResult.errors.length > 0 || valResult.warnings.length > 0) {
           const valBox = document.createElement('div');
@@ -3700,6 +4087,13 @@ class AppController {
         extrasCol.querySelector('.btn-add-extra')?.addEventListener('click', () => {
           const selectedId = extrasCol.querySelector('.select-add-extra').value;
           const exDef = EXTRAS_CATALOG.find(e => e.id === selectedId);
+          if (!exDef) return;
+
+          if (selectedId === 'linked') {
+            this.linkExistingEffect(p);
+            return;
+          }
+
           if (!p.extras) p.extras = [];
           p.extras.push({
             id: exDef.id,
@@ -3950,21 +4344,7 @@ class AppController {
         });
 
         linkedSection.querySelector('.btn-add-linked-effect')?.addEventListener('click', () => {
-          if (!p.linkedEffects) p.linkedEffects = [];
-          const affEff = POWER_EFFECTS_CATALOG.find(e => e.id === 'affliction') || POWER_EFFECTS_CATALOG[0];
-          p.linkedEffects.push({
-            id: 'le_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
-            name: 'Secondary Effect',
-            effect: affEff,
-            rank: p.rank || 10,
-            action: p.action,
-            range: rd.effectiveRange,
-            duration: rd.effectiveDuration,
-            extras: [],
-            flaws: []
-          });
-          this.saveAndAudit();
-          this.renderPowersTab(auditCharacter(this.char));
+          this.linkExistingEffect(p);
         });
 
         body.appendChild(linkedSection);

@@ -796,7 +796,8 @@ export const EXTRAS_CATALOG = [
   { id: 'sustained', name: 'Sustained Duration', cost: 1, isFlat: false, desc: 'Maintains effect round-to-round as a free action.' },
   { id: 'continuous', name: 'Continuous Duration', cost: 1, isFlat: false, desc: 'Maintains effect even when incapacitated or unconscious until dismissed.' },
   { id: 'triggered', name: '★ Triggered', cost: 1, isFlat: true, isRanked: true, maxRank: 5, minRank: 1, isUnique: true, desc: 'Sets a trap or delayed trigger activated by proximity or timer.' },
-  { id: 'variable_descriptor', name: 'Variable Descriptor', cost: 1, isFlat: true, isRanked: true, maxRank: 2, minRank: 1, desc: 'Change descriptor freely (Rank 1: any energy/element; Rank 2: any descriptor).' }
+  { id: 'variable_descriptor', name: 'Variable Descriptor', cost: 1, isFlat: true, isRanked: true, maxRank: 2, minRank: 1, desc: 'Change descriptor freely (Rank 1: any energy/element; Rank 2: any descriptor).' },
+  { id: 'linked', name: '★ Linked', cost: 0, isFlat: true, isUnique: true, desc: 'Combines two or more effects into a single simultaneous power sharing range and action.' }
 ];
 
 export const FLAWS_CATALOG = [
@@ -822,6 +823,96 @@ export const FLAWS_CATALOG = [
   { id: 'tiring', name: 'Tiring', cost: 1, isFlat: false, desc: 'Causes 1 degree of fatigue when used; can be offset with hero point.' },
   { id: 'uncontrolled', name: 'Uncontrolled', cost: 1, isFlat: false, desc: 'GM decides when and how the power triggers or manifests.' },
   { id: 'unreliable', name: 'Unreliable (5 uses or 50% fail)', cost: 1, isFlat: false, desc: 'Has 5 uses per scene or requires a DC 11 flat check before each use.' }
+];
+
+export const AFFLICTION_CONDITIONS = {
+  resistedBy: ['Fortitude', 'Will'],
+  degree1: ['Dazed', 'Entangled', 'Fatigued', 'Hindered', 'Impaired', 'Vulnerable'],
+  degree2: ['Stunned', 'Compelled', 'Defenseless', 'Disabled', 'Exhausted', 'Immobile', 'Prone'],
+  degree3: ['Incapacitated', 'Asleep', 'Blind', 'Controlled', 'Paralyzed', 'Transformed', 'Unaware']
+};
+
+export const IMMUNITY_OPTIONS_CATALOG = [
+  // 1 Rank
+  { id: 'aging', name: 'Aging', ranks: 1, category: '1 Rank (Biological & Environmental)' },
+  { id: 'disease_spec', name: 'Disease (Specific, e.g. Cold/Flu)', ranks: 1, category: '1 Rank (Biological & Environmental)' },
+  { id: 'poison_spec', name: 'Poison (Specific, e.g. Arsenic)', ranks: 1, category: '1 Rank (Biological & Environmental)' },
+  { id: 'suffocation_holding', name: 'Suffocation (Holding breath / lung capacity)', ranks: 1, category: '1 Rank (Biological & Environmental)' },
+  { id: 'cold_env', name: 'Environmental Cold (Extreme cold)', ranks: 1, category: '1 Rank (Biological & Environmental)' },
+  { id: 'heat_env', name: 'Environmental Heat (Extreme heat)', ranks: 1, category: '1 Rank (Biological & Environmental)' },
+  { id: 'pressure_env', name: 'High Pressure / Deep Sea', ranks: 1, category: '1 Rank (Biological & Environmental)' },
+  { id: 'vacuum_env', name: 'Vacuum & Zero Gravity', ranks: 1, category: '1 Rank (Biological & Environmental)' },
+  { id: 'radiation_env', name: 'Environmental Radiation', ranks: 1, category: '1 Rank (Biological & Environmental)' },
+  { id: 'starvation', name: 'Starvation & Thirst', ranks: 1, category: '1 Rank (Biological & Environmental)' },
+  { id: 'drowning', name: 'Drowning', ranks: 1, category: '1 Rank (Biological & Environmental)' },
+
+  // 2 Ranks
+  { id: 'crit_hits', name: 'Critical Hits', ranks: 2, category: '2 Ranks (Combat & Physiological)' },
+  { id: 'suffocation_all', name: 'Suffocation (All / No Need to Breathe)', ranks: 2, category: '2 Ranks (Combat & Physiological)' },
+
+  // 5 Ranks
+  { id: 'disease_all', name: 'All Diseases', ranks: 5, category: '5 Ranks (Broad Hazards & Defenses)' },
+  { id: 'poison_all', name: 'All Poisons', ranks: 5, category: '5 Ranks (Broad Hazards & Defenses)' },
+  { id: 'env_all', name: 'All Environmental Conditions', ranks: 5, category: '5 Ranks (Broad Hazards & Defenses)' },
+  { id: 'entrapment', name: 'Entrapment (Bonds, Snare, Grabs)', ranks: 5, category: '5 Ranks (Broad Hazards & Defenses)' },
+  { id: 'alteration', name: 'Alteration Effects', ranks: 5, category: '5 Ranks (Broad Hazards & Defenses)' },
+  { id: 'sensory_aff', name: 'Sensory Affliction (Specific Sense, e.g. Dazzle)', ranks: 5, category: '5 Ranks (Broad Hazards & Defenses)' },
+  { id: 'falling_damage', name: 'Falling Damage', ranks: 5, category: '5 Ranks (Broad Hazards & Defenses)' },
+  { id: 'suffocation_dmg', name: 'Suffocation Damage', ranks: 5, category: '5 Ranks (Broad Hazards & Defenses)' },
+
+  // 10 Ranks
+  { id: 'life_support', name: 'Life Support (Disease, Poison, All Env, Suffocation, Starvation)', ranks: 10, category: '10 Ranks (Life Support & Common Descriptors)' },
+  { id: 'dmg_fire', name: 'Fire / Heat Damage', ranks: 10, category: '10 Ranks (Life Support & Common Descriptors)' },
+  { id: 'dmg_cold', name: 'Cold Damage', ranks: 10, category: '10 Ranks (Life Support & Common Descriptors)' },
+  { id: 'dmg_electricity', name: 'Electricity Damage', ranks: 10, category: '10 Ranks (Life Support & Common Descriptors)' },
+  { id: 'dmg_radiation', name: 'Radiation Damage', ranks: 10, category: '10 Ranks (Life Support & Common Descriptors)' },
+  { id: 'dmg_sonic', name: 'Sonic Damage', ranks: 10, category: '10 Ranks (Life Support & Common Descriptors)' },
+  { id: 'interaction_skills', name: 'Interaction Skills & Emotion Effects', ranks: 10, category: '10 Ranks (Life Support & Common Descriptors)' },
+  { id: 'magic_desc', name: 'Magic Descriptor Effects (Common)', ranks: 10, category: '10 Ranks (Life Support & Common Descriptors)' },
+  { id: 'tech_desc', name: 'Technology Descriptor Effects (Common)', ranks: 10, category: '10 Ranks (Life Support & Common Descriptors)' },
+
+  // 20 Ranks
+  { id: 'all_energy_dmg', name: 'Very Common Descriptor: All Energy Damage', ranks: 20, category: '20 Ranks (Very Common Descriptors)' },
+  { id: 'all_physical_dmg', name: 'Very Common Descriptor: All Physical Damage', ranks: 20, category: '20 Ranks (Very Common Descriptors)' },
+  { id: 'all_mental_effects', name: 'Very Common Descriptor: All Mental Effects', ranks: 20, category: '20 Ranks (Very Common Descriptors)' },
+
+  // 30 Ranks
+  { id: 'all_fortitude', name: 'All Fortitude Effects (Construct / Undead / Inorganic)', ranks: 30, category: '30 Ranks (Total Defense System)' },
+  { id: 'all_will', name: 'All Will Effects (Total Mental Immunity)', ranks: 30, category: '30 Ranks (Total Defense System)' },
+
+  // 80 Ranks
+  { id: 'all_toughness', name: 'All Toughness Effects (Impervious to Damage)', ranks: 80, category: '80 Ranks (Invulnerability)' }
+];
+
+export const WEAKEN_CONFIG_OPTIONS = {
+  resistedBy: ['Fortitude', 'Will'],
+  traits: ['Strength', 'Stamina', 'Agility', 'Dexterity', 'Fighting', 'Intellect', 'Awareness', 'Presence', 'Dodge', 'Parry', 'Fortitude', 'Toughness', 'Will', 'All Powers of Descriptor']
+};
+
+export const NULLIFY_CONFIG_OPTIONS = {
+  descriptors: ['Magic', 'Technology', 'Mutation', 'Psionics', 'Fire / Heat', 'Cold', 'Electricity', 'Cosmic', 'Chemical'],
+  scopes: ['Single Descriptor (+0 cost)', 'Broad Descriptor (+1/rank)', 'Simultaneous (+1/rank)']
+};
+
+export const SENSES_OPTIONS_CATALOG = [
+  { id: 'darkvision', name: 'Darkvision', ranks: 2, desc: 'See in total darkness without penalty.' },
+  { id: 'infravision', name: 'Infravision', ranks: 1, desc: 'See thermal infrared radiation/heat signatures.' },
+  { id: 'low_light', name: 'Low-Light Vision', ranks: 1, desc: 'See in dim light as if it were daylight.' },
+  { id: 'ultravision', name: 'Ultravision', ranks: 1, desc: 'Perceive ultraviolet light spectrum.' },
+  { id: 'ultra_hearing', name: 'Ultra-Hearing', ranks: 1, desc: 'Hear very high and low sound frequencies.' },
+  { id: 'radio', name: 'Radio', ranks: 1, desc: 'Receive and detect radio wave transmissions.' },
+  { id: 'tracking', name: 'Tracking', ranks: 1, desc: 'Track scent/visual trails at normal speed.' },
+  { id: 'accurate_hearing', name: 'Accurate (Hearing)', ranks: 2, desc: 'Pinpoint precise combat target locations by sound alone.' },
+  { id: 'acute_scent', name: 'Acute (Scent)', ranks: 1, desc: 'Distinguish fine details by smell alone.' },
+  { id: 'analytical', name: 'Analytical (Vision or Scent)', ranks: 1, desc: 'Analyze chemical composition, structural weak points, or DNA.' },
+  { id: 'counters_concealment', name: 'Counters Concealment (e.g. Smoke/Fog)', ranks: 2, desc: 'Ignores partial and total concealment from specific visual obscurities.' },
+  { id: 'counters_illusion', name: 'Counters Illusion', ranks: 2, desc: 'Automatically pierces visual illusions.' },
+  { id: 'extended_vision', name: 'Extended (Vision)', ranks: 1, desc: '-1 per 100 feet rather than per 10 feet for distance checks.' },
+  { id: 'microscopic', name: 'Microscopic Vision', ranks: 1, desc: 'View dust particles and cellular structures (up to rank 4 atomic).' },
+  { id: 'penetrates_concealment', name: 'Penetrates Concealment (X-Ray Vision)', ranks: 4, desc: 'Perceives through solid barriers and lead-lined matter.' },
+  { id: 'radius_vision', name: 'Radius (Vision)', ranks: 2, desc: '360-degree field of perception without blind spots.' },
+  { id: 'rapid_senses', name: 'Rapid Senses', ranks: 1, desc: 'Read and process sensory data at 10x normal speed.' },
+  { id: 'time_sense', name: 'Time Sense', ranks: 1, desc: 'Know the exact time and elapsed durations intuitively.' }
 ];
 
 export function computePowerRangeAndDuration(effect, extras = [], flaws = []) {

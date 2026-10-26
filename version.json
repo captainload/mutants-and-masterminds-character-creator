@@ -1,5 +1,5 @@
 {
-  "version": "3.8",
-  "updatedAt": "2026-10-26T14:00:00Z",
-  "releaseNotes": "Replaced browser pop-ups (alert, prompt, confirm) with custom HTML dialogs including full game session logger. Converted Abilities & Defenses to an interactive pop-up accessible via the new Action Center button. Transformed the Advantages catalog into an expansive, readable list layout."
+  "version": "3.9",
+  "updatedAt": "2026-10-26T15:30:00Z",
+  "releaseNotes": "Added '+ Build new power' builder button. Added 3E rules trait description popups to Abilities & Defenses 'i' info buttons. Added Linked effects picker with 'no other effects' warning modal. Added rich configuration editors for Affliction (degrees of failure), Immunity ('+' multi-item catalog), Senses, Weaken, and Nullify."
 }

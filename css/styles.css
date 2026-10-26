@@ -510,7 +510,7 @@ body {
   background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
   color: #fff;
   border: none;
-  font-size: var(--font-size-sm);
+  font-size: 0.9rem;
   font-weight: 800;
   padding: 0.45rem 0.85rem;
   border-radius: var(--radius-sm);
@@ -1254,8 +1254,6 @@ input:focus, select:focus, textarea:focus {
   font-weight: 700;
 }
 
-.action-ability-card,
-.action-save-card,
 .ability-stepper-card-compact,
 .defense-stepper-card-compact {
   background-color: var(--bg-input);
@@ -1270,19 +1268,75 @@ input:focus, select:focus, textarea:focus {
   min-height: 46px;
 }
 
-.action-ability-card:hover,
-.action-save-card:hover,
 .ability-stepper-card-compact:hover,
 .defense-stepper-card-compact:hover {
   border-color: var(--hero-blue);
   box-shadow: 0 2px 8px rgba(37, 99, 235, 0.25);
 }
 
+/* Action Center Roll Cards (Turned into interactive buttons) */
+button.action-roll-card {
+  font-family: inherit;
+  color: inherit;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+  user-select: none;
+  border: 1px solid var(--border-color);
+  background: linear-gradient(180deg, rgba(30, 41, 59, 0.75) 0%, rgba(15, 23, 42, 0.95) 100%);
+  padding: 0.35rem 0.48rem;
+  border-radius: var(--radius-sm);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 50px;
+  box-sizing: border-box;
+  transition: all 0.15s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+}
+
+button.action-ability-card:hover {
+  border-color: var(--hero-gold);
+  background: linear-gradient(180deg, rgba(51, 65, 85, 0.9) 0%, rgba(30, 41, 59, 0.98) 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 3px 10px rgba(245, 158, 11, 0.28);
+}
+
+button.action-ability-card:active {
+  transform: translateY(1px);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+button.action-save-card:hover {
+  border-color: var(--hero-cyan);
+  background: linear-gradient(180deg, rgba(51, 65, 85, 0.9) 0%, rgba(30, 41, 59, 0.98) 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 3px 10px rgba(6, 182, 212, 0.28);
+}
+
+button.action-save-card:active {
+  transform: translateY(1px);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.rules-info-badge {
+  transition: all 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.rules-info-badge:hover {
+  opacity: 1 !important;
+  background-color: rgba(255, 255, 255, 0.18);
+  transform: scale(1.15);
+}
+
 .condition-btn {
   background-color: var(--bg-input);
   border: 1px solid var(--border-color);
   color: var(--text-muted);
-  font-size: 0.72rem;
+  font-size: 0.82rem;
   font-weight: 700;
   padding: 0.35rem 0.45rem;
   border-radius: var(--radius-sm);

@@ -905,7 +905,7 @@ class AppController {
   }
 
   async checkForUpdates({ isManual = false } = {}) {
-    const CURRENT_VERSION = '3.1';
+    const CURRENT_VERSION = '3.2';
     if (typeof window === 'undefined' || !window.location || !window.location.href || window.location.href === 'about:blank') return;
     try {
       const url = new URL('version.json', window.location.href);
@@ -1904,27 +1904,34 @@ class AppController {
     const abilitiesGrid = document.getElementById('action-abilities-grid');
     if (abilitiesGrid) {
       abilitiesGrid.innerHTML = '';
-      const dcValEl = document.getElementById('action-dc-val');
-      const currentDC = parseInt(dcValEl?.textContent, 10) || 15;
 
       ABILITIES.forEach(ab => {
         const abShort = (ab.short || ab.id).toUpperCase();
         const baseRank = parseInt(this.char.abilities?.[ab.id], 10) || 0;
         const effRank = baseRank + mods.checkPenalty;
-        const card = document.createElement('div');
-        card.className = 'action-ability-card';
-        card.innerHTML = `
-          <div style="display: flex; justify-content: space-between; align-items: baseline; line-height: 1.1;">
-            <span class="rules-link" data-id="${ab.id}" data-type="ability" data-name="${ab.name}" data-cat="Ability" style="font-size: 0.72rem; font-weight: 800; color: var(--hero-gold); cursor: pointer;" title="${ab.name} (Click for rules)">${abShort}</span>
-            <div style="display: flex; align-items: baseline; gap: 0.15rem;">
-              <strong style="font-size: var(--font-size-sm); font-weight: 900; color: ${effRank !== baseRank ? 'var(--hero-red)' : '#fff'};">${effRank >= 0 ? '+' + effRank : effRank}</strong>
-              ${mods.checkPenalty !== 0 ? `<span style="font-size: 0.58rem; color: var(--hero-red); font-weight: 700;">(${mods.checkPenalty})</span>` : ''}
-            </div>
+        
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'action-ability-card action-roll-card';
+        btn.setAttribute('data-ab', ab.id);
+        btn.title = `Roll ${ab.name} Check (${effRank >= 0 ? '+' + effRank : effRank})`;
+        btn.innerHTML = `
+          <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 0.15rem;">
+            <span style="font-size: 0.95rem; font-weight: 800; color: var(--hero-gold); letter-spacing: 0.04em;">${abShort}</span>
+            <span class="rules-link rules-info-badge" data-id="${ab.id}" data-type="ability" data-name="${ab.name}" data-cat="Ability" title="${ab.name} (Click for rules)" style="font-size: 0.75rem; opacity: 0.7; cursor: pointer; padding: 2px 4px; border-radius: 3px;">ℹ️</span>
           </div>
-          <button class="btn btn-outline btn-roll-ability-check" style="width: 100%; min-height: 22px; font-size: 0.65rem; padding: 0.05rem 0.2rem; border-radius: 3px;" title="Roll ${ab.name} Check (${effRank >= 0 ? '+' + effRank : effRank})">🎲 Check</button>
+          <div style="display: flex; align-items: baseline; justify-content: space-between; width: 100%;">
+            <strong style="font-size: 1.35rem; font-weight: 900; line-height: 1; color: ${effRank !== baseRank ? 'var(--hero-red)' : '#fff'};">${effRank >= 0 ? '+' + effRank : effRank}</strong>
+            ${mods.checkPenalty !== 0 ? `<span style="font-size: 0.75rem; color: var(--hero-red); font-weight: 800;">(${mods.checkPenalty})</span>` : ''}
+          </div>
         `;
 
-        card.querySelector('.btn-roll-ability-check')?.addEventListener('click', () => {
+        btn.querySelector('.rules-info-badge')?.addEventListener('click', (e) => {
+          e.stopPropagation();
+        });
+
+        btn.addEventListener('click', (e) => {
+          if (e.target.closest('.rules-link')) return;
           const roll = diceRoller.rollCheck({
             title: `${ab.name} Check`,
             characterName: this.char.name,
@@ -1936,7 +1943,7 @@ class AppController {
           this.displayRollResult(roll);
         });
 
-        abilitiesGrid.appendChild(card);
+        abilitiesGrid.appendChild(btn);
       });
     }
 
@@ -1957,13 +1964,8 @@ class AppController {
     const defGrid = document.getElementById('action-defenses-grid');
     if (defGrid) {
       defGrid.innerHTML = '';
-      const dcValEl = document.getElementById('action-dc-val');
-      const currentDC = parseInt(dcValEl?.textContent, 10) || 15;
 
       DEFENSES.forEach(def => {
-        const box = document.createElement('div');
-        box.className = 'action-save-card';
-
         const baseScore = audit.computedDefenses[def.id] || 0;
         let effScore = baseScore;
         let modNotes = [];
@@ -1989,23 +1991,34 @@ class AppController {
 
         const noteText = modNotes.length > 0 ? modNotes.join(', ') : `Base ${baseScore}`;
 
-        box.innerHTML = `
-          <div style="display: flex; justify-content: space-between; align-items: baseline; line-height: 1.1;">
-            <span class="rules-link" data-id="${def.id}" data-type="defense" data-name="${def.name}" data-cat="Defense" style="font-size: 0.72rem; font-weight: 800; color: var(--hero-cyan); text-transform: uppercase; cursor: pointer;" title="${def.name} (Click for rules)">${def.name}</span>
-            <div style="display: flex; align-items: baseline; gap: 0.15rem;">
-              <strong style="font-size: var(--font-size-sm); font-weight: 900; color: ${effScore !== baseScore ? 'var(--hero-red)' : 'var(--text-bright)'};">${effScore}</strong>
-              ${effScore !== baseScore ? `<span style="font-size: 0.58rem; color: var(--hero-red); font-weight: 700;">*</span>` : ''}
-            </div>
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'action-save-card action-roll-card';
+        btn.setAttribute('data-def', def.id);
+        btn.title = `Roll ${def.name} Save (+${effScore})`;
+
+        btn.innerHTML = `
+          <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 0.15rem;">
+            <span style="font-size: 0.95rem; font-weight: 800; color: var(--hero-cyan); text-transform: uppercase; letter-spacing: 0.04em;">${def.name}</span>
+            <span class="rules-link rules-info-badge" data-id="${def.id}" data-type="defense" data-name="${def.name}" data-cat="Defense" title="${def.name} (Click for rules)" style="font-size: 0.75rem; opacity: 0.7; cursor: pointer; padding: 2px 4px; border-radius: 3px;">ℹ️</span>
           </div>
-          <div style="display: flex; justify-content: space-between; align-items: center; gap: 0.2rem;">
-            <span style="font-size: 0.6rem; color: ${effScore !== baseScore ? 'var(--hero-red)' : 'var(--text-muted)'}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 60px;" title="${noteText}">
+          <div style="display: flex; align-items: baseline; justify-content: space-between; width: 100%; gap: 0.35rem;">
+            <div style="display: flex; align-items: baseline; gap: 0.25rem;">
+              <strong style="font-size: 1.35rem; font-weight: 900; line-height: 1; color: ${effScore !== baseScore ? 'var(--hero-red)' : 'var(--text-bright)'};">${effScore >= 0 ? '+' + effScore : effScore}</strong>
+              ${effScore !== baseScore ? `<span style="font-size: 0.75rem; color: var(--hero-red); font-weight: 800;">*</span>` : ''}
+            </div>
+            <span style="font-size: 0.75rem; color: ${effScore !== baseScore ? 'var(--hero-red)' : 'var(--text-muted)'}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: right; max-width: 110px;" title="${noteText}">
               ${noteText}
             </span>
-            <button class="btn-touch-roll defense" style="min-height: 22px; padding: 0.05rem 0.4rem; font-size: 0.65rem; border-radius: 3px;" data-def="${def.id}" title="Roll ${def.name} Save (+${effScore})">🎲 Save</button>
           </div>
         `;
 
-        box.querySelector('button')?.addEventListener('click', () => {
+        btn.querySelector('.rules-info-badge')?.addEventListener('click', (e) => {
+          e.stopPropagation();
+        });
+
+        btn.addEventListener('click', (e) => {
+          if (e.target.closest('.rules-link')) return;
           const roll = diceRoller.rollCheck({
             title: `${def.name} Save`,
             characterName: this.char.name,
@@ -2037,7 +2050,7 @@ class AppController {
           this.displayRollResult(roll);
         });
 
-        defGrid.appendChild(box);
+        defGrid.appendChild(btn);
       });
     }
 

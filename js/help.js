@@ -321,10 +321,13 @@ export const HELP_SECTIONS = [
       </div>
 
       <h4>Method 1: Discord Webhooks (Recommended — Easiest, 1-Minute Setup)</h4>
+      <div style="background-color: rgba(245, 158, 11, 0.15); border-left: 4px solid var(--hero-gold); padding: 0.65rem 0.85rem; border-radius: var(--radius-sm); margin: 0.5rem 0 0.85rem 0; font-size: var(--font-size-xs);">
+        ⚠️ <strong>Important Permission Requirement:</strong> You <em>must have editing rights for a channel</em> in Discord (specifically the <strong>Manage Webhooks</strong> or <strong>Manage Channel</strong> permission, or Server Admin) to create and configure webhooks. If you do not see the <strong>Integrations</strong> or <strong>Webhooks</strong> option when editing a channel, ask your Server Owner or GM to grant you the <em>Manage Webhooks</em> permission or create the webhook URL for you.
+      </div>
       <p>Webhooks require no bot hosting or developer credentials. They allow your character sheet to post rich, color-coded dice roll cards and Hero Point spends directly into your Discord channel.</p>
       <ol style="padding-left: 1.25rem; line-height: 1.6;">
         <li>Open Discord on your desktop or browser and go to your server.</li>
-        <li>Right-click the channel where you want rolls to appear (e.g. <code>#dice-rolls</code> or <code>#tabletop</code>) and select <strong>Edit Channel</strong>.</li>
+        <li>Right-click the channel where you want rolls to appear (e.g. <code>#dice-rolls</code> or <code>#tabletop</code>) and select <strong>Edit Channel</strong> (requires channel editing rights).</li>
         <li>Click <strong>Integrations</strong> in the left sidebar, then click <strong>Webhooks</strong>.</li>
         <li>Click <strong>New Webhook</strong> (or <strong>Create Webhook</strong>).</li>
         <li>Give it a name like <em>M&M 3E Hero Roller</em>, then click <strong>Copy Webhook URL</strong>.</li>

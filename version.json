@@ -1,5 +1,5 @@
 {
-  "version": "3.3",
-  "updatedAt": "2026-10-25T23:05:00Z",
-  "releaseNotes": "Adjusted terminology to 3E Resistance Checks, added dedicated Initiative and Movement Speeds block, included untrained skills in Action Center, and upgraded file I/O to .MM3 folder browser format and PDF export."
+  "version": "3.4",
+  "updatedAt": "2026-10-25T23:25:00Z",
+  "releaseNotes": "Added Discord channel editing permission notes in Help & Settings, enabled multiple instances of skills with different specialties, and added custom 'Other' input field to specialization lists."
 }

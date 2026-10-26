@@ -905,7 +905,7 @@ class AppController {
   }
 
   async checkForUpdates({ isManual = false } = {}) {
-    const CURRENT_VERSION = '3.3';
+    const CURRENT_VERSION = '3.4';
     if (typeof window === 'undefined' || !window.location || !window.location.href || window.location.href === 'about:blank') return;
     try {
       const url = new URL('version.json', window.location.href);
@@ -2602,67 +2602,209 @@ class AppController {
   // =======================================================
   // 18. SKILLS CATALOG TAB
   // =======================================================
+  // =======================================================
+  // 18. SKILLS CATALOG TAB (Supports Multiple Instances per Specialty)
+  // =======================================================
   renderSkillsTab(audit) {
     document.getElementById('skills-cost-display').textContent = `${audit.skillsCost} PP`;
     const tbody = document.getElementById('skills-catalog-tbody');
     tbody.innerHTML = '';
 
-    SKILLS_LIST.forEach(skillDef => {
-      const existing = (this.char.skills || []).find(s => s.id === skillDef.id);
-      const ranks = existing ? (parseInt(existing.ranks, 10) || 0) : 0;
-      const specialty = existing?.specialty || '';
-      const baseVal = parseInt(this.char.abilities?.[skillDef.ability], 10) || 0;
-      const totalBonus = baseVal + ranks;
-
-      const row = document.createElement('tr');
-      row.innerHTML = `
-        <td>
-          <span class="rules-link" data-id="${skillDef.id}" data-type="skill" data-name="${skillDef.name}" data-cat="Official 3E Skill">
-            ${skillDef.name}
-          </span>
-          ${skillDef.hasSpecialty ? `<span style="font-size: 0.75rem; color: var(--hero-gold); margin-left: 0.5rem;">[${specialty || 'No Specialty'}]</span>` : ''}
-        </td>
-        <td>${skillDef.ability.toUpperCase()}</td>
-        <td>${baseVal >= 0 ? '+' : ''}${baseVal}</td>
-        <td>
-          <div class="stepper-control">
-            <button class="btn-stepper compact" data-skill="${skillDef.id}" data-dir="-1">-</button>
-            <span class="stepper-value compact">${ranks}</span>
-            <button class="btn-stepper compact" data-skill="${skillDef.id}" data-dir="1">+</button>
-          </div>
-        </td>
-        <td><strong style="color: var(--hero-cyan); font-size: var(--font-size-md);">${totalBonus >= 0 ? '+' : ''}${totalBonus}</strong></td>
-        <td style="text-align: right;">
-          ${skillDef.hasSpecialty ? `
-            <button class="btn btn-outline" style="min-height: 32px; font-size: var(--font-size-xs);" data-prebuilt-skill="${skillDef.id}">+ Specialty</button>
-          ` : `<span></span>`}
-        </td>
-      `;
-
-      row.querySelectorAll('.btn-stepper').forEach(btn => {
-        btn.addEventListener('click', () => {
-          const dir = parseInt(btn.dataset.dir, 10);
-          this.updateSkillRanks(skillDef.id, skillDef.name, ranks + dir);
-        });
+    // Ensure all skills have an instanceId
+    if (this.char.skills) {
+      this.char.skills.forEach((s, idx) => {
+        if (!s.instanceId) s.instanceId = `sk_${s.id}_${idx}_${Math.random().toString(36).substr(2, 4)}`;
       });
+    }
 
-      if (skillDef.hasSpecialty) {
-        row.querySelector('[data-prebuilt-skill]').addEventListener('click', () => {
-          this.openPrebuiltOptionsModal(`Select Specialty for ${skillDef.name}`, skillDef.options, (selected) => {
-            this.setSkillSpecialty(skillDef.id, skillDef.name, selected);
+    SKILLS_LIST.forEach(skillDef => {
+      const baseVal = parseInt(this.char.abilities?.[skillDef.ability], 10) || 0;
+
+      if (!skillDef.hasSpecialty) {
+        // Standard single skill
+        let existing = (this.char.skills || []).find(s => s.id === skillDef.id);
+        const ranks = existing ? (parseInt(existing.ranks, 10) || 0) : 0;
+        const totalBonus = baseVal + ranks;
+
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>
+            <span class="rules-link" data-id="${skillDef.id}" data-type="skill" data-name="${skillDef.name}" data-cat="Official 3E Skill" style="cursor: pointer; font-weight: 700;">
+              ${skillDef.name}
+            </span>
+          </td>
+          <td><strong style="color: var(--text-muted);">${skillDef.ability.toUpperCase()}</strong></td>
+          <td>${baseVal >= 0 ? '+' : ''}${baseVal}</td>
+          <td>
+            <div class="stepper-control">
+              <button class="btn-stepper compact" data-skill="${skillDef.id}" data-dir="-1">-</button>
+              <span class="stepper-value compact">${ranks}</span>
+              <button class="btn-stepper compact" data-skill="${skillDef.id}" data-dir="1">+</button>
+            </div>
+          </td>
+          <td><strong style="color: var(--hero-cyan); font-size: var(--font-size-md);">${totalBonus >= 0 ? '+' : ''}${totalBonus}</strong></td>
+          <td style="text-align: right;"></td>
+        `;
+
+        row.querySelectorAll('.btn-stepper').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const dir = parseInt(btn.dataset.dir, 10);
+            this.updateSkillRanks(skillDef.id, skillDef.name, ranks + dir);
           });
         });
-      }
 
-      tbody.appendChild(row);
+        tbody.appendChild(row);
+      } else {
+        // Multi-instance specialty skill (Close Combat, Ranged Combat, Expertise)
+        const instances = (this.char.skills || []).filter(s => s.id === skillDef.id);
+
+        if (instances.length === 0) {
+          // Render default 0-rank row with "+ Add Specialty"
+          const totalBonus = baseVal;
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td>
+              <span class="rules-link" data-id="${skillDef.id}" data-type="skill" data-name="${skillDef.name}" data-cat="Official 3E Skill" style="cursor: pointer; font-weight: 700;">
+                ${skillDef.name}
+              </span>
+              <span style="font-size: 0.75rem; color: var(--text-muted); margin-left: 0.5rem; font-style: italic;">[No Specialty Assigned]</span>
+            </td>
+            <td><strong style="color: var(--text-muted);">${skillDef.ability.toUpperCase()}</strong></td>
+            <td>${baseVal >= 0 ? '+' : ''}${baseVal}</td>
+            <td>
+              <div class="stepper-control">
+                <button class="btn-stepper compact" data-dir="-1" disabled>-</button>
+                <span class="stepper-value compact">0</span>
+                <button class="btn-stepper compact" data-dir="1">+</button>
+              </div>
+            </td>
+            <td><strong style="color: var(--hero-cyan); font-size: var(--font-size-md);">${totalBonus >= 0 ? '+' : ''}${totalBonus}</strong></td>
+            <td style="text-align: right;">
+              <button class="btn btn-outline btn-skill-add-specialty" style="min-height: 28px; font-size: var(--font-size-xs); padding: 0.15rem 0.5rem;">+ Specialty</button>
+            </td>
+          `;
+
+          const addSpecialtyAction = () => {
+            this.openPrebuiltOptionsModal(`Choose Specialty for ${skillDef.name}`, skillDef.options, (selected) => {
+              this.addSkillInstance(skillDef.id, skillDef.name, selected, 1);
+            });
+          };
+
+          row.querySelector('.btn-skill-add-specialty')?.addEventListener('click', addSpecialtyAction);
+          row.querySelector('[data-dir="1"]')?.addEventListener('click', addSpecialtyAction);
+
+          tbody.appendChild(row);
+        } else {
+          // Render each instance
+          instances.forEach((inst) => {
+            const ranks = parseInt(inst.ranks, 10) || 0;
+            const totalBonus = baseVal + ranks;
+            const specialty = inst.specialty || '';
+
+            const row = document.createElement('tr');
+            row.innerHTML = `
+              <td>
+                <span class="rules-link" data-id="${skillDef.id}" data-type="skill" data-name="${skillDef.name}" data-cat="Official 3E Skill" style="cursor: pointer; font-weight: 700;">
+                  ${skillDef.name}
+                </span>
+                <span class="skill-specialty-badge" style="font-size: 0.78rem; color: var(--hero-gold); margin-left: 0.5rem; font-weight: 800; cursor: pointer; text-decoration: underline dotted;" title="Click to edit specialty">
+                  [${specialty || 'Unspecified Specialty'}]
+                </span>
+              </td>
+              <td><strong style="color: var(--text-muted);">${skillDef.ability.toUpperCase()}</strong></td>
+              <td>${baseVal >= 0 ? '+' : ''}${baseVal}</td>
+              <td>
+                <div class="stepper-control">
+                  <button class="btn-stepper compact" data-inst-dir="-1">-</button>
+                  <span class="stepper-value compact">${ranks}</span>
+                  <button class="btn-stepper compact" data-inst-dir="1">+</button>
+                </div>
+              </td>
+              <td><strong style="color: var(--hero-cyan); font-size: var(--font-size-md);">${totalBonus >= 0 ? '+' : ''}${totalBonus}</strong></td>
+              <td style="text-align: right; white-space: nowrap;">
+                <button class="btn btn-outline btn-edit-inst-specialty" style="min-height: 28px; font-size: 0.72rem; padding: 0.15rem 0.45rem;" title="Change Specialty">✏️ Specialty</button>
+                <button class="btn btn-danger btn-delete-inst" style="min-height: 28px; font-size: 0.72rem; padding: 0.15rem 0.45rem; margin-left: 0.25rem;" title="Remove this specialty instance">🗑️</button>
+              </td>
+            `;
+
+            const editSpecialty = () => {
+              this.openPrebuiltOptionsModal(`Change Specialty for ${skillDef.name}`, skillDef.options, (selected) => {
+                inst.specialty = selected;
+                this.saveAndAudit();
+                this.renderAll();
+              });
+            };
+
+            row.querySelector('.skill-specialty-badge')?.addEventListener('click', editSpecialty);
+            row.querySelector('.btn-edit-inst-specialty')?.addEventListener('click', editSpecialty);
+
+            row.querySelector('[data-inst-dir="-1"]')?.addEventListener('click', () => {
+              inst.ranks = Math.max(0, (parseInt(inst.ranks, 10) || 0) - 1);
+              this.saveAndAudit();
+              this.renderAll();
+            });
+            row.querySelector('[data-inst-dir="1"]')?.addEventListener('click', () => {
+              inst.ranks = (parseInt(inst.ranks, 10) || 0) + 1;
+              this.saveAndAudit();
+              this.renderAll();
+            });
+
+            row.querySelector('.btn-delete-inst')?.addEventListener('click', () => {
+              this.removeSkillInstance(inst.instanceId);
+            });
+
+            tbody.appendChild(row);
+          });
+
+          // Sub-row to Add Another Instance of this skill
+          const addRow = document.createElement('tr');
+          addRow.style.backgroundColor = 'rgba(255, 255, 255, 0.02)';
+          addRow.innerHTML = `
+            <td colspan="6" style="padding: 0.35rem 0.6rem; text-align: left;">
+              <button class="btn btn-outline btn-add-another-skill" style="min-height: 26px; font-size: 0.74rem; padding: 0.15rem 0.55rem; border-color: rgba(6, 182, 212, 0.4); color: var(--hero-cyan);">
+                ➕ Add Another ${skillDef.name} Specialty
+              </button>
+            </td>
+          `;
+
+          addRow.querySelector('.btn-add-another-skill')?.addEventListener('click', () => {
+            this.openPrebuiltOptionsModal(`Add Another Specialty for ${skillDef.name}`, skillDef.options, (selected) => {
+              this.addSkillInstance(skillDef.id, skillDef.name, selected, 1);
+            });
+          });
+
+          tbody.appendChild(addRow);
+        }
+      }
     });
+  }
+
+  addSkillInstance(id, name, specialty = '', ranks = 0) {
+    if (!this.char.skills) this.char.skills = [];
+    const newInst = {
+      id,
+      instanceId: `sk_${id}_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`,
+      name,
+      specialty,
+      ranks
+    };
+    this.char.skills.push(newInst);
+    this.saveAndAudit();
+    this.renderAll();
+  }
+
+  removeSkillInstance(instanceId) {
+    if (!this.char.skills) return;
+    this.char.skills = this.char.skills.filter(s => s.instanceId !== instanceId);
+    this.saveAndAudit();
+    this.renderAll();
   }
 
   updateSkillRanks(id, name, newRanks) {
     if (!this.char.skills) this.char.skills = [];
     let item = this.char.skills.find(s => s.id === id);
     if (!item) {
-      item = { id, name, ranks: 0 };
+      item = { id, instanceId: `sk_${id}_${Date.now()}`, name, ranks: 0 };
       this.char.skills.push(item);
     }
     item.ranks = Math.max(0, newRanks);
@@ -2673,7 +2815,7 @@ class AppController {
     if (!this.char.skills) this.char.skills = [];
     let item = this.char.skills.find(s => s.id === id);
     if (!item) {
-      item = { id, name, ranks: 0 };
+      item = { id, instanceId: `sk_${id}_${Date.now()}`, name, ranks: 0 };
       this.char.skills.push(item);
     }
     item.specialty = specialty;
@@ -2805,17 +2947,43 @@ class AppController {
   }
 
   // =======================================================
-  // 20. PREBUILT OPTIONS MODAL
+  // 20. PREBUILT OPTIONS MODAL (Includes Custom "Other" Input Field)
   // =======================================================
   openPrebuiltOptionsModal(title, optionsList, onSelectCallback) {
     document.getElementById('prebuilt-modal-title').textContent = title;
     const container = document.getElementById('prebuilt-options-list');
     container.innerHTML = '';
 
+    const otherInput = document.getElementById('prebuilt-other-input');
+    const applyOtherBtn = document.getElementById('btn-prebuilt-apply-other');
+    if (otherInput) otherInput.value = '';
+
+    const applyOther = () => {
+      const val = (otherInput?.value || '').trim();
+      if (val) {
+        onSelectCallback(val);
+        this.closeModal('modal-prebuilt-options');
+      } else {
+        alert('Please enter a custom specialization name or choose one from the list below.');
+      }
+    };
+
+    if (applyOtherBtn) {
+      applyOtherBtn.onclick = applyOther;
+    }
+    if (otherInput) {
+      otherInput.onkeydown = (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          applyOther();
+        }
+      };
+    }
+
     (optionsList || []).forEach(opt => {
       const btn = document.createElement('button');
       btn.className = 'btn btn-outline';
-      btn.style.cssText = 'text-align: left; justify-content: flex-start; padding: 0.5rem 0.85rem;';
+      btn.style.cssText = 'text-align: left; justify-content: flex-start; padding: 0.5rem 0.85rem; font-size: 0.88rem;';
       btn.textContent = opt;
 
       btn.addEventListener('click', () => {
@@ -2826,11 +2994,12 @@ class AppController {
       container.appendChild(btn);
     });
 
-    document.getElementById('btn-close-prebuilt').addEventListener('click', () => {
+    document.getElementById('btn-close-prebuilt').onclick = () => {
       this.closeModal('modal-prebuilt-options');
-    });
+    };
 
     this.openModal('modal-prebuilt-options');
+    setTimeout(() => otherInput?.focus(), 50);
   }
 
   // =======================================================

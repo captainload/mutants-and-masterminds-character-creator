@@ -163,6 +163,50 @@ class AppController {
       storageManager.saveCharacter(this.char);
     });
 
+    // Power Level (PL) Steppers & Lock (Top Row)
+    const plMinusBtn = document.getElementById('btn-pl-minus');
+    const plPlusBtn = document.getElementById('btn-pl-plus');
+    const plLockCb = document.getElementById('header-pl-lock');
+
+    plLockCb?.addEventListener('change', (e) => {
+      this.char.plLocked = e.target.checked;
+      this.saveAndAudit();
+      this.renderHeaderStatus();
+    });
+
+    plPlusBtn?.addEventListener('click', () => {
+      if (this.char.plLocked) return;
+      const currentPL = parseInt(this.char.powerLevel, 10) || 10;
+      if (currentPL >= 25) return;
+      const nextPL = currentPL + 1;
+      this.char.powerLevel = nextPL;
+      this.char.powerPointsBudget = nextPL * 15;
+      this.saveAndAudit();
+      this.renderAll();
+    });
+
+    plMinusBtn?.addEventListener('click', async () => {
+      if (this.char.plLocked) return;
+      const currentPL = parseInt(this.char.powerLevel, 10) || 10;
+      if (currentPL <= 1) return;
+      const prevPL = currentPL - 1;
+      const newBudget = prevPL * 15;
+      const audit = auditCharacter(this.char);
+
+      if (audit.totalSpent > newBudget) {
+        await this.showAlertDialog(
+          `Cannot reduce Power Level to PL ${prevPL}.\n\nTotal spent Power Points (${audit.totalSpent} PP) would cause a PP cost overrun against the new budget of ${newBudget} PP (15 PP per PL).\n\nPlease recover spent PP first by reducing abilities, defenses, skills, advantages, or powers.`,
+          { title: 'Power Points Cost Overrun' }
+        );
+        return;
+      }
+
+      this.char.powerLevel = prevPL;
+      this.char.powerPointsBudget = newBudget;
+      this.saveAndAudit();
+      this.renderAll();
+    });
+
     // Hero Points Stepper
     document.getElementById('btn-hp-plus').addEventListener('click', () => {
       this.char.heroPoints = (this.char.heroPoints || 0) + 1;
@@ -971,7 +1015,7 @@ class AppController {
   }
 
   async checkForUpdates({ isManual = false } = {}) {
-    const CURRENT_VERSION = '3.14';
+    const CURRENT_VERSION = '3.15';
     if (typeof window === 'undefined' || !window.location || !window.location.href || window.location.href === 'about:blank') return;
     try {
       const url = new URL('version.json', window.location.href);
@@ -2342,13 +2386,39 @@ class AppController {
 
   renderHeaderStatus() {
     const audit = auditCharacter(this.char);
-    document.getElementById('header-pp-used').textContent = `${audit.totalSpent} / ${audit.budget} used`;
-    document.getElementById('header-pl-display').textContent = `PL ${audit.powerLevel}`;
-    document.getElementById('header-hp-val').textContent = this.char.heroPoints ?? 1;
+    const ppUsedEl = document.getElementById('header-pp-used');
+    if (ppUsedEl) ppUsedEl.textContent = `${audit.totalSpent} / ${audit.budget} used`;
 
-    document.getElementById('header-player-name').value = this.char.playerName || '';
-    document.getElementById('header-char-name').value = this.char.name || '';
-    document.getElementById('header-campaign-name').value = this.char.campaign || 'Earth-Prime';
+    const plDisplayEl = document.getElementById('header-pl-display');
+    if (plDisplayEl) plDisplayEl.textContent = `${audit.powerLevel}`;
+
+    const plMinusBtn = document.getElementById('btn-pl-minus');
+    const plPlusBtn = document.getElementById('btn-pl-plus');
+    const plLockCb = document.getElementById('header-pl-lock');
+    const plStepper = document.getElementById('header-pl-stepper');
+
+    const isLocked = !!this.char.plLocked;
+    if (plLockCb) plLockCb.checked = isLocked;
+
+    if (isLocked) {
+      if (plMinusBtn) plMinusBtn.disabled = true;
+      if (plPlusBtn) plPlusBtn.disabled = true;
+      if (plStepper) plStepper.style.opacity = '0.55';
+    } else {
+      if (plMinusBtn) plMinusBtn.disabled = (audit.powerLevel <= 1);
+      if (plPlusBtn) plPlusBtn.disabled = (audit.powerLevel >= 25);
+      if (plStepper) plStepper.style.opacity = '1';
+    }
+
+    const hpValEl = document.getElementById('header-hp-val');
+    if (hpValEl) hpValEl.textContent = this.char.heroPoints ?? 1;
+
+    const pNameEl = document.getElementById('header-player-name');
+    if (pNameEl) pNameEl.value = this.char.playerName || '';
+    const cNameEl = document.getElementById('header-char-name');
+    if (cNameEl) cNameEl.value = this.char.name || '';
+    const campEl = document.getElementById('header-campaign-name');
+    if (campEl) campEl.value = this.char.campaign || 'Earth-Prime';
   }
 
   renderActionCenter(audit) {
@@ -3095,7 +3165,7 @@ class AppController {
             </td>
             <td><strong style="color: var(--hero-cyan); font-size: var(--font-size-md);">${totalBonus >= 0 ? '+' : ''}${totalBonus}</strong></td>
             <td style="text-align: right;">
-              <button class="btn btn-outline btn-skill-add-specialty" style="min-height: 30px; font-size: var(--font-size-sm); padding: 0.2rem 0.6rem;">+ ${isAssignedFocus ? 'Focus' : 'Specialty'}</button>
+              <button class="btn btn-outline btn-skill-add-specialty" style="min-height: 36px; font-size: var(--font-size-base); font-weight: 800; padding: 0.35rem 0.8rem;">+ ${isAssignedFocus ? 'Focus' : 'Specialty'}</button>
             </td>
           `;
 
@@ -3123,7 +3193,7 @@ class AppController {
                 <span class="rules-link" data-id="${skillDef.id}" data-type="skill" data-name="${skillDef.name}" data-cat="${isAssignedFocus ? 'Assigned Focus Skill' : 'Official 3E Skill'}" style="cursor: pointer; font-weight: 700;">
                   ${skillDef.name}
                 </span>
-                <span class="skill-specialty-badge" style="font-size: var(--font-size-xs); color: var(--hero-gold); margin-left: 0.5rem; font-weight: 800; cursor: pointer; text-decoration: underline dotted;" title="Click to edit ${isAssignedFocus ? 'focus' : 'specialty'}">
+                <span class="skill-specialty-badge" style="font-size: var(--font-size-sm); color: var(--hero-gold); margin-left: 0.5rem; font-weight: 800; cursor: pointer; text-decoration: underline dotted;" title="Click to edit ${isAssignedFocus ? 'focus' : 'specialty'}">
                   [${specialty || (isAssignedFocus ? 'Focus Unassigned' : 'General / Unspecified')}]
                 </span>
                 ${isAssignedFocus ? '<span style="font-size: var(--font-size-xs); color: var(--hero-cyan); margin-left: 0.35rem; font-style: italic;">(1-Rank Focus)</span>' : ''}
@@ -3139,8 +3209,8 @@ class AppController {
               </td>
               <td><strong style="color: var(--hero-cyan); font-size: var(--font-size-md);">${totalBonus >= 0 ? '+' : ''}${totalBonus}</strong></td>
               <td style="text-align: right; white-space: nowrap;">
-                <button class="btn btn-outline btn-edit-inst-specialty" style="min-height: 30px; font-size: var(--font-size-sm); padding: 0.2rem 0.55rem;" title="Change ${isAssignedFocus ? 'Focus' : 'Specialty'}">✏️ ${isAssignedFocus ? 'Focus' : 'Specialty'}</button>
-                <button class="btn btn-danger btn-delete-inst" style="min-height: 30px; font-size: var(--font-size-sm); padding: 0.2rem 0.55rem; margin-left: 0.25rem;" title="Remove this instance">🗑️</button>
+                <button class="btn btn-outline btn-edit-inst-specialty" style="min-height: 36px; font-size: var(--font-size-base); font-weight: 700; padding: 0.35rem 0.75rem;" title="Change ${isAssignedFocus ? 'Focus' : 'Specialty'}">✏️ ${isAssignedFocus ? 'Focus' : 'Specialty'}</button>
+                <button class="btn btn-danger btn-delete-inst" style="min-height: 36px; font-size: var(--font-size-base); padding: 0.35rem 0.75rem; margin-left: 0.25rem;" title="Remove this instance">🗑️</button>
               </td>
             `;
 
@@ -3186,8 +3256,8 @@ class AppController {
           const addRow = document.createElement('tr');
           addRow.style.backgroundColor = 'rgba(255, 255, 255, 0.02)';
           addRow.innerHTML = `
-            <td colspan="6" style="padding: 0.35rem 0.6rem; text-align: left;">
-              <button class="btn btn-outline btn-add-another-skill" style="min-height: 30px; font-size: var(--font-size-sm); padding: 0.2rem 0.65rem; border-color: rgba(6, 182, 212, 0.4); color: var(--hero-cyan);">
+            <td colspan="6" style="padding: 0.45rem 0.65rem; text-align: left;">
+              <button class="btn btn-outline btn-add-another-skill" style="min-height: 38px; font-size: var(--font-size-base); font-weight: 800; padding: 0.4rem 1rem; border-color: rgba(6, 182, 212, 0.5); color: var(--hero-cyan);">
                 ➕ Add Another ${skillDef.name} ${isAssignedFocus ? 'Focus' : 'Specialty'}
               </button>
             </td>
@@ -3337,19 +3407,19 @@ class AppController {
         <div style="display: flex; align-items: center; gap: 0.5rem; flex-shrink: 0;">
           ${advDef.maxRank > 1 ? `
             <div class="stepper-control" style="background: rgba(0,0,0,0.25);">
-              <button class="btn-stepper compact" data-adv="${advDef.id}" data-dir="-1" title="Decrease Rank" ${currentRank <= 0 ? 'disabled style="opacity:0.4;cursor:not-allowed;"' : ''}>-</button>
-              <span class="stepper-value compact" style="min-width: 24px; font-weight: 700;">${currentRank}</span>
-              <button class="btn-stepper compact" data-adv="${advDef.id}" data-dir="1" title="Increase Rank" ${currentRank >= advDef.maxRank ? 'disabled style="opacity:0.4;cursor:not-allowed;"' : ''}>+</button>
+              <button class="btn-stepper compact" data-adv="${advDef.id}" data-dir="-1" title="Decrease Rank" ${currentRank <= 0 ? 'disabled style="opacity:0.4;cursor:not-allowed;"' : ''} style="width: 34px; height: 38px; font-size: 1.15rem;">-</button>
+              <span class="stepper-value compact" style="min-width: 34px; height: 38px; font-weight: 800; font-size: var(--font-size-base);">${currentRank}</span>
+              <button class="btn-stepper compact" data-adv="${advDef.id}" data-dir="1" title="Increase Rank" ${currentRank >= advDef.maxRank ? 'disabled style="opacity:0.4;cursor:not-allowed;"' : ''} style="width: 34px; height: 38px; font-size: 1.15rem;">+</button>
             </div>
           ` : ''}
 
           ${advDef.hasOptions ? `
-            <button class="btn btn-outline" style="min-height: 32px; font-size: var(--font-size-sm); padding: 0.2rem 0.55rem;" data-opt-adv="${advDef.id}">
+            <button class="btn btn-outline" style="min-height: 38px; font-size: var(--font-size-base); font-weight: 700; padding: 0.35rem 0.8rem;" data-opt-adv="${advDef.id}">
               ${existing?.note ? '✏️ Option' : '+ Option'}
             </button>
           ` : ''}
 
-          <button class="btn ${isSelected ? 'btn-danger' : 'btn-primary'}" style="min-height: 32px; font-size: var(--font-size-sm); min-width: 72px; padding: 0.2rem 0.65rem;" data-toggle-adv="${advDef.id}">
+          <button class="btn ${isSelected ? 'btn-danger' : 'btn-primary'}" style="min-height: 38px; font-size: var(--font-size-base); font-weight: 800; min-width: 84px; padding: 0.35rem 0.9rem;" data-toggle-adv="${advDef.id}">
             ${isSelected ? 'Remove' : '+ Add'}
           </button>
         </div>

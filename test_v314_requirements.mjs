@@ -10,20 +10,20 @@ console.log('=== Running v3.14 Requirements Test Suite ===\n');
 
 // 1. Version Check
 const versionJson = JSON.parse(fs.readFileSync('version.json', 'utf8'));
-if (versionJson.version !== '3.14') {
-  throw new Error(`Expected version.json to be 3.14, got ${versionJson.version}`);
+if (parseFloat(versionJson.version) < 3.14) {
+  throw new Error(`Expected version.json to be >= 3.14, got ${versionJson.version}`);
 }
 
 const indexHtml = fs.readFileSync('index.html', 'utf8');
-if (!indexHtml.includes('v3.14')) {
-  throw new Error('Expected index.html to reference v3.14');
+if (!indexHtml.includes(`v${versionJson.version}`)) {
+  throw new Error(`Expected index.html to reference v${versionJson.version}`);
 }
 
 const appJs = fs.readFileSync('js/app.js', 'utf8');
-if (!appJs.includes("CURRENT_VERSION = '3.14'")) {
-  throw new Error('Expected js/app.js to define CURRENT_VERSION = "3.14"');
+if (!appJs.includes(`CURRENT_VERSION = '${versionJson.version}'`)) {
+  throw new Error(`Expected js/app.js to define CURRENT_VERSION = "${versionJson.version}"`);
 }
-console.log('✓ 1. Version 3.14 verified across version.json, index.html, and js/app.js');
+console.log(`✓ 1. Version ${versionJson.version} verified across version.json, index.html, and js/app.js`);
 
 // 2. Stars (★) Assigned Strictly to Effect-Specific Modifiers
 const universalExtrasShouldNotHaveStar = [

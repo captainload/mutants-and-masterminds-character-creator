@@ -6,8 +6,8 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Mutants & Masterminds 3E - Character Architect v3.14</title>
-  <link rel="stylesheet" href="css/styles.css?v=3.14">
+  <title>Mutants & Masterminds 3E - Character Architect v3.15</title>
+  <link rel="stylesheet" href="css/styles.css?v=3.15">
 </head>
 <body>
 
@@ -94,21 +94,29 @@
           </div>
 
           <div class="brand-label-compact">
-            M&M 3E Character Editor v3.14
+            M&M 3E Character Editor v3.15
           </div>
         </div>
 
-        <!-- ROW 2: Power Points "#/# used" | Hero Points (HP) | Right: Archetypes & Tables Buttons -->
+        <!-- ROW 2: PP "#/# used" | PL (Stepper & Lock) | HP | Right: Archetypes & Tables Buttons -->
         <div class="header-row-2">
           <div class="row-2-left">
             <div class="pp-status-badge">
-              <span class="pp-status-label">Power Points:</span>
+              <span class="pp-status-label">PP:</span>
               <span class="pp-status-value" id="header-pp-used">0 / 150 used</span>
             </div>
 
-            <div style="display: flex; align-items: baseline; gap: 0.35rem;">
-              <span class="pp-status-label">Power Level:</span>
-              <span style="font-size: var(--font-size-md); font-weight: 900; color: var(--hero-gold);" id="header-pl-display">PL 10</span>
+            <div class="pl-status-group" style="display: flex; align-items: center; gap: 0.45rem;">
+              <span class="pp-status-label">PL:</span>
+              <div class="stepper-control" id="header-pl-stepper">
+                <button class="btn-stepper compact" id="btn-pl-minus" title="Reduce Power Level">-</button>
+                <span class="stepper-value compact" id="header-pl-display" style="min-width: 36px; font-weight: 900; color: var(--hero-gold);">10</span>
+                <button class="btn-stepper compact" id="btn-pl-plus" title="Increase Power Level">+</button>
+              </div>
+              <label style="display: inline-flex; align-items: center; gap: 0.35rem; cursor: pointer; user-select: none; font-size: var(--font-size-sm); color: var(--text-muted); font-weight: 700; margin-left: 0.25rem;" title="Lock Power Level to prevent accidental changes">
+                <input type="checkbox" id="header-pl-lock" style="cursor: pointer; width: 16px; height: 16px; accent-color: var(--hero-blue);">
+                <span id="header-pl-lock-label">🔒 Lock</span>
+              </label>
             </div>
 
             <div class="hp-status-group">
@@ -118,7 +126,7 @@
                 <span class="stepper-value compact" id="header-hp-val">1</span>
                 <button class="btn-stepper compact" id="btn-hp-plus" title="Add Hero Point">+</button>
               </div>
-              <button class="btn btn-primary" id="btn-quick-spend-hp" style="min-height: 34px; padding: 0.25rem 0.75rem; font-size: var(--font-size-sm);">
+              <button class="btn btn-primary" id="btn-quick-spend-hp" style="min-height: 40px; padding: 0.45rem 1rem; font-size: var(--font-size-base); font-weight: 800;">
                 ⚡ Spend HP
               </button>
             </div>
@@ -1322,6 +1330,6 @@
     </div>
   </div>
 
-  <script type="module" src="js/app.js?v=3.14"></script>
+  <script type="module" src="js/app.js?v=3.15"></script>
 </body>
 </html>

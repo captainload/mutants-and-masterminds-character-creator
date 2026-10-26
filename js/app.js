@@ -2758,6 +2758,9 @@ class AppController {
   // =======================================================
   // 17. ABILITIES & DEFENSES TAB
   // =======================================================
+  // =======================================================
+  // 17. ABILITIES & DEFENSES POP-UP TAB RENDER
+  // =======================================================
   renderAbilitiesTab(audit) {
     document.getElementById('abilities-cost-display').textContent = `${audit.abilitiesCost} PP`;
     document.getElementById('defenses-cost-display').textContent = `${audit.defensesCost} PP`;
@@ -2769,15 +2772,34 @@ class AppController {
       const val = parseInt(this.char.abilities?.[ab.id], 10) || 0;
       const card = document.createElement('div');
       card.className = 'ability-stepper-card-compact';
+      card.style.cssText = `
+        background-color: var(--bg-input);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-sm);
+        padding: 0.5rem 0.4rem;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        align-items: center;
+        text-align: center;
+        gap: 0.3rem;
+        box-sizing: border-box;
+      `;
       card.innerHTML = `
-        <div style="display: flex; justify-content: space-between; align-items: baseline; line-height: 1.1;">
-          <span class="rules-link" data-id="${ab.id}" data-type="ability" data-name="${ab.name}" data-cat="Ability" style="font-weight: 800; font-size: var(--font-size-xs); color: var(--hero-gold); cursor: pointer;" title="${ab.name}${ab.id === 'str' ? ` (Lift: ${getStrengthLiftingCapacity(val)})` : ''}">${ab.short}</span>
-          <span style="font-size: var(--font-size-xs); color: var(--text-muted);">${val * 2} PP</span>
+        <div style="width: 100%;">
+          <div style="display: flex; justify-content: space-between; align-items: baseline; width: 100%;">
+            <span class="rules-link" data-id="${ab.id}" data-type="ability" data-name="${ab.name}" data-cat="Ability" style="font-weight: 800; font-size: var(--font-size-sm); color: var(--hero-gold); cursor: pointer;" title="${ab.name}">${ab.short}</span>
+            <span style="font-size: var(--font-size-xs); color: var(--text-muted); font-weight: 600;">${val * 2} PP</span>
+          </div>
+          <div style="font-size: var(--font-size-xs); color: var(--text-muted); text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${ab.name}">${ab.name}</div>
         </div>
-        <div class="stepper-control compact" style="width: 100%; justify-content: center; margin-top: 0.15rem;">
-          <button class="btn-stepper compact" data-ab="${ab.id}" data-dir="-1">-</button>
-          <span class="stepper-value compact">${val}</span>
-          <button class="btn-stepper compact" data-ab="${ab.id}" data-dir="1">+</button>
+        <div class="stepper-control compact" style="justify-content: center;">
+          <button class="btn-stepper compact" data-ab="${ab.id}" data-dir="-1" title="Decrease ${ab.name}">-</button>
+          <span class="stepper-value compact" style="min-width: 28px; font-weight: 800;">${val}</span>
+          <button class="btn-stepper compact" data-ab="${ab.id}" data-dir="1" title="Increase ${ab.name}">+</button>
+        </div>
+        <div style="font-size: var(--font-size-xs); color: ${ab.id === 'str' ? 'var(--hero-cyan)' : 'var(--text-muted)'}; min-height: 18px; line-height: 1.2;">
+          ${ab.id === 'str' ? `Lift: ${getStrengthLiftingCapacity(val)}` : `Mod: ${val >= 0 ? `+${val}` : val}`}
         </div>
       `;
 
@@ -2799,20 +2821,44 @@ class AppController {
       const baseVal = parseInt(this.char.abilities?.[def.ability], 10) || 0;
       const bought = parseInt(this.char.defenses?.[def.id], 10) || 0;
       const total = audit.computedDefenses[def.id] || 0;
+      const abDef = ABILITIES.find(a => a.id === def.ability);
+      const abName = abDef ? abDef.short : def.ability.toUpperCase();
 
       const card = document.createElement('div');
       card.className = 'defense-stepper-card-compact';
+      card.style.cssText = `
+        background-color: var(--bg-input);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-sm);
+        padding: 0.55rem 0.65rem;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        gap: 0.4rem;
+        box-sizing: border-box;
+      `;
       card.innerHTML = `
-        <div style="display: flex; justify-content: space-between; align-items: baseline; line-height: 1.1;">
-          <span class="rules-link" data-id="${def.id}" data-type="defense" data-name="${def.name}" data-cat="Defense" style="font-weight: 800; font-size: var(--font-size-xs); color: var(--hero-cyan); text-transform: uppercase; cursor: pointer;" title="${def.name}">${def.name}</span>
-          <strong style="font-size: var(--font-size-sm); font-weight: 900; color: var(--text-bright);">${total}</strong>
+        <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+          <div>
+            <span class="rules-link" data-id="${def.id}" data-type="defense" data-name="${def.name}" data-cat="Defense" style="font-weight: 800; font-size: var(--font-size-sm); color: var(--hero-cyan); cursor: pointer;" title="${def.name}">${def.name}</span>
+            <span style="font-size: var(--font-size-xs); color: var(--text-muted); margin-left: 0.25rem;">[${abName}]</span>
+          </div>
+          <div style="display: flex; align-items: baseline; gap: 0.35rem;">
+            <span style="font-size: var(--font-size-xs); color: var(--text-muted);">Total:</span>
+            <strong style="font-size: var(--font-size-md); font-weight: 900; color: var(--text-bright);">${total}</strong>
+          </div>
         </div>
-        <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; margin-top: 0.15rem; gap: 0.2rem;">
-          <span style="font-size: var(--font-size-xs); color: var(--text-muted);" title="Base (${baseVal}) + Bought (${bought})">B${baseVal}+${bought}</span>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; font-size: var(--font-size-xs); color: var(--text-muted); background: rgba(0,0,0,0.18); padding: 0.2rem 0.45rem; border-radius: 3px;">
+          <span>Base (${abName}): <strong>${baseVal}</strong></span>
+          <span>+ Bought: <strong>${bought} PP</strong></span>
+        </div>
+
+        <div style="display: flex; justify-content: center; width: 100%;">
           <div class="stepper-control compact">
-            <button class="btn-stepper compact" data-def="${def.id}" data-dir="-1">-</button>
-            <span class="stepper-value compact">${bought}</span>
-            <button class="btn-stepper compact" data-def="${def.id}" data-dir="1">+</button>
+            <button class="btn-stepper compact" data-def="${def.id}" data-dir="-1" title="Decrease Bought Ranks">-</button>
+            <span class="stepper-value compact" style="min-width: 32px; font-weight: 800;">${bought}</span>
+            <button class="btn-stepper compact" data-def="${def.id}" data-dir="1" title="Increase Bought Ranks">+</button>
           </div>
         </div>
       `;
@@ -2830,17 +2876,56 @@ class AppController {
     });
 
     const pl2 = audit.powerLevel * 2;
+    const dtSum = audit.computedDefenses.dodge + audit.computedDefenses.toughness;
+    const ptSum = audit.computedDefenses.parry + audit.computedDefenses.toughness;
+    const fwSum = audit.computedDefenses.fortitude + audit.computedDefenses.will;
+
+    const dtOver = dtSum > pl2;
+    const ptOver = ptSum > pl2;
+    const fwOver = fwSum > pl2;
+
     document.getElementById('pl-caps-report').innerHTML = `
-      <div style="background-color: var(--bg-input); padding: 0.5rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
-        <strong>Dodge + Toughness:</strong> ${audit.computedDefenses.dodge + audit.computedDefenses.toughness} / ${pl2}
+      <div style="background-color: var(--bg-input); padding: 0.65rem 0.85rem; border-radius: var(--radius-sm); border: 1px solid ${dtOver ? 'var(--hero-red)' : 'var(--border-color)'};">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.3rem;">
+          <strong style="color: ${dtOver ? 'var(--hero-red)' : 'var(--text-bright)'}; font-size: var(--font-size-sm);">Dodge + Toughness</strong>
+          <span style="font-weight: 900; font-size: var(--font-size-sm); color: ${dtOver ? 'var(--hero-red)' : 'var(--hero-green)'};">${dtSum} / ${pl2}</span>
+        </div>
+        <div style="font-size: var(--font-size-xs); color: var(--text-muted); line-height: 1.45;">
+          <strong>Ranged Defense Cap:</strong> Dodge (${audit.computedDefenses.dodge}) + Toughness (${audit.computedDefenses.toughness}). Governs your protection against ranged attacks.
+        </div>
       </div>
-      <div style="background-color: var(--bg-input); padding: 0.5rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
-        <strong>Parry + Toughness:</strong> ${audit.computedDefenses.parry + audit.computedDefenses.toughness} / ${pl2}
+      <div style="background-color: var(--bg-input); padding: 0.65rem 0.85rem; border-radius: var(--radius-sm); border: 1px solid ${ptOver ? 'var(--hero-red)' : 'var(--border-color)'};">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.3rem;">
+          <strong style="color: ${ptOver ? 'var(--hero-red)' : 'var(--text-bright)'}; font-size: var(--font-size-sm);">Parry + Toughness</strong>
+          <span style="font-weight: 900; font-size: var(--font-size-sm); color: ${ptOver ? 'var(--hero-red)' : 'var(--hero-green)'};">${ptSum} / ${pl2}</span>
+        </div>
+        <div style="font-size: var(--font-size-xs); color: var(--text-muted); line-height: 1.45;">
+          <strong>Close Combat Cap:</strong> Parry (${audit.computedDefenses.parry}) + Toughness (${audit.computedDefenses.toughness}). Governs your protection against melee attacks.
+        </div>
       </div>
-      <div style="background-color: var(--bg-input); padding: 0.5rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
-        <strong>Fortitude + Will:</strong> ${audit.computedDefenses.fortitude + audit.computedDefenses.will} / ${pl2}
+      <div style="background-color: var(--bg-input); padding: 0.65rem 0.85rem; border-radius: var(--radius-sm); border: 1px solid ${fwOver ? 'var(--hero-red)' : 'var(--border-color)'};">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.3rem;">
+          <strong style="color: ${fwOver ? 'var(--hero-red)' : 'var(--text-bright)'}; font-size: var(--font-size-sm);">Fortitude + Will</strong>
+          <span style="font-weight: 900; font-size: var(--font-size-sm); color: ${fwOver ? 'var(--hero-red)' : 'var(--hero-green)'};">${fwSum} / ${pl2}</span>
+        </div>
+        <div style="font-size: var(--font-size-xs); color: var(--text-muted); line-height: 1.45;">
+          <strong>Resistance Checks Cap:</strong> Fortitude (${audit.computedDefenses.fortitude}) + Will (${audit.computedDefenses.will}). Governs biological health vs psychic/mental resolve.
+        </div>
       </div>
     `;
+
+    const pill = document.getElementById('pl-compliance-pill');
+    if (pill) {
+      if (audit.violations.length === 0) {
+        pill.textContent = `PL ${audit.powerLevel} Legal`;
+        pill.style.background = 'rgba(16,185,129,0.15)';
+        pill.style.color = 'var(--hero-green)';
+      } else {
+        pill.textContent = `${audit.violations.length} Violation${audit.violations.length > 1 ? 's' : ''}`;
+        pill.style.background = 'rgba(239,68,68,0.15)';
+        pill.style.color = 'var(--hero-red)';
+      }
+    }
   }
 
   // =======================================================

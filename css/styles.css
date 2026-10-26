@@ -362,13 +362,16 @@ body {
 }
 
 .stepper-value.compact {
-  min-width: 36px;
-  height: 34px;
+  min-width: 30px;
+  height: 32px;
+  padding: 0 0.25rem;
+  font-size: var(--font-size-sm);
 }
 
 .btn-stepper.compact {
-  width: 34px;
-  height: 34px;
+  width: 30px;
+  height: 32px;
+  font-size: 1rem;
 }
 
 /* =====================================================================
@@ -1260,13 +1263,13 @@ input:focus, select:focus, textarea:focus {
   background-color: var(--bg-input);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-sm);
-  padding: 0.28rem 0.38rem;
+  padding: 0.45rem 0.5rem;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  gap: 0.18rem;
+  gap: 0.35rem;
   transition: all 0.15s ease;
-  min-height: 46px;
+  box-sizing: border-box;
 }
 
 .ability-stepper-card-compact:hover,

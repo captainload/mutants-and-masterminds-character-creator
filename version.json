@@ -1,5 +1,5 @@
 {
-  "version": "3.13",
-  "updatedAt": "2026-10-26T18:40:00Z",
-  "releaseNotes": "Expanded typography scale across the application for high readability, unified effect stats into a single horizontal summary bar, enforced single-instance modifier rules, added illegal modifier combination validation, and cleaned flaw/device labeling."
+  "version": "3.14",
+  "updatedAt": "2026-10-26T19:15:00Z",
+  "releaseNotes": "Assigned stars (★) strictly to effect-specific modifiers, eliminated small button fonts across all controls ensuring 10pt minimum, and added Show Descriptions toggle checkbox to Advantages tab with interactive rules pop-up support."
 }

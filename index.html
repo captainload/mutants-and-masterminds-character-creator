@@ -6,8 +6,8 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Mutants & Masterminds 3E - Character Architect v3.13</title>
-  <link rel="stylesheet" href="css/styles.css?v=3.13">
+  <title>Mutants & Masterminds 3E - Character Architect v3.14</title>
+  <link rel="stylesheet" href="css/styles.css?v=3.14">
 </head>
 <body>
 
@@ -94,7 +94,7 @@
           </div>
 
           <div class="brand-label-compact">
-            M&M 3E Character Editor v3.13
+            M&M 3E Character Editor v3.14
           </div>
         </div>
 
@@ -118,7 +118,7 @@
                 <span class="stepper-value compact" id="header-hp-val">1</span>
                 <button class="btn-stepper compact" id="btn-hp-plus" title="Add Hero Point">+</button>
               </div>
-              <button class="btn btn-primary" id="btn-quick-spend-hp" style="min-height: 34px; padding: 0.2rem 0.65rem; font-size: var(--font-size-xs);">
+              <button class="btn btn-primary" id="btn-quick-spend-hp" style="min-height: 34px; padding: 0.25rem 0.75rem; font-size: var(--font-size-sm);">
                 ⚡ Spend HP
               </button>
             </div>
@@ -195,7 +195,7 @@
                 <div class="card-box-title">🧬 Abilities</div>
                 <div style="display: flex; align-items: center; gap: 0.5rem;">
                   <span style="font-size: var(--font-size-xs); color: var(--text-muted);">Click card to roll</span>
-                  <button class="btn btn-outline" id="btn-action-edit-abilities" style="font-size: var(--font-size-xs); min-height: 24px; padding: 0.1rem 0.45rem;" title="Edit Abilities & Defenses">✏️ Edit</button>
+                  <button class="btn btn-outline" id="btn-action-edit-abilities" style="font-size: var(--font-size-sm); min-height: 28px; padding: 0.15rem 0.55rem;" title="Edit Abilities & Defenses">✏️ Edit</button>
                 </div>
               </div>
               <div id="action-abilities-grid" style="display: grid; grid-template-columns: repeat(8, 1fr); gap: 0.35rem;">
@@ -209,7 +209,7 @@
                 <div class="card-box-title">🛡️ Defenses & Resistance Checks</div>
                 <div style="display: flex; align-items: center; gap: 0.5rem;">
                   <span style="font-size: var(--font-size-xs); color: var(--text-muted);">Click card to roll</span>
-                  <button class="btn btn-outline" id="btn-action-edit-defenses" style="font-size: var(--font-size-xs); min-height: 24px; padding: 0.1rem 0.45rem;" title="Edit Abilities & Defenses">✏️ Edit</button>
+                  <button class="btn btn-outline" id="btn-action-edit-defenses" style="font-size: var(--font-size-sm); min-height: 28px; padding: 0.15rem 0.55rem;" title="Edit Abilities & Defenses">✏️ Edit</button>
                 </div>
               </div>
               <div id="action-defenses-grid" style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.35rem;">
@@ -290,7 +290,7 @@
             <div class="card-box">
               <div class="card-box-header">
                 <div class="card-box-title">🩸 Damage & Conditions</div>
-                <button class="btn btn-outline" id="btn-action-clear-damage" style="font-size: var(--font-size-xs); min-height: 28px; padding: 0.15rem 0.5rem;">Reset All</button>
+                <button class="btn btn-outline" id="btn-action-clear-damage" style="font-size: var(--font-size-sm); min-height: 28px; padding: 0.15rem 0.55rem;">Reset All</button>
               </div>
 
               <!-- Bruises Stepper -->
@@ -392,8 +392,8 @@
             <div class="card-box-title">🎖️ Official Advantages (1 PP per Rank)</div>
             <span class="pp-status-value" id="advantages-cost-display">0 PP</span>
           </div>
-          <div style="display: flex; gap: 0.5rem; margin-bottom: 0.75rem;">
-            <input type="text" id="adv-search-box" placeholder="Search advantages..." style="flex: 1;">
+          <div style="display: flex; gap: 0.5rem; margin-bottom: 0.75rem; align-items: center; flex-wrap: wrap;">
+            <input type="text" id="adv-search-box" placeholder="Search advantages..." style="flex: 1; min-width: 180px;">
             <select id="adv-filter-cat" style="min-width: 140px;">
               <option value="all">All Categories</option>
               <option value="Combat">Combat</option>
@@ -401,6 +401,10 @@
               <option value="Fortune">Fortune</option>
               <option value="General">General</option>
             </select>
+            <label style="display: flex; align-items: center; gap: 0.45rem; font-size: var(--font-size-sm); color: var(--text-bright); cursor: pointer; user-select: none; background: rgba(0,0,0,0.25); padding: 0.35rem 0.75rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color); white-space: nowrap;">
+              <input type="checkbox" id="adv-show-descriptions" checked style="cursor: pointer; width: 16px; height: 16px; accent-color: var(--hero-blue);">
+              <span>Show descriptions</span>
+            </label>
           </div>
           <div id="advantages-catalog-grid" style="display: flex; flex-direction: column; gap: 0.5rem;">
             <!-- Populated via JS -->
@@ -624,10 +628,10 @@
             </div>
           </div>
           <div style="display: flex; gap: 0.35rem;">
-            <button class="btn btn-outline" id="btn-discord-help-jump" title="Open Discord Setup in Help Guide" style="font-size: var(--font-size-xs); padding: 0.2rem 0.5rem; min-height: 30px;">
+            <button class="btn btn-outline" id="btn-discord-help-jump" title="Open Discord Setup in Help Guide" style="font-size: var(--font-size-sm); padding: 0.2rem 0.6rem; min-height: 30px;">
               ❓ Setup Help
             </button>
-            <button class="btn btn-primary" id="btn-discord-add-config" style="font-size: var(--font-size-xs); padding: 0.2rem 0.5rem; min-height: 30px;">
+            <button class="btn btn-primary" id="btn-discord-add-config" style="font-size: var(--font-size-sm); padding: 0.2rem 0.6rem; min-height: 30px;">
               + Add Channel
             </button>
           </div>
@@ -839,9 +843,9 @@
       <div class="modal-header-bar">
         <div class="modal-header-title">📜 Official Mutants & Masterminds 3E Tables</div>
         <div class="modal-header-actions">
-          <button class="btn btn-outline" id="btn-tables-expand-all" style="font-size: var(--font-size-xs); min-height: 28px; padding: 0.2rem 0.5rem;">Expand All</button>
-          <button class="btn btn-outline" id="btn-tables-collapse-all" style="font-size: var(--font-size-xs); min-height: 28px; padding: 0.2rem 0.5rem;">Collapse All</button>
-          <button class="btn btn-primary" id="btn-tables-popout" style="font-size: var(--font-size-xs); min-height: 28px; padding: 0.2rem 0.6rem;">🗗 Pop-Out Window</button>
+          <button class="btn btn-outline" id="btn-tables-expand-all" style="font-size: var(--font-size-sm); min-height: 28px; padding: 0.2rem 0.6rem;">Expand All</button>
+          <button class="btn btn-outline" id="btn-tables-collapse-all" style="font-size: var(--font-size-sm); min-height: 28px; padding: 0.2rem 0.6rem;">Collapse All</button>
+          <button class="btn btn-primary" id="btn-tables-popout" style="font-size: var(--font-size-sm); min-height: 28px; padding: 0.2rem 0.7rem;">🗗 Pop-Out Window</button>
           <button class="btn btn-outline" id="btn-close-tables" style="min-height: 28px; padding: 0.1rem 0.5rem;">✕</button>
         </div>
       </div>
@@ -963,7 +967,7 @@
               Reroll any failed check. Results 1-10 automatically add 10 to the die, guaranteeing 11-20!
             </p>
           </div>
-          <button class="btn btn-primary" id="btn-hp-exec-reroll" style="font-size: var(--font-size-xs); margin-top: 0.5rem;">Reroll Check</button>
+          <button class="btn btn-primary" id="btn-hp-exec-reroll" style="font-size: var(--font-size-sm); margin-top: 0.5rem;">Reroll Check</button>
         </div>
 
         <div style="background-color: var(--bg-input); padding: 0.75rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color); display: flex; flex-direction: column; justify-content: space-between;">
@@ -973,7 +977,7 @@
               Gain extra standard action, +2 bonus, or power stunt without fatigue.
             </p>
           </div>
-          <button class="btn btn-outline" id="btn-hp-extra-effort" style="font-size: var(--font-size-xs); margin-top: 0.5rem;">Use Extra Effort</button>
+          <button class="btn btn-outline" id="btn-hp-extra-effort" style="font-size: var(--font-size-sm); margin-top: 0.5rem;">Use Extra Effort</button>
         </div>
 
         <div style="background-color: var(--bg-input); padding: 0.75rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color); display: flex; flex-direction: column; justify-content: space-between;">
@@ -983,7 +987,7 @@
               Introduce an advantageous element or clue into the scene.
             </p>
           </div>
-          <button class="btn btn-outline" id="btn-hp-edit-scene" style="font-size: var(--font-size-xs); margin-top: 0.5rem;">Edit Scene</button>
+          <button class="btn btn-outline" id="btn-hp-edit-scene" style="font-size: var(--font-size-sm); margin-top: 0.5rem;">Edit Scene</button>
         </div>
 
         <div style="background-color: var(--bg-input); padding: 0.75rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color); display: flex; flex-direction: column; justify-content: space-between;">
@@ -993,7 +997,7 @@
               Counter an opponent's incoming attack without readied action.
             </p>
           </div>
-          <button class="btn btn-outline" id="btn-hp-instant-counter" style="font-size: var(--font-size-xs); margin-top: 0.5rem;">Instant Counter</button>
+          <button class="btn btn-outline" id="btn-hp-instant-counter" style="font-size: var(--font-size-sm); margin-top: 0.5rem;">Instant Counter</button>
         </div>
 
         <div style="background-color: var(--bg-input); padding: 0.75rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color); display: flex; flex-direction: column; justify-content: space-between;">
@@ -1003,7 +1007,7 @@
               Get a vital clue, epiphany, or tactical hint from the GM.
             </p>
           </div>
-          <button class="btn btn-outline" id="btn-hp-inspiration" style="font-size: var(--font-size-xs); margin-top: 0.5rem;">Get Inspiration</button>
+          <button class="btn btn-outline" id="btn-hp-inspiration" style="font-size: var(--font-size-sm); margin-top: 0.5rem;">Get Inspiration</button>
         </div>
 
         <div style="background-color: var(--bg-input); padding: 0.75rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color); display: flex; flex-direction: column; justify-content: space-between;">
@@ -1013,7 +1017,7 @@
               Immediately remove Dazed, Staggered, or 1 Bruise, or stabilize.
             </p>
           </div>
-          <button class="btn btn-outline" id="btn-hp-recovery" style="font-size: var(--font-size-xs); margin-top: 0.5rem;">Recover Condition</button>
+          <button class="btn btn-outline" id="btn-hp-recovery" style="font-size: var(--font-size-sm); margin-top: 0.5rem;">Recover Condition</button>
         </div>
 
       </div>
@@ -1096,15 +1100,15 @@
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.65rem; margin-bottom: 0.65rem;">
           <div style="background-color: var(--bg-input); padding: 0.5rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
-              <span style="font-weight: 800; font-size: var(--font-size-xs); color: var(--hero-green);">➕ Extras</span>
-              <button class="btn btn-outline" id="btn-builder-add-extra" style="font-size: var(--font-size-xs); min-height: 26px; padding: 0.1rem 0.4rem;">+ Extra</button>
+              <span style="font-weight: 800; font-size: var(--font-size-sm); color: var(--hero-green);">➕ Extras</span>
+              <button class="btn btn-outline" id="btn-builder-add-extra" style="font-size: var(--font-size-sm); min-height: 28px; padding: 0.15rem 0.5rem;">+ Extra</button>
             </div>
             <div id="builder-extras-list" style="display: flex; flex-direction: column; gap: 0.3rem; max-height: 140px; overflow-y: auto;"></div>
           </div>
           <div style="background-color: var(--bg-input); padding: 0.5rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
-              <span style="font-weight: 800; font-size: var(--font-size-xs); color: var(--hero-red);">➖ Flaws & Devices</span>
-              <button class="btn btn-outline" id="btn-builder-add-flaw" style="font-size: var(--font-size-xs); min-height: 26px; padding: 0.1rem 0.4rem;">+ Flaw</button>
+              <span style="font-weight: 800; font-size: var(--font-size-sm); color: var(--hero-red);">➖ Flaws</span>
+              <button class="btn btn-outline" id="btn-builder-add-flaw" style="font-size: var(--font-size-sm); min-height: 28px; padding: 0.15rem 0.5rem;">+ Flaw</button>
             </div>
             <div id="builder-flaws-list" style="display: flex; flex-direction: column; gap: 0.3rem; max-height: 140px; overflow-y: auto;"></div>
           </div>
@@ -1112,8 +1116,8 @@
 
         <div style="background-color: var(--bg-input); padding: 0.5rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color); margin-bottom: 0.65rem;">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
-            <span style="font-weight: 800; font-size: var(--font-size-xs); color: var(--hero-cyan);">🔄 Alternate Effects Array (1 PP flat each)</span>
-            <button class="btn btn-outline" id="btn-builder-add-ae" style="font-size: var(--font-size-xs); min-height: 26px; padding: 0.1rem 0.4rem;">+ Alt Effect</button>
+            <span style="font-weight: 800; font-size: var(--font-size-sm); color: var(--hero-cyan);">🔄 Alternate Effects Array (1 PP flat each)</span>
+            <button class="btn btn-outline" id="btn-builder-add-ae" style="font-size: var(--font-size-sm); min-height: 28px; padding: 0.15rem 0.5rem;">+ Alt Effect</button>
           </div>
           <div id="builder-ae-list" style="display: flex; flex-direction: column; gap: 0.3rem;"></div>
         </div>
@@ -1318,6 +1322,6 @@
     </div>
   </div>
 
-  <script type="module" src="js/app.js?v=3.13"></script>
+  <script type="module" src="js/app.js?v=3.14"></script>
 </body>
 </html>

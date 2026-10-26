@@ -971,7 +971,7 @@ class AppController {
   }
 
   async checkForUpdates({ isManual = false } = {}) {
-    const CURRENT_VERSION = '3.13';
+    const CURRENT_VERSION = '3.14';
     if (typeof window === 'undefined' || !window.location || !window.location.href || window.location.href === 'about:blank') return;
     try {
       const url = new URL('version.json', window.location.href);
@@ -1078,8 +1078,8 @@ class AppController {
           </div>
         </div>
         <div style="display: flex; gap: 0.4rem;">
-          ${!isCurrent ? `<button class="btn btn-primary btn-load-char" data-id="${c.id}" style="font-size: var(--font-size-xs); min-height: 30px; padding: 0.2rem 0.6rem;">Load</button>` : ''}
-          <button class="btn btn-danger btn-delete-char" data-id="${c.id}" style="font-size: var(--font-size-xs); min-height: 30px; padding: 0.2rem 0.6rem;" title="Delete hero">🗑️</button>
+          ${!isCurrent ? `<button class="btn btn-primary btn-load-char" data-id="${c.id}" style="font-size: var(--font-size-sm); min-height: 30px; padding: 0.2rem 0.6rem;">Load</button>` : ''}
+          <button class="btn btn-danger btn-delete-char" data-id="${c.id}" style="font-size: var(--font-size-sm); min-height: 30px; padding: 0.2rem 0.6rem;" title="Delete hero">🗑️</button>
         </div>
       `;
 
@@ -1926,9 +1926,9 @@ class AppController {
           </label>
         </div>
         <div style="display: flex; gap: 0.35rem; justify-content: flex-end; margin-top: 0.4rem;">
-          <button class="btn btn-outline cfg-btn-test" data-id="${cfg.id}" style="font-size: var(--font-size-xs); padding: 0.15rem 0.5rem; min-height: 26px;">🔔 Test</button>
-          <button class="btn btn-outline cfg-btn-edit" data-id="${cfg.id}" style="font-size: var(--font-size-xs); padding: 0.15rem 0.5rem; min-height: 26px;">✏️ Edit</button>
-          <button class="btn btn-danger cfg-btn-delete" data-id="${cfg.id}" style="font-size: var(--font-size-xs); padding: 0.15rem 0.5rem; min-height: 26px;">🗑️</button>
+          <button class="btn btn-outline cfg-btn-test" data-id="${cfg.id}" style="font-size: var(--font-size-sm); padding: 0.2rem 0.6rem; min-height: 28px;">🔔 Test</button>
+          <button class="btn btn-outline cfg-btn-edit" data-id="${cfg.id}" style="font-size: var(--font-size-sm); padding: 0.2rem 0.6rem; min-height: 28px;">✏️ Edit</button>
+          <button class="btn btn-danger cfg-btn-delete" data-id="${cfg.id}" style="font-size: var(--font-size-sm); padding: 0.2rem 0.6rem; min-height: 28px;">🗑️</button>
         </div>
       `;
 
@@ -2769,7 +2769,7 @@ class AppController {
           <td><strong style="color: var(--text-muted);">${sk.ability.toUpperCase()}</strong></td>
           <td><strong style="color: ${effBonus !== sk.baseBonus ? 'var(--hero-red)' : 'var(--hero-cyan)'}; font-size: var(--font-size-md); font-weight: 900;">${effBonus >= 0 ? '+' : ''}${effBonus}</strong></td>
           <td style="text-align: right;">
-            <button class="btn-touch-roll" style="min-height: 28px; padding: 0.2rem 0.65rem; font-size: 0.88rem;">🎲 Roll</button>
+            <button class="btn-touch-roll" style="min-height: 30px; padding: 0.2rem 0.65rem; font-size: var(--font-size-sm);">🎲 Roll</button>
           </td>
         `;
 
@@ -3095,7 +3095,7 @@ class AppController {
             </td>
             <td><strong style="color: var(--hero-cyan); font-size: var(--font-size-md);">${totalBonus >= 0 ? '+' : ''}${totalBonus}</strong></td>
             <td style="text-align: right;">
-              <button class="btn btn-outline btn-skill-add-specialty" style="min-height: 28px; font-size: var(--font-size-xs); padding: 0.15rem 0.5rem;">+ ${isAssignedFocus ? 'Focus' : 'Specialty'}</button>
+              <button class="btn btn-outline btn-skill-add-specialty" style="min-height: 30px; font-size: var(--font-size-sm); padding: 0.2rem 0.6rem;">+ ${isAssignedFocus ? 'Focus' : 'Specialty'}</button>
             </td>
           `;
 
@@ -3139,8 +3139,8 @@ class AppController {
               </td>
               <td><strong style="color: var(--hero-cyan); font-size: var(--font-size-md);">${totalBonus >= 0 ? '+' : ''}${totalBonus}</strong></td>
               <td style="text-align: right; white-space: nowrap;">
-                <button class="btn btn-outline btn-edit-inst-specialty" style="min-height: 28px; font-size: var(--font-size-xs); padding: 0.15rem 0.45rem;" title="Change ${isAssignedFocus ? 'Focus' : 'Specialty'}">✏️ ${isAssignedFocus ? 'Focus' : 'Specialty'}</button>
-                <button class="btn btn-danger btn-delete-inst" style="min-height: 28px; font-size: var(--font-size-xs); padding: 0.15rem 0.45rem; margin-left: 0.25rem;" title="Remove this instance">🗑️</button>
+                <button class="btn btn-outline btn-edit-inst-specialty" style="min-height: 30px; font-size: var(--font-size-sm); padding: 0.2rem 0.55rem;" title="Change ${isAssignedFocus ? 'Focus' : 'Specialty'}">✏️ ${isAssignedFocus ? 'Focus' : 'Specialty'}</button>
+                <button class="btn btn-danger btn-delete-inst" style="min-height: 30px; font-size: var(--font-size-sm); padding: 0.2rem 0.55rem; margin-left: 0.25rem;" title="Remove this instance">🗑️</button>
               </td>
             `;
 
@@ -3187,7 +3187,7 @@ class AppController {
           addRow.style.backgroundColor = 'rgba(255, 255, 255, 0.02)';
           addRow.innerHTML = `
             <td colspan="6" style="padding: 0.35rem 0.6rem; text-align: left;">
-              <button class="btn btn-outline btn-add-another-skill" style="min-height: 26px; font-size: var(--font-size-xs); padding: 0.15rem 0.55rem; border-color: rgba(6, 182, 212, 0.4); color: var(--hero-cyan);">
+              <button class="btn btn-outline btn-add-another-skill" style="min-height: 30px; font-size: var(--font-size-sm); padding: 0.2rem 0.65rem; border-color: rgba(6, 182, 212, 0.4); color: var(--hero-cyan);">
                 ➕ Add Another ${skillDef.name} ${isAssignedFocus ? 'Focus' : 'Specialty'}
               </button>
             </td>
@@ -3281,6 +3281,7 @@ class AppController {
 
     const search = (document.getElementById('adv-search-box')?.value || '').toLowerCase();
     const filterCat = document.getElementById('adv-filter-cat')?.value || 'all';
+    const showDescriptions = document.getElementById('adv-show-descriptions')?.checked ?? true;
 
     ADVANTAGES_DATABASE.forEach(advDef => {
       if (filterCat !== 'all' && advDef.category !== filterCat) return;
@@ -3309,7 +3310,7 @@ class AppController {
       row.innerHTML = `
         <div style="flex: 1; min-width: 0;">
           <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 0.45rem; margin-bottom: 0.25rem;">
-            <span class="rules-link" data-id="${advDef.id}" data-type="advantage" data-name="${advDef.name}" data-cat="${advDef.category} Advantage" style="font-weight: 700; font-size: var(--font-size-sm); color: var(--hero-cyan);">
+            <span class="rules-link adv-name-link" data-id="${advDef.id}" data-type="advantage" data-name="${advDef.name}" data-cat="${advDef.category} Advantage" data-desc="${(advDef.desc || '').replace(/"/g, '&quot;')}" style="font-weight: 700; font-size: var(--font-size-base); color: var(--hero-cyan); cursor: pointer;" title="Click to view description in pop-up">
               ${advDef.name}
             </span>
             <span style="font-size: var(--font-size-xs); background: rgba(255,255,255,0.08); padding: 0.1rem 0.4rem; border-radius: 4px; color: var(--text-muted); font-weight: 600;">
@@ -3326,9 +3327,11 @@ class AppController {
               </span>
             ` : ''}
           </div>
-          <div style="font-size: var(--font-size-xs); color: var(--text-muted); line-height: 1.45;">
-            ${advDef.desc}
-          </div>
+          ${showDescriptions ? `
+            <div class="adv-desc-text" style="font-size: var(--font-size-sm); color: var(--text-muted); line-height: 1.45;">
+              ${advDef.desc}
+            </div>
+          ` : ''}
         </div>
 
         <div style="display: flex; align-items: center; gap: 0.5rem; flex-shrink: 0;">
@@ -3341,12 +3344,12 @@ class AppController {
           ` : ''}
 
           ${advDef.hasOptions ? `
-            <button class="btn btn-outline" style="min-height: 30px; font-size: var(--font-size-xs); padding: 0.2rem 0.5rem;" data-opt-adv="${advDef.id}">
+            <button class="btn btn-outline" style="min-height: 32px; font-size: var(--font-size-sm); padding: 0.2rem 0.55rem;" data-opt-adv="${advDef.id}">
               ${existing?.note ? '✏️ Option' : '+ Option'}
             </button>
           ` : ''}
 
-          <button class="btn ${isSelected ? 'btn-danger' : 'btn-primary'}" style="min-height: 30px; font-size: var(--font-size-xs); min-width: 68px; padding: 0.2rem 0.6rem;" data-toggle-adv="${advDef.id}">
+          <button class="btn ${isSelected ? 'btn-danger' : 'btn-primary'}" style="min-height: 32px; font-size: var(--font-size-sm); min-width: 72px; padding: 0.2rem 0.65rem;" data-toggle-adv="${advDef.id}">
             ${isSelected ? 'Remove' : '+ Add'}
           </button>
         </div>
@@ -3391,7 +3394,8 @@ class AppController {
     if (!searchBox.dataset.wired) {
       searchBox.dataset.wired = 'true';
       searchBox.addEventListener('input', () => this.renderAdvantagesTab(auditCharacter(this.char)));
-      document.getElementById('adv-filter-cat').addEventListener('change', () => this.renderAdvantagesTab(auditCharacter(this.char)));
+      document.getElementById('adv-filter-cat')?.addEventListener('change', () => this.renderAdvantagesTab(auditCharacter(this.char)));
+      document.getElementById('adv-show-descriptions')?.addEventListener('change', () => this.renderAdvantagesTab(auditCharacter(this.char)));
     }
   }
 
@@ -3452,7 +3456,7 @@ class AppController {
     (optionsList || []).forEach(opt => {
       const btn = document.createElement('button');
       btn.className = 'btn btn-outline';
-      btn.style.cssText = 'text-align: left; justify-content: flex-start; padding: 0.5rem 0.85rem; font-size: 0.88rem;';
+      btn.style.cssText = 'text-align: left; justify-content: flex-start; padding: 0.5rem 0.85rem; font-size: var(--font-size-sm); min-height: 36px;';
       btn.textContent = opt;
 
       btn.addEventListener('click', () => {
@@ -3465,7 +3469,7 @@ class AppController {
 
     const otherOptionBtn = document.createElement('button');
     otherOptionBtn.className = 'btn btn-outline';
-    otherOptionBtn.style.cssText = 'text-align: left; justify-content: flex-start; padding: 0.5rem 0.85rem; font-size: 0.88rem; border-style: dashed; color: var(--hero-gold);';
+    otherOptionBtn.style.cssText = 'text-align: left; justify-content: flex-start; padding: 0.5rem 0.85rem; font-size: var(--font-size-sm); min-height: 36px; border-style: dashed; color: var(--hero-gold);';
     otherOptionBtn.textContent = '✏️ Other (Specify Custom Specialization...)';
     otherOptionBtn.addEventListener('click', () => {
       otherInput?.focus();
@@ -3628,7 +3632,7 @@ class AppController {
         badge.innerHTML = `
           <strong>${opt.name}</strong>
           <span style="color: var(--hero-gold); font-weight: 700;">(${opt.ranks} rk)</span>
-          <button type="button" class="btn-del-imm-opt" data-idx="${idx}" style="background: none; border: none; color: #fff; cursor: pointer; padding: 0; font-size: var(--font-size-xs); line-height: 1; opacity: 0.8;" title="Remove immunity">✕</button>
+          <button type="button" class="btn-del-imm-opt" data-idx="${idx}" style="background: none; border: none; color: #fff; cursor: pointer; padding: 0.1rem 0.3rem; font-size: var(--font-size-sm); line-height: 1; opacity: 0.85;" title="Remove immunity">✕</button>
         `;
         badge.querySelector('.btn-del-imm-opt')?.addEventListener('click', () => {
           p.immunityOptions.splice(idx, 1);
@@ -3661,7 +3665,7 @@ class AppController {
               <span style="color: var(--text-bright);">${item.name}</span>
               <span style="color: var(--hero-blue); font-weight: 700; margin-left: 0.35rem;">(${item.ranks} ${item.ranks === 1 ? 'rank' : 'ranks'})</span>
             </div>
-            <button type="button" class="btn btn-outline btn-add-imm-item" style="padding: 0.1rem 0.5rem; min-height: 24px; font-size: var(--font-size-xs); white-space: nowrap; border-color: var(--hero-blue); color: #fff;">
+            <button type="button" class="btn btn-outline btn-add-imm-item" style="padding: 0.15rem 0.55rem; min-height: 28px; font-size: var(--font-size-sm); white-space: nowrap; border-color: var(--hero-blue); color: #fff;">
               ➕ Add
             </button>
           `;
@@ -3714,7 +3718,7 @@ class AppController {
         badge.innerHTML = `
           <strong>${opt.name}</strong>
           <span style="color: var(--hero-gold); font-weight: 700;">(${opt.ranks} rk)</span>
-          <button type="button" class="btn-del-sens-opt" data-idx="${idx}" style="background: none; border: none; color: #fff; cursor: pointer; padding: 0; font-size: var(--font-size-xs); line-height: 1; opacity: 0.8;" title="Remove sense">✕</button>
+          <button type="button" class="btn-del-sens-opt" data-idx="${idx}" style="background: none; border: none; color: #fff; cursor: pointer; padding: 0.1rem 0.3rem; font-size: var(--font-size-sm); line-height: 1; opacity: 0.85;" title="Remove sense">✕</button>
         `;
         badge.querySelector('.btn-del-sens-opt')?.addEventListener('click', () => {
           p.sensesOptions.splice(idx, 1);
@@ -3735,7 +3739,7 @@ class AppController {
             <span style="color: var(--hero-blue); font-weight: 700; margin-left: 0.35rem;">(${item.ranks} ${item.ranks === 1 ? 'rank' : 'ranks'})</span>
             <span style="color: var(--text-muted); font-size: var(--font-size-xs); margin-left: 0.4rem;">- ${item.desc}</span>
           </div>
-          <button type="button" class="btn btn-outline btn-add-sens-item" style="padding: 0.1rem 0.5rem; min-height: 24px; font-size: var(--font-size-xs); white-space: nowrap; border-color: var(--hero-blue); color: #fff;">
+          <button type="button" class="btn btn-outline btn-add-sens-item" style="padding: 0.15rem 0.55rem; min-height: 28px; font-size: var(--font-size-sm); white-space: nowrap; border-color: var(--hero-blue); color: #fff;">
             ➕ Add
           </button>
         `;
@@ -3877,8 +3881,8 @@ class AppController {
           ${!valResult.valid ? '<span class="badge-tag conflict" title="Rule conflicts detected">⚠️ Conflict</span>' : ''}
         </div>
         <div class="power-card-header-actions" onclick="event.stopPropagation()">
-          <button class="btn btn-outline btn-duplicate-power" data-p-id="${p.id}" title="Duplicate Power" style="min-height: 26px; padding: 0.1rem 0.45rem; font-size: var(--font-size-xs);">📋 Duplicate</button>
-          <button class="btn btn-outline btn-delete-power" data-p-id="${p.id}" title="Delete Power" style="min-height: 26px; padding: 0.1rem 0.45rem; font-size: var(--font-size-xs); color: #fff; border-color: rgba(255, 255, 255, 0.25);">🗑️ Delete</button>
+          <button class="btn btn-outline btn-duplicate-power" data-p-id="${p.id}" title="Duplicate Power" style="min-height: 28px; padding: 0.15rem 0.55rem; font-size: var(--font-size-sm);">📋 Duplicate</button>
+          <button class="btn btn-outline btn-delete-power" data-p-id="${p.id}" title="Delete Power" style="min-height: 28px; padding: 0.15rem 0.55rem; font-size: var(--font-size-sm); color: #fff; border-color: rgba(255, 255, 255, 0.25);">🗑️ Delete</button>
         </div>
       `;
 
@@ -4043,7 +4047,7 @@ class AppController {
 
         extrasCol.innerHTML = `
           <div class="power-section-header">
-            <span style="font-weight: 800; font-size: var(--font-size-base); color: var(--hero-blue);">➕ Extras (★ = Unique Modifier)</span>
+            <span style="font-weight: 800; font-size: var(--font-size-base); color: var(--hero-blue);">➕ Extras (★ = Effect-Specific Modifier)</span>
           </div>
           <div style="display: flex; gap: 0.45rem; margin-bottom: 0.5rem;">
             <select class="select-add-extra" style="flex: 1; font-size: var(--font-size-sm); min-height: 32px;">
@@ -4067,7 +4071,7 @@ class AppController {
           exRow.style.cssText = 'display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.25); padding: 0.4rem 0.65rem; border-radius: 4px; border: 1px solid rgba(255,255,255,0.08);';
           exRow.innerHTML = `
             <div style="flex: 1;">
-              <span style="font-size: var(--font-size-base); font-weight: 700; color: ${exDef.isUnique ? 'var(--hero-gold)' : 'var(--text-bright)'};">
+              <span style="font-size: var(--font-size-base); font-weight: 700; color: ${(exDef.isEffectSpecific || exDef.isUnique) ? 'var(--hero-gold)' : 'var(--text-bright)'};">
                 ${exDef.name}
               </span>
               <span style="font-size: var(--font-size-sm); color: var(--text-muted); margin-left: 0.45rem;">
@@ -4149,7 +4153,7 @@ class AppController {
 
         flawsCol.innerHTML = `
           <div class="power-section-header">
-            <span style="font-weight: 800; font-size: var(--font-size-base); color: var(--hero-blue);">➖ Flaws (★ = Unique Modifier)</span>
+            <span style="font-weight: 800; font-size: var(--font-size-base); color: var(--hero-blue);">➖ Flaws (★ = Effect-Specific Modifier)</span>
           </div>
           <div style="display: flex; gap: 0.45rem; margin-bottom: 0.5rem;">
             <select class="select-add-flaw" style="flex: 1; font-size: var(--font-size-sm); min-height: 32px;">
@@ -4173,7 +4177,7 @@ class AppController {
           flRow.style.cssText = 'display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.25); padding: 0.4rem 0.65rem; border-radius: 4px; border: 1px solid rgba(255,255,255,0.08);';
           flRow.innerHTML = `
             <div style="flex: 1;">
-              <span style="font-size: var(--font-size-base); font-weight: 700; color: ${flDef.isUnique ? 'var(--hero-gold)' : 'var(--text-bright)'};">
+              <span style="font-size: var(--font-size-base); font-weight: 700; color: ${(flDef.isEffectSpecific || flDef.isUnique) ? 'var(--hero-gold)' : 'var(--text-bright)'};">
                 ${flDef.name}
               </span>
               <span style="font-size: var(--font-size-sm); color: var(--text-muted); margin-left: 0.45rem;">
@@ -4257,8 +4261,8 @@ class AppController {
               </label>
             </div>
             <div style="display: flex; gap: 0.35rem;">
-              <button class="btn btn-outline btn-add-standard-ae" style="font-size: var(--font-size-xs); min-height: 26px; padding: 0.1rem 0.45rem; border-color: var(--hero-blue); color: #fff;">➕ Standard AE (1 PP)</button>
-              <button class="btn btn-outline btn-add-dynamic-ae" style="font-size: var(--font-size-xs); min-height: 26px; padding: 0.1rem 0.45rem; border-color: var(--hero-blue); color: #fff;">➕ Dynamic AE (2 PP)</button>
+              <button class="btn btn-outline btn-add-standard-ae" style="font-size: var(--font-size-sm); min-height: 28px; padding: 0.15rem 0.55rem; border-color: var(--hero-blue); color: #fff;">➕ Standard AE (1 PP)</button>
+              <button class="btn btn-outline btn-add-dynamic-ae" style="font-size: var(--font-size-sm); min-height: 28px; padding: 0.15rem 0.55rem; border-color: var(--hero-blue); color: #fff;">➕ Dynamic AE (2 PP)</button>
             </div>
           </div>
           <div class="ae-items-container" style="display: flex; flex-direction: column; gap: 0.3rem;"></div>
@@ -4280,7 +4284,7 @@ class AppController {
               <input type="text" class="input-ae-name" value="${ae.name || 'Alternate Power'}" style="flex: 1; padding: 0.2rem 0.4rem; font-size: var(--font-size-xs);">
             </div>
             <div style="margin-left: 0.5rem;">
-              <button class="btn btn-outline btn-delete-ae" style="padding: 0.1rem 0.35rem; min-height: 24px; font-size: var(--font-size-xs); color: #fff; border-color: rgba(255, 255, 255, 0.25);">🗑️</button>
+              <button class="btn btn-outline btn-delete-ae" style="padding: 0.15rem 0.5rem; min-height: 28px; font-size: var(--font-size-sm); color: #fff; border-color: rgba(255, 255, 255, 0.25);">🗑️</button>
             </div>
           `;
 
@@ -4333,7 +4337,7 @@ class AppController {
               <strong style="color: var(--hero-blue); font-size: var(--font-size-xs);">🔗 Linked Powers (Simultaneous Actions)</strong>
               <span style="font-size: var(--font-size-xs); color: var(--text-muted); margin-left: 0.5rem;">Shares action (${p.action}), range (${rd.effectiveRange}), and duration (${rd.effectiveDuration}). Costs sum together.</span>
             </div>
-            <button class="btn btn-outline btn-add-linked-effect" style="font-size: var(--font-size-xs); min-height: 26px; padding: 0.1rem 0.45rem; border-color: var(--hero-blue); color: #fff;">➕ Add Linked Effect</button>
+            <button class="btn btn-outline btn-add-linked-effect" style="font-size: var(--font-size-sm); min-height: 28px; padding: 0.15rem 0.55rem; border-color: var(--hero-blue); color: #fff;">➕ Add Linked Effect</button>
           </div>
           <div class="linked-items-container" style="display: flex; flex-direction: column; gap: 0.35rem;"></div>
         `;
@@ -4367,7 +4371,7 @@ class AppController {
               +${leCost} PP
             </div>
             <div style="text-align: right;">
-              <button class="btn btn-outline btn-delete-le" style="padding: 0.1rem 0.35rem; min-height: 24px; font-size: var(--font-size-xs); color: #fff; border-color: rgba(255, 255, 255, 0.25);">🗑️</button>
+              <button class="btn btn-outline btn-delete-le" style="padding: 0.15rem 0.5rem; min-height: 28px; font-size: var(--font-size-sm); color: #fff; border-color: rgba(255, 255, 255, 0.25);">🗑️</button>
             </div>
           `;
 
@@ -4416,7 +4420,7 @@ class AppController {
             <div style="font-weight: 900; color: var(--hero-gold); font-size: var(--font-size-md);">
               Total: ${cost} PP
             </div>
-            <button class="btn btn-outline btn-collapse-card" style="font-size: var(--font-size-xs); min-height: 30px;">
+            <button class="btn btn-outline btn-collapse-card" style="font-size: var(--font-size-sm); min-height: 30px;">
               ▲ Collapse Card
             </button>
           </div>
@@ -4468,7 +4472,7 @@ class AppController {
         <td><strong style="color: var(--hero-gold);">${item.cost} EP</strong></td>
         <td>${item.desc || ''}</td>
         <td style="text-align: right;">
-          <button class="btn btn-danger" style="min-height: 28px; font-size: var(--font-size-xs);">🗑️</button>
+          <button class="btn btn-danger" style="min-height: 28px; font-size: var(--font-size-sm); padding: 0.15rem 0.5rem;">🗑️</button>
         </td>
       `;
       row.querySelector('button').addEventListener('click', () => {
@@ -4519,8 +4523,8 @@ class AppController {
         </div>
         <div style="font-size: var(--font-size-xs); color: var(--text-bright); line-height: 1.45; white-space: pre-line;">${sess.notes || '<span style="color: var(--text-muted); font-style: italic;">No session notes recorded.</span>'}</div>
         <div style="display: flex; justify-content: flex-end; gap: 0.4rem; margin-top: 0.5rem; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 0.4rem;">
-          <button class="btn btn-outline btn-edit-session" style="min-height: 26px; padding: 0.15rem 0.5rem; font-size: var(--font-size-xs);">✏️ Edit</button>
-          <button class="btn btn-danger btn-delete-session" style="min-height: 26px; padding: 0.15rem 0.5rem; font-size: var(--font-size-xs);">🗑️ Delete</button>
+          <button class="btn btn-outline btn-edit-session" style="min-height: 28px; padding: 0.2rem 0.6rem; font-size: var(--font-size-sm);">✏️ Edit</button>
+          <button class="btn btn-danger btn-delete-session" style="min-height: 28px; padding: 0.2rem 0.6rem; font-size: var(--font-size-sm);">🗑️ Delete</button>
         </div>
       `;
 

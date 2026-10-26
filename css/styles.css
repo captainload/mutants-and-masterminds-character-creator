@@ -1595,9 +1595,9 @@ button.action-save-card:active {
 }
 
 .badge-tag.dynamic {
-  background: rgba(245, 158, 11, 0.2);
-  color: var(--hero-gold);
-  border: 1px solid rgba(245, 158, 11, 0.4);
+  background: rgba(59, 130, 246, 0.2);
+  color: var(--hero-blue);
+  border: 1px solid rgba(59, 130, 246, 0.4);
 }
 
 .badge-tag.ae {
@@ -1691,6 +1691,7 @@ button.action-save-card:active {
 .effective-stat-chip {
   background: var(--bg-card);
   border: 1px solid var(--border-color);
+  border-left: 3px solid var(--hero-blue);
   border-radius: var(--radius-sm);
   padding: 0.35rem 0.5rem;
   display: flex;
@@ -1706,18 +1707,10 @@ button.action-save-card:active {
   border-color: rgba(255, 255, 255, 0.2);
 }
 
-.effective-stat-chip.stat-action {
-  border-left: 3px solid var(--hero-gold);
-}
-
-.effective-stat-chip.stat-range {
-  border-left: 3px solid var(--hero-blue);
-}
-
-.effective-stat-chip.stat-duration {
-  border-left: 3px solid var(--hero-gold);
-}
-
+/* Uniform Semantic Stat Chip Classes (Action, Range, Duration, Area) */
+.effective-stat-chip.stat-action,
+.effective-stat-chip.stat-range,
+.effective-stat-chip.stat-duration,
 .effective-stat-chip.stat-area {
   border-left: 3px solid var(--hero-blue);
 }
@@ -1734,13 +1727,8 @@ button.action-save-card:active {
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: var(--text-muted);
+  color: var(--hero-blue);
 }
-
-.effective-stat-chip.stat-action .effective-stat-label { color: var(--hero-gold); }
-.effective-stat-chip.stat-range .effective-stat-label { color: var(--hero-blue); }
-.effective-stat-chip.stat-duration .effective-stat-label { color: var(--hero-gold); }
-.effective-stat-chip.stat-area .effective-stat-label { color: var(--hero-blue); }
 
 .effective-stat-badge {
   font-size: var(--font-size-xs);
@@ -1758,6 +1746,7 @@ button.action-save-card:active {
   font-size: var(--font-size-sm);
   font-weight: 800;
   line-height: 1.2;
+  color: var(--hero-gold);
 }
 
 .effective-stat-dropdown {

@@ -5,20 +5,20 @@ console.log('--- Testing v3.11 Power Card 3-Color Restriction & Font Size ---');
 
 // 1. Version Check
 const versionJson = JSON.parse(fs.readFileSync('version.json', 'utf8'));
-if (versionJson.version !== '3.11') {
-  throw new Error(`Expected version.json to have version 3.11, got ${versionJson.version}`);
+if (parseFloat(versionJson.version) < 3.11) {
+  throw new Error(`Expected version.json to have version >= 3.11, got ${versionJson.version}`);
 }
 
 const indexHtml = fs.readFileSync('index.html', 'utf8');
-if (!indexHtml.includes('v3.11')) {
-  throw new Error('Expected index.html to reference v3.11');
+if (!/v3\.\d+/.test(indexHtml)) {
+  throw new Error('Expected index.html to reference version');
 }
 
 const appJs = fs.readFileSync('js/app.js', 'utf8');
-if (!appJs.includes("CURRENT_VERSION = '3.11'")) {
-  throw new Error('Expected js/app.js to have CURRENT_VERSION = "3.11"');
+if (!/CURRENT_VERSION = '3\.\d+'/.test(appJs)) {
+  throw new Error('Expected js/app.js to have CURRENT_VERSION');
 }
-console.log('✓ Version 3.11 confirmed in version.json, index.html, and js/app.js');
+console.log('✓ Version >= 3.11 confirmed in version.json, index.html, and js/app.js');
 
 // 2. Minimum Font Size Check
 const cssContent = fs.readFileSync('css/styles.css', 'utf8');

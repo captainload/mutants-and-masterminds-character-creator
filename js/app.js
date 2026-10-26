@@ -970,7 +970,7 @@ class AppController {
   }
 
   async checkForUpdates({ isManual = false } = {}) {
-    const CURRENT_VERSION = '3.11';
+    const CURRENT_VERSION = '3.12';
     if (typeof window === 'undefined' || !window.location || !window.location.href || window.location.href === 'about:blank') return;
     try {
       const url = new URL('version.json', window.location.href);
@@ -3530,7 +3530,7 @@ class AppController {
 
     const box = document.createElement('div');
     box.className = 'power-section-box';
-    box.style.borderLeft = '3px solid var(--hero-gold)';
+    box.style.borderLeft = '3px solid var(--hero-blue)';
     box.style.marginTop = '0.5rem';
 
     if (effId === 'affliction') {
@@ -3544,7 +3544,7 @@ class AppController {
       }
       box.innerHTML = `
         <div class="power-section-header">
-          <strong style="color: var(--hero-gold); font-size: var(--font-size-xs);">⚙️ Affliction Configuration (3E Degrees of Failure)</strong>
+          <strong style="color: var(--hero-blue); font-size: var(--font-size-xs);">⚙️ Affliction Configuration (3E Degrees of Failure)</strong>
           <span style="font-size: var(--font-size-xs); color: var(--text-muted);">Configure resistance defense and condition per degree</span>
         </div>
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 0.5rem; margin-top: 0.4rem;">
@@ -3600,7 +3600,7 @@ class AppController {
       box.innerHTML = `
         <div class="power-section-header">
           <div>
-            <strong style="color: var(--hero-gold); font-size: var(--font-size-xs);">🛡️ Immunity Configuration (Total: ${totalRanks} Ranks)</strong>
+            <strong style="color: var(--hero-blue); font-size: var(--font-size-xs);">🛡️ Immunity Configuration (Total: ${totalRanks} Ranks)</strong>
             <span style="font-size: var(--font-size-xs); color: var(--text-muted); margin-left: 0.5rem;">Click "+" next to any immunity option to assign it</span>
           </div>
         </div>
@@ -3649,7 +3649,7 @@ class AppController {
           if (item.category !== curCat) {
             curCat = item.category;
             const catHeader = document.createElement('div');
-            catHeader.style.cssText = 'font-size: var(--font-size-xs); font-weight: 800; color: var(--hero-gold); text-transform: uppercase; margin-top: 0.35rem; margin-bottom: 0.15rem; padding-bottom: 0.1rem; border-bottom: 1px solid rgba(255,255,255,0.08);';
+            catHeader.style.cssText = 'font-size: var(--font-size-xs); font-weight: 800; color: var(--hero-blue); text-transform: uppercase; margin-top: 0.35rem; margin-bottom: 0.15rem; padding-bottom: 0.1rem; border-bottom: 1px solid rgba(255,255,255,0.08);';
             catHeader.textContent = curCat;
             catList.appendChild(catHeader);
           }
@@ -3752,7 +3752,7 @@ class AppController {
       }
       box.innerHTML = `
         <div class="power-section-header">
-          <strong style="color: var(--hero-gold); font-size: var(--font-size-xs);">⚙️ Weaken Configuration</strong>
+          <strong style="color: var(--hero-blue); font-size: var(--font-size-xs);">⚙️ Weaken Configuration</strong>
           <span style="font-size: var(--font-size-xs); color: var(--text-muted);">Configure resistance defense and targeted trait</span>
         </div>
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-top: 0.4rem;">
@@ -3785,7 +3785,7 @@ class AppController {
       }
       box.innerHTML = `
         <div class="power-section-header">
-          <strong style="color: var(--hero-gold); font-size: var(--font-size-xs);">⚙️ Nullify Configuration</strong>
+          <strong style="color: var(--hero-blue); font-size: var(--font-size-xs);">⚙️ Nullify Configuration</strong>
           <span style="font-size: var(--font-size-xs); color: var(--text-muted);">Configure nullified descriptor and scope</span>
         </div>
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-top: 0.4rem;">
@@ -3991,7 +3991,7 @@ class AppController {
               <span class="effective-stat-badge">Derived</span>
             </div>
             <div class="effective-stat-content">
-              <strong class="effective-stat-val text-blue">${effStats.effectiveRange}</strong>
+              <strong class="effective-stat-val text-gold">${effStats.effectiveRange}</strong>
             </div>
             <div class="effective-stat-subnote" title="${effStats.rangeNotes || 'Base: ' + effStats.baseRange}">${effStats.rangeNotes || 'Base: ' + effStats.baseRange}</div>
           </div>
@@ -4015,7 +4015,7 @@ class AppController {
               <span class="effective-stat-badge">${effStats.area !== 'Single Target' && effStats.area !== 'Personal' ? '3E Area' : 'Target'}</span>
             </div>
             <div class="effective-stat-content">
-              <strong class="effective-stat-val text-blue">${effStats.area}</strong>
+              <strong class="effective-stat-val text-gold">${effStats.area}</strong>
             </div>
             <div class="effective-stat-subnote" title="${effStats.areaNotes || (effStats.area === 'Personal' ? 'Self Only' : 'Single Target')}">${effStats.areaNotes || (effStats.area === 'Personal' ? 'Self Only' : 'Single Target')}</div>
           </div>
@@ -4154,13 +4154,13 @@ class AppController {
         flawsCol.className = 'power-section-box';
         flawsCol.innerHTML = `
           <div class="power-section-header">
-            <span style="font-weight: 800; font-size: var(--font-size-xs); color: var(--hero-gold);">➖ Flaws & Devices (★ = Unique Modifier)</span>
+            <span style="font-weight: 800; font-size: var(--font-size-xs); color: var(--hero-blue);">➖ Flaws & Devices (★ = Unique Modifier)</span>
           </div>
           <div style="display: flex; gap: 0.35rem; margin-bottom: 0.45rem;">
             <select class="select-add-flaw" style="flex: 1; font-size: var(--font-size-xs);">
               ${FLAWS_CATALOG.map(fl => `<option value="${fl.id}">${fl.name} (${fl.isDevice ? `Device -${fl.discountPer5}/5` : fl.isFlat ? `-${fl.cost} flat` : `-${fl.cost}/rank`})</option>`).join('')}
             </select>
-            <button class="btn btn-outline btn-add-flaw" style="font-size: var(--font-size-xs); min-height: 28px; padding: 0.15rem 0.5rem; white-space: nowrap; border-color: var(--hero-gold); color: #fff;">+ Add Flaw</button>
+            <button class="btn btn-outline btn-add-flaw" style="font-size: var(--font-size-xs); min-height: 28px; padding: 0.15rem 0.5rem; white-space: nowrap; border-color: var(--hero-blue); color: #fff;">+ Add Flaw</button>
           </div>
           <div class="flaws-items-container" style="display: flex; flex-direction: column; gap: 0.35rem;"></div>
         `;
@@ -4250,7 +4250,7 @@ class AppController {
             </div>
             <div style="display: flex; gap: 0.35rem;">
               <button class="btn btn-outline btn-add-standard-ae" style="font-size: var(--font-size-xs); min-height: 26px; padding: 0.1rem 0.45rem; border-color: var(--hero-blue); color: #fff;">➕ Standard AE (1 PP)</button>
-              <button class="btn btn-outline btn-add-dynamic-ae" style="font-size: var(--font-size-xs); min-height: 26px; padding: 0.1rem 0.45rem; border-color: rgba(245, 158, 11, 0.5); color: var(--hero-gold);">➕ Dynamic AE (2 PP)</button>
+              <button class="btn btn-outline btn-add-dynamic-ae" style="font-size: var(--font-size-xs); min-height: 26px; padding: 0.1rem 0.45rem; border-color: var(--hero-blue); color: #fff;">➕ Dynamic AE (2 PP)</button>
             </div>
           </div>
           <div class="ae-items-container" style="display: flex; flex-direction: column; gap: 0.3rem;"></div>
@@ -4347,8 +4347,8 @@ class AppController {
             </div>
             <div style="font-size: var(--font-size-xs); color: var(--text-muted); background: rgba(0,0,0,0.25); padding: 0.2rem 0.4rem; border-radius: 3px; display: flex; gap: 0.35rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="Stats: ${leStats.action} • ${leStats.effectiveRange} • ${leStats.effectiveDuration} • ${leStats.area}">
               <span class="text-gold" style="font-weight: 700;">${leStats.action}</span> •
-              <span class="text-blue">${leStats.effectiveRange}</span> •
-              <span class="text-blue">${leStats.area}</span>
+              <span class="text-gold">${leStats.effectiveRange}</span> •
+              <span class="text-gold">${leStats.area}</span>
             </div>
             <div class="stepper-control">
               <button class="btn-stepper compact btn-le-minus">-</button>

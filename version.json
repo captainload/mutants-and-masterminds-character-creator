@@ -1,5 +1,5 @@
 {
-  "version": "3.6",
-  "updatedAt": "2026-10-26T12:45:00Z",
-  "releaseNotes": "Added optional House Rule for Expanded Skill Specializations (M&M 4E style). When disabled (official 3E), only Close Combat, Expertise, and Ranged Combat require/support specialties, while standard skills remain clean single traits with specializations preserved in memory when toggled."
+  "version": "3.7",
+  "updatedAt": "2026-10-26T13:15:00Z",
+  "releaseNotes": "Enforced 10pt minimum font size across the entire application for clear legibility. Added support for assigned-focus skills with a strict 1-rank limit (including Languages and Skill Mastery), where each purchased rank represents a distinct assigned focus or language."
 }

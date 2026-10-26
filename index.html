@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Mutants & Masterminds 3E - Character Architect v3.6</title>
+  <title>Mutants & Masterminds 3E - Character Architect v3.7</title>
   <link rel="stylesheet" href="css/styles.css?v=3.6">
 </head>
 <body>
@@ -94,7 +94,7 @@
           </div>
 
           <div class="brand-label-compact">
-            M&M 3E Character Editor v3.6
+            M&M 3E Character Editor v3.7
           </div>
         </div>
 
@@ -287,7 +287,7 @@
               <div style="display: flex; justify-content: space-between; align-items: center; background-color: var(--bg-input); padding: 0.5rem 0.65rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color); margin-bottom: 0.65rem;">
                 <div>
                   <div style="font-weight: 800; font-size: var(--font-size-sm); color: #fff;">Bruises</div>
-                  <div style="font-size: 0.7rem; color: var(--text-muted);">-1 to Toughness checks each</div>
+                  <div style="font-size: var(--font-size-xs); color: var(--text-muted);">-1 to Toughness checks each</div>
                 </div>
                 <div class="stepper-control">
                   <button class="btn-stepper compact" id="btn-bruise-minus">-</button>
@@ -298,7 +298,7 @@
 
               <!-- Combined Conditions Dropdown -->
               <div style="margin-bottom: 0.75rem;">
-                <label style="font-size: 0.7rem; font-weight: 800; color: var(--hero-gold); text-transform: uppercase; margin-bottom: 0.25rem; display: block;">Combined Condition:</label>
+                <label style="font-size: var(--font-size-xs); font-weight: 800; color: var(--hero-gold); text-transform: uppercase; margin-bottom: 0.25rem; display: block;">Combined Condition:</label>
                 <select id="select-combined-condition" style="width: 100%; min-height: 38px;">
                   <option value="">-- None (Healthy) --</option>
                   <option value="staggered">Staggered (Dazed + Hindered)</option>
@@ -318,14 +318,14 @@
 
               <!-- Individual Condition Toggles -->
               <div style="margin-bottom: 0.65rem;">
-                <div style="font-size: 0.7rem; font-weight: 800; color: var(--hero-cyan); text-transform: uppercase; margin-bottom: 0.35rem;">Individual Conditions:</div>
+                <div style="font-size: var(--font-size-xs); font-weight: 800; color: var(--hero-cyan); text-transform: uppercase; margin-bottom: 0.35rem;">Individual Conditions:</div>
                 <div id="individual-conditions-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.35rem;">
                   <!-- Populated dynamically via JS -->
                 </div>
               </div>
 
               <!-- Condition Penalty Summary Banner -->
-              <div id="conditions-summary-badge" style="background-color: var(--bg-input); padding: 0.5rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color); font-size: 0.72rem; color: var(--text-muted); line-height: 1.4;">
+              <div id="conditions-summary-badge" style="background-color: var(--bg-input); padding: 0.5rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color); font-size: var(--font-size-xs); color: var(--text-muted); line-height: 1.4;">
                 Active Penalties: None
               </div>
 
@@ -614,7 +614,7 @@
       <div class="modal-scroll-body" style="padding: 1rem;">
         <label style="font-size: var(--font-size-xs); font-weight: 700; color: var(--text-muted);">New Superhero Name:</label>
         <input type="text" id="save-as-hero-name" style="width: 100%; font-size: var(--font-size-md); font-weight: 800; margin-top: 0.35rem;" placeholder="e.g. Iron Sentinel II">
-        <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.5rem;">
+        <p style="font-size: var(--font-size-xs); color: var(--text-muted); margin-top: 0.5rem;">
           This will duplicate the current character sheet into a new independent slot, preserving all powers, abilities, and history.
         </p>
       </div>
@@ -646,15 +646,15 @@
             <div class="card-box-title" style="display: flex; align-items: center; gap: 0.4rem;">
               <span>💬</span> Discord Echo & Bot Channels
             </div>
-            <div style="font-size: 0.7rem; color: var(--text-muted);">
+            <div style="font-size: var(--font-size-xs); color: var(--text-muted);">
               Echo rolls, damage DCs & Hero Points to Discord
             </div>
           </div>
           <div style="display: flex; gap: 0.35rem;">
-            <button class="btn btn-outline" id="btn-discord-help-jump" title="Open Discord Setup in Help Guide" style="font-size: 0.7rem; padding: 0.2rem 0.5rem; min-height: 30px;">
+            <button class="btn btn-outline" id="btn-discord-help-jump" title="Open Discord Setup in Help Guide" style="font-size: var(--font-size-xs); padding: 0.2rem 0.5rem; min-height: 30px;">
               ❓ Setup Help
             </button>
-            <button class="btn btn-primary" id="btn-discord-add-config" style="font-size: 0.7rem; padding: 0.2rem 0.5rem; min-height: 30px;">
+            <button class="btn btn-primary" id="btn-discord-add-config" style="font-size: var(--font-size-xs); padding: 0.2rem 0.5rem; min-height: 30px;">
               + Add Channel
             </button>
           </div>
@@ -673,23 +673,23 @@
 
           <div style="display: flex; flex-direction: column; gap: 0.5rem;">
             <div>
-              <label style="font-size: 0.7rem; color: var(--text-muted); font-weight: 700;">Custom Name (Optional - auto-named from Server & Channel if blank):</label>
+              <label style="font-size: var(--font-size-xs); color: var(--text-muted); font-weight: 700;">Custom Name (Optional - auto-named from Server & Channel if blank):</label>
               <input type="text" id="discord-input-name" placeholder="Leave blank to use Server #Channel combo" style="width: 100%;">
             </div>
 
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
               <div>
-                <label style="font-size: 0.7rem; color: var(--text-muted); font-weight: 700;">Server / Guild Name:</label>
+                <label style="font-size: var(--font-size-xs); color: var(--text-muted); font-weight: 700;">Server / Guild Name:</label>
                 <input type="text" id="discord-input-server" placeholder="e.g. Justice League" style="width: 100%;">
               </div>
               <div>
-                <label style="font-size: 0.7rem; color: var(--text-muted); font-weight: 700;">Channel Name:</label>
+                <label style="font-size: var(--font-size-xs); color: var(--text-muted); font-weight: 700;">Channel Name:</label>
                 <input type="text" id="discord-input-channel" placeholder="e.g. dice-rolls" style="width: 100%;">
               </div>
             </div>
 
             <div>
-              <label style="font-size: 0.7rem; color: var(--text-muted); font-weight: 700; margin-bottom: 0.25rem; display: block;">Connection Mode:</label>
+              <label style="font-size: var(--font-size-xs); color: var(--text-muted); font-weight: 700; margin-bottom: 0.25rem; display: block;">Connection Mode:</label>
               <div style="display: flex; gap: 0.5rem;">
                 <label style="flex: 1; display: flex; align-items: center; gap: 0.35rem; background: var(--bg-input); padding: 0.35rem 0.5rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color); cursor: pointer; font-size: var(--font-size-xs); font-weight: 700;">
                   <input type="radio" name="discord-type" value="webhook" id="discord-type-webhook" checked>
@@ -705,31 +705,31 @@
             <!-- Webhook Specific Fields -->
             <div id="discord-fields-webhook" style="display: flex; flex-direction: column; gap: 0.5rem;">
               <div>
-                <label style="font-size: 0.7rem; color: var(--text-muted); font-weight: 700;">Discord Webhook URL:</label>
+                <label style="font-size: var(--font-size-xs); color: var(--text-muted); font-weight: 700;">Discord Webhook URL:</label>
                 <input type="text" id="discord-input-webhook-url" placeholder="https://discord.com/api/webhooks/..." style="width: 100%;">
-                <span style="font-size: 0.65rem; color: var(--text-muted); margin-top: 0.2rem; display: block;">Requires editing rights (Manage Webhooks / Manage Channel) on your Discord server.</span>
+                <span style="font-size: var(--font-size-xs); color: var(--text-muted); margin-top: 0.2rem; display: block;">Requires editing rights (Manage Webhooks / Manage Channel) on your Discord server.</span>
               </div>
             </div>
 
             <!-- Bot Specific Fields -->
             <div id="discord-fields-bot" style="display: none; flex-direction: column; gap: 0.5rem;">
               <div>
-                <label style="font-size: 0.7rem; color: var(--text-muted); font-weight: 700;">Bot Token (from Discord Developer Portal):</label>
+                <label style="font-size: var(--font-size-xs); color: var(--text-muted); font-weight: 700;">Bot Token (from Discord Developer Portal):</label>
                 <input type="password" id="discord-input-bot-token" placeholder="Bot token string..." style="width: 100%;">
               </div>
               <div>
-                <label style="font-size: 0.7rem; color: var(--text-muted); font-weight: 700;">Channel ID (Right-click channel -> Copy ID):</label>
+                <label style="font-size: var(--font-size-xs); color: var(--text-muted); font-weight: 700;">Channel ID (Right-click channel -> Copy ID):</label>
                 <input type="text" id="discord-input-bot-channel-id" placeholder="e.g. 123456789012345678" style="width: 100%;">
               </div>
             </div>
 
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
               <div>
-                <label style="font-size: 0.7rem; color: var(--text-muted); font-weight: 700;">Bot Display Name:</label>
+                <label style="font-size: var(--font-size-xs); color: var(--text-muted); font-weight: 700;">Bot Display Name:</label>
                 <input type="text" id="discord-input-bot-name" placeholder="M&M 3E Hero Roller" style="width: 100%;">
               </div>
               <div>
-                <label style="font-size: 0.7rem; color: var(--text-muted); font-weight: 700;">Avatar Image URL (Optional):</label>
+                <label style="font-size: var(--font-size-xs); color: var(--text-muted); font-weight: 700;">Avatar Image URL (Optional):</label>
                 <input type="text" id="discord-input-avatar-url" placeholder="https://..." style="width: 100%;">
               </div>
             </div>
@@ -1118,14 +1118,14 @@
           <div style="background-color: var(--bg-input); padding: 0.5rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
               <span style="font-weight: 800; font-size: var(--font-size-xs); color: var(--hero-green);">➕ Extras</span>
-              <button class="btn btn-outline" id="btn-builder-add-extra" style="font-size: 0.7rem; min-height: 26px; padding: 0.1rem 0.4rem;">+ Extra</button>
+              <button class="btn btn-outline" id="btn-builder-add-extra" style="font-size: var(--font-size-xs); min-height: 26px; padding: 0.1rem 0.4rem;">+ Extra</button>
             </div>
             <div id="builder-extras-list" style="display: flex; flex-direction: column; gap: 0.3rem; max-height: 140px; overflow-y: auto;"></div>
           </div>
           <div style="background-color: var(--bg-input); padding: 0.5rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
               <span style="font-weight: 800; font-size: var(--font-size-xs); color: var(--hero-red);">➖ Flaws & Devices</span>
-              <button class="btn btn-outline" id="btn-builder-add-flaw" style="font-size: 0.7rem; min-height: 26px; padding: 0.1rem 0.4rem;">+ Flaw</button>
+              <button class="btn btn-outline" id="btn-builder-add-flaw" style="font-size: var(--font-size-xs); min-height: 26px; padding: 0.1rem 0.4rem;">+ Flaw</button>
             </div>
             <div id="builder-flaws-list" style="display: flex; flex-direction: column; gap: 0.3rem; max-height: 140px; overflow-y: auto;"></div>
           </div>
@@ -1134,7 +1134,7 @@
         <div style="background-color: var(--bg-input); padding: 0.5rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color); margin-bottom: 0.65rem;">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
             <span style="font-weight: 800; font-size: var(--font-size-xs); color: var(--hero-cyan);">🔄 Alternate Effects Array (1 PP flat each)</span>
-            <button class="btn btn-outline" id="btn-builder-add-ae" style="font-size: 0.7rem; min-height: 26px; padding: 0.1rem 0.4rem;">+ Alt Effect</button>
+            <button class="btn btn-outline" id="btn-builder-add-ae" style="font-size: var(--font-size-xs); min-height: 26px; padding: 0.1rem 0.4rem;">+ Alt Effect</button>
           </div>
           <div id="builder-ae-list" style="display: flex; flex-direction: column; gap: 0.3rem;"></div>
         </div>

@@ -273,7 +273,7 @@ class AppController {
           <div class="wizard-option-card ${isSel ? 'selected' : ''}" data-arch-id="${arch.id}">
             <div style="display: flex; justify-content: space-between; align-items: baseline;">
               <strong style="color: ${isSel ? 'var(--hero-purple)' : 'var(--text-bright)'}; font-size: var(--font-size-sm);">${arch.name}</strong>
-              <span style="font-size: 0.65rem; color: var(--hero-gold); font-weight: 700;">PL ${arch.powerLevel}</span>
+              <span style="font-size: var(--font-size-xs); color: var(--hero-gold); font-weight: 700;">PL ${arch.powerLevel}</span>
             </div>
             <div style="font-size: var(--font-size-xs); color: var(--hero-cyan); margin: 2px 0;">${arch.tagline}</div>
             <div style="font-size: var(--font-size-xs); color: var(--text-muted);">${arch.concept}</div>
@@ -321,7 +321,7 @@ class AppController {
             <div style="font-size: var(--font-size-xs); color: var(--text-muted); margin-bottom: 4px;">
               ${spec.desc}
             </div>
-            <div style="display: flex; gap: 1rem; font-size: 0.7rem; color: var(--hero-cyan); font-weight: 700;">
+            <div style="display: flex; gap: 1rem; font-size: var(--font-size-xs); color: var(--hero-cyan); font-weight: 700;">
               <span>⚡ Attack: ${spec.attackDescriptor}</span>
               <span>🎯 Focus: ${spec.skillFocus}</span>
             </div>
@@ -908,7 +908,7 @@ class AppController {
   }
 
   async checkForUpdates({ isManual = false } = {}) {
-    const CURRENT_VERSION = '3.6';
+    const CURRENT_VERSION = '3.7';
     if (typeof window === 'undefined' || !window.location || !window.location.href || window.location.href === 'about:blank') return;
     try {
       const url = new URL('version.json', window.location.href);
@@ -1003,15 +1003,15 @@ class AppController {
       card.innerHTML = `
         <div style="flex: 1;">
           <div style="font-weight: 800; font-size: var(--font-size-sm); color: ${isCurrent ? 'var(--hero-cyan)' : '#fff'};">
-            ${c.name || 'Unnamed Hero'} ${isCurrent ? '<span style="font-size: 0.65rem; background: var(--hero-cyan); color: #000; padding: 1px 5px; border-radius: 3px; font-weight: 800; margin-left: 0.4rem;">ACTIVE</span>' : ''}
+            ${c.name || 'Unnamed Hero'} ${isCurrent ? '<span style="font-size: var(--font-size-xs); background: var(--hero-cyan); color: #000; padding: 1px 5px; border-radius: 3px; font-weight: 800; margin-left: 0.4rem;">ACTIVE</span>' : ''}
           </div>
-          <div style="font-size: 0.72rem; color: var(--text-muted);">
+          <div style="font-size: var(--font-size-xs); color: var(--text-muted);">
             PL ${c.powerLevel || 10} • ${c.campaign || 'Earth-Prime'} • ${c.powerPointsBudget || 150} PP
           </div>
         </div>
         <div style="display: flex; gap: 0.4rem;">
-          ${!isCurrent ? `<button class="btn btn-primary btn-load-char" data-id="${c.id}" style="font-size: 0.75rem; min-height: 30px; padding: 0.2rem 0.6rem;">Load</button>` : ''}
-          <button class="btn btn-danger btn-delete-char" data-id="${c.id}" style="font-size: 0.75rem; min-height: 30px; padding: 0.2rem 0.6rem;" title="Delete hero">🗑️</button>
+          ${!isCurrent ? `<button class="btn btn-primary btn-load-char" data-id="${c.id}" style="font-size: var(--font-size-xs); min-height: 30px; padding: 0.2rem 0.6rem;">Load</button>` : ''}
+          <button class="btn btn-danger btn-delete-char" data-id="${c.id}" style="font-size: var(--font-size-xs); min-height: 30px; padding: 0.2rem 0.6rem;" title="Delete hero">🗑️</button>
         </div>
       `;
 
@@ -1765,7 +1765,7 @@ class AppController {
     const configs = discordIntegrator.getConfigs();
     if (configs.length === 0) {
       container.innerHTML = `
-        <div style="background-color: var(--bg-input); padding: 0.75rem; border-radius: var(--radius-sm); border: 1px dashed var(--border-color); text-align: center; color: var(--text-muted); font-size: 0.75rem;">
+        <div style="background-color: var(--bg-input); padding: 0.75rem; border-radius: var(--radius-sm); border: 1px dashed var(--border-color); text-align: center; color: var(--text-muted); font-size: var(--font-size-xs);">
           No Discord channels configured. Click <strong>+ Add Channel</strong> to connect a webhook or bot.
         </div>
       `;
@@ -1786,19 +1786,19 @@ class AppController {
               <span class="discord-badge ${cfg.type === 'bot' ? 'discord-badge-bot' : 'discord-badge-webhook'}">
                 ${cfg.type === 'bot' ? '🤖 Bot API' : '🔗 Webhook'}
               </span>
-              <span style="font-size: 0.7rem; color: var(--text-muted);">
+              <span style="font-size: var(--font-size-xs); color: var(--text-muted);">
                 ${cfg.serverName ? cfg.serverName : ''} ${cfg.channelName ? '#' + cfg.channelName : ''}
               </span>
             </div>
           </div>
-          <label style="display: flex; align-items: center; gap: 0.3rem; font-size: 0.72rem; font-weight: 700; cursor: pointer; color: ${cfg.enabled ? 'var(--hero-cyan)' : 'var(--text-muted)'};">
+          <label style="display: flex; align-items: center; gap: 0.3rem; font-size: var(--font-size-xs); font-weight: 700; cursor: pointer; color: ${cfg.enabled ? 'var(--hero-cyan)' : 'var(--text-muted)'};">
             <input type="checkbox" class="cfg-toggle-enabled" data-id="${cfg.id}" ${cfg.enabled ? 'checked' : ''}> Echo
           </label>
         </div>
         <div style="display: flex; gap: 0.35rem; justify-content: flex-end; margin-top: 0.4rem;">
-          <button class="btn btn-outline cfg-btn-test" data-id="${cfg.id}" style="font-size: 0.7rem; padding: 0.15rem 0.5rem; min-height: 26px;">🔔 Test</button>
-          <button class="btn btn-outline cfg-btn-edit" data-id="${cfg.id}" style="font-size: 0.7rem; padding: 0.15rem 0.5rem; min-height: 26px;">✏️ Edit</button>
-          <button class="btn btn-danger cfg-btn-delete" data-id="${cfg.id}" style="font-size: 0.7rem; padding: 0.15rem 0.5rem; min-height: 26px;">🗑️</button>
+          <button class="btn btn-outline cfg-btn-test" data-id="${cfg.id}" style="font-size: var(--font-size-xs); padding: 0.15rem 0.5rem; min-height: 26px;">🔔 Test</button>
+          <button class="btn btn-outline cfg-btn-edit" data-id="${cfg.id}" style="font-size: var(--font-size-xs); padding: 0.15rem 0.5rem; min-height: 26px;">✏️ Edit</button>
+          <button class="btn btn-danger cfg-btn-delete" data-id="${cfg.id}" style="font-size: var(--font-size-xs); padding: 0.15rem 0.5rem; min-height: 26px;">🗑️</button>
         </div>
       `;
 
@@ -2283,11 +2283,11 @@ class AppController {
         btn.innerHTML = `
           <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 0.15rem;">
             <span style="font-size: 0.95rem; font-weight: 800; color: var(--hero-gold); letter-spacing: 0.04em;">${abShort}</span>
-            <span class="rules-link rules-info-badge" data-id="${ab.id}" data-type="ability" data-name="${ab.name}" data-cat="Ability" title="${ab.name} (Click for rules)" style="font-size: 0.75rem; opacity: 0.7; cursor: pointer; padding: 2px 4px; border-radius: 3px;">ℹ️</span>
+            <span class="rules-link rules-info-badge" data-id="${ab.id}" data-type="ability" data-name="${ab.name}" data-cat="Ability" title="${ab.name} (Click for rules)" style="font-size: var(--font-size-xs); opacity: 0.7; cursor: pointer; padding: 2px 4px; border-radius: 3px;">ℹ️</span>
           </div>
           <div style="display: flex; align-items: baseline; justify-content: space-between; width: 100%;">
             <strong style="font-size: 1.35rem; font-weight: 900; line-height: 1; color: ${effRank !== baseRank ? 'var(--hero-red)' : '#fff'};">${effRank >= 0 ? '+' + effRank : effRank}</strong>
-            ${mods.checkPenalty !== 0 ? `<span style="font-size: 0.75rem; color: var(--hero-red); font-weight: 800;">(${mods.checkPenalty})</span>` : ''}
+            ${mods.checkPenalty !== 0 ? `<span style="font-size: var(--font-size-xs); color: var(--hero-red); font-weight: 800;">(${mods.checkPenalty})</span>` : ''}
           </div>
         `;
 
@@ -2352,14 +2352,14 @@ class AppController {
         btn.innerHTML = `
           <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 0.15rem;">
             <span style="font-size: 0.95rem; font-weight: 800; color: var(--hero-cyan); text-transform: uppercase; letter-spacing: 0.04em;">${def.name}</span>
-            <span class="rules-link rules-info-badge" data-id="${def.id}" data-type="defense" data-name="${def.name}" data-cat="Defense" title="${def.name} (Click for rules)" style="font-size: 0.75rem; opacity: 0.7; cursor: pointer; padding: 2px 4px; border-radius: 3px;">ℹ️</span>
+            <span class="rules-link rules-info-badge" data-id="${def.id}" data-type="defense" data-name="${def.name}" data-cat="Defense" title="${def.name} (Click for rules)" style="font-size: var(--font-size-xs); opacity: 0.7; cursor: pointer; padding: 2px 4px; border-radius: 3px;">ℹ️</span>
           </div>
           <div style="display: flex; align-items: baseline; justify-content: space-between; width: 100%; gap: 0.35rem;">
             <div style="display: flex; align-items: baseline; gap: 0.25rem;">
               <strong style="font-size: 1.35rem; font-weight: 900; line-height: 1; color: ${effScore !== baseScore ? 'var(--hero-red)' : 'var(--text-bright)'};">${effScore >= 0 ? '+' + effScore : effScore}</strong>
-              ${effScore !== baseScore ? `<span style="font-size: 0.75rem; color: var(--hero-red); font-weight: 800;">*</span>` : ''}
+              ${effScore !== baseScore ? `<span style="font-size: var(--font-size-xs); color: var(--hero-red); font-weight: 800;">*</span>` : ''}
             </div>
-            <span style="font-size: 0.75rem; color: ${effScore !== baseScore ? 'var(--hero-red)' : 'var(--text-muted)'}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: right; max-width: 110px;" title="${noteText}">
+            <span style="font-size: var(--font-size-xs); color: ${effScore !== baseScore ? 'var(--hero-red)' : 'var(--text-muted)'}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: right; max-width: 110px;" title="${noteText}">
               ${noteText}
             </span>
           </div>
@@ -2615,8 +2615,8 @@ class AppController {
               ${sk.name}${sk.specialty ? ` (${sk.specialty})` : ''}
             </span>
             ${sk.isUntrained 
-              ? `<span style="font-size: 0.68rem; background: rgba(255,255,255,0.06); padding: 0.1rem 0.35rem; border-radius: 3px; color: var(--text-muted); margin-left: 0.4rem;">Untrained</span>`
-              : `<span style="font-size: 0.68rem; background: rgba(37,99,235,0.15); border: 1px solid rgba(37,99,235,0.3); padding: 0.1rem 0.35rem; border-radius: 3px; color: var(--hero-cyan); margin-left: 0.4rem;">Rank ${sk.ranks}</span>`
+              ? `<span style="font-size: var(--font-size-xs); background: rgba(255,255,255,0.06); padding: 0.1rem 0.35rem; border-radius: 3px; color: var(--text-muted); margin-left: 0.4rem;">Untrained</span>`
+              : `<span style="font-size: var(--font-size-xs); background: rgba(37,99,235,0.15); border: 1px solid rgba(37,99,235,0.3); padding: 0.1rem 0.35rem; border-radius: 3px; color: var(--hero-cyan); margin-left: 0.4rem;">Rank ${sk.ranks}</span>`
             }
           </td>
           <td><strong style="color: var(--text-muted);">${sk.ability.toUpperCase()}</strong></td>
@@ -2659,8 +2659,8 @@ class AppController {
       card.className = 'ability-stepper-card-compact';
       card.innerHTML = `
         <div style="display: flex; justify-content: space-between; align-items: baseline; line-height: 1.1;">
-          <span class="rules-link" data-id="${ab.id}" data-type="ability" data-name="${ab.name}" data-cat="Ability" style="font-weight: 800; font-size: 0.72rem; color: var(--hero-gold); cursor: pointer;" title="${ab.name}${ab.id === 'str' ? ` (Lift: ${getStrengthLiftingCapacity(val)})` : ''}">${ab.short}</span>
-          <span style="font-size: 0.62rem; color: var(--text-muted);">${val * 2} PP</span>
+          <span class="rules-link" data-id="${ab.id}" data-type="ability" data-name="${ab.name}" data-cat="Ability" style="font-weight: 800; font-size: var(--font-size-xs); color: var(--hero-gold); cursor: pointer;" title="${ab.name}${ab.id === 'str' ? ` (Lift: ${getStrengthLiftingCapacity(val)})` : ''}">${ab.short}</span>
+          <span style="font-size: var(--font-size-xs); color: var(--text-muted);">${val * 2} PP</span>
         </div>
         <div class="stepper-control compact" style="width: 100%; justify-content: center; margin-top: 0.15rem;">
           <button class="btn-stepper compact" data-ab="${ab.id}" data-dir="-1">-</button>
@@ -2692,11 +2692,11 @@ class AppController {
       card.className = 'defense-stepper-card-compact';
       card.innerHTML = `
         <div style="display: flex; justify-content: space-between; align-items: baseline; line-height: 1.1;">
-          <span class="rules-link" data-id="${def.id}" data-type="defense" data-name="${def.name}" data-cat="Defense" style="font-weight: 800; font-size: 0.72rem; color: var(--hero-cyan); text-transform: uppercase; cursor: pointer;" title="${def.name}">${def.name}</span>
+          <span class="rules-link" data-id="${def.id}" data-type="defense" data-name="${def.name}" data-cat="Defense" style="font-weight: 800; font-size: var(--font-size-xs); color: var(--hero-cyan); text-transform: uppercase; cursor: pointer;" title="${def.name}">${def.name}</span>
           <strong style="font-size: var(--font-size-sm); font-weight: 900; color: var(--text-bright);">${total}</strong>
         </div>
         <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; margin-top: 0.15rem; gap: 0.2rem;">
-          <span style="font-size: 0.6rem; color: var(--text-muted);" title="Base (${baseVal}) + Bought (${bought})">B${baseVal}+${bought}</span>
+          <span style="font-size: var(--font-size-xs); color: var(--text-muted);" title="Base (${baseVal}) + Bought (${bought})">B${baseVal}+${bought}</span>
           <div class="stepper-control compact">
             <button class="btn-stepper compact" data-def="${def.id}" data-dir="-1">-</button>
             <span class="stepper-value compact">${bought}</span>
@@ -2772,10 +2772,12 @@ class AppController {
 
     SKILLS_LIST.forEach(skillDef => {
       const baseVal = parseInt(this.char.abilities?.[skillDef.ability], 10) || 0;
-      const allowsSpecialty = skillDef.requiresOption3E || houseRuleActive;
+      const isAssignedFocus = !!skillDef.isAssignedFocus;
+      const maxRank = skillDef.maxRankPerInstance || 999;
+      const allowsSpecialty = skillDef.requiresOption3E || isAssignedFocus || houseRuleActive;
 
       if (!allowsSpecialty) {
-        // Standard 3E skill row (Specialization house rule disabled, and not Close Combat/Expertise/Ranged Combat)
+        // Standard 3E skill row (Specialization house rule disabled, and not Close Combat/Expertise/Ranged Combat/Languages/Skill Mastery)
         const instances = (this.char.skills || []).filter(s => s.id === skillDef.id);
         const ranks = instances.reduce((sum, inst) => sum + (parseInt(inst.ranks, 10) || 0), 0);
         const totalBonus = baseVal + ranks;
@@ -2787,8 +2789,8 @@ class AppController {
             <span class="rules-link" data-id="${skillDef.id}" data-type="skill" data-name="${skillDef.name}" data-cat="Official 3E Skill" style="cursor: pointer; font-weight: 700;">
               ${skillDef.name}
             </span>
-            ${skillDef.trainedOnly ? '<span style="font-size: 0.72rem; color: var(--hero-red); margin-left: 0.4rem; font-weight: 600;">[Trained Only]</span>' : ''}
-            ${hasStoredSpecialty ? '<span style="font-size: 0.7rem; color: var(--text-muted); margin-left: 0.4rem; font-style: italic;" title="Specialization inactive while House Rule is disabled (remembered in data)">[Specialty Inactive]</span>' : ''}
+            ${skillDef.trainedOnly ? '<span style="font-size: var(--font-size-xs); color: var(--hero-red); margin-left: 0.4rem; font-weight: 600;">[Trained Only]</span>' : ''}
+            ${hasStoredSpecialty ? '<span style="font-size: var(--font-size-xs); color: var(--text-muted); margin-left: 0.4rem; font-style: italic;" title="Specialization inactive while House Rule is disabled (remembered in data)">[Specialty Inactive]</span>' : ''}
           </td>
           <td><strong style="color: var(--text-muted);">${skillDef.ability.toUpperCase()}</strong></td>
           <td>${baseVal >= 0 ? '+' : ''}${baseVal}</td>
@@ -2814,20 +2816,20 @@ class AppController {
 
         tbody.appendChild(row);
       } else {
-        // Multi-instance specialty skill (Close Combat, Ranged Combat, Expertise, OR any skill when house rule is active)
+        // Multi-instance specialty/focus skill (Close Combat, Ranged Combat, Expertise, Languages, Skill Mastery, OR any skill when house rule is active)
         const instances = (this.char.skills || []).filter(s => s.id === skillDef.id);
 
         if (instances.length === 0) {
-          // Render default 0-rank row with "+ Specialty"
+          // Render default 0-rank row with "+ Specialty" or "+ Focus"
           const totalBonus = baseVal;
           const row = document.createElement('tr');
           row.innerHTML = `
             <td>
-              <span class="rules-link" data-id="${skillDef.id}" data-type="skill" data-name="${skillDef.name}" data-cat="Official 3E Skill" style="cursor: pointer; font-weight: 700;">
+              <span class="rules-link" data-id="${skillDef.id}" data-type="skill" data-name="${skillDef.name}" data-cat="${isAssignedFocus ? 'Assigned Focus Skill' : 'Official 3E Skill'}" style="cursor: pointer; font-weight: 700;">
                 ${skillDef.name}
               </span>
-              ${skillDef.trainedOnly ? '<span style="font-size: 0.72rem; color: var(--hero-red); margin-left: 0.4rem; font-weight: 600;">[Trained Only]</span>' : ''}
-              <span style="font-size: 0.75rem; color: var(--text-muted); margin-left: 0.5rem; font-style: italic;">[No Specialty Assigned]</span>
+              ${skillDef.trainedOnly ? '<span style="font-size: var(--font-size-xs); color: var(--hero-red); margin-left: 0.4rem; font-weight: 600;">[Trained Only]</span>' : ''}
+              <span style="font-size: var(--font-size-xs); color: var(--text-muted); margin-left: 0.5rem; font-style: italic;">[${isAssignedFocus ? 'No Focus Assigned' : 'No Specialty Assigned'}]</span>
             </td>
             <td><strong style="color: var(--text-muted);">${skillDef.ability.toUpperCase()}</strong></td>
             <td>${baseVal >= 0 ? '+' : ''}${baseVal}</td>
@@ -2840,18 +2842,18 @@ class AppController {
             </td>
             <td><strong style="color: var(--hero-cyan); font-size: var(--font-size-md);">${totalBonus >= 0 ? '+' : ''}${totalBonus}</strong></td>
             <td style="text-align: right;">
-              <button class="btn btn-outline btn-skill-add-specialty" style="min-height: 28px; font-size: var(--font-size-xs); padding: 0.15rem 0.5rem;">+ Specialty</button>
+              <button class="btn btn-outline btn-skill-add-specialty" style="min-height: 28px; font-size: var(--font-size-xs); padding: 0.15rem 0.5rem;">+ ${isAssignedFocus ? 'Focus' : 'Specialty'}</button>
             </td>
           `;
 
-          const addSpecialtyAction = () => {
-            this.openPrebuiltOptionsModal(`Choose Specialty for ${skillDef.name}`, skillDef.options, (selected) => {
+          const addAction = () => {
+            this.openPrebuiltOptionsModal(`Choose ${isAssignedFocus ? 'Focus' : 'Specialty'} for ${skillDef.name}`, skillDef.options, (selected) => {
               this.addSkillInstance(skillDef.id, skillDef.name, selected, 1);
             });
           };
 
-          row.querySelector('.btn-skill-add-specialty')?.addEventListener('click', addSpecialtyAction);
-          row.querySelector('[data-dir="1"]')?.addEventListener('click', addSpecialtyAction);
+          row.querySelector('.btn-skill-add-specialty')?.addEventListener('click', addAction);
+          row.querySelector('[data-dir="1"]')?.addEventListener('click', addAction);
 
           tbody.appendChild(row);
         } else {
@@ -2860,51 +2862,62 @@ class AppController {
             const ranks = parseInt(inst.ranks, 10) || 0;
             const totalBonus = baseVal + ranks;
             const specialty = inst.specialty || '';
+            const isCapped = isAssignedFocus && ranks >= maxRank;
 
             const row = document.createElement('tr');
             row.innerHTML = `
               <td>
-                <span class="rules-link" data-id="${skillDef.id}" data-type="skill" data-name="${skillDef.name}" data-cat="Official 3E Skill" style="cursor: pointer; font-weight: 700;">
+                <span class="rules-link" data-id="${skillDef.id}" data-type="skill" data-name="${skillDef.name}" data-cat="${isAssignedFocus ? 'Assigned Focus Skill' : 'Official 3E Skill'}" style="cursor: pointer; font-weight: 700;">
                   ${skillDef.name}
                 </span>
-                <span class="skill-specialty-badge" style="font-size: 0.78rem; color: var(--hero-gold); margin-left: 0.5rem; font-weight: 800; cursor: pointer; text-decoration: underline dotted;" title="Click to edit specialty">
-                  [${specialty || 'General / Unspecified'}]
+                <span class="skill-specialty-badge" style="font-size: var(--font-size-xs); color: var(--hero-gold); margin-left: 0.5rem; font-weight: 800; cursor: pointer; text-decoration: underline dotted;" title="Click to edit ${isAssignedFocus ? 'focus' : 'specialty'}">
+                  [${specialty || (isAssignedFocus ? 'Focus Unassigned' : 'General / Unspecified')}]
                 </span>
+                ${isAssignedFocus ? '<span style="font-size: var(--font-size-xs); color: var(--hero-cyan); margin-left: 0.35rem; font-style: italic;">(1-Rank Focus)</span>' : ''}
               </td>
               <td><strong style="color: var(--text-muted);">${skillDef.ability.toUpperCase()}</strong></td>
               <td>${baseVal >= 0 ? '+' : ''}${baseVal}</td>
               <td>
                 <div class="stepper-control">
-                  <button class="btn-stepper compact" data-inst-dir="-1">-</button>
+                  <button class="btn-stepper compact" data-inst-dir="-1" ${ranks <= 0 ? 'disabled' : ''}>-</button>
                   <span class="stepper-value compact">${ranks}</span>
-                  <button class="btn-stepper compact" data-inst-dir="1">+</button>
+                  <button class="btn-stepper compact" data-inst-dir="1" ${isCapped ? 'disabled title="Max 1 rank per focus. Add another focus for additional ranks."' : ''}>+</button>
                 </div>
               </td>
               <td><strong style="color: var(--hero-cyan); font-size: var(--font-size-md);">${totalBonus >= 0 ? '+' : ''}${totalBonus}</strong></td>
               <td style="text-align: right; white-space: nowrap;">
-                <button class="btn btn-outline btn-edit-inst-specialty" style="min-height: 28px; font-size: 0.72rem; padding: 0.15rem 0.45rem;" title="Change Specialty">✏️ Specialty</button>
-                <button class="btn btn-danger btn-delete-inst" style="min-height: 28px; font-size: 0.72rem; padding: 0.15rem 0.45rem; margin-left: 0.25rem;" title="Remove this specialty instance">🗑️</button>
+                <button class="btn btn-outline btn-edit-inst-specialty" style="min-height: 28px; font-size: var(--font-size-xs); padding: 0.15rem 0.45rem;" title="Change ${isAssignedFocus ? 'Focus' : 'Specialty'}">✏️ ${isAssignedFocus ? 'Focus' : 'Specialty'}</button>
+                <button class="btn btn-danger btn-delete-inst" style="min-height: 28px; font-size: var(--font-size-xs); padding: 0.15rem 0.45rem; margin-left: 0.25rem;" title="Remove this instance">🗑️</button>
               </td>
             `;
 
-            const editSpecialty = () => {
-              this.openPrebuiltOptionsModal(`Change Specialty for ${skillDef.name}`, skillDef.options, (selected) => {
+            const editAction = () => {
+              this.openPrebuiltOptionsModal(`Change ${isAssignedFocus ? 'Focus' : 'Specialty'} for ${skillDef.name}`, skillDef.options, (selected) => {
                 inst.specialty = selected;
                 this.saveAndAudit();
                 this.renderAll();
               });
             };
 
-            row.querySelector('.skill-specialty-badge')?.addEventListener('click', editSpecialty);
-            row.querySelector('.btn-edit-inst-specialty')?.addEventListener('click', editSpecialty);
+            row.querySelector('.skill-specialty-badge')?.addEventListener('click', editAction);
+            row.querySelector('.btn-edit-inst-specialty')?.addEventListener('click', editAction);
 
             row.querySelector('[data-inst-dir="-1"]')?.addEventListener('click', () => {
-              inst.ranks = Math.max(0, (parseInt(inst.ranks, 10) || 0) - 1);
-              this.saveAndAudit();
-              this.renderAll();
+              const curRanks = parseInt(inst.ranks, 10) || 0;
+              if (isAssignedFocus && curRanks <= 1) {
+                this.removeSkillInstance(inst.instanceId);
+              } else {
+                inst.ranks = Math.max(0, curRanks - 1);
+                this.saveAndAudit();
+                this.renderAll();
+              }
             });
             row.querySelector('[data-inst-dir="1"]')?.addEventListener('click', () => {
-              inst.ranks = (parseInt(inst.ranks, 10) || 0) + 1;
+              const curRanks = parseInt(inst.ranks, 10) || 0;
+              if (isAssignedFocus && curRanks >= maxRank) {
+                return;
+              }
+              inst.ranks = curRanks + 1;
               this.saveAndAudit();
               this.renderAll();
             });
@@ -2916,19 +2929,19 @@ class AppController {
             tbody.appendChild(row);
           });
 
-          // Sub-row to Add Another Specialty of this skill
+          // Sub-row to Add Another Specialty / Focus
           const addRow = document.createElement('tr');
           addRow.style.backgroundColor = 'rgba(255, 255, 255, 0.02)';
           addRow.innerHTML = `
             <td colspan="6" style="padding: 0.35rem 0.6rem; text-align: left;">
-              <button class="btn btn-outline btn-add-another-skill" style="min-height: 26px; font-size: 0.74rem; padding: 0.15rem 0.55rem; border-color: rgba(6, 182, 212, 0.4); color: var(--hero-cyan);">
-                ➕ Add Another ${skillDef.name} Specialty
+              <button class="btn btn-outline btn-add-another-skill" style="min-height: 26px; font-size: var(--font-size-xs); padding: 0.15rem 0.55rem; border-color: rgba(6, 182, 212, 0.4); color: var(--hero-cyan);">
+                ➕ Add Another ${skillDef.name} ${isAssignedFocus ? 'Focus' : 'Specialty'}
               </button>
             </td>
           `;
 
           addRow.querySelector('.btn-add-another-skill')?.addEventListener('click', () => {
-            this.openPrebuiltOptionsModal(`Add Another Specialty for ${skillDef.name}`, skillDef.options, (selected) => {
+            this.openPrebuiltOptionsModal(`Add Another ${isAssignedFocus ? 'Focus' : 'Specialty'} for ${skillDef.name}`, skillDef.options, (selected) => {
               this.addSkillInstance(skillDef.id, skillDef.name, selected, 1);
             });
           });
@@ -2965,14 +2978,17 @@ class AppController {
     this.renderAll();
   }
 
-  addSkillInstance(id, name, specialty = '', ranks = 0) {
+  addSkillInstance(id, name, specialty = '', ranks = 1) {
     if (!this.char.skills) this.char.skills = [];
+    const skillDef = SKILLS_LIST.find(s => s.id === id);
+    const maxRank = skillDef?.maxRankPerInstance || 999;
+    const initialRanks = Math.min(Math.max(1, ranks), maxRank);
     const newInst = {
       id,
       instanceId: `sk_${id}_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`,
       name,
       specialty,
-      ranks
+      ranks: initialRanks
     };
     this.char.skills.push(newInst);
     this.saveAndAudit();
@@ -2988,17 +3004,6 @@ class AppController {
 
   updateSkillRanks(id, name, newRanks) {
     this.updateStandardSkillRanks(id, name, newRanks);
-  }
-
-  updateSkillRanks(id, name, newRanks) {
-    if (!this.char.skills) this.char.skills = [];
-    let item = this.char.skills.find(s => s.id === id);
-    if (!item) {
-      item = { id, instanceId: `sk_${id}_${Date.now()}`, name, ranks: 0 };
-      this.char.skills.push(item);
-    }
-    item.ranks = Math.max(0, newRanks);
-    this.renderAll();
   }
 
   setSkillSpecialty(id, name, specialty) {
@@ -3050,10 +3055,10 @@ class AppController {
             <span class="rules-link" data-id="${advDef.id}" data-type="advantage" data-name="${advDef.name}" data-cat="${advDef.category} Advantage">
               ${advDef.name}
             </span>
-            <span style="font-size: 0.65rem; background: rgba(255,255,255,0.06); padding: 0.1rem 0.35rem; border-radius: 3px;">${advDef.category}</span>
+            <span style="font-size: var(--font-size-xs); background: rgba(255,255,255,0.06); padding: 0.1rem 0.35rem; border-radius: 3px;">${advDef.category}</span>
           </div>
           <div style="font-size: var(--font-size-xs); color: var(--text-muted);">${previewDesc}...</div>
-          ${existing?.note ? `<div style="font-size: 0.7rem; color: var(--hero-gold); margin-top: 0.25rem;">[${existing.note}]</div>` : ''}
+          ${existing?.note ? `<div style="font-size: var(--font-size-xs); color: var(--hero-gold); margin-top: 0.25rem;">[${existing.note}]</div>` : ''}
         </div>
 
         <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.5rem; border-top: 1px solid var(--border-color); padding-top: 0.45rem;">
@@ -3262,8 +3267,8 @@ class AppController {
           ${!valResult.valid ? '<span class="badge-tag" style="background: rgba(239, 68, 68, 0.25); color: var(--hero-red); border: 1px solid var(--hero-red);" title="Rule conflicts detected">⚠️ Conflict</span>' : ''}
         </div>
         <div class="power-card-header-actions" onclick="event.stopPropagation()">
-          <button class="btn btn-outline btn-duplicate-power" data-p-id="${p.id}" title="Duplicate Power" style="min-height: 26px; padding: 0.1rem 0.45rem; font-size: 0.72rem;">📋 Duplicate</button>
-          <button class="btn btn-danger btn-delete-power" data-p-id="${p.id}" title="Delete Power" style="min-height: 26px; padding: 0.1rem 0.45rem; font-size: 0.72rem;">🗑️ Delete</button>
+          <button class="btn btn-outline btn-duplicate-power" data-p-id="${p.id}" title="Duplicate Power" style="min-height: 26px; padding: 0.1rem 0.45rem; font-size: var(--font-size-xs);">📋 Duplicate</button>
+          <button class="btn btn-danger btn-delete-power" data-p-id="${p.id}" title="Delete Power" style="min-height: 26px; padding: 0.1rem 0.45rem; font-size: var(--font-size-xs);">🗑️ Delete</button>
         </div>
       `;
 
@@ -3360,14 +3365,14 @@ class AppController {
             <label style="font-size: var(--font-size-xs); font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 0.25rem;">Derived Range (3E Modifiers)</label>
             <div style="min-height: 38px; display: flex; flex-direction: column; justify-content: center; padding: 0.3rem 0.6rem; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-sm);">
               <span style="font-size: var(--font-size-sm); font-weight: 800; color: var(--hero-cyan);">${rd.effectiveRange}</span>
-              <span style="font-size: 0.68rem; color: var(--text-muted);">${rd.rangeNotes || 'Base ' + rd.baseRange}</span>
+              <span style="font-size: var(--font-size-xs); color: var(--text-muted);">${rd.rangeNotes || 'Base ' + rd.baseRange}</span>
             </div>
           </div>
           <div>
             <label style="font-size: var(--font-size-xs); font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 0.25rem;">Derived Duration (3E Modifiers)</label>
             <div style="min-height: 38px; display: flex; flex-direction: column; justify-content: center; padding: 0.3rem 0.6rem; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-sm);">
               <span style="font-size: var(--font-size-sm); font-weight: 800; color: var(--hero-gold);">${rd.effectiveDuration}</span>
-              <span style="font-size: 0.68rem; color: var(--text-muted);">${rd.durationNotes || 'Base ' + rd.baseDuration}</span>
+              <span style="font-size: var(--font-size-xs); color: var(--text-muted);">${rd.durationNotes || 'Base ' + rd.baseDuration}</span>
             </div>
           </div>
           <div style="text-align: right; padding-bottom: 0.4rem;">
@@ -3423,7 +3428,7 @@ class AppController {
             <select class="select-add-extra" style="flex: 1; font-size: var(--font-size-xs);">
               ${EXTRAS_CATALOG.map(ex => `<option value="${ex.id}">${ex.name} (${ex.isFlat ? `+${ex.cost} flat` : `+${ex.cost}/rank`})</option>`).join('')}
             </select>
-            <button class="btn btn-outline btn-add-extra" style="font-size: 0.72rem; min-height: 28px; padding: 0.15rem 0.5rem; white-space: nowrap;">+ Add Extra</button>
+            <button class="btn btn-outline btn-add-extra" style="font-size: var(--font-size-xs); min-height: 28px; padding: 0.15rem 0.5rem; white-space: nowrap;">+ Add Extra</button>
           </div>
           <div class="extras-items-container" style="display: flex; flex-direction: column; gap: 0.35rem;"></div>
         `;
@@ -3442,7 +3447,7 @@ class AppController {
               <span style="font-size: var(--font-size-xs); font-weight: 700; color: ${exDef.isUnique ? 'var(--hero-gold)' : 'var(--text-bright)'};">
                 ${exDef.name}
               </span>
-              <span style="font-size: 0.68rem; color: var(--text-muted); margin-left: 0.35rem;">
+              <span style="font-size: var(--font-size-xs); color: var(--text-muted); margin-left: 0.35rem;">
                 ${exDef.isFlat ? `(+${exDef.cost} flat)` : `(+${exDef.cost}/rank)`}
               </span>
             </div>
@@ -3454,7 +3459,7 @@ class AppController {
                   <button class="btn-stepper compact btn-ex-plus" ${r >= maxR ? 'disabled' : ''}>+</button>
                 </div>
               ` : ''}
-              <button class="btn btn-outline btn-remove-extra" style="padding: 0.1rem 0.35rem; min-height: 24px; font-size: 0.68rem;">✕</button>
+              <button class="btn btn-outline btn-remove-extra" style="padding: 0.1rem 0.35rem; min-height: 24px; font-size: var(--font-size-xs);">✕</button>
             </div>
           `;
 
@@ -3504,7 +3509,7 @@ class AppController {
             <select class="select-add-flaw" style="flex: 1; font-size: var(--font-size-xs);">
               ${FLAWS_CATALOG.map(fl => `<option value="${fl.id}">${fl.name} (${fl.isDevice ? `Device -${fl.discountPer5}/5` : fl.isFlat ? `-${fl.cost} flat` : `-${fl.cost}/rank`})</option>`).join('')}
             </select>
-            <button class="btn btn-outline btn-add-flaw" style="font-size: 0.72rem; min-height: 28px; padding: 0.15rem 0.5rem; white-space: nowrap;">+ Add Flaw</button>
+            <button class="btn btn-outline btn-add-flaw" style="font-size: var(--font-size-xs); min-height: 28px; padding: 0.15rem 0.5rem; white-space: nowrap;">+ Add Flaw</button>
           </div>
           <div class="flaws-items-container" style="display: flex; flex-direction: column; gap: 0.35rem;"></div>
         `;
@@ -3523,7 +3528,7 @@ class AppController {
               <span style="font-size: var(--font-size-xs); font-weight: 700; color: ${flDef.isUnique ? 'var(--hero-gold)' : 'var(--text-bright)'};">
                 ${flDef.name}
               </span>
-              <span style="font-size: 0.68rem; color: var(--text-muted); margin-left: 0.35rem;">
+              <span style="font-size: var(--font-size-xs); color: var(--text-muted); margin-left: 0.35rem;">
                 ${flDef.isDevice ? `(Device -${flDef.discountPer5}/5 PP)` : flDef.isFlat ? `(-${flDef.cost} flat)` : `(-${flDef.cost}/rank)`}
               </span>
             </div>
@@ -3535,7 +3540,7 @@ class AppController {
                   <button class="btn-stepper compact btn-fl-plus" ${r >= maxR ? 'disabled' : ''}>+</button>
                 </div>
               ` : ''}
-              <button class="btn btn-outline btn-remove-flaw" style="padding: 0.1rem 0.35rem; min-height: 24px; font-size: 0.68rem;">✕</button>
+              <button class="btn btn-outline btn-remove-flaw" style="padding: 0.1rem 0.35rem; min-height: 24px; font-size: var(--font-size-xs);">✕</button>
             </div>
           `;
 
@@ -3587,14 +3592,14 @@ class AppController {
           <div class="power-section-header">
             <div>
               <strong style="color: var(--hero-blue); font-size: var(--font-size-xs);">⚡ Power Array & Alternate Effects (AE)</strong>
-              <label style="font-size: 0.72rem; color: var(--text-muted); margin-left: 0.85rem; cursor: pointer;">
+              <label style="font-size: var(--font-size-xs); color: var(--text-muted); margin-left: 0.85rem; cursor: pointer;">
                 <input type="checkbox" class="cb-dynamic-array" ${p.isDynamicArray ? 'checked' : ''} style="vertical-align: middle; margin-right: 0.3rem;">
                 Dynamic Array (+1 PP base)
               </label>
             </div>
             <div style="display: flex; gap: 0.35rem;">
-              <button class="btn btn-outline btn-add-standard-ae" style="font-size: 0.7rem; min-height: 26px; padding: 0.1rem 0.45rem;">➕ Standard AE (1 PP)</button>
-              <button class="btn btn-outline btn-add-dynamic-ae" style="font-size: 0.7rem; min-height: 26px; padding: 0.1rem 0.45rem; border-color: rgba(245, 158, 11, 0.5); color: var(--hero-gold);">➕ Dynamic AE (2 PP)</button>
+              <button class="btn btn-outline btn-add-standard-ae" style="font-size: var(--font-size-xs); min-height: 26px; padding: 0.1rem 0.45rem;">➕ Standard AE (1 PP)</button>
+              <button class="btn btn-outline btn-add-dynamic-ae" style="font-size: var(--font-size-xs); min-height: 26px; padding: 0.1rem 0.45rem; border-color: rgba(245, 158, 11, 0.5); color: var(--hero-gold);">➕ Dynamic AE (2 PP)</button>
             </div>
           </div>
           <div class="ae-items-container" style="display: flex; flex-direction: column; gap: 0.3rem;"></div>
@@ -3616,7 +3621,7 @@ class AppController {
               <input type="text" class="input-ae-name" value="${ae.name || 'Alternate Power'}" style="flex: 1; padding: 0.2rem 0.4rem; font-size: var(--font-size-xs);">
             </div>
             <div style="margin-left: 0.5rem;">
-              <button class="btn btn-danger btn-delete-ae" style="padding: 0.1rem 0.35rem; min-height: 24px; font-size: 0.68rem;">🗑️</button>
+              <button class="btn btn-danger btn-delete-ae" style="padding: 0.1rem 0.35rem; min-height: 24px; font-size: var(--font-size-xs);">🗑️</button>
             </div>
           `;
 
@@ -3667,9 +3672,9 @@ class AppController {
           <div class="power-section-header">
             <div>
               <strong style="color: var(--hero-purple); font-size: var(--font-size-xs);">🔗 Linked Powers (Simultaneous Actions)</strong>
-              <span style="font-size: 0.7rem; color: var(--text-muted); margin-left: 0.5rem;">Shares action (${p.action}), range (${rd.effectiveRange}), and duration (${rd.effectiveDuration}). Costs sum together.</span>
+              <span style="font-size: var(--font-size-xs); color: var(--text-muted); margin-left: 0.5rem;">Shares action (${p.action}), range (${rd.effectiveRange}), and duration (${rd.effectiveDuration}). Costs sum together.</span>
             </div>
-            <button class="btn btn-outline btn-add-linked-effect" style="font-size: 0.7rem; min-height: 26px; padding: 0.1rem 0.45rem;">➕ Add Linked Effect</button>
+            <button class="btn btn-outline btn-add-linked-effect" style="font-size: var(--font-size-xs); min-height: 26px; padding: 0.1rem 0.45rem;">➕ Add Linked Effect</button>
           </div>
           <div class="linked-items-container" style="display: flex; flex-direction: column; gap: 0.35rem;"></div>
         `;
@@ -3697,7 +3702,7 @@ class AppController {
               +${leCost} PP
             </div>
             <div style="text-align: right;">
-              <button class="btn btn-danger btn-delete-le" style="padding: 0.1rem 0.35rem; min-height: 24px; font-size: 0.68rem;">🗑️</button>
+              <button class="btn btn-danger btn-delete-le" style="padding: 0.1rem 0.35rem; min-height: 24px; font-size: var(--font-size-xs);">🗑️</button>
             </div>
           `;
 
@@ -3852,11 +3857,11 @@ class AppController {
       entry.innerHTML = `
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.25rem;">
           <strong style="color: var(--hero-cyan);">${sess.title}</strong>
-          <span style="font-size: 0.7rem; color: var(--text-muted);">${sess.date} • ${sess.time}</span>
+          <span style="font-size: var(--font-size-xs); color: var(--text-muted);">${sess.date} • ${sess.time}</span>
         </div>
         <div style="font-size: var(--font-size-xs); color: var(--text-bright);">${sess.notes}</div>
         <div style="text-align: right; margin-top: 0.25rem;">
-          <button class="btn btn-danger" style="min-height: 24px; padding: 0.1rem 0.35rem; font-size: 0.65rem;">Delete</button>
+          <button class="btn btn-danger" style="min-height: 24px; padding: 0.1rem 0.35rem; font-size: var(--font-size-xs);">Delete</button>
         </div>
       `;
       entry.querySelector('button').addEventListener('click', () => {

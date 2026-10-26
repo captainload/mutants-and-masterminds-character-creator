@@ -6,12 +6,13 @@
    ===================================================================== */
 
 :root {
-  --font-size-xs: 0.72rem;
-  --font-size-sm: 0.82rem;
-  --font-size-base: 0.90rem;
-  --font-size-md: 1.0rem;
-  --font-size-lg: 1.18rem;
-  --font-size-xl: 1.4rem;
+  --font-size-min: 10pt;
+  --font-size-xs: max(10pt, 0.84rem);
+  --font-size-sm: max(10.5pt, 0.88rem);
+  --font-size-base: max(11pt, 0.95rem);
+  --font-size-md: max(12pt, 1.05rem);
+  --font-size-lg: max(14pt, 1.25rem);
+  --font-size-xl: max(16pt, 1.45rem);
 
   --bg-app: #0b1120;
   --bg-header: #0f172a;
@@ -38,30 +39,30 @@
 }
 
 html[data-font-size="small"] {
-  --font-size-xs: 0.65rem;
-  --font-size-sm: 0.75rem;
-  --font-size-base: 0.82rem;
-  --font-size-md: 0.92rem;
-  --font-size-lg: 1.08rem;
-  --font-size-xl: 1.25rem;
+  --font-size-xs: 10pt;
+  --font-size-sm: max(10pt, 0.84rem);
+  --font-size-base: max(10.5pt, 0.88rem);
+  --font-size-md: max(11.5pt, 0.98rem);
+  --font-size-lg: max(13pt, 1.15rem);
+  --font-size-xl: max(15pt, 1.35rem);
 }
 
 html[data-font-size="large"] {
-  --font-size-xs: 0.78rem;
-  --font-size-sm: 0.88rem;
-  --font-size-base: 0.98rem;
-  --font-size-md: 1.10rem;
-  --font-size-lg: 1.28rem;
-  --font-size-xl: 1.55rem;
+  --font-size-xs: max(10.5pt, 0.88rem);
+  --font-size-sm: max(11.5pt, 0.96rem);
+  --font-size-base: max(12.5pt, 1.05rem);
+  --font-size-md: max(13.5pt, 1.18rem);
+  --font-size-lg: max(15.5pt, 1.35rem);
+  --font-size-xl: max(18pt, 1.62rem);
 }
 
 html[data-font-size="xlarge"] {
-  --font-size-xs: 0.85rem;
-  --font-size-sm: 0.96rem;
-  --font-size-base: 1.08rem;
-  --font-size-md: 1.22rem;
-  --font-size-lg: 1.42rem;
-  --font-size-xl: 1.72rem;
+  --font-size-xs: max(11pt, 0.95rem);
+  --font-size-sm: max(12.5pt, 1.05rem);
+  --font-size-base: max(13.5pt, 1.18rem);
+  --font-size-md: max(15pt, 1.30rem);
+  --font-size-lg: max(17pt, 1.50rem);
+  --font-size-xl: max(20pt, 1.80rem);
 }
 
 * {
@@ -202,7 +203,7 @@ body {
 }
 
 .brand-label-compact {
-  font-size: 0.70rem;
+  font-size: var(--font-size-xs);
   font-weight: 900;
   color: #ef4444;
   background: rgba(239, 68, 68, 0.12);
@@ -649,7 +650,7 @@ body {
 }
 
 .popup-category {
-  font-size: 0.65rem;
+  font-size: var(--font-size-xs);
   background: rgba(255, 255, 255, 0.08);
   padding: 0.1rem 0.35rem;
   border-radius: 3px;
@@ -890,7 +891,7 @@ input:focus, select:focus, textarea:focus {
 }
 
 .menu-dropdown-heading {
-  font-size: 0.65rem;
+  font-size: var(--font-size-xs);
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.06em;
@@ -937,7 +938,7 @@ input:focus, select:focus, textarea:focus {
 }
 
 .menu-item-subtext {
-  font-size: 0.7rem;
+  font-size: var(--font-size-xs);
   color: var(--hero-cyan);
   font-weight: 700;
 }
@@ -1037,7 +1038,7 @@ input:focus, select:focus, textarea:focus {
 }
 
 .discord-badge {
-  font-size: 0.65rem;
+  font-size: var(--font-size-xs);
   font-weight: 800;
   padding: 0.15rem 0.45rem;
   border-radius: 4px;
@@ -1102,7 +1103,7 @@ input:focus, select:focus, textarea:focus {
   background-color: var(--bg-input);
   border: 1px solid var(--border-color);
   color: var(--text-muted);
-  font-size: 0.72rem;
+  font-size: var(--font-size-xs);
   font-weight: 700;
   padding: 0.25rem 0.65rem;
   border-radius: 9999px;
@@ -1172,7 +1173,7 @@ input:focus, select:focus, textarea:focus {
 }
 
 .help-article-category {
-  font-size: 0.65rem;
+  font-size: var(--font-size-xs);
   font-weight: 800;
   text-transform: uppercase;
   color: var(--hero-cyan);
@@ -1336,7 +1337,7 @@ button.action-save-card:active {
   background-color: var(--bg-input);
   border: 1px solid var(--border-color);
   color: var(--text-muted);
-  font-size: 0.82rem;
+  font-size: var(--font-size-sm);
   font-weight: 700;
   padding: 0.35rem 0.45rem;
   border-radius: var(--radius-sm);
@@ -1375,7 +1376,7 @@ button.action-save-card:active {
   border: 1px solid var(--border-color);
   padding: 0.2rem 0.45rem;
   border-radius: var(--radius-sm);
-  font-size: 0.78rem;
+  font-size: max(10pt, 0.82rem);
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
@@ -1393,7 +1394,7 @@ button.action-save-card:active {
 
 .movement-badge .movement-mph {
   color: var(--text-muted);
-  font-size: 0.72rem;
+  font-size: var(--font-size-xs);
 }
 
 /* Print Stylesheet for PDF Export */
@@ -1406,7 +1407,7 @@ button.action-save-card:active {
   body {
     background: #fff !important;
     color: #000 !important;
-    font-size: 9.5pt !important;
+    font-size: 10pt !important;
   }
 
   #width-warning-banner,
@@ -1543,7 +1544,7 @@ button.action-save-card:active {
 }
 
 .power-toggle-icon {
-  font-size: 0.75rem;
+  font-size: var(--font-size-xs);
   color: var(--hero-gold);
   width: 14px;
   text-align: center;
@@ -1583,7 +1584,7 @@ button.action-save-card:active {
   align-items: center;
   padding: 0.15rem 0.45rem;
   border-radius: 3px;
-  font-size: 0.65rem;
+  font-size: var(--font-size-xs);
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.03em;

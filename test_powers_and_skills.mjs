@@ -5,7 +5,8 @@ import {
   POWER_EFFECTS_CATALOG,
   computePowerRangeAndDuration,
   validateModifierLegality,
-  calculatePowerCost
+  calculatePowerCost,
+  auditCharacter
 } from './js/rules.js';
 
 console.log('--- Testing v3.5 Powers and Skills Suite ---');
@@ -97,14 +98,42 @@ console.log(`✓ Power cost with Array & Linked Effects verified: ${totalCost} P
 
 // 6. House Rule: Specializations (M&M 4E) vs Standard 3E
 const required3E = SKILLS_LIST.filter(s => s.requiresOption3E);
-console.assert(required3E.length === 3, `Expected 3 skills to require 3E options, found ${required3E.length}`);
+console.assert(required3E.length === 5, `Expected 5 skills to require 3E options/assigned focus, found ${required3E.length}`);
 console.assert(required3E.some(s => s.id === 'close_combat'), 'close_combat must require 3E option');
 console.assert(required3E.some(s => s.id === 'expertise'), 'expertise must require 3E option');
 console.assert(required3E.some(s => s.id === 'ranged_combat'), 'ranged_combat must require 3E option');
+console.assert(required3E.some(s => s.id === 'languages'), 'languages must require 3E option');
+console.assert(required3E.some(s => s.id === 'skill_mastery'), 'skill_mastery must require 3E option');
 
 const athletics = SKILLS_LIST.find(s => s.id === 'athletics');
 console.assert(!athletics.requiresOption3E, 'Athletics must NOT require 3E option');
 console.assert(athletics.options.length > 0, 'Athletics must have house rule options defined');
 console.log('✓ Specialization house rule metadata verified');
 
-console.log('ALL v3.6 TEST CASES PASSED SUCCESSFULLY!');
+// 7. Assigned Focus Skills (1 Rank Limit per instance: Languages, Skill Mastery)
+const languages = SKILLS_LIST.find(s => s.id === 'languages');
+const skillMastery = SKILLS_LIST.find(s => s.id === 'skill_mastery');
+console.assert(languages && languages.isAssignedFocus && languages.maxRankPerInstance === 1, 'Languages must be assigned focus with max 1 rank per instance');
+console.assert(skillMastery && skillMastery.isAssignedFocus && skillMastery.maxRankPerInstance === 1, 'Skill Mastery must be assigned focus with max 1 rank per instance');
+console.assert(languages.options.includes('Spanish') && languages.options.includes('French'), 'Languages options verified');
+console.assert(skillMastery.options.includes('Athletics') && skillMastery.options.includes('Perception'), 'Skill Mastery options verified');
+
+// Test character audit with multiple assigned focus instances
+const testChar = {
+  powerLevel: 10,
+  powerPointsBudget: 150,
+  abilities: { int: 3, agi: 2 },
+  skills: [
+    { id: 'languages', name: 'Languages', specialty: 'Spanish', ranks: 1 },
+    { id: 'languages', name: 'Languages', specialty: 'French', ranks: 1 },
+    { id: 'languages', name: 'Languages', specialty: 'German', ranks: 1 },
+    { id: 'skill_mastery', name: 'Skill Mastery', specialty: 'Athletics', ranks: 1 }
+  ]
+};
+
+const auditResult = auditCharacter(testChar);
+// 4 skill ranks total = Math.ceil(4 / 2) = 2 PP
+console.assert(auditResult.skillsCost === 2, `Expected 2 PP for 4 assigned-focus skill ranks, got ${auditResult.skillsCost}`);
+console.log('✓ Assigned Focus skills with 1-rank limits and multi-instance PP audit verified');
+
+console.log('ALL v3.7 TEST CASES PASSED SUCCESSFULLY!');

@@ -98,6 +98,18 @@ export const SKILLS_LIST = [
     options: ['Crime Scene Forensics', 'Evidence Gathering', 'Paper Trails / Records', 'Interrogation']
   },
   {
+    id: 'languages',
+    name: 'Languages',
+    ability: 'int',
+    trainedOnly: false,
+    hasSpecialty: true,
+    requiresOption3E: true,
+    isAssignedFocus: true,
+    maxRankPerInstance: 1,
+    desc: 'Each rank in Languages grants fluency in an assigned language. Each language instance has a 1 rank limit.',
+    options: ['Arabic', 'Atlantean', 'Chinese (Mandarin)', 'French', 'German', 'Greek (Ancient)', 'Japanese', 'Kryptonian / Alien', 'Latin', 'Russian', 'Sign Language (ASL)', 'Spanish']
+  },
+  {
     id: 'perception',
     name: 'Perception',
     ability: 'awe',
@@ -124,6 +136,18 @@ export const SKILLS_LIST = [
     requiresOption3E: true,
     desc: 'Ranged Combat measures your marksmanship with a particular ranged weapon type or power (e.g. Blasters, Bows, Firearms, Thrown, Slings).',
     options: ['Energy Blasters', 'Firearms / Pistols', 'Rifles & Snipers', 'Bows & Arrows', 'Thrown Weapons', 'Heavy Artillery', 'Magic Bolts']
+  },
+  {
+    id: 'skill_mastery',
+    name: 'Skill Mastery',
+    ability: 'int',
+    trainedOnly: true,
+    hasSpecialty: true,
+    requiresOption3E: true,
+    isAssignedFocus: true,
+    maxRankPerInstance: 1,
+    desc: 'Each rank applies to one chosen skill, allowing routine checks (take 10) even under combat pressure. Each skill mastery instance has a 1 rank limit.',
+    options: ['Acrobatics', 'Athletics', 'Close Combat', 'Deception', 'Expertise', 'Insight', 'Intimidation', 'Investigation', 'Perception', 'Persuasion', 'Ranged Combat', 'Sleight of Hand', 'Stealth', 'Technology', 'Treatment', 'Vehicles']
   },
   {
     id: 'sleight_of_hand',

@@ -781,7 +781,7 @@ export const EXTRAS_CATALOG = [
   { id: 'action_extra', name: 'Action (Faster)', cost: 1, isFlat: false, isRanked: true, maxRank: 2, minRank: 1, isUnique: false, isEffectSpecific: false, desc: 'Decreases the time required to use the effect by one step per rank (Standard -> Move -> Free).' },
   { id: 'affects_corporeal', name: '★ Affects Corporeal', cost: 1, isFlat: false, isUnique: true, isEffectSpecific: true, desc: 'Can affect physical targets while you are Insubstantial (specific to Insubstantial).' },
   { id: 'affects_insubstantial', name: 'Affects Insubstantial', cost: 1, isFlat: true, isRanked: true, maxRank: 2, minRank: 1, isUnique: false, isEffectSpecific: false, desc: 'Full effect against Insubstantial targets (Rank 1 half, Rank 2 full).' },
-  { id: 'affects_others', name: '★ Affects Others', cost: 1, isFlat: false, isUnique: true, isEffectSpecific: true, desc: 'Can grant personal powers (Flight, Protection, etc.) to allies at Close range (specific to Personal range powers).' },
+  { id: 'affects_others', name: 'Affects Others', cost: 1, isFlat: false, isUnique: false, isEffectSpecific: true, desc: 'Can grant personal powers (Flight, Protection, etc.) to allies at Close range (specific to Personal range powers).' },
   { id: 'area_burst', name: 'Area (Burst 30ft)', cost: 1, isFlat: false, isRanked: true, maxRank: 5, minRank: 1, isUnique: false, isEffectSpecific: false, desc: 'Affects all targets in 30ft radius (+30ft per additional rank). Targets make Dodge check for half effect.' },
   { id: 'area_cloud', name: 'Area (Cloud 15ft)', cost: 1, isFlat: false, isRanked: true, maxRank: 5, minRank: 1, isUnique: false, isEffectSpecific: false, desc: 'Affects 15ft radius cloud that lingers for 1 additional round, affecting anyone inside. Dodge check for half effect.' },
   { id: 'area_cone', name: 'Area (Cone 60ft)', cost: 1, isFlat: false, isRanked: true, maxRank: 5, minRank: 1, isUnique: false, isEffectSpecific: false, desc: 'Affects all targets in 60ft cone (+60ft per additional rank). Dodge check for half effect.' },
@@ -1211,9 +1211,42 @@ export function isModifierLegalForEffect(modifier, effect, extras = [], flaws = 
     }
   }
 
+  const isAttackEffect = !!(effect?.isAttack || extraIds.has('attack') || (extras || []).some(e => e.id === 'attack'));
+
+  // Attack-only extras and flaws (unless power is an attack effect or has Attack extra)
+  if (['accurate', 'homing', 'multiattack', 'penetrating', 'ricochet', 'secondary_effect', 'contagious'].includes(modifier.id)) {
+    if (!isAttackEffect) {
+      return { legal: false, reason: `${modifier.name.replace(/^★\s*/, '')} only applies to attack effects` };
+    }
+  }
+
+  if (['inaccurate', 'diminished_range', 'grab_based'].includes(modifier.id)) {
+    if (!isAttackEffect) {
+      return { legal: false, reason: `${modifier.name.replace(/^★\s*/, '')} only applies to attack effects` };
+    }
+  }
+
+  if (modifier.id === 'homing') {
+    if (effectiveRange !== 'Ranged') {
+      return { legal: false, reason: 'Homing only applies to Ranged attack effects' };
+    }
+  }
+
+  if (modifier.id === 'ricochet') {
+    if (effectiveRange !== 'Ranged') {
+      return { legal: false, reason: 'Ricochet only applies to Ranged attack effects' };
+    }
+  }
+
   if (modifier.id === 'diminished_range') {
     if (effectiveRange !== 'Ranged') {
       return { legal: false, reason: 'Diminished Range flaw only applies to Ranged attack effects' };
+    }
+  }
+
+  if (modifier.id === 'grab_based') {
+    if (effectiveRange !== 'Close') {
+      return { legal: false, reason: 'Grab-Based flaw only applies to Close range attack effects' };
     }
   }
 
@@ -1221,9 +1254,15 @@ export function isModifierLegalForEffect(modifier, effect, extras = [], flaws = 
     if (effectiveRange !== 'Close') return { legal: false, reason: 'Reach only applies to Close range' };
   }
 
-  if (modifier.id === 'grab_based') {
-    if (effectiveRange !== 'Close') {
-      return { legal: false, reason: 'Grab-Based flaw only applies to Close range attack effects' };
+  if (modifier.id === 'extended_range') {
+    if (effectiveRange !== 'Ranged') {
+      return { legal: false, reason: 'Extended Range only applies to Ranged effects' };
+    }
+  }
+
+  if (modifier.id === 'secondary_effect') {
+    if (rd.effectiveDuration !== 'Instant') {
+      return { legal: false, reason: 'Secondary Effect only applies to Instant duration attack effects' };
     }
   }
 
@@ -1263,7 +1302,7 @@ export function isModifierLegalForEffect(modifier, effect, extras = [], flaws = 
   }
 
   if (modifier.id === 'penetrating') {
-    if (!['damage', 'blast'].includes(effId) && !effect?.isAttack) {
+    if (!['damage', 'blast'].includes(effId)) {
       return { legal: false, reason: 'Penetrating extra only applies to Damage effects' };
     }
   }
@@ -1283,9 +1322,21 @@ export function isModifierLegalForEffect(modifier, effect, extras = [], flaws = 
     }
   }
 
-  if (modifier.id === 'affects_others' || modifier.id === 'attack') {
+  if (modifier.id === 'attack') {
     if (baseRange !== 'Personal') {
-      return { legal: false, reason: 'Affects Others / Attack only applies to Personal range powers' };
+      return { legal: false, reason: 'Attack extra only applies to Personal range powers' };
+    }
+    if (extraIds.has('affects_others')) {
+      return { legal: false, reason: 'Cannot combine Attack extra with Affects Others' };
+    }
+  }
+
+  if (modifier.id === 'affects_others') {
+    if (baseRange !== 'Personal') {
+      return { legal: false, reason: 'Affects Others extra only applies to Personal range powers' };
+    }
+    if (extraIds.has('attack')) {
+      return { legal: false, reason: 'Cannot combine Affects Others with Attack extra' };
     }
   }
 
@@ -1397,6 +1448,10 @@ export function validateModifierLegality(effect, extras = [], flaws = [], mainPo
   }
 
   const baseRange = effect?.range || 'Personal';
+  const rd = computePowerRangeAndDuration(effect, extras, flaws);
+  const effectiveRange = rd.effectiveRange;
+  const isAttackEffect = !!(effect?.isAttack || extraIds.has('attack') || (extras || []).some(e => e.id === 'attack'));
+
   if (baseRange === 'Personal' && (extraIds.has('increased_range') || extraIds.has('increased_range_2')) && !extraIds.has('affects_others') && !extraIds.has('attack')) {
     errors.push('Personal range powers must take Affects Others (+1/rank) or Attack (+0) before taking Increased Range.');
   }
@@ -1406,14 +1461,20 @@ export function validateModifierLegality(effect, extras = [], flaws = [], mainPo
   if (baseRange === 'Perception' && extraIds.has('increased_range')) {
     errors.push('Perception range is already the maximum range and cannot take Increased Range.');
   }
-  if (flawIds.has('grab_based') && baseRange !== 'Close' && !extraIds.has('attack') && !flawIds.has('reduced_range')) {
-    errors.push('Grab-Based flaw requires Close range.');
+  if (flawIds.has('grab_based') && (!isAttackEffect || effectiveRange !== 'Close')) {
+    errors.push('Grab-Based flaw only applies to Close range attack effects.');
   }
-  if (flawIds.has('diminished_range') && baseRange !== 'Ranged' && !extraIds.has('increased_range')) {
-    errors.push('Diminished Range only applies to Ranged attack effects.');
+  if (flawIds.has('diminished_range') && (!isAttackEffect || effectiveRange !== 'Ranged')) {
+    errors.push('Diminished Range flaw only applies to Ranged attack effects.');
   }
-  if (extraIds.has('reach') && baseRange !== 'Close') {
+  if (flawIds.has('inaccurate') && !isAttackEffect) {
+    errors.push('Inaccurate flaw only applies to attack effects.');
+  }
+  if (extraIds.has('reach') && effectiveRange !== 'Close') {
     errors.push('Reach extra only applies to Close range effects.');
+  }
+  if (extraIds.has('extended_range') && effectiveRange !== 'Ranged') {
+    errors.push('Extended Range extra only applies to Ranged effects.');
   }
 
   const areaExtras = (extras || []).filter(e => e.id?.startsWith('area_'));
@@ -1428,11 +1489,26 @@ export function validateModifierLegality(effect, extras = [], flaws = [], mainPo
   }
 
   // Attack checks
-  if (extraIds.has('multiattack') && !effect?.isAttack && !['damage', 'blast', 'affliction', 'move_object', 'weaken'].includes(effect?.id)) {
-    warnings.push('Multiattack is intended for attack effects.');
+  if (extraIds.has('accurate') && !isAttackEffect) {
+    errors.push('Accurate extra only applies to attack effects.');
   }
-  if (extraIds.has('penetrating') && effect?.id !== 'damage' && effect?.id !== 'blast') {
-    errors.push('Penetrating is specifically designed to overcome Impervious on Damage effects.');
+  if (extraIds.has('homing') && (!isAttackEffect || effectiveRange !== 'Ranged')) {
+    errors.push('Homing extra only applies to Ranged attack effects.');
+  }
+  if (extraIds.has('multiattack') && !isAttackEffect) {
+    errors.push('Multiattack extra only applies to attack effects.');
+  }
+  if (extraIds.has('penetrating') && (!isAttackEffect || !['damage', 'blast'].includes(effect?.id))) {
+    errors.push('Penetrating extra only applies to Damage effects.');
+  }
+  if (extraIds.has('ricochet') && (!isAttackEffect || effectiveRange !== 'Ranged')) {
+    errors.push('Ricochet extra only applies to Ranged attack effects.');
+  }
+  if (extraIds.has('secondary_effect') && (!isAttackEffect || rd.effectiveDuration !== 'Instant')) {
+    errors.push('Secondary Effect extra only applies to Instant duration attack effects.');
+  }
+  if (extraIds.has('contagious') && !isAttackEffect) {
+    errors.push('Contagious extra only applies to attack effects.');
   }
   if (extraIds.has('cumulative') && !['affliction', 'weaken', 'nullify'].includes(effect?.id)) {
     errors.push('Cumulative only applies to Affliction, Weaken, or Nullify.');
@@ -1440,8 +1516,14 @@ export function validateModifierLegality(effect, extras = [], flaws = [], mainPo
   if (extraIds.has('progressive') && !['affliction', 'weaken'].includes(effect?.id)) {
     errors.push('Progressive only applies to Affliction or Weaken.');
   }
-  if ((extraIds.has('affects_others') || extraIds.has('attack')) && baseRange !== 'Personal') {
-    errors.push('Affects Others and Attack extras only apply to Personal range effects.');
+  if (extraIds.has('affects_others') && extraIds.has('attack')) {
+    errors.push('Cannot combine Affects Others and Attack extras on the same power.');
+  }
+  if (extraIds.has('affects_others') && baseRange !== 'Personal') {
+    errors.push('Affects Others extra only applies to Personal range effects.');
+  }
+  if (extraIds.has('attack') && baseRange !== 'Personal') {
+    errors.push('Attack extra only applies to Personal range effects.');
   }
 
   // Rank limits

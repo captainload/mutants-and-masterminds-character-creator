@@ -1,5 +1,5 @@
 {
-  "version": "3.25",
-  "updatedAt": "2026-10-27T07:15:00Z",
-  "releaseNotes": "Prevent Alternate Effects from listing or taking the same unique modifiers or device flaws as the primary effect; render HTML properly in modifier and effect description modals."
+  "version": "3.26",
+  "updatedAt": "2026-10-27T09:30:00Z",
+  "releaseNotes": "Filter attack modifiers from non-attack effects, correct Affects Others uniqueness classification, and close popups and modals when clicking outside."
 }

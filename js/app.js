@@ -1029,7 +1029,7 @@ class AppController {
   }
 
   async checkForUpdates({ isManual = false } = {}) {
-    const CURRENT_VERSION = '3.25';
+    const CURRENT_VERSION = '3.26';
     const versionEl = document.getElementById('header-version-tag');
     const updateBtn = document.getElementById('btn-header-update-alert');
     if (typeof window === 'undefined' || !window.location || !window.location.href || window.location.href === 'about:blank') return;
@@ -1117,6 +1117,50 @@ class AppController {
       }
       this.closeModal('modal-save-as');
       await this.saveCharacterFile({ forceSaveAs: true, cloneName: newName });
+    });
+
+    // Close any modal when clicking outside on the backdrop overlay
+    document.querySelectorAll('.modal-overlay').forEach(overlay => {
+      overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) {
+          const modalId = overlay.id;
+          if (modalId === 'modal-alert-dialog') {
+            document.getElementById('btn-alert-dialog-ok')?.click();
+          } else if (modalId === 'modal-confirm-dialog') {
+            document.getElementById('btn-confirm-dialog-close')?.click();
+          } else if (modalId === 'modal-prompt-dialog') {
+            document.getElementById('btn-prompt-dialog-close')?.click();
+          } else {
+            this.closeModal(modalId);
+          }
+        }
+      });
+    });
+
+    // Close top active modal or pointer popup on Escape key
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        const popup = document.getElementById('pointer-rules-popup');
+        if (popup && popup.style.display === 'block') {
+          popup.style.display = 'none';
+          popup.dataset.activeItem = '';
+          return;
+        }
+        const activeModals = Array.from(document.querySelectorAll('.modal-overlay.active'));
+        if (activeModals.length > 0) {
+          const topModal = activeModals[activeModals.length - 1];
+          const modalId = topModal.id;
+          if (modalId === 'modal-alert-dialog') {
+            document.getElementById('btn-alert-dialog-ok')?.click();
+          } else if (modalId === 'modal-confirm-dialog') {
+            document.getElementById('btn-confirm-dialog-close')?.click();
+          } else if (modalId === 'modal-prompt-dialog') {
+            document.getElementById('btn-prompt-dialog-close')?.click();
+          } else {
+            this.closeModal(modalId);
+          }
+        }
+      }
     });
   }
 

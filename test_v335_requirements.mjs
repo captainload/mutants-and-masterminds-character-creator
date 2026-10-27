@@ -148,7 +148,60 @@ assert.strictEqual(restored.alts[0].name, 'Diamond Form', 'Restored alt 0 name r
 assert.strictEqual(restored.alts[2].name, 'Cadet Shadow', 'Restored alt 2 (deleted alt) was recovered');
 console.log('✓ Session log rollback restores all alts accurately');
 
-// 6. Test App.js Code Signatures & Version
+// 6. Test Modifiers Catalog Stars & Uniqueness (Only effect-unique modifiers and unique variants starred)
+const { EXTRAS_CATALOG, FLAWS_CATALOG } = await import('./js/rules.js');
+
+const contagious = EXTRAS_CATALOG.find(e => e.id === 'contagious');
+assert.strictEqual(contagious.name, 'Contagious', 'Contagious should NOT be starred');
+assert.strictEqual(contagious.isUnique, false, 'Contagious should not be marked isUnique');
+
+const attack = EXTRAS_CATALOG.find(e => e.id === 'attack');
+assert.strictEqual(attack.name, 'Attack', 'Attack should NOT be starred');
+assert.strictEqual(attack.isUnique, false, 'Attack should not be marked isUnique');
+
+const selective = EXTRAS_CATALOG.find(e => e.id === 'selective');
+assert.strictEqual(selective.name, 'Selective', 'Selective should NOT be starred');
+
+const diminishedRange = FLAWS_CATALOG.find(f => f.id === 'diminished_range');
+assert.strictEqual(diminishedRange.name, 'Diminished Range', 'Diminished Range should NOT be starred');
+
+const grabBased = FLAWS_CATALOG.find(f => f.id === 'grab_based');
+assert.strictEqual(grabBased.name, 'Grab-Based', 'Grab-Based should NOT be starred');
+
+// Effect-unique modifiers should be starred
+const strBased = EXTRAS_CATALOG.find(e => e.id === 'strength_based');
+assert.strictEqual(strBased.name, '★ Strength-Based', 'Strength-Based must be starred');
+assert.strictEqual(strBased.isUnique, true);
+
+const penetrating = EXTRAS_CATALOG.find(e => e.id === 'penetrating');
+assert.strictEqual(penetrating.name, '★ Penetrating', 'Penetrating must be starred');
+assert.strictEqual(penetrating.isUnique, true);
+
+const portal = EXTRAS_CATALOG.find(e => e.id === 'portal');
+assert.strictEqual(portal.name, '★ Portal', 'Portal must be starred');
+assert.strictEqual(portal.isUnique, true);
+
+const turnabout = EXTRAS_CATALOG.find(e => e.id === 'turnabout');
+assert.strictEqual(turnabout.name, '★ Turnabout', 'Turnabout must be starred');
+assert.strictEqual(turnabout.isUnique, true);
+
+const empathic = FLAWS_CATALOG.find(f => f.id === 'empathic');
+assert.strictEqual(empathic.name, '★ Empathic', 'Empathic must be starred');
+assert.strictEqual(empathic.isUnique, true);
+
+// Unique modifier variants should be starred
+const limAmbient = FLAWS_CATALOG.find(f => f.id === 'limited_ambient');
+assert.strictEqual(limAmbient.name, '★ Limited: Ambient Source', 'Limited: Ambient Source must be starred');
+
+const limMinds = FLAWS_CATALOG.find(f => f.id === 'limited_to_minds');
+assert.strictEqual(limMinds.name, '★ Limited to Minds', 'Limited to Minds must be starred');
+
+const limResist = FLAWS_CATALOG.find(f => f.id === 'limited_to_resistance');
+assert.strictEqual(limResist.name, '★ Limited: Single Resistance', 'Limited: Single Resistance must be starred');
+
+console.log('✓ Modifier catalogs correctly distinguish effect-unique modifiers and variants with stars');
+
+// 7. Test App.js Code Signatures & Version
 const appJs = fs.readFileSync(path.join(projectDir, 'js/app.js'), 'utf8');
 assert.ok(appJs.includes("CURRENT_VERSION = '3.35'"), 'app.js defines CURRENT_VERSION as 3.35');
 assert.ok(appJs.includes('setupAltCharactersModal'), 'app.js includes setupAltCharactersModal');
@@ -156,6 +209,7 @@ assert.ok(appJs.includes('renderAltsListModal'), 'app.js includes renderAltsList
 assert.ok(appJs.includes('createAltCharacter'), 'app.js includes createAltCharacter');
 assert.ok(appJs.includes('loadAltIntoEditor'), 'app.js includes loadAltIntoEditor');
 assert.ok(appJs.includes('switchToMainHero'), 'app.js includes switchToMainHero');
+assert.ok(appJs.includes('btn-rename-alt'), 'app.js supports renaming existing alts');
 assert.ok(appJs.includes('renderAltAdvantagesConfig'), 'app.js includes renderAltAdvantagesConfig');
 assert.ok(appJs.includes('renderAltPowersConfig'), 'app.js includes renderAltPowersConfig');
 assert.ok(appJs.includes('this.activeAltId'), 'app.js tracks activeAltId');

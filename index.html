@@ -87,30 +87,32 @@
           <div class="header-right-spacer" style="width: 95px;" aria-hidden="true"></div>
         </div>
 
-        <!-- ROW 2: Shifted Downwards: Player | Character | Campaign -->
+        <!-- ROW 2: Shifted Downwards: Player | Character | Alt Button | Campaign | Active Alt Badge -->
         <div class="header-fields-row">
           <div class="header-field">
             <span class="header-field-label">Player:</span>
             <input type="text" id="header-player-name" class="header-field-input" placeholder="Player Name" style="width: 140px;">
           </div>
 
-          <div class="header-field" style="display: flex; align-items: center; gap: 0.4rem;">
-            <span class="header-field-label">Hero:</span>
-            <input type="text" id="header-char-name" class="header-field-input" placeholder="Character Name" style="width: 190px;">
-            <button type="button" class="btn btn-outline" id="btn-open-alts" title="Manage alternate forms, minions, and sidekicks" style="padding: 0.2rem 0.65rem; min-height: 28px; font-size: var(--font-size-xs); font-weight: 700; white-space: nowrap; color: var(--hero-purple); border-color: var(--hero-purple); display: inline-flex; align-items: center; gap: 0.3rem;">
-              👥 Alt Characters <span id="header-alts-count-badge" class="badge-tag" style="display:none; font-size:10px; padding:1px 5px; margin-left:2px; background:var(--hero-purple); color:#fff; border-radius:10px;">0</span>
-            </button>
+          <div class="header-field" id="header-char-box">
+            <span class="header-field-label" id="header-char-label">Hero:</span>
+            <input type="text" id="header-char-name" class="header-field-input" placeholder="Character Name" style="width: 180px;">
           </div>
 
-          <div class="header-field" style="display: flex; align-items: center; gap: 0.4rem;">
+          <button type="button" class="btn btn-outline" id="btn-open-alts" title="Manage alternate forms, minions, and sidekicks" style="padding: 0.2rem 0.75rem; min-height: 38px; font-size: var(--font-size-xs); font-weight: 700; white-space: nowrap; color: var(--hero-purple); border-color: var(--hero-purple); display: inline-flex; align-items: center; gap: 0.35rem;">
+            👥 Alt Characters <span id="header-alts-count-badge" class="badge-tag" style="display:none; font-size:10px; padding:1px 5px; margin-left:2px; background:var(--hero-purple); color:#fff; border-radius:10px;">0</span>
+          </button>
+
+          <div class="header-field" id="header-campaign-box">
             <span class="header-field-label">Campaign:</span>
-            <input type="text" id="header-campaign-name" class="header-field-input" placeholder="Campaign / Setting" style="width: 160px;">
-            <div id="header-active-alt-badge" style="display: none; align-items: center; gap: 0.35rem; background: rgba(139, 92, 246, 0.18); border: 1px solid var(--hero-purple); border-radius: 4px; padding: 2px 8px; font-size: var(--font-size-xs); color: #fff; white-space: nowrap;">
-              <span style="color: var(--hero-purple); font-weight: 800;">Alt:</span>
-              <strong id="header-active-alt-name" style="color: var(--hero-cyan);">Alt Name</strong>
-              <span id="header-active-alt-type" style="color: var(--text-muted); font-size: 11px;">(Alternate Form)</span>
-              <button type="button" id="btn-return-primary-char" title="Return to Primary Hero" style="background: none; border: none; color: var(--hero-gold); cursor: pointer; font-size: 11px; font-weight: 800; padding: 0 2px; text-decoration: underline;">↩ Main Hero</button>
-            </div>
+            <input type="text" id="header-campaign-name" class="header-field-input" placeholder="Campaign / Setting" style="width: 150px;">
+          </div>
+
+          <div id="header-active-alt-badge" style="display: none; align-items: center; gap: 0.4rem; background: rgba(139, 92, 246, 0.18); border: 1px solid var(--hero-purple); border-radius: var(--radius-sm); padding: 0.2rem 0.65rem; min-height: 38px; font-size: var(--font-size-xs); color: #fff; white-space: nowrap;">
+            <span style="color: var(--hero-purple); font-weight: 800;">Alt:</span>
+            <strong id="header-active-alt-name" style="color: var(--hero-cyan);">Alt Name</strong>
+            <span id="header-active-alt-type" style="color: var(--text-muted); font-size: 11px;">(Alternate Form)</span>
+            <button type="button" id="btn-return-primary-char" title="Return to Primary Hero" style="background: none; border: none; color: var(--hero-gold); cursor: pointer; font-size: 11px; font-weight: 800; padding: 0 2px; text-decoration: underline;">↩ Main Hero</button>
           </div>
         </div>
 
@@ -1271,47 +1273,50 @@
             </div>
 
             <!-- Option 1: New Alternate Form -->
-            <div class="alt-create-card" data-alt-type="alternate_form" style="background: rgba(147, 51, 234, 0.08); border: 1px solid rgba(168, 85, 247, 0.3); border-radius: 6px; padding: 0.75rem;">
+            <div class="alt-create-card" data-alt-type="alternate_form" style="background: rgba(147, 51, 234, 0.08); border: 1px solid rgba(168, 85, 247, 0.35); border-radius: 6px; padding: 0.85rem;">
               <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.25rem;">
                 <strong style="color: var(--hero-purple); font-size: var(--font-size-sm);">🎭 Alternate Form</strong>
                 <span class="badge-tag" style="background: rgba(168, 85, 247, 0.2); color: #d8b4fe;">Same PL &amp; Budget</span>
               </div>
-              <p style="font-size: var(--font-size-xs); color: var(--text-muted); margin: 0 0 0.5rem 0;">
-                Morph / Metamorph form with alternate traits. Built with the full PL and PP budget of the main hero.
+              <p style="font-size: var(--font-size-xs); color: var(--text-muted); margin: 0 0 0.55rem 0;">
+                Morph / Metamorph form with alternate traits. Built with full PL and PP budget of the main hero.
               </p>
-              <div style="display: flex; gap: 0.4rem; align-items: center;">
-                <input type="text" id="input-create-alt-name-alternate_form" class="alt-name-input dropdown-input" placeholder="Name (e.g. Diamond Form)" style="flex: 1; min-height: 30px; padding: 0.2rem 0.55rem; font-size: var(--font-size-xs);">
-                <button type="button" class="btn btn-primary btn-create-alt-action" data-alt-type="alternate_form" style="min-height: 30px; padding: 0.2rem 0.75rem; font-size: var(--font-size-xs); white-space: nowrap;">+ Create</button>
+              <label for="input-create-alt-name-alternate_form" style="font-size: 11px; font-weight: 800; color: #d8b4fe; display: block; margin-bottom: 4px; text-transform: uppercase;">Name Alternate Form:</label>
+              <div style="display: flex; gap: 0.45rem; align-items: center;">
+                <input type="text" id="input-create-alt-name-alternate_form" class="alt-name-input" placeholder="e.g. Diamond Form, Werewolf" style="flex: 1; height: 32px; background: #0c1424; border: 1px solid #a855f7; border-radius: 4px; padding: 0.2rem 0.6rem; color: #fff; font-size: var(--font-size-xs); font-weight: 600;">
+                <button type="button" class="btn btn-primary btn-create-alt-action" data-alt-type="alternate_form" style="height: 32px; padding: 0.2rem 0.85rem; font-size: var(--font-size-xs); font-weight: 700; white-space: nowrap;">+ Create</button>
               </div>
             </div>
 
             <!-- Option 2: New Minion -->
-            <div class="alt-create-card" data-alt-type="minion" style="background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 6px; padding: 0.75rem;">
+            <div class="alt-create-card" data-alt-type="minion" style="background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.35); border-radius: 6px; padding: 0.85rem;">
               <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.25rem;">
                 <strong style="color: var(--hero-gold); font-size: var(--font-size-sm);">🤖 Minion</strong>
                 <span class="badge-tag" style="background: rgba(245, 158, 11, 0.2); color: var(--hero-gold);">15 PP / Rank</span>
               </div>
-              <p style="font-size: var(--font-size-xs); color: var(--text-muted); margin: 0 0 0.5rem 0;">
+              <p style="font-size: var(--font-size-xs); color: var(--text-muted); margin: 0 0 0.55rem 0;">
                 Constructed via Minion Advantage. 15 PP per rank, subject to minion rules, PL capped by main hero.
               </p>
-              <div style="display: flex; gap: 0.4rem; align-items: center;">
-                <input type="text" id="input-create-alt-name-minion" class="alt-name-input dropdown-input" placeholder="Name (e.g. Cyber Drone)" style="flex: 1; min-height: 30px; padding: 0.2rem 0.55rem; font-size: var(--font-size-xs);">
-                <button type="button" class="btn btn-primary btn-create-alt-action" data-alt-type="minion" style="min-height: 30px; padding: 0.2rem 0.75rem; font-size: var(--font-size-xs); white-space: nowrap; background: linear-gradient(135deg, #d97706 0%, #b45309 100%);">+ Create</button>
+              <label for="input-create-alt-name-minion" style="font-size: 11px; font-weight: 800; color: var(--hero-gold); display: block; margin-bottom: 4px; text-transform: uppercase;">Name Minion:</label>
+              <div style="display: flex; gap: 0.45rem; align-items: center;">
+                <input type="text" id="input-create-alt-name-minion" class="alt-name-input" placeholder="e.g. Cyber Drone, War Wolf" style="flex: 1; height: 32px; background: #0c1424; border: 1px solid var(--hero-gold); border-radius: 4px; padding: 0.2rem 0.6rem; color: #fff; font-size: var(--font-size-xs); font-weight: 600;">
+                <button type="button" class="btn btn-primary btn-create-alt-action" data-alt-type="minion" style="height: 32px; padding: 0.2rem 0.85rem; font-size: var(--font-size-xs); font-weight: 700; white-space: nowrap; background: linear-gradient(135deg, #d97706 0%, #b45309 100%);">+ Create</button>
               </div>
             </div>
 
             <!-- Option 3: New Sidekick -->
-            <div class="alt-create-card" data-alt-type="sidekick" style="background: rgba(56, 189, 248, 0.08); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 6px; padding: 0.75rem;">
+            <div class="alt-create-card" data-alt-type="sidekick" style="background: rgba(56, 189, 248, 0.08); border: 1px solid rgba(56, 189, 248, 0.35); border-radius: 6px; padding: 0.85rem;">
               <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.25rem;">
                 <strong style="color: var(--hero-cyan); font-size: var(--font-size-sm);">🦸 Sidekick</strong>
                 <span class="badge-tag" style="background: rgba(56, 189, 248, 0.2); color: var(--hero-cyan);">5 PP / Rank</span>
               </div>
-              <p style="font-size: var(--font-size-xs); color: var(--text-muted); margin: 0 0 0.5rem 0;">
+              <p style="font-size: var(--font-size-xs); color: var(--text-muted); margin: 0 0 0.55rem 0;">
                 Constructed via Sidekick Advantage. 5 PP per rank, independent companion, PL capped by main hero.
               </p>
-              <div style="display: flex; gap: 0.4rem; align-items: center;">
-                <input type="text" id="input-create-alt-name-sidekick" class="alt-name-input dropdown-input" placeholder="Name (e.g. Cadet Shadow)" style="flex: 1; min-height: 30px; padding: 0.2rem 0.55rem; font-size: var(--font-size-xs);">
-                <button type="button" class="btn btn-primary btn-create-alt-action" data-alt-type="sidekick" style="min-height: 30px; padding: 0.2rem 0.75rem; font-size: var(--font-size-xs); white-space: nowrap; background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);">+ Create</button>
+              <label for="input-create-alt-name-sidekick" style="font-size: 11px; font-weight: 800; color: var(--hero-cyan); display: block; margin-bottom: 4px; text-transform: uppercase;">Name Sidekick:</label>
+              <div style="display: flex; gap: 0.45rem; align-items: center;">
+                <input type="text" id="input-create-alt-name-sidekick" class="alt-name-input" placeholder="e.g. Cadet Shadow, Wonder Pup" style="flex: 1; height: 32px; background: #0c1424; border: 1px solid var(--hero-cyan); border-radius: 4px; padding: 0.2rem 0.6rem; color: #fff; font-size: var(--font-size-xs); font-weight: 600;">
+                <button type="button" class="btn btn-primary btn-create-alt-action" data-alt-type="sidekick" style="height: 32px; padding: 0.2rem 0.85rem; font-size: var(--font-size-xs); font-weight: 700; white-space: nowrap; background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);">+ Create</button>
               </div>
             </div>
 

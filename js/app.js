@@ -490,6 +490,7 @@ class AppController {
         </div>
         <div style="display: flex; justify-content: flex-end; align-items: center; gap: 0.4rem; margin-top: 0.25rem;">
           ${!isCurrentlyActive ? `<button type="button" class="btn btn-primary btn-load-alt" data-alt-id="${alt.id}" style="min-height: 26px; padding: 0.15rem 0.6rem; font-size: var(--font-size-xs);">Load into Editor</button>` : ''}
+          <button type="button" class="btn btn-outline btn-rename-alt" data-alt-id="${alt.id}" title="Rename this alt" style="min-height: 26px; padding: 0.15rem 0.5rem; font-size: var(--font-size-xs);">✏️ Rename</button>
           <button type="button" class="btn btn-outline btn-dup-alt" data-alt-id="${alt.id}" title="Duplicate this alt" style="min-height: 26px; padding: 0.15rem 0.5rem; font-size: var(--font-size-xs);">📋 Duplicate</button>
           <button type="button" class="btn btn-danger btn-del-alt" data-alt-id="${alt.id}" title="Delete this alt" style="min-height: 26px; padding: 0.15rem 0.5rem; font-size: var(--font-size-xs);">🗑️ Delete</button>
         </div>
@@ -497,6 +498,26 @@ class AppController {
 
       card.querySelector('.btn-load-alt')?.addEventListener('click', () => {
         this.loadAltIntoEditor(alt.id);
+      });
+      card.querySelector('.btn-rename-alt')?.addEventListener('click', async () => {
+        const newName = await this.showPromptDialog({
+          title: 'Rename Alt Character',
+          label: 'Enter new name for this alt character:',
+          defaultValue: alt.name || '',
+          confirmText: 'Rename Alt'
+        });
+        if (newName && newName.trim()) {
+          alt.name = newName.trim();
+          if (this.activeAltId === alt.id) {
+            this.char.name = alt.name;
+            const cNameEl = document.getElementById('header-char-name');
+            if (cNameEl) cNameEl.value = alt.name;
+            const altNameEl = document.getElementById('header-active-alt-name');
+            if (altNameEl) altNameEl.textContent = alt.name;
+          }
+          this.saveAndAudit();
+          this.renderAltsListModal();
+        }
       });
       card.querySelector('.btn-dup-alt')?.addEventListener('click', () => {
         this.duplicateAlt(alt.id);
@@ -3534,24 +3555,38 @@ class AppController {
       }
     }
 
-    // Active Alt indicator badge next to Campaign field
+    // Active Alt indicator badge next to Campaign field and header label toggle
     const activeAltBadge = document.getElementById('header-active-alt-badge');
     const activeAltNameEl = document.getElementById('header-active-alt-name');
     const activeAltTypeEl = document.getElementById('header-active-alt-type');
-    if (activeAltBadge) {
-      if (this.activeAltId && this.char) {
-        activeAltBadge.style.display = 'inline-flex';
-        if (activeAltNameEl) activeAltNameEl.textContent = this.char.name || 'Unnamed Alt';
-        if (activeAltTypeEl) {
-          const typeLabels = {
-            alternate_form: '(Alternate Form)',
-            minion: '(Minion)',
-            sidekick: '(Sidekick)'
-          };
-          activeAltTypeEl.textContent = typeLabels[this.char.altType] || '(Alt)';
-        }
-      } else {
-        activeAltBadge.style.display = 'none';
+    const charLabelEl = document.getElementById('header-char-label');
+
+    if (this.activeAltId && this.char) {
+      if (activeAltBadge) activeAltBadge.style.display = 'inline-flex';
+      if (activeAltNameEl) activeAltNameEl.textContent = this.char.name || 'Unnamed Alt';
+      if (activeAltTypeEl) {
+        const typeLabels = {
+          alternate_form: '(Alternate Form)',
+          minion: '(Minion)',
+          sidekick: '(Sidekick)'
+        };
+        activeAltTypeEl.textContent = typeLabels[this.char.altType] || '(Alt)';
+      }
+      if (charLabelEl) {
+        charLabelEl.textContent = 'Alt:';
+        charLabelEl.style.color = 'var(--hero-purple)';
+      }
+      if (cNameEl) {
+        cNameEl.placeholder = 'Alt Character Name';
+      }
+    } else {
+      if (activeAltBadge) activeAltBadge.style.display = 'none';
+      if (charLabelEl) {
+        charLabelEl.textContent = 'Hero:';
+        charLabelEl.style.color = '';
+      }
+      if (cNameEl) {
+        cNameEl.placeholder = 'Character Name';
       }
     }
   }

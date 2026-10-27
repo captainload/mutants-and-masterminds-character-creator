@@ -1,5 +1,5 @@
 {
-  "version": "3.19",
-  "updatedAt": "2026-10-27T01:30:00Z",
-  "releaseNotes": "Replaced redundant power builder pop-up and in-place button with direct power record generation; replaced manual action dropdown with dynamic Action extra/flaw derivation and conflict validation; formatted real-time stats with measurements in parentheses (e.g. Range: Ranged (1 mile)) without vertical bars; introduced dedicated Power Feats and Drawbacks row with full legality validation; implemented bidirectional [ ] Linked effect checkbox; streamlined power arrays with Dynamic primary checkbox; updated Affliction degree labels to concise failure ranges."
+  "version": "3.20",
+  "updatedAt": "2026-10-27T03:00:00Z",
+  "releaseNotes": "Unbolded effect stat summary values and formatted separators as bullets with concise 'Stats:' label; removed default descriptors in favor of placeholder text; auto-removing modifiers when decremented to 0 ranks; full 'ALTERNATE #' sections for alternate effects containing complete configuration settings; official rules description popups for added extras, flaws, feats, and drawbacks names, and info 'ℹ️' popups for base and alternate effects."
 }

@@ -122,8 +122,14 @@ if (!css.includes('.power-stats-summary-bar')) {
 if (!appJs.includes('power-stats-summary-bar')) {
   throw new Error('Expected js/app.js to render power-stats-summary-bar');
 }
-if (!appJs.includes('EFFECT STATS SUMMARY:')) {
-  throw new Error('Expected "EFFECT STATS SUMMARY:" label in js/app.js');
+if (parseFloat(versionJson.version) < 3.20) {
+  if (!appJs.includes('EFFECT STATS SUMMARY:')) {
+    throw new Error('Expected "EFFECT STATS SUMMARY:" label in js/app.js');
+  }
+} else {
+  if (!appJs.includes('Stats:') && !appJs.includes('EFFECT STATS SUMMARY:')) {
+    throw new Error('Expected "Stats:" label in js/app.js');
+  }
 }
 
 // Check derived calculation works dynamically

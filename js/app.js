@@ -1029,7 +1029,7 @@ class AppController {
   }
 
   async checkForUpdates({ isManual = false } = {}) {
-    const CURRENT_VERSION = '3.24';
+    const CURRENT_VERSION = '3.25';
     const versionEl = document.getElementById('header-version-tag');
     const updateBtn = document.getElementById('btn-header-update-alert');
     if (typeof window === 'undefined' || !window.location || !window.location.href || window.location.href === 'about:blank') return;
@@ -4132,7 +4132,7 @@ class AppController {
         </div>
       </div>
     `;
-    this.showAlertDialog(html, { title: `${modDef.name} — Rules Reference`, icon: '📖' });
+    this.showAlertDialog(html, { title: `${modDef.name} — Rules Reference`, icon: '📖', isHtml: true });
   }
 
   showEffectDescriptionDialog(effectDef) {
@@ -4156,7 +4156,7 @@ class AppController {
         </div>
       </div>
     `;
-    this.showAlertDialog(html, { title: `${eff.name} — Effect Description`, icon: 'ℹ️' });
+    this.showAlertDialog(html, { title: `${eff.name} — Effect Description`, icon: 'ℹ️', isHtml: true });
   }
 
   renderEffectStatsSummaryBar(targetObj) {
@@ -4213,6 +4213,10 @@ class AppController {
     const container = document.createElement('div');
     container.style.cssText = 'display: flex; flex-direction: column; gap: 0.45rem;';
 
+    const isAlternateEffect = !!(powerContext && powerContext !== targetObj);
+    const mainExtraIds = new Set((powerContext?.extras || []).map(e => e.id));
+    const mainFlawIds = new Set((powerContext?.flaws || []).map(f => f.id));
+
     const activeExtraIds = new Set(targetObj.extras.map(e => e.id));
     const activeFlawIds = new Set(targetObj.flaws.map(f => f.id));
 
@@ -4227,7 +4231,8 @@ class AppController {
     const legalExtras = EXTRAS_CATALOG.filter(ex => {
       if (ex.id === 'linked') return false;
       if (activeExtraIds.has(ex.id)) return false;
-      return isModifierLegalForEffect(ex, targetObj.effect, targetObj.extras, targetObj.flaws).legal;
+      if (isAlternateEffect && ex.isUnique && mainExtraIds.has(ex.id)) return false;
+      return isModifierLegalForEffect(ex, targetObj.effect, targetObj.extras, targetObj.flaws, isAlternateEffect ? powerContext : null).legal;
     }).sort((a, b) => a.name.replace(/^★\s*/, '').localeCompare(b.name.replace(/^★\s*/, '')));
 
     extrasCol.innerHTML = `
@@ -4309,7 +4314,7 @@ class AppController {
       if (!selectedId) return;
       const exDef = EXTRAS_CATALOG.find(e => e.id === selectedId);
       if (!exDef) return;
-      const legality = isModifierLegalForEffect(exDef, targetObj.effect, targetObj.extras, targetObj.flaws);
+      const legality = isModifierLegalForEffect(exDef, targetObj.effect, targetObj.extras, targetObj.flaws, isAlternateEffect ? powerContext : null);
       if (!legality.legal) {
         this.showAlertDialog(`Cannot add ${exDef.name}: ${legality.reason}`, { title: 'Illegal Modifier Combination' });
         return;
@@ -4325,7 +4330,9 @@ class AppController {
     flawsCol.className = 'power-unified-subblock';
     const legalFlaws = FLAWS_CATALOG.filter(fl => {
       if (activeFlawIds.has(fl.id)) return false;
-      return isModifierLegalForEffect(fl, targetObj.effect, targetObj.extras, targetObj.flaws).legal;
+      if (isAlternateEffect && fl.isDevice) return false;
+      if (isAlternateEffect && fl.isUnique && mainFlawIds.has(fl.id)) return false;
+      return isModifierLegalForEffect(fl, targetObj.effect, targetObj.extras, targetObj.flaws, isAlternateEffect ? powerContext : null).legal;
     }).sort((a, b) => a.name.replace(/^★\s*/, '').localeCompare(b.name.replace(/^★\s*/, '')));
 
     flawsCol.innerHTML = `
@@ -4429,7 +4436,7 @@ class AppController {
       if (!selectedId) return;
       const flDef = FLAWS_CATALOG.find(f => f.id === selectedId);
       if (!flDef) return;
-      const legality = isModifierLegalForEffect(flDef, targetObj.effect, targetObj.extras, targetObj.flaws);
+      const legality = isModifierLegalForEffect(flDef, targetObj.effect, targetObj.extras, targetObj.flaws, isAlternateEffect ? powerContext : null);
       if (!legality.legal) {
         this.showAlertDialog(`Cannot add ${flDef.name}: ${legality.reason}`, { title: 'Illegal Modifier Combination' });
         return;
@@ -5019,7 +5026,7 @@ class AppController {
             }
 
             // Validation Banner for AE (Rule errors and modifier advisories only; NO static overrun banner)
-            const aeValResult = validateModifierLegality(ae.effect, ae.extras, ae.flaws);
+            const aeValResult = validateModifierLegality(ae.effect, ae.extras, ae.flaws, p);
             if (aeValResult.errors.length > 0 || aeValResult.warnings.length > 0) {
               const valBox = document.createElement('div');
               valBox.style.cssText = 'display: flex; flex-direction: column; gap: 0.35rem;';
@@ -5302,12 +5309,20 @@ class AppController {
     if (el) el.classList.remove('active');
   }
 
-  showAlertDialog(message, { title = 'Notification', icon = 'ℹ️' } = {}) {
+  showAlertDialog(message, { title = 'Notification', icon = 'ℹ️', isHtml = false } = {}) {
     return new Promise((resolve) => {
       const titleEl = document.getElementById('alert-dialog-title');
       if (titleEl) titleEl.innerHTML = `<span>${icon}</span> ${title}`;
       const msgEl = document.getElementById('alert-dialog-message');
-      if (msgEl) msgEl.textContent = message;
+      if (msgEl) {
+        if (isHtml || (typeof message === 'string' && /<[a-z][\s\S]*>/i.test(message))) {
+          msgEl.style.whiteSpace = 'normal';
+          msgEl.innerHTML = message;
+        } else {
+          msgEl.style.whiteSpace = 'pre-line';
+          msgEl.textContent = message;
+        }
+      }
 
       const okBtn = document.getElementById('btn-alert-dialog-ok');
       const closeBtn = document.getElementById('btn-alert-dialog-close');

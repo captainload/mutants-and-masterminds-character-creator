@@ -1,5 +1,5 @@
 {
-  "version": "3.24",
-  "updatedAt": "2026-10-27T06:00:00Z",
-  "releaseNotes": "Integrated complete Power Profiles official library across all 39 chapters (1,076 profiles); Power Profiles takes priority over core rules in conflicts; added Power Profiles effects and modifiers; alphabetized extras and flaws dropdown lists."
+  "version": "3.25",
+  "updatedAt": "2026-10-27T07:15:00Z",
+  "releaseNotes": "Prevent Alternate Effects from listing or taking the same unique modifiers or device flaws as the primary effect; render HTML properly in modifier and effect description modals."
 }

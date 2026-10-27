@@ -1125,7 +1125,22 @@ export function computePowerEffectiveStats(effect, extras = [], flaws = [], acti
   };
 }
 
-export function isModifierLegalForEffect(modifier, effect, extras = [], flaws = []) {
+export function isModifierLegalForEffect(modifier, effect, extras = [], flaws = [], mainPower = null) {
+  // 0. Alternate Effect restrictions against primary effect
+  if (mainPower) {
+    if (modifier.isDevice) {
+      return { legal: false, reason: 'Device flaws (Removable) apply to the power container as a whole, not individual alternate effects' };
+    }
+    if (modifier.isUnique) {
+      const mainExtras = mainPower.extras || [];
+      const mainFlaws = mainPower.flaws || [];
+      const hasInMain = mainExtras.some(e => e.id === modifier.id) || mainFlaws.some(f => f.id === modifier.id);
+      if (hasInMain) {
+        return { legal: false, reason: `Primary effect already has the unique modifier "${modifier.name.replace(/^★\s*/, '')}"` };
+      }
+    }
+  }
+
   const extraIds = new Set((extras || []).map(e => e.id));
   const flawIds = new Set((flaws || []).map(f => f.id));
   const baseRange = effect?.range || 'Personal';
@@ -1305,9 +1320,27 @@ export function isModifierLegalForEffect(modifier, effect, extras = [], flaws = 
   return { legal: true };
 }
 
-export function validateModifierLegality(effect, extras = [], flaws = []) {
+export function validateModifierLegality(effect, extras = [], flaws = [], mainPower = null) {
   const errors = [];
   const warnings = [];
+
+  // Alternate Effect restrictions against primary effect
+  if (mainPower) {
+    (extras || []).forEach(e => {
+      const def = EXTRAS_CATALOG.find(x => x.id === e.id) || e;
+      if (def.isUnique && (mainPower.extras || []).some(me => me.id === e.id)) {
+        errors.push(`Alternate Effect cannot have the same unique modifier "${def.name}" as the primary effect.`);
+      }
+    });
+    (flaws || []).forEach(f => {
+      const def = FLAWS_CATALOG.find(x => x.id === f.id) || f;
+      if (def.isDevice) {
+        errors.push(`Alternate Effect cannot have Device flaw "${def.name}". Removable flaws apply to the entire power container.`);
+      } else if (def.isUnique && (mainPower.flaws || []).some(mf => mf.id === f.id)) {
+        errors.push(`Alternate Effect cannot have the same unique modifier "${def.name}" as the primary effect.`);
+      }
+    });
+  }
 
   // Check for duplicate modifier instances
   const seenExtras = new Set();

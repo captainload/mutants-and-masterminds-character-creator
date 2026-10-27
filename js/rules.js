@@ -1015,22 +1015,28 @@ export function computePowerEffectiveStats(effect, extras = [], flaws = [], acti
   const actionEx = (extras || []).find(e => e.id === 'action_extra');
   const actionFl = (flaws || []).find(f => f.id === 'action_flaw');
 
+  const actionExRanks = actionEx ? (parseInt(actionEx.rank, 10) || 1) : 0;
+  const actionFlRanks = actionFl ? (parseInt(actionFl.rank, 10) || 1) : 0;
+  const netActionChange = actionExRanks - actionFlRanks;
+
   if (hasReaction) {
     effectiveAction = 'Reaction';
-  } else if (actionEx) {
-    const r = parseInt(actionEx.rank, 10) || 1;
+  } else if (netActionChange > 0) {
     if (baseAction === 'Standard') {
-      effectiveAction = r >= 2 ? 'Free' : 'Move';
+      effectiveAction = netActionChange >= 2 ? 'Free' : 'Move';
     } else if (baseAction === 'Move') {
       effectiveAction = 'Free';
     }
-  } else if (actionFl) {
-    const r = parseInt(actionFl.rank, 10) || 1;
+  } else if (netActionChange < 0) {
+    const slowRanks = Math.abs(netActionChange);
     if (baseAction === 'Free') {
-      effectiveAction = r >= 2 ? 'Standard' : 'Move';
+      effectiveAction = slowRanks >= 2 ? 'Standard' : 'Move';
     } else if (baseAction === 'Move') {
       effectiveAction = 'Standard';
     }
+  } else if (actionExRanks > 0 && actionFlRanks > 0 && netActionChange === 0) {
+    // Action extra and Action flaw cancel each other out
+    effectiveAction = baseAction;
   } else if (action) {
     effectiveAction = action;
   }
@@ -1130,9 +1136,8 @@ export function isModifierLegalForEffect(modifier, effect, extras = [], flaws = 
   // 4b. Action extra / flaw constraints
   const baseAction = effect?.action || 'Standard';
   if (modifier.id === 'action_extra') {
-    if (flawIds.has('action_flaw')) return { legal: false, reason: 'Incompatible with Action (Slower) flaw' };
     if (extraIds.has('reaction')) return { legal: false, reason: 'Incompatible with Reaction Action' };
-    if (baseAction === 'Free') return { legal: false, reason: 'Effect is already Free action' };
+    if (baseAction === 'Free' && !flawIds.has('action_flaw')) return { legal: false, reason: 'Effect is already Free action' };
     if (baseAction === 'Reaction') return { legal: false, reason: 'Reaction is already instantaneous' };
     if (baseAction === 'None') return { legal: false, reason: 'Passive effect cannot take Action extra' };
   }
@@ -1143,9 +1148,8 @@ export function isModifierLegalForEffect(modifier, effect, extras = [], flaws = 
     if (baseAction === 'None') return { legal: false, reason: 'Passive effect cannot take Reaction' };
   }
   if (modifier.id === 'action_flaw') {
-    if (extraIds.has('action_extra')) return { legal: false, reason: 'Incompatible with Action (Faster) extra' };
     if (extraIds.has('reaction')) return { legal: false, reason: 'Incompatible with Reaction Action' };
-    if (baseAction === 'Standard') return { legal: false, reason: 'Standard action cannot be made slower' };
+    if (baseAction === 'Standard' && !extraIds.has('action_extra')) return { legal: false, reason: 'Standard action cannot be made slower' };
     if (baseAction === 'None') return { legal: false, reason: 'Passive effect cannot take Action flaw' };
   }
 
@@ -1281,7 +1285,13 @@ export function validateModifierLegality(effect, extras = [], flaws = []) {
     errors.push('Cannot combine Increased Range and Reduced Range on the same effect.');
   }
   if (extraIds.has('action_extra') && flawIds.has('action_flaw')) {
-    errors.push('Cannot combine Action (Faster) extra and Action (Slower) flaw.');
+    const exRank = extras.find(e => e.id === 'action_extra')?.rank || 1;
+    const flRank = flaws.find(f => f.id === 'action_flaw')?.rank || 1;
+    if (exRank === flRank) {
+      warnings.push('Action (Faster) extra and Action (Slower) flaw cancel each other out.');
+    } else {
+      warnings.push(`Action (Faster) rank ${exRank} and Action (Slower) rank ${flRank} offset each other.`);
+    }
   }
   if (extraIds.has('reaction') && flawIds.has('action_flaw')) {
     errors.push('Cannot combine Reaction Action extra and Action (Slower) flaw.');

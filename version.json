@@ -1,5 +1,5 @@
 {
-  "version": "3.21",
-  "updatedAt": "2026-10-27T04:15:00Z",
-  "releaseNotes": "Removed vertical bars between effect stats; enforced alternate effect cost limits via pop-ups (preventing overruns on rank, effect, and modifier adjustments) without static warnings; visually combined main effect entry into a unified block reclaiming vertical space; unified alternate effect blocks with separation blank lines and collapsible toggle headers."
+  "version": "3.22",
+  "updatedAt": "2026-10-27T04:45:00Z",
+  "releaseNotes": "No auto-filled power descriptors (using placeholders); removed separate drawback dropdown in favor of complete Flaws catalog; added Quirk custom description field; Action extra and Action flaw cancel each other out; added primary effect notes field; shortened flaw dropdown anchor box preventing button overrun; centered app title above player/hero/campaign fields."
 }

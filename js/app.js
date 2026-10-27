@@ -1026,7 +1026,7 @@ class AppController {
   }
 
   async checkForUpdates({ isManual = false } = {}) {
-    const CURRENT_VERSION = '3.21';
+    const CURRENT_VERSION = '3.22';
     if (typeof window === 'undefined' || !window.location || !window.location.href || window.location.href === 'about:blank') return;
     try {
       const url = new URL('version.json', window.location.href);
@@ -1398,7 +1398,7 @@ class AppController {
         action: matchedProfile.action,
         range: matchedProfile.range,
         duration: matchedProfile.duration,
-        descriptor: matchedProfile.descriptor,
+        descriptor: '',
         extras: JSON.parse(JSON.stringify(matchedProfile.extras || [])),
         flaws: JSON.parse(JSON.stringify(matchedProfile.flaws || [])),
         alternateEffects: [],
@@ -4207,13 +4207,13 @@ class AppController {
       <div class="power-section-header">
         <span style="font-weight: 800; font-size: var(--font-size-base); color: var(--hero-blue);">➕ Extras (★ = Effect-Specific) (+PP/Rank)</span>
       </div>
-      <div style="display: flex; gap: 0.45rem; margin-bottom: 0.4rem;">
-        <select class="select-add-extra" style="flex: 1; font-size: var(--font-size-sm); min-height: 32px;">
+      <div style="display: flex; gap: 0.4rem; margin-bottom: 0.4rem; align-items: center; width: 100%; box-sizing: border-box;">
+        <select class="select-add-extra" style="flex: 1; min-width: 0; width: 100%; max-width: calc(100% - 95px); font-size: var(--font-size-sm); min-height: 32px; text-overflow: ellipsis; overflow: hidden;">
           ${legalRankExtras.length === 0
             ? '<option value="" disabled selected>No additional legal extras available</option>'
             : '<option value="" disabled selected>Select extra to add...</option>' + legalRankExtras.map(ex => `<option value="${ex.id}">${ex.name} (+${ex.cost}/rank)</option>`).join('')}
         </select>
-        <button class="btn btn-outline btn-add-extra" style="font-size: var(--font-size-sm); min-height: 32px; padding: 0.2rem 0.65rem; white-space: nowrap; border-color: var(--hero-blue); color: #fff;" ${legalRankExtras.length === 0 ? 'disabled' : ''}>+ Add Extra</button>
+        <button class="btn btn-outline btn-add-extra" style="font-size: var(--font-size-sm); min-height: 32px; padding: 0.2rem 0.55rem; white-space: nowrap; flex-shrink: 0; border-color: var(--hero-blue); color: #fff;" ${legalRankExtras.length === 0 ? 'disabled' : ''}>+ Add Extra</button>
       </div>
       <div class="extras-items-container" style="display: flex; flex-direction: column; gap: 0.35rem;"></div>
     `;
@@ -4293,63 +4293,76 @@ class AppController {
       this.refreshPowersState();
     });
 
-    // Flaws Column (Per-Rank)
+    // Flaws Column (All Flaws, Flat Flaws & Devices)
     const flawsCol = document.createElement('div');
     flawsCol.className = 'power-unified-subblock';
-    const legalRankFlaws = FLAWS_CATALOG.filter(fl => {
-      if (fl.isFlat || fl.isDevice) return false;
+    const legalFlaws = FLAWS_CATALOG.filter(fl => {
       if (activeFlawIds.has(fl.id)) return false;
       return isModifierLegalForEffect(fl, targetObj.effect, targetObj.extras, targetObj.flaws).legal;
     });
 
     flawsCol.innerHTML = `
       <div class="power-section-header">
-        <span style="font-weight: 800; font-size: var(--font-size-base); color: var(--hero-blue);">➖ Flaws (★ = Effect-Specific) (-PP/Rank)</span>
+        <span style="font-weight: 800; font-size: var(--font-size-base); color: var(--hero-blue);">➖ Flaws (★ = Effect-Specific) (-PP)</span>
       </div>
-      <div style="display: flex; gap: 0.45rem; margin-bottom: 0.4rem;">
-        <select class="select-add-flaw" style="flex: 1; font-size: var(--font-size-sm); min-height: 32px;">
-          ${legalRankFlaws.length === 0
+      <div style="display: flex; gap: 0.4rem; margin-bottom: 0.4rem; align-items: center; width: 100%; box-sizing: border-box;">
+        <select class="select-add-flaw" style="flex: 1; min-width: 0; width: 100%; max-width: calc(100% - 95px); font-size: var(--font-size-sm); min-height: 32px; text-overflow: ellipsis; overflow: hidden;">
+          ${legalFlaws.length === 0
             ? '<option value="" disabled selected>No additional legal flaws available</option>'
-            : '<option value="" disabled selected>Select flaw to add...</option>' + legalRankFlaws.map(fl => `<option value="${fl.id}">${fl.name} (-${fl.cost}/rank)</option>`).join('')}
+            : '<option value="" disabled selected>Select flaw to add...</option>' + legalFlaws.map(fl => `<option value="${fl.id}">${fl.name} (${fl.isDevice ? `Device -${fl.discountPer5}/5` : (fl.isFlat ? `-${fl.cost} flat` : `-${fl.cost}/rank`)})</option>`).join('')}
         </select>
-        <button class="btn btn-outline btn-add-flaw" style="font-size: var(--font-size-sm); min-height: 32px; padding: 0.2rem 0.65rem; white-space: nowrap; border-color: var(--hero-blue); color: #fff;" ${legalRankFlaws.length === 0 ? 'disabled' : ''}>+ Add Flaw</button>
+        <button class="btn btn-outline btn-add-flaw" style="font-size: var(--font-size-sm); min-height: 32px; padding: 0.2rem 0.55rem; white-space: nowrap; flex-shrink: 0; border-color: var(--hero-blue); color: #fff;" ${legalFlaws.length === 0 ? 'disabled' : ''}>+ Add Flaw</button>
       </div>
       <div class="flaws-items-container" style="display: flex; flex-direction: column; gap: 0.35rem;"></div>
     `;
 
     const flawsContainer = flawsCol.querySelector('.flaws-items-container');
-    targetObj.flaws.filter(fl => !fl.isFlat && !fl.isDevice).forEach((fl) => {
+    targetObj.flaws.forEach((fl) => {
       const flDef = FLAWS_CATALOG.find(f => f.id === fl.id) || fl;
       const r = parseInt(fl.rank, 10) || 1;
       const maxR = flDef.maxRank || 5;
 
       const flRow = document.createElement('div');
-      flRow.style.cssText = 'display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.25); padding: 0.35rem 0.55rem; border-radius: 4px; border: 1px solid rgba(255,255,255,0.08);';
+      flRow.style.cssText = 'display: flex; flex-direction: column; gap: 0.25rem; background: rgba(0,0,0,0.25); padding: 0.35rem 0.55rem; border-radius: 4px; border: 1px solid rgba(255,255,255,0.08);';
+
+      const flCostDisplay = flDef.isDevice ? `(Device -${flDef.discountPer5}/5 PP)` : (flDef.isFlat ? `(-${flDef.cost} flat)` : `(-${flDef.cost}/rank)`);
+
       flRow.innerHTML = `
-        <div style="flex: 1; display: flex; align-items: center; gap: 0.35rem; flex-wrap: wrap;">
-          <button type="button" class="btn-modifier-info-link" style="color: ${(flDef.isEffectSpecific || flDef.isUnique) ? 'var(--hero-gold)' : 'var(--text-bright)'};" title="Click to view rules description">
-            ${flDef.name}
-          </button>
-          <span style="font-size: var(--font-size-sm); color: var(--text-muted);">
-            (-${flDef.cost}/rank)
-          </span>
+        <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+          <div style="flex: 1; display: flex; align-items: center; gap: 0.35rem; flex-wrap: wrap;">
+            <button type="button" class="btn-modifier-info-link" style="color: ${(flDef.isEffectSpecific || flDef.isUnique) ? 'var(--hero-gold)' : 'var(--text-bright)'};" title="Click to view rules description">
+              ${flDef.name}
+            </button>
+            <span style="font-size: var(--font-size-sm); color: var(--text-muted);">
+              ${flCostDisplay}
+            </span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 0.45rem;">
+            ${flDef.isRanked ? `
+              <div class="stepper-control">
+                <button class="btn-stepper compact btn-fl-minus" title="Decrease rank (removes at 0)">-</button>
+                <span class="stepper-value compact">${r}</span>
+                <button class="btn-stepper compact btn-fl-plus" ${r >= maxR ? 'disabled' : ''}>+</button>
+              </div>
+            ` : ''}
+            <button class="btn btn-outline btn-remove-flaw" style="padding: 0.15rem 0.45rem; min-height: 28px; font-size: var(--font-size-sm); color: #fff; border-color: rgba(255,255,255,0.25);" title="Remove flaw">✕</button>
+          </div>
         </div>
-        <div style="display: flex; align-items: center; gap: 0.45rem;">
-          ${flDef.isRanked ? `
-            <div class="stepper-control">
-              <button class="btn-stepper compact btn-fl-minus" title="Decrease rank (removes at 0)">-</button>
-              <span class="stepper-value compact">${r}</span>
-              <button class="btn-stepper compact btn-fl-plus" ${r >= maxR ? 'disabled' : ''}>+</button>
-            </div>
-          ` : ''}
-          <button class="btn btn-outline btn-remove-flaw" style="padding: 0.15rem 0.45rem; min-height: 28px; font-size: var(--font-size-sm); color: #fff; border-color: rgba(255,255,255,0.25);" title="Remove flaw">✕</button>
-        </div>
+        ${fl.id === 'quirk' ? `
+          <div style="width: 100%; margin-top: 0.15rem;">
+            <input type="text" class="input-quirk-desc" value="${fl.description || ''}" placeholder="Describe quirk (e.g. Only when angry, Cannot affect lead, Requires spoken words)..." style="width: 100%; font-size: var(--font-size-xs); padding: 0.2rem 0.45rem; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.15); border-radius: 3px; color: var(--hero-gold);">
+          </div>
+        ` : ''}
       `;
 
       flRow.querySelector('.btn-modifier-info-link')?.addEventListener('click', (e) => {
         e.preventDefault();
         e.stopPropagation();
         this.showModifierDescriptionDialog(flDef);
+      });
+      flRow.querySelector('.input-quirk-desc')?.addEventListener('input', (e) => {
+        fl.description = e.target.value;
+        this.saveAndAudit();
       });
       flRow.querySelector('.btn-fl-minus')?.addEventListener('click', () => {
         let testFlaws;
@@ -4385,7 +4398,7 @@ class AppController {
 
     flawsCol.querySelector('.btn-add-flaw')?.addEventListener('click', () => {
       let selectedId = flawsCol.querySelector('.select-add-flaw').value;
-      if (!selectedId && legalRankFlaws.length > 0) selectedId = legalRankFlaws[0].id;
+      if (!selectedId && legalFlaws.length > 0) selectedId = legalFlaws[0].id;
       if (!selectedId) return;
       const flDef = FLAWS_CATALOG.find(f => f.id === selectedId);
       if (!flDef) return;
@@ -4394,7 +4407,17 @@ class AppController {
         this.showAlertDialog(`Cannot add ${flDef.name}: ${legality.reason}`, { title: 'Illegal Modifier Combination' });
         return;
       }
-      targetObj.flaws.push({ id: flDef.id, name: flDef.name, cost: flDef.cost, isFlat: false, isRanked: flDef.isRanked, rank: 1 });
+      targetObj.flaws.push({
+        id: flDef.id,
+        name: flDef.name,
+        cost: flDef.cost,
+        isFlat: flDef.isFlat,
+        isRanked: flDef.isRanked,
+        isDevice: flDef.isDevice,
+        discountPer5: flDef.discountPer5,
+        rank: 1,
+        description: flDef.id === 'quirk' ? '' : undefined
+      });
       this.refreshPowersState();
     });
 
@@ -4402,10 +4425,10 @@ class AppController {
     row3.appendChild(flawsCol);
     container.appendChild(row3);
 
-    // Row 4: Power Feats & Drawbacks
+    // Row 4: Power Feats (Flat Extras)
     const row4 = document.createElement('div');
     row4.className = 'power-unified-row';
-    row4.style.cssText = 'display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; border-top: 1px solid rgba(255, 255, 255, 0.08); padding-top: 0.45rem;';
+    row4.style.cssText = 'display: flex; flex-direction: column; gap: 0.45rem; border-top: 1px solid rgba(255, 255, 255, 0.08); padding-top: 0.45rem;';
 
     // Power Feats Column (Flat Extras)
     const featsCol = document.createElement('div');
@@ -4420,13 +4443,13 @@ class AppController {
       <div class="power-section-header">
         <span style="font-weight: 800; font-size: var(--font-size-base); color: var(--hero-gold);">⭐ Power Feats (+Flat PP Extras)</span>
       </div>
-      <div style="display: flex; gap: 0.45rem; margin-bottom: 0.4rem;">
-        <select class="select-add-feat" style="flex: 1; font-size: var(--font-size-sm); min-height: 32px;">
+      <div style="display: flex; gap: 0.4rem; margin-bottom: 0.4rem; align-items: center; width: 100%; box-sizing: border-box;">
+        <select class="select-add-feat" style="flex: 1; min-width: 0; width: 100%; max-width: calc(100% - 95px); font-size: var(--font-size-sm); min-height: 32px; text-overflow: ellipsis; overflow: hidden;">
           ${legalPowerFeats.length === 0
             ? '<option value="" disabled selected>No additional legal power feats available</option>'
             : '<option value="" disabled selected>Select power feat to add...</option>' + legalPowerFeats.map(ex => `<option value="${ex.id}">${ex.name} (+${ex.cost} flat)</option>`).join('')}
         </select>
-        <button class="btn btn-outline btn-add-feat" style="font-size: var(--font-size-sm); min-height: 32px; padding: 0.2rem 0.65rem; white-space: nowrap; border-color: var(--hero-gold); color: #fff;" ${legalPowerFeats.length === 0 ? 'disabled' : ''}>+ Add Feat</button>
+        <button class="btn btn-outline btn-add-feat" style="font-size: var(--font-size-sm); min-height: 32px; padding: 0.2rem 0.55rem; white-space: nowrap; flex-shrink: 0; border-color: var(--hero-gold); color: #fff;" ${legalPowerFeats.length === 0 ? 'disabled' : ''}>+ Add Feat</button>
       </div>
       <div class="feats-items-container" style="display: flex; flex-direction: column; gap: 0.35rem;"></div>
     `;
@@ -4506,113 +4529,7 @@ class AppController {
       this.refreshPowersState();
     });
 
-    // Drawbacks Column (Flat Flaws & Devices)
-    const drawbacksCol = document.createElement('div');
-    drawbacksCol.className = 'power-unified-subblock';
-    const legalDrawbacks = FLAWS_CATALOG.filter(fl => {
-      if (!fl.isFlat && !fl.isDevice) return false;
-      if (activeFlawIds.has(fl.id)) return false;
-      return isModifierLegalForEffect(fl, targetObj.effect, targetObj.extras, targetObj.flaws).legal;
-    });
-
-    drawbacksCol.innerHTML = `
-      <div class="power-section-header">
-        <span style="font-weight: 800; font-size: var(--font-size-base); color: var(--hero-blue);">⚠️ Drawbacks (-Flat PP & Devices)</span>
-      </div>
-      <div style="display: flex; gap: 0.45rem; margin-bottom: 0.4rem;">
-        <select class="select-add-drawback" style="flex: 1; font-size: var(--font-size-sm); min-height: 32px;">
-          ${legalDrawbacks.length === 0
-            ? '<option value="" disabled selected>No additional legal drawbacks available</option>'
-            : '<option value="" disabled selected>Select drawback to add...</option>' + legalDrawbacks.map(fl => `<option value="${fl.id}">${fl.name} (${fl.isDevice ? `Device -${fl.discountPer5}/5` : `-${fl.cost} flat`})</option>`).join('')}
-        </select>
-        <button class="btn btn-outline btn-add-drawback" style="font-size: var(--font-size-sm); min-height: 32px; padding: 0.2rem 0.65rem; white-space: nowrap; border-color: var(--hero-blue); color: #fff;" ${legalDrawbacks.length === 0 ? 'disabled' : ''}>+ Add Drawback</button>
-      </div>
-      <div class="drawbacks-items-container" style="display: flex; flex-direction: column; gap: 0.35rem;"></div>
-    `;
-
-    const drawbacksContainer = drawbacksCol.querySelector('.drawbacks-items-container');
-    targetObj.flaws.filter(fl => fl.isFlat || fl.isDevice).forEach((fl) => {
-      const flDef = FLAWS_CATALOG.find(f => f.id === fl.id) || fl;
-      const r = parseInt(fl.rank, 10) || 1;
-      const maxR = flDef.maxRank || 5;
-
-      const drawbackRow = document.createElement('div');
-      drawbackRow.style.cssText = 'display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.25); padding: 0.35rem 0.55rem; border-radius: 4px; border: 1px solid rgba(255,255,255,0.08);';
-      drawbackRow.innerHTML = `
-        <div style="flex: 1; display: flex; align-items: center; gap: 0.35rem; flex-wrap: wrap;">
-          <button type="button" class="btn-modifier-info-link" style="color: ${(flDef.isEffectSpecific || flDef.isUnique) ? 'var(--hero-gold)' : 'var(--text-bright)'};" title="Click to view rules description">
-            ${flDef.name}
-          </button>
-          <span style="font-size: var(--font-size-sm); color: var(--text-muted);">
-            ${flDef.isDevice ? `(Device -${flDef.discountPer5}/5 PP)` : `(-${flDef.cost} flat)`}
-          </span>
-        </div>
-        <div style="display: flex; align-items: center; gap: 0.45rem;">
-          ${flDef.isRanked ? `
-            <div class="stepper-control">
-              <button class="btn-stepper compact btn-drawback-minus" title="Decrease rank (removes at 0)">-</button>
-              <span class="stepper-value compact">${r}</span>
-              <button class="btn-stepper compact btn-drawback-plus" ${r >= maxR ? 'disabled' : ''}>+</button>
-            </div>
-          ` : ''}
-          <button class="btn btn-outline btn-remove-drawback" style="padding: 0.15rem 0.45rem; min-height: 28px; font-size: var(--font-size-sm); color: #fff; border-color: rgba(255,255,255,0.25);" title="Remove drawback">✕</button>
-        </div>
-      `;
-
-      drawbackRow.querySelector('.btn-modifier-info-link')?.addEventListener('click', (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        this.showModifierDescriptionDialog(flDef);
-      });
-      drawbackRow.querySelector('.btn-drawback-minus')?.addEventListener('click', () => {
-        let testFlaws;
-        if (r <= 1) {
-          testFlaws = targetObj.flaws.filter(item => item.id !== fl.id);
-        } else {
-          testFlaws = targetObj.flaws.map(item => item.id === fl.id ? { ...item, rank: item.rank - 1 } : item);
-        }
-        if (checkAeOverrun(undefined, testFlaws)) return;
-
-        if (r <= 1) {
-          const flIdx = targetObj.flaws.findIndex(item => item.id === fl.id);
-          if (flIdx >= 0) targetObj.flaws.splice(flIdx, 1);
-        } else {
-          fl.rank = r - 1;
-        }
-        this.refreshPowersState();
-      });
-      drawbackRow.querySelector('.btn-drawback-plus')?.addEventListener('click', () => {
-        fl.rank = Math.min(maxR, r + 1);
-        this.refreshPowersState();
-      });
-      drawbackRow.querySelector('.btn-remove-drawback')?.addEventListener('click', () => {
-        const testFlaws = targetObj.flaws.filter(item => item.id !== fl.id);
-        if (checkAeOverrun(undefined, testFlaws)) return;
-        const flIdx = targetObj.flaws.findIndex(item => item.id === fl.id);
-        if (flIdx >= 0) targetObj.flaws.splice(flIdx, 1);
-        this.refreshPowersState();
-      });
-
-      drawbacksContainer.appendChild(drawbackRow);
-    });
-
-    drawbacksCol.querySelector('.btn-add-drawback')?.addEventListener('click', () => {
-      let selectedId = drawbacksCol.querySelector('.select-add-drawback').value;
-      if (!selectedId && legalDrawbacks.length > 0) selectedId = legalDrawbacks[0].id;
-      if (!selectedId) return;
-      const flDef = FLAWS_CATALOG.find(f => f.id === selectedId);
-      if (!flDef) return;
-      const legality = isModifierLegalForEffect(flDef, targetObj.effect, targetObj.extras, targetObj.flaws);
-      if (!legality.legal) {
-        this.showAlertDialog(`Cannot add ${flDef.name}: ${legality.reason}`, { title: 'Illegal Modifier Combination' });
-        return;
-      }
-      targetObj.flaws.push({ id: flDef.id, name: flDef.name, cost: flDef.cost, isFlat: flDef.isFlat, isRanked: flDef.isRanked, isDevice: flDef.isDevice, discountPer5: flDef.discountPer5, rank: 1 });
-      this.refreshPowersState();
-    });
-
     row4.appendChild(featsCol);
-    row4.appendChild(drawbacksCol);
     container.appendChild(row4);
 
     return container;
@@ -4967,9 +4884,21 @@ class AppController {
           mainBlock.appendChild(valBox);
         }
 
-        // Row 3 & 4: Per-Rank Extras & Flaws and Power Feats & Drawbacks
+        // Row 3 & 4: Per-Rank Extras & Flaws and Power Feats
         const modCols = this.renderModifierColumns(p, p);
         mainBlock.appendChild(modCols);
+
+        // Primary Effect Notes Input
+        const notesRow = document.createElement('div');
+        notesRow.style.cssText = 'margin-top: 0.25rem;';
+        notesRow.innerHTML = `
+          <input type="text" class="input-power-notes" value="${p.notes || ''}" placeholder="Power notes & mechanics (e.g. DC, special conditions)" style="width: 100%; font-size: var(--font-size-xs);">
+        `;
+        notesRow.querySelector('.input-power-notes')?.addEventListener('input', (e) => {
+          p.notes = e.target.value;
+          this.saveAndAudit();
+        });
+        mainBlock.appendChild(notesRow);
 
         body.appendChild(mainBlock);
 

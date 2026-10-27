@@ -139,12 +139,36 @@ body {
   padding: 0.45rem 0.85rem 0.35rem 0.85rem;
 }
 
-/* Row 1: Menu Button | Player | Character | Campaign | Title Badge */
+/* Row 1: Menu Button | Centered App Title | Title Badge */
 .header-row-1 {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 0.65rem;
   margin-bottom: 0.35rem;
+}
+
+.brand-title-centered {
+  flex: 1;
+  text-align: center;
+  font-size: var(--font-size-md);
+  font-weight: 900;
+  color: var(--hero-gold);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.7);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Row 2: Shifted Downwards: Player | Hero | Campaign */
+.header-fields-row {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  margin-bottom: 0.4rem;
+  flex-wrap: wrap;
 }
 
 .btn-menu {

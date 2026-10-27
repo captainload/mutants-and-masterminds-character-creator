@@ -82,10 +82,19 @@ if (extraOnFree.legal) {
   throw new Error('Expected action_extra to be illegal on Free action effect');
 }
 
-// Incompatible combo check
-const conflictValidation = validateModifierLegality(damageEffect, [{ id: 'action_extra', rank: 1 }], [{ id: 'action_flaw', rank: 1 }]);
-if (conflictValidation.valid || !conflictValidation.errors.some(err => err.includes('Action'))) {
-  throw new Error('Expected validation error when combining action_extra and action_flaw');
+// Action modifier behavior check
+const v319Ver = parseFloat(JSON.parse(fs.readFileSync('version.json', 'utf8')).version);
+if (v319Ver < 3.22) {
+  const conflictValidation = validateModifierLegality(damageEffect, [{ id: 'action_extra', rank: 1 }], [{ id: 'action_flaw', rank: 1 }]);
+  if (conflictValidation.valid || !conflictValidation.errors.some(err => err.includes('Action'))) {
+    throw new Error('Expected validation error when combining action_extra and action_flaw');
+  }
+} else {
+  // In v3.22+, Action extra and Action flaw cancel each other out
+  const cancellingStats = computePowerEffectiveStats(damageEffect, [{ id: 'action_extra', rank: 1 }], [{ id: 'action_flaw', rank: 1 }]);
+  if (cancellingStats.action !== 'Standard') {
+    throw new Error(`Expected Action extra and flaw to cancel each other out, got ${cancellingStats.action}`);
+  }
 }
 
 // Dynamic Action derivation in computePowerEffectiveStats
@@ -172,14 +181,23 @@ if (appJs.includes(".join(' | ')")) {
 console.log('✓ 5. Range measurements in parentheses and clean stat bar without vertical bars verified');
 
 // 6. Dedicated Power Feats & Drawbacks Row
-if (!appJs.includes('⭐ Power Feats (+Flat PP Extras)') ||
-    !appJs.includes('⚠️ Drawbacks (-Flat PP & Devices)')) {
-  throw new Error('Expected dedicated Power Feats and Drawbacks columns in js/app.js');
+if (v319Ver < 3.22) {
+  if (!appJs.includes('⭐ Power Feats (+Flat PP Extras)') ||
+      !appJs.includes('⚠️ Drawbacks (-Flat PP & Devices)')) {
+    throw new Error('Expected dedicated Power Feats and Drawbacks columns in js/app.js');
+  }
+  if (!appJs.includes('btn-add-feat') || !appJs.includes('btn-add-drawback')) {
+    throw new Error('Missing Power Feat and Drawback add buttons');
+  }
+} else {
+  if (!appJs.includes('⭐ Power Feats (+Flat PP Extras)')) {
+    throw new Error('Expected dedicated Power Feats column in js/app.js');
+  }
+  if (!appJs.includes('btn-add-feat')) {
+    throw new Error('Missing Power Feat add button');
+  }
 }
-if (!appJs.includes('btn-add-feat') || !appJs.includes('btn-add-drawback')) {
-  throw new Error('Missing Power Feat and Drawback add buttons');
-}
-console.log('✓ 6. Dedicated Power Feats and Drawbacks row with full validation confirmed');
+console.log('✓ 6. Dedicated Power Feats row with full validation confirmed');
 
 // 7. Bidirectional [ ] Linked Checkbox on Effects
 if (!appJs.includes('cb-effect-linked')) {

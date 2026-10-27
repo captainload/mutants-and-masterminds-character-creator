@@ -17,8 +17,15 @@ if (parseFloat(versionJson.version) < 3.21) {
 }
 
 const indexHtml = fs.readFileSync('index.html', 'utf8');
-if (!indexHtml.includes('Character Architect v3.') || !indexHtml.includes('Character Editor v3.')) {
-  throw new Error('Expected index.html title and brand label to reference v3.x');
+const curVerNum = parseFloat(versionJson.version);
+if (curVerNum < 3.23) {
+  if (!indexHtml.includes('Character Architect v3.') || !indexHtml.includes('Character Editor v3.')) {
+    throw new Error('Expected index.html title and brand label to reference v3.x');
+  }
+} else {
+  if (!indexHtml.includes('Character Editor v3.')) {
+    throw new Error('Expected index.html title to reference Character Editor v3.x');
+  }
 }
 
 const appJs = fs.readFileSync('js/app.js', 'utf8');

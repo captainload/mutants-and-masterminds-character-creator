@@ -13,13 +13,20 @@ console.log('=== Running v3.19 Requirements Test Suite ===\n');
 
 // 1. Version Check
 const versionJson = JSON.parse(fs.readFileSync('version.json', 'utf8'));
-if (parseFloat(versionJson.version) < 3.19) {
+const v319Ver = parseFloat(versionJson.version);
+if (v319Ver < 3.19) {
   throw new Error(`Expected version.json to be >= 3.19, got ${versionJson.version}`);
 }
 
 const indexHtml = fs.readFileSync('index.html', 'utf8');
-if (!indexHtml.includes('Character Architect v3.')) {
-  throw new Error('Expected index.html title to reference Character Architect');
+if (v319Ver < 3.23) {
+  if (!indexHtml.includes('Character Architect v3.')) {
+    throw new Error('Expected index.html title to reference Character Architect');
+  }
+} else {
+  if (!indexHtml.includes('Character Editor v3.')) {
+    throw new Error('Expected index.html title to reference Character Editor');
+  }
 }
 
 const appJs = fs.readFileSync('js/app.js', 'utf8');
@@ -83,7 +90,6 @@ if (extraOnFree.legal) {
 }
 
 // Action modifier behavior check
-const v319Ver = parseFloat(JSON.parse(fs.readFileSync('version.json', 'utf8')).version);
 if (v319Ver < 3.22) {
   const conflictValidation = validateModifierLegality(damageEffect, [{ id: 'action_extra', rank: 1 }], [{ id: 'action_flaw', rank: 1 }]);
   if (conflictValidation.valid || !conflictValidation.errors.some(err => err.includes('Action'))) {
@@ -180,7 +186,7 @@ if (appJs.includes(".join(' | ')")) {
 }
 console.log('✓ 5. Range measurements in parentheses and clean stat bar without vertical bars verified');
 
-// 6. Dedicated Power Feats & Drawbacks Row
+// 6. Dedicated Modifiers (Power Feats & Drawbacks in v3.19-3.21, reclassed as Extras/Flaws in v3.22+)
 if (v319Ver < 3.22) {
   if (!appJs.includes('⭐ Power Feats (+Flat PP Extras)') ||
       !appJs.includes('⚠️ Drawbacks (-Flat PP & Devices)')) {
@@ -189,12 +195,17 @@ if (v319Ver < 3.22) {
   if (!appJs.includes('btn-add-feat') || !appJs.includes('btn-add-drawback')) {
     throw new Error('Missing Power Feat and Drawback add buttons');
   }
-} else {
+} else if (v319Ver < 3.23) {
   if (!appJs.includes('⭐ Power Feats (+Flat PP Extras)')) {
     throw new Error('Expected dedicated Power Feats column in js/app.js');
   }
   if (!appJs.includes('btn-add-feat')) {
     throw new Error('Missing Power Feat add button');
+  }
+} else {
+  // In v3.23+, power feats are reclassified as Extras
+  if (!appJs.includes('select-add-extra') || !appJs.includes('btn-add-extra')) {
+    throw new Error('Expected Extras add button handling all extras in js/app.js');
   }
 }
 console.log('✓ 6. Dedicated Power Feats row with full validation confirmed');

@@ -1023,22 +1023,43 @@ class AppController {
     document.getElementById('btn-update-reload')?.addEventListener('click', () => {
       window.location.reload(true);
     });
+    document.getElementById('btn-header-update-alert')?.addEventListener('click', () => {
+      this.checkForUpdates({ isManual: true });
+    });
   }
 
   async checkForUpdates({ isManual = false } = {}) {
-    const CURRENT_VERSION = '3.22';
+    const CURRENT_VERSION = '3.23';
+    const versionEl = document.getElementById('header-version-tag');
+    const updateBtn = document.getElementById('btn-header-update-alert');
     if (typeof window === 'undefined' || !window.location || !window.location.href || window.location.href === 'about:blank') return;
     try {
       const url = new URL('version.json', window.location.href);
       url.searchParams.set('t', Date.now().toString());
       const res = await fetch(url.toString(), { cache: 'no-store' });
       if (!res.ok) {
+        if (versionEl) {
+          versionEl.textContent = `v${CURRENT_VERSION}`;
+          versionEl.className = 'header-version-tag up-to-date';
+        }
         if (isManual) await this.showAlertDialog('Could not check for updates (server responded with error).', { title: 'Update Check' });
         return;
       }
       const data = await res.json();
       const remoteVersion = data.version;
-      if (remoteVersion && remoteVersion !== CURRENT_VERSION) {
+      const isOutdated = !!(remoteVersion && remoteVersion !== CURRENT_VERSION);
+
+      if (versionEl) {
+        versionEl.textContent = `v${CURRENT_VERSION}`;
+        versionEl.className = `header-version-tag ${isOutdated ? 'out-of-date' : 'up-to-date'}`;
+        versionEl.title = isOutdated ? `Update available: v${remoteVersion}` : `Up to date (v${CURRENT_VERSION})`;
+      }
+      if (updateBtn) {
+        updateBtn.className = `btn-header-update-alert ${isOutdated ? 'out-of-date' : 'up-to-date'}`;
+        updateBtn.title = isOutdated ? `Update available (v${remoteVersion}). Click to view.` : 'You are running the latest version. Click to recheck.';
+      }
+
+      if (isOutdated) {
         const currEl = document.getElementById('update-curr-version');
         const newEl = document.getElementById('update-new-version');
         const notesEl = document.getElementById('update-notes');
@@ -1050,6 +1071,10 @@ class AppController {
         await this.showAlertDialog(`You are up to date! Mutants & Masterminds Character Editor is running the latest version (v${CURRENT_VERSION}).`, { title: 'Up to Date' });
       }
     } catch (err) {
+      if (versionEl) {
+        versionEl.textContent = `v${CURRENT_VERSION}`;
+        versionEl.className = 'header-version-tag up-to-date';
+      }
       if (isManual) await this.showAlertDialog('Could not check for updates. Please check your internet connection.', { title: 'Update Check' });
     }
   }
@@ -4089,7 +4114,7 @@ class AppController {
 
   showModifierDescriptionDialog(modDef) {
     const isExtra = !!EXTRAS_CATALOG.find(e => e.id === modDef.id);
-    const cat = isExtra ? (modDef.isFlat ? 'Power Feat (Flat Extra)' : 'Extra') : (modDef.isFlat || modDef.isDevice ? 'Drawback (Flat Flaw / Device)' : 'Flaw');
+    const cat = isExtra ? (modDef.isFlat ? 'Flat Extra' : 'Extra') : (modDef.isDevice ? 'Device Discount' : (modDef.isFlat ? 'Flat Flaw' : 'Flaw'));
     const costText = isExtra
       ? (modDef.isFlat ? `+${modDef.cost} flat PP` : `+${modDef.cost} PP/rank`)
       : (modDef.isDevice ? `Device discount (-${modDef.discountPer5}/5 PP)` : (modDef.isFlat ? `-${modDef.cost} flat PP` : `-${modDef.cost} PP/rank`));
@@ -4194,32 +4219,32 @@ class AppController {
     row3.className = 'power-unified-row';
     row3.style.cssText = 'display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; border-top: 1px solid rgba(255, 255, 255, 0.08); padding-top: 0.45rem;';
 
-    // Extras Column (Per-Rank)
+    // Extras Column (Per-Rank & Flat Extras)
     const extrasCol = document.createElement('div');
     extrasCol.className = 'power-unified-subblock';
-    const legalRankExtras = EXTRAS_CATALOG.filter(ex => {
-      if (ex.isFlat) return false;
+    const legalExtras = EXTRAS_CATALOG.filter(ex => {
+      if (ex.id === 'linked') return false;
       if (activeExtraIds.has(ex.id)) return false;
       return isModifierLegalForEffect(ex, targetObj.effect, targetObj.extras, targetObj.flaws).legal;
     });
 
     extrasCol.innerHTML = `
       <div class="power-section-header">
-        <span style="font-weight: 800; font-size: var(--font-size-base); color: var(--hero-blue);">➕ Extras (★ = Effect-Specific) (+PP/Rank)</span>
+        <span style="font-weight: 800; font-size: var(--font-size-base); color: var(--hero-blue);">➕ Extras (★ = Effect-Specific) (+PP)</span>
       </div>
       <div style="display: flex; gap: 0.4rem; margin-bottom: 0.4rem; align-items: center; width: 100%; box-sizing: border-box;">
         <select class="select-add-extra" style="flex: 1; min-width: 0; width: 100%; max-width: calc(100% - 95px); font-size: var(--font-size-sm); min-height: 32px; text-overflow: ellipsis; overflow: hidden;">
-          ${legalRankExtras.length === 0
+          ${legalExtras.length === 0
             ? '<option value="" disabled selected>No additional legal extras available</option>'
-            : '<option value="" disabled selected>Select extra to add...</option>' + legalRankExtras.map(ex => `<option value="${ex.id}">${ex.name} (+${ex.cost}/rank)</option>`).join('')}
+            : '<option value="" disabled selected>Select extra to add...</option>' + legalExtras.map(ex => `<option value="${ex.id}">${ex.name} (${ex.isFlat ? `+${ex.cost} flat` : `+${ex.cost}/rank`})</option>`).join('')}
         </select>
-        <button class="btn btn-outline btn-add-extra" style="font-size: var(--font-size-sm); min-height: 32px; padding: 0.2rem 0.55rem; white-space: nowrap; flex-shrink: 0; border-color: var(--hero-blue); color: #fff;" ${legalRankExtras.length === 0 ? 'disabled' : ''}>+ Add Extra</button>
+        <button class="btn btn-outline btn-add-extra" style="font-size: var(--font-size-sm); min-height: 32px; padding: 0.2rem 0.55rem; white-space: nowrap; flex-shrink: 0; border-color: var(--hero-blue); color: #fff;" ${legalExtras.length === 0 ? 'disabled' : ''}>+ Add Extra</button>
       </div>
       <div class="extras-items-container" style="display: flex; flex-direction: column; gap: 0.35rem;"></div>
     `;
 
     const extrasContainer = extrasCol.querySelector('.extras-items-container');
-    targetObj.extras.filter(ex => !ex.isFlat).forEach((ex) => {
+    targetObj.extras.filter(ex => ex.id !== 'linked').forEach((ex) => {
       const exDef = EXTRAS_CATALOG.find(e => e.id === ex.id) || ex;
       const r = parseInt(ex.rank, 10) || 1;
       const maxR = exDef.maxRankByEffect ? (parseInt(targetObj.rank, 10) || 10) : (exDef.maxRank || 10);
@@ -4232,7 +4257,7 @@ class AppController {
             ${exDef.name}
           </button>
           <span style="font-size: var(--font-size-sm); color: var(--text-muted);">
-            (+${exDef.cost}/rank)
+            (${exDef.isFlat ? `+${exDef.cost} flat` : `+${exDef.cost}/rank`})
           </span>
         </div>
         <div style="display: flex; align-items: center; gap: 0.45rem;">
@@ -4278,7 +4303,7 @@ class AppController {
 
     extrasCol.querySelector('.btn-add-extra')?.addEventListener('click', () => {
       let selectedId = extrasCol.querySelector('.select-add-extra').value;
-      if (!selectedId && legalRankExtras.length > 0) selectedId = legalRankExtras[0].id;
+      if (!selectedId && legalExtras.length > 0) selectedId = legalExtras[0].id;
       if (!selectedId) return;
       const exDef = EXTRAS_CATALOG.find(e => e.id === selectedId);
       if (!exDef) return;
@@ -4287,9 +4312,9 @@ class AppController {
         this.showAlertDialog(`Cannot add ${exDef.name}: ${legality.reason}`, { title: 'Illegal Modifier Combination' });
         return;
       }
-      const testExtras = [...targetObj.extras, { id: exDef.id, name: exDef.name, cost: exDef.cost, isFlat: false, isRanked: exDef.isRanked, rank: 1 }];
+      const testExtras = [...targetObj.extras, { id: exDef.id, name: exDef.name, cost: exDef.cost, isFlat: !!exDef.isFlat, isRanked: !!exDef.isRanked, rank: 1 }];
       if (checkAeOverrun(testExtras, undefined)) return;
-      targetObj.extras.push({ id: exDef.id, name: exDef.name, cost: exDef.cost, isFlat: false, isRanked: exDef.isRanked, rank: 1 });
+      targetObj.extras.push({ id: exDef.id, name: exDef.name, cost: exDef.cost, isFlat: !!exDef.isFlat, isRanked: !!exDef.isRanked, rank: 1 });
       this.refreshPowersState();
     });
 
@@ -4328,7 +4353,7 @@ class AppController {
       const flCostDisplay = flDef.isDevice ? `(Device -${flDef.discountPer5}/5 PP)` : (flDef.isFlat ? `(-${flDef.cost} flat)` : `(-${flDef.cost}/rank)`);
 
       flRow.innerHTML = `
-        <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+        <div style="flex: 1; display: flex; justify-content: space-between; align-items: center; width: 100%;">
           <div style="flex: 1; display: flex; align-items: center; gap: 0.35rem; flex-wrap: wrap;">
             <button type="button" class="btn-modifier-info-link" style="color: ${(flDef.isEffectSpecific || flDef.isUnique) ? 'var(--hero-gold)' : 'var(--text-bright)'};" title="Click to view rules description">
               ${flDef.name}
@@ -4424,113 +4449,6 @@ class AppController {
     row3.appendChild(extrasCol);
     row3.appendChild(flawsCol);
     container.appendChild(row3);
-
-    // Row 4: Power Feats (Flat Extras)
-    const row4 = document.createElement('div');
-    row4.className = 'power-unified-row';
-    row4.style.cssText = 'display: flex; flex-direction: column; gap: 0.45rem; border-top: 1px solid rgba(255, 255, 255, 0.08); padding-top: 0.45rem;';
-
-    // Power Feats Column (Flat Extras)
-    const featsCol = document.createElement('div');
-    featsCol.className = 'power-unified-subblock';
-    const legalPowerFeats = EXTRAS_CATALOG.filter(ex => {
-      if (!ex.isFlat || ex.id === 'linked') return false;
-      if (activeExtraIds.has(ex.id)) return false;
-      return isModifierLegalForEffect(ex, targetObj.effect, targetObj.extras, targetObj.flaws).legal;
-    });
-
-    featsCol.innerHTML = `
-      <div class="power-section-header">
-        <span style="font-weight: 800; font-size: var(--font-size-base); color: var(--hero-gold);">⭐ Power Feats (+Flat PP Extras)</span>
-      </div>
-      <div style="display: flex; gap: 0.4rem; margin-bottom: 0.4rem; align-items: center; width: 100%; box-sizing: border-box;">
-        <select class="select-add-feat" style="flex: 1; min-width: 0; width: 100%; max-width: calc(100% - 95px); font-size: var(--font-size-sm); min-height: 32px; text-overflow: ellipsis; overflow: hidden;">
-          ${legalPowerFeats.length === 0
-            ? '<option value="" disabled selected>No additional legal power feats available</option>'
-            : '<option value="" disabled selected>Select power feat to add...</option>' + legalPowerFeats.map(ex => `<option value="${ex.id}">${ex.name} (+${ex.cost} flat)</option>`).join('')}
-        </select>
-        <button class="btn btn-outline btn-add-feat" style="font-size: var(--font-size-sm); min-height: 32px; padding: 0.2rem 0.55rem; white-space: nowrap; flex-shrink: 0; border-color: var(--hero-gold); color: #fff;" ${legalPowerFeats.length === 0 ? 'disabled' : ''}>+ Add Feat</button>
-      </div>
-      <div class="feats-items-container" style="display: flex; flex-direction: column; gap: 0.35rem;"></div>
-    `;
-
-    const featsContainer = featsCol.querySelector('.feats-items-container');
-    targetObj.extras.filter(ex => ex.isFlat && ex.id !== 'linked').forEach((ex) => {
-      const exDef = EXTRAS_CATALOG.find(e => e.id === ex.id) || ex;
-      const r = parseInt(ex.rank, 10) || 1;
-      const maxR = exDef.maxRank || 5;
-
-      const featRow = document.createElement('div');
-      featRow.style.cssText = 'display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.25); padding: 0.35rem 0.55rem; border-radius: 4px; border: 1px solid rgba(255,255,255,0.08);';
-      featRow.innerHTML = `
-        <div style="flex: 1; display: flex; align-items: center; gap: 0.35rem; flex-wrap: wrap;">
-          <button type="button" class="btn-modifier-info-link" style="color: var(--hero-gold);" title="Click to view rules description">
-            ${exDef.name}
-          </button>
-          <span style="font-size: var(--font-size-sm); color: var(--text-muted);">
-            (+${exDef.cost} flat)
-          </span>
-        </div>
-        <div style="display: flex; align-items: center; gap: 0.45rem;">
-          ${exDef.isRanked ? `
-            <div class="stepper-control">
-              <button class="btn-stepper compact btn-feat-minus" title="Decrease rank (removes at 0)">-</button>
-              <span class="stepper-value compact">${r}</span>
-              <button class="btn-stepper compact btn-feat-plus" ${r >= maxR ? 'disabled' : ''}>+</button>
-            </div>
-          ` : ''}
-          <button class="btn btn-outline btn-remove-feat" style="padding: 0.15rem 0.45rem; min-height: 28px; font-size: var(--font-size-sm); color: #fff; border-color: rgba(255,255,255,0.25);" title="Remove power feat">✕</button>
-        </div>
-      `;
-
-      featRow.querySelector('.btn-modifier-info-link')?.addEventListener('click', (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        this.showModifierDescriptionDialog(exDef);
-      });
-      featRow.querySelector('.btn-feat-minus')?.addEventListener('click', () => {
-        if (r <= 1) {
-          const exIdx = targetObj.extras.findIndex(item => item.id === ex.id);
-          if (exIdx >= 0) targetObj.extras.splice(exIdx, 1);
-        } else {
-          ex.rank = r - 1;
-        }
-        this.refreshPowersState();
-      });
-      featRow.querySelector('.btn-feat-plus')?.addEventListener('click', () => {
-        const testExtras = targetObj.extras.map(item => item.id === ex.id ? { ...item, rank: item.rank + 1 } : item);
-        if (checkAeOverrun(testExtras, undefined)) return;
-        ex.rank = Math.min(maxR, r + 1);
-        this.refreshPowersState();
-      });
-      featRow.querySelector('.btn-remove-feat')?.addEventListener('click', () => {
-        const exIdx = targetObj.extras.findIndex(item => item.id === ex.id);
-        if (exIdx >= 0) targetObj.extras.splice(exIdx, 1);
-        this.refreshPowersState();
-      });
-
-      featsContainer.appendChild(featRow);
-    });
-
-    featsCol.querySelector('.btn-add-feat')?.addEventListener('click', () => {
-      let selectedId = featsCol.querySelector('.select-add-feat').value;
-      if (!selectedId && legalPowerFeats.length > 0) selectedId = legalPowerFeats[0].id;
-      if (!selectedId) return;
-      const exDef = EXTRAS_CATALOG.find(e => e.id === selectedId);
-      if (!exDef) return;
-      const legality = isModifierLegalForEffect(exDef, targetObj.effect, targetObj.extras, targetObj.flaws);
-      if (!legality.legal) {
-        this.showAlertDialog(`Cannot add ${exDef.name}: ${legality.reason}`, { title: 'Illegal Modifier Combination' });
-        return;
-      }
-      const testExtras = [...targetObj.extras, { id: exDef.id, name: exDef.name, cost: exDef.cost, isFlat: true, isRanked: exDef.isRanked, rank: 1 }];
-      if (checkAeOverrun(testExtras, undefined)) return;
-      targetObj.extras.push({ id: exDef.id, name: exDef.name, cost: exDef.cost, isFlat: true, isRanked: exDef.isRanked, rank: 1 });
-      this.refreshPowersState();
-    });
-
-    row4.appendChild(featsCol);
-    container.appendChild(row4);
 
     return container;
   }
@@ -4884,7 +4802,7 @@ class AppController {
           mainBlock.appendChild(valBox);
         }
 
-        // Row 3 & 4: Per-Rank Extras & Flaws and Power Feats
+        // Row 3: Modifiers (Extras & Flaws)
         const modCols = this.renderModifierColumns(p, p);
         mainBlock.appendChild(modCols);
 
@@ -5122,7 +5040,7 @@ class AppController {
               aeBody.appendChild(valBox);
             }
 
-            // Row 3 & 4 for AE: Modifiers (Extras, Flaws, Power Feats, Drawbacks) with powerContext passed
+            // Row 3 for AE: Modifiers (Extras & Flaws) with powerContext passed
             const aeModifiersSection = this.renderModifierColumns(ae, p);
             aeBody.appendChild(aeModifiersSection);
 

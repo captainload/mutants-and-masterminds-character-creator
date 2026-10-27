@@ -1041,6 +1041,8 @@ export function isModifierLegalForEffect(modifier, effect, extras = [], flaws = 
   const flawIds = new Set((flaws || []).map(f => f.id));
   const baseRange = effect?.range || 'Personal';
   const effId = effect?.id || '';
+  const rd = computePowerRangeAndDuration(effect, extras, flaws);
+  const effectiveRange = rd.effectiveRange;
 
   // 1. Single instance rule: cannot add multiple instances of the same modifier
   if (extraIds.has(modifier.id) || flawIds.has(modifier.id)) {
@@ -1086,18 +1088,18 @@ export function isModifierLegalForEffect(modifier, effect, extras = [], flaws = 
   }
 
   if (modifier.id === 'diminished_range') {
-    if (baseRange !== 'Ranged' && !extraIds.has('increased_range')) {
-      return { legal: false, reason: 'Only applies to Ranged powers' };
+    if (effectiveRange !== 'Ranged') {
+      return { legal: false, reason: 'Diminished Range flaw only applies to Ranged attack effects' };
     }
   }
 
   if (modifier.id === 'reach') {
-    if (baseRange !== 'Close') return { legal: false, reason: 'Reach only applies to Close range' };
+    if (effectiveRange !== 'Close') return { legal: false, reason: 'Reach only applies to Close range' };
   }
 
   if (modifier.id === 'grab_based') {
-    if (baseRange !== 'Close' && !flawIds.has('reduced_range')) {
-      return { legal: false, reason: 'Grab-Based requires Close range' };
+    if (effectiveRange !== 'Close') {
+      return { legal: false, reason: 'Grab-Based flaw only applies to Close range attack effects' };
     }
   }
 
@@ -1160,18 +1162,6 @@ export function isModifierLegalForEffect(modifier, effect, extras = [], flaws = 
   if (modifier.id === 'affects_others' || modifier.id === 'attack') {
     if (baseRange !== 'Personal') {
       return { legal: false, reason: 'Affects Others / Attack only applies to Personal range powers' };
-    }
-  }
-
-  if (modifier.id === 'grab_based') {
-    if (effectiveRange !== 'Close') {
-      return { legal: false, reason: 'Grab-Based flaw only applies to Close range attack effects' };
-    }
-  }
-
-  if (modifier.id === 'diminished_range') {
-    if (effectiveRange !== 'Ranged') {
-      return { legal: false, reason: 'Diminished Range flaw only applies to Ranged attack effects' };
     }
   }
 

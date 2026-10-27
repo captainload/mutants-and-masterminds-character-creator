@@ -1025,7 +1025,7 @@ class AppController {
   }
 
   async checkForUpdates({ isManual = false } = {}) {
-    const CURRENT_VERSION = '3.17';
+    const CURRENT_VERSION = '3.18';
     if (typeof window === 'undefined' || !window.location || !window.location.href || window.location.href === 'about:blank') return;
     try {
       const url = new URL('version.json', window.location.href);
@@ -1480,63 +1480,77 @@ class AppController {
   // =======================================================
   setupCustomPowerBuilder() {
     const effectSelect = document.getElementById('builder-base-effect');
-    effectSelect.innerHTML = '';
-    POWER_EFFECTS_CATALOG.forEach(e => {
-      const opt = document.createElement('option');
-      opt.value = e.id;
-      opt.textContent = `${e.name} (${e.baseCost} PP/rank) [${e.range}, ${e.duration}]`;
-      effectSelect.appendChild(opt);
+    if (effectSelect) {
+      effectSelect.innerHTML = '';
+      POWER_EFFECTS_CATALOG.forEach(e => {
+        const opt = document.createElement('option');
+        opt.value = e.id;
+        opt.textContent = `${e.name} (${e.baseCost} PP/rank) [${e.range}, ${e.duration}]`;
+        effectSelect.appendChild(opt);
+      });
+
+      effectSelect.addEventListener('change', () => {
+        const def = POWER_EFFECTS_CATALOG.find(e => e.id === effectSelect.value);
+        if (def) {
+          const actionEl = document.getElementById('builder-action');
+          if (actionEl) actionEl.value = def.action || 'Standard';
+        }
+        this.recalculateCustomBuilder();
+      });
+    }
+
+    document.getElementById('builder-action')?.addEventListener('change', () => {
+      this.recalculateCustomBuilder();
     });
 
-    effectSelect.addEventListener('change', () => {
-      const def = POWER_EFFECTS_CATALOG.find(e => e.id === effectSelect.value);
-      if (def) {
-        document.getElementById('builder-action').value = def.action || 'Standard';
-        const rd = computePowerRangeAndDuration(def);
-        const rEl = document.getElementById('builder-derived-range');
-        const dEl = document.getElementById('builder-derived-duration');
-        if (rEl) rEl.textContent = rd.effectiveRange;
-        if (dEl) dEl.textContent = rd.effectiveDuration;
+    document.getElementById('builder-power-name')?.addEventListener('input', () => {
+      this.recalculateCustomBuilder();
+    });
+
+    document.getElementById('builder-power-descriptor')?.addEventListener('input', () => {
+      this.recalculateCustomBuilder();
+    });
+
+    document.getElementById('btn-builder-rank-plus')?.addEventListener('click', () => {
+      const valEl = document.getElementById('builder-rank-val');
+      if (valEl) {
+        valEl.textContent = parseInt(valEl.textContent, 10) + 1;
+        this.recalculateCustomBuilder();
       }
-      this.recalculateCustomBuilder();
     });
 
-    document.getElementById('btn-builder-rank-plus').addEventListener('click', () => {
+    document.getElementById('btn-builder-rank-minus')?.addEventListener('click', () => {
       const valEl = document.getElementById('builder-rank-val');
-      valEl.textContent = parseInt(valEl.textContent, 10) + 1;
-      this.recalculateCustomBuilder();
+      if (valEl) {
+        valEl.textContent = Math.max(1, parseInt(valEl.textContent, 10) - 1);
+        this.recalculateCustomBuilder();
+      }
     });
 
-    document.getElementById('btn-builder-rank-minus').addEventListener('click', () => {
-      const valEl = document.getElementById('builder-rank-val');
-      valEl.textContent = Math.max(1, parseInt(valEl.textContent, 10) - 1);
-      this.recalculateCustomBuilder();
-    });
-
-    document.getElementById('btn-builder-add-extra').addEventListener('click', () => {
+    document.getElementById('btn-builder-add-extra')?.addEventListener('click', () => {
       this.addBuilderExtraRow();
       this.recalculateCustomBuilder();
     });
 
-    document.getElementById('btn-builder-add-flaw').addEventListener('click', () => {
+    document.getElementById('btn-builder-add-flaw')?.addEventListener('click', () => {
       this.addBuilderFlawRow();
       this.recalculateCustomBuilder();
     });
 
-    document.getElementById('btn-builder-add-ae').addEventListener('click', () => {
+    document.getElementById('btn-builder-add-ae')?.addEventListener('click', () => {
       this.addBuilderAeRow();
       this.recalculateCustomBuilder();
     });
 
-    document.getElementById('btn-close-power-builder').addEventListener('click', () => {
+    document.getElementById('btn-close-power-builder')?.addEventListener('click', () => {
       this.closeModal('modal-power-builder');
     });
 
-    document.getElementById('btn-cancel-power-builder').addEventListener('click', () => {
+    document.getElementById('btn-cancel-power-builder')?.addEventListener('click', () => {
       this.closeModal('modal-power-builder');
     });
 
-    document.getElementById('btn-save-power-builder').addEventListener('click', () => {
+    document.getElementById('btn-save-power-builder')?.addEventListener('click', () => {
       this.savePowerFromBuilder();
     });
   }
@@ -1597,11 +1611,12 @@ class AppController {
 
   addBuilderExtraRow(saved = null) {
     const list = document.getElementById('builder-extras-list');
+    if (!list) return;
     const row = document.createElement('div');
-    row.style.cssText = 'display: flex; gap: 0.35rem; align-items: center;';
+    row.style.cssText = 'display: flex; gap: 0.45rem; align-items: center; margin-bottom: 0.35rem;';
 
     const sel = document.createElement('select');
-    sel.style.flex = '1';
+    sel.style.cssText = 'flex: 1; min-height: 34px; font-size: var(--font-size-base); font-weight: 600;';
     EXTRAS_CATALOG.forEach(ex => {
       const opt = document.createElement('option');
       opt.value = ex.id;
@@ -1610,26 +1625,42 @@ class AppController {
       sel.appendChild(opt);
     });
 
+    const rankInput = document.createElement('input');
+    rankInput.type = 'number';
+    rankInput.min = '1';
+    rankInput.max = '20';
+    rankInput.value = (saved && saved.rank) ? saved.rank : 1;
+    rankInput.style.cssText = 'width: 60px; min-height: 34px; font-size: var(--font-size-base); text-align: center; font-weight: 700;';
+    rankInput.title = 'Extra Rank';
+
     const delBtn = document.createElement('button');
+    delBtn.type = 'button';
     delBtn.className = 'btn btn-outline';
-    delBtn.style.padding = '0.1rem 0.35rem';
+    delBtn.style.cssText = 'min-height: 34px; padding: 0.2rem 0.55rem; font-size: var(--font-size-base); color: #fff; border-color: rgba(255, 255, 255, 0.25);';
     delBtn.textContent = '✕';
-    delBtn.addEventListener('click', () => { row.remove(); this.recalculateCustomBuilder(); });
+    delBtn.title = 'Remove Extra';
+    delBtn.addEventListener('click', () => {
+      row.remove();
+      this.recalculateCustomBuilder();
+    });
 
     sel.addEventListener('change', () => this.recalculateCustomBuilder());
+    rankInput.addEventListener('input', () => this.recalculateCustomBuilder());
 
     row.appendChild(sel);
+    row.appendChild(rankInput);
     row.appendChild(delBtn);
     list.appendChild(row);
   }
 
   addBuilderFlawRow(saved = null) {
     const list = document.getElementById('builder-flaws-list');
+    if (!list) return;
     const row = document.createElement('div');
-    row.style.cssText = 'display: flex; gap: 0.35rem; align-items: center;';
+    row.style.cssText = 'display: flex; gap: 0.45rem; align-items: center; margin-bottom: 0.35rem;';
 
     const sel = document.createElement('select');
-    sel.style.flex = '1';
+    sel.style.cssText = 'flex: 1; min-height: 34px; font-size: var(--font-size-base); font-weight: 600;';
     FLAWS_CATALOG.forEach(fl => {
       const opt = document.createElement('option');
       opt.value = fl.id;
@@ -1638,35 +1669,58 @@ class AppController {
       sel.appendChild(opt);
     });
 
+    const rankInput = document.createElement('input');
+    rankInput.type = 'number';
+    rankInput.min = '1';
+    rankInput.max = '20';
+    rankInput.value = (saved && saved.rank) ? saved.rank : 1;
+    rankInput.style.cssText = 'width: 60px; min-height: 34px; font-size: var(--font-size-base); text-align: center; font-weight: 700;';
+    rankInput.title = 'Flaw Rank';
+
     const delBtn = document.createElement('button');
+    delBtn.type = 'button';
     delBtn.className = 'btn btn-outline';
-    delBtn.style.padding = '0.1rem 0.35rem';
+    delBtn.style.cssText = 'min-height: 34px; padding: 0.2rem 0.55rem; font-size: var(--font-size-base); color: #fff; border-color: rgba(255, 255, 255, 0.25);';
     delBtn.textContent = '✕';
-    delBtn.addEventListener('click', () => { row.remove(); this.recalculateCustomBuilder(); });
+    delBtn.title = 'Remove Flaw';
+    delBtn.addEventListener('click', () => {
+      row.remove();
+      this.recalculateCustomBuilder();
+    });
 
     sel.addEventListener('change', () => this.recalculateCustomBuilder());
+    rankInput.addEventListener('input', () => this.recalculateCustomBuilder());
 
     row.appendChild(sel);
+    row.appendChild(rankInput);
     row.appendChild(delBtn);
     list.appendChild(row);
   }
 
   addBuilderAeRow(saved = null) {
     const list = document.getElementById('builder-ae-list');
+    if (!list) return;
     const row = document.createElement('div');
-    row.style.cssText = 'display: flex; gap: 0.35rem; align-items: center;';
+    row.style.cssText = 'display: flex; gap: 0.45rem; align-items: center; margin-bottom: 0.35rem;';
 
     const input = document.createElement('input');
     input.type = 'text';
     input.placeholder = 'Alt Effect Name (e.g. Cone Blast)';
-    input.value = saved ? saved.name : 'Alternate Attack Form';
-    input.style.flex = '1';
+    input.value = saved ? (saved.name || '') : 'Alternate Attack Form';
+    input.style.cssText = 'flex: 1; min-height: 34px; font-size: var(--font-size-base);';
 
     const delBtn = document.createElement('button');
+    delBtn.type = 'button';
     delBtn.className = 'btn btn-outline';
-    delBtn.style.padding = '0.1rem 0.35rem';
+    delBtn.style.cssText = 'min-height: 34px; padding: 0.2rem 0.55rem; font-size: var(--font-size-base); color: #fff; border-color: rgba(255, 255, 255, 0.25);';
     delBtn.textContent = '✕';
-    delBtn.addEventListener('click', () => { row.remove(); this.recalculateCustomBuilder(); });
+    delBtn.title = 'Remove Alternate Effect';
+    delBtn.addEventListener('click', () => {
+      row.remove();
+      this.recalculateCustomBuilder();
+    });
+
+    input.addEventListener('input', () => this.recalculateCustomBuilder());
 
     row.appendChild(input);
     row.appendChild(delBtn);
@@ -1688,20 +1742,47 @@ class AppController {
   }
 
   collectPowerFromBuilder() {
-    const effectId = document.getElementById('builder-base-effect').value;
+    const effectId = document.getElementById('builder-base-effect')?.value || 'damage';
     const effect = POWER_EFFECTS_CATALOG.find(e => e.id === effectId) || { id: effectId, baseCost: 1 };
-    const rank = parseInt(document.getElementById('builder-rank-val').textContent, 10) || 1;
+    const rank = parseInt(document.getElementById('builder-rank-val')?.textContent, 10) || 1;
+    const action = document.getElementById('builder-action')?.value || 'Standard';
 
     const extras = [];
-    document.querySelectorAll('#builder-extras-list select').forEach(s => {
-      const def = EXTRAS_CATALOG.find(e => e.id === s.value);
-      if (def) extras.push({ id: def.id, name: def.name, cost: def.cost, isFlat: def.isFlat });
+    document.querySelectorAll('#builder-extras-list > div').forEach(row => {
+      const s = row.querySelector('select');
+      const rInput = row.querySelector('input');
+      const def = EXTRAS_CATALOG.find(e => e.id === s?.value);
+      if (def) {
+        const r = parseInt(rInput?.value, 10) || 1;
+        extras.push({
+          id: def.id,
+          name: def.name,
+          cost: def.cost,
+          isFlat: def.isFlat,
+          isRanked: def.isRanked,
+          rank: r
+        });
+      }
     });
 
     const flaws = [];
-    document.querySelectorAll('#builder-flaws-list select').forEach(s => {
-      const def = FLAWS_CATALOG.find(f => f.id === s.value);
-      if (def) flaws.push({ id: def.id, name: def.name, cost: def.cost, isFlat: def.isFlat, isDevice: def.isDevice });
+    document.querySelectorAll('#builder-flaws-list > div').forEach(row => {
+      const s = row.querySelector('select');
+      const rInput = row.querySelector('input');
+      const def = FLAWS_CATALOG.find(f => f.id === s?.value);
+      if (def) {
+        const r = parseInt(rInput?.value, 10) || 1;
+        flaws.push({
+          id: def.id,
+          name: def.name,
+          cost: def.cost,
+          isFlat: def.isFlat,
+          isRanked: def.isRanked,
+          isDevice: def.isDevice,
+          discountPer5: def.discountPer5,
+          rank: r
+        });
+      }
     });
 
     const alternateEffects = [];
@@ -1719,17 +1800,18 @@ class AppController {
 
     return {
       id: this.activePowerEditing ? this.activePowerEditing.id : ('p_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4)),
-      name: document.getElementById('builder-power-name').value.trim() || `${effect.name} Power`,
-      descriptor: document.getElementById('builder-power-descriptor').value.trim() || 'Energy',
+      name: document.getElementById('builder-power-name')?.value.trim() || `${effect.name} Power`,
+      descriptor: document.getElementById('builder-power-descriptor')?.value.trim() || 'Energy',
       rank,
       effect,
-      action: document.getElementById('builder-action').value,
+      action,
       range: rd.effectiveRange,
       duration: rd.effectiveDuration,
       extras,
       flaws,
       alternateEffects,
-      notes: document.getElementById('builder-power-notes').value.trim()
+      linkedEffects: this.activePowerEditing?.linkedEffects || [],
+      notes: document.getElementById('builder-power-notes')?.value.trim() || ''
     };
   }
 
@@ -1746,8 +1828,8 @@ class AppController {
     if (!this.expandedPowerIds) this.expandedPowerIds = new Set();
     this.expandedPowerIds.add(power.id);
 
-    this.refreshPowersState();
     this.closeModal('modal-power-builder');
+    this.refreshPowersState();
   }
 
   // =======================================================
@@ -4064,9 +4146,15 @@ class AppController {
     this.char.powers.forEach((p, idx) => {
       if (!p.id) p.id = 'p_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4);
 
+      if (!p.extras) p.extras = [];
+      if (!p.flaws) p.flaws = [];
+      if (!p.alternateEffects) p.alternateEffects = [];
+      if (!p.linkedEffects) p.linkedEffects = [];
+
       // Ensure effect is valid
       if (!p.effect || typeof p.effect !== 'object') {
-        const found = POWER_EFFECTS_CATALOG.find(e => e.id === p.effect) || POWER_EFFECTS_CATALOG[0];
+        const effId = p.effectId || p.effect;
+        const found = POWER_EFFECTS_CATALOG.find(e => e.id === effId) || POWER_EFFECTS_CATALOG[0];
         p.effect = found;
       } else {
         const fullEff = POWER_EFFECTS_CATALOG.find(e => e.id === p.effect.id);
@@ -4157,9 +4245,10 @@ class AppController {
       card.appendChild(header);
 
       if (isExpanded) {
-        // Expanded In-Place Editor Body
-        const body = document.createElement('div');
-        body.className = 'power-card-body';
+        try {
+          // Expanded In-Place Editor Body
+          const body = document.createElement('div');
+          body.className = 'power-card-body';
 
         // Row 1: Core Configuration (Power Name, Descriptors, Base Effect, Action, Rank Stepper, Cost)
         const row1 = document.createElement('div');
@@ -4679,9 +4768,17 @@ class AppController {
 
         body.appendChild(footerBar);
         card.appendChild(body);
+      } catch (cardRenderErr) {
+        console.error(`Error rendering expanded power card ${p.name}:`, cardRenderErr);
+        const errDiv = document.createElement('div');
+        errDiv.className = 'power-validation-alert';
+        errDiv.style.margin = '0.5rem';
+        errDiv.innerHTML = `<strong>⚠️ Display Advisory:</strong> Unable to render full in-place controls for this power (${cardRenderErr.message}). You can still use the <strong>✏️ Builder</strong> button in the header.`;
+        card.appendChild(errDiv);
       }
+    }
 
-      list.appendChild(card);
+    list.appendChild(card);
     });
   }
 

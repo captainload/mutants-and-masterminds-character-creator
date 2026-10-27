@@ -10,12 +10,14 @@ if (parseFloat(versionJson.version) < 3.16) {
 }
 
 const indexHtml = fs.readFileSync('index.html', 'utf8');
-if (!indexHtml.includes('v3.16') && !indexHtml.includes('v3.17')) {
+const htmlVerMatch = indexHtml.match(/Character Architect v([0-9.]+)/);
+if (!htmlVerMatch || parseFloat(htmlVerMatch[1]) < 3.16) {
   throw new Error('Expected index.html to reference v3.16 or higher');
 }
 
 const appJs = fs.readFileSync('js/app.js', 'utf8');
-if (!appJs.includes("CURRENT_VERSION = '3.16'") && !appJs.includes("CURRENT_VERSION = '3.17'")) {
+const appVerMatch = appJs.match(/CURRENT_VERSION = '([0-9.]+)'/);
+if (!appVerMatch || parseFloat(appVerMatch[1]) < 3.16) {
   throw new Error('Expected js/app.js to define CURRENT_VERSION >= 3.16');
 }
 console.log('✓ 1. Version >= 3.16 verified across version.json, index.html, and js/app.js');

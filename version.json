@@ -1,5 +1,5 @@
 {
-  "version": "3.17",
-  "updatedAt": "2026-10-26T21:48:00Z",
-  "releaseNotes": "Fixed Powers tab button interactivity: resolved TypeError in linkExistingEffect parameter order, enabled Build New Power builder modal integration, added Quick In-Place Effect creation, enhanced modifier selection fallback, and unified all power adjustments with reactive state refresh across top-row PP and action center."
+  "version": "3.18",
+  "updatedAt": "2026-10-27T00:46:00Z",
+  "releaseNotes": "Resolved fatal ReferenceError (effectiveRange) in isModifierLegalForEffect preventing power card expansion. Fortified power creation pop-up with full modifier rank controls, recalculation synchronization, and failure-safe card rendering."
 }

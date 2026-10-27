@@ -1431,6 +1431,31 @@ export function isModifierLegalForEffect(modifier, effect, extras = [], flaws = 
     }
   }
 
+  // Split extra
+  if (modifier.id === 'split') {
+    if (baseRange === 'Personal' && !extraIds.has('attack') && !extraIds.has('affects_others')) {
+      return { legal: false, reason: 'Split extra only applies to effects that can target others (requires Attack or Affects Others for Personal effects)' };
+    }
+    const hasArea = Array.from(extraIds).some(id => id.startsWith('area_') || id === 'area');
+    if (hasArea) {
+      return { legal: false, reason: 'Split extra cannot apply to Area effects (Area already affects multiple targets)' };
+    }
+  }
+
+  // Triggered extra
+  if (modifier.id === 'triggered') {
+    if (baseRange === 'Personal' && !extraIds.has('attack') && !extraIds.has('affects_others')) {
+      return { legal: false, reason: 'Triggered extra only applies to effects targeting others, locations, or attacks (requires Attack or Affects Others for Personal effects)' };
+    }
+  }
+
+  // Reversible extra
+  if (modifier.id === 'reversible') {
+    if (baseRange === 'Personal' && !extraIds.has('attack') && !extraIds.has('affects_others')) {
+      return { legal: false, reason: 'Reversible extra only applies to effects that impose conditions or changes on others or the environment' };
+    }
+  }
+
   // Power Profiles specific modifiers
   if (modifier.id === 'psychic') {
     if (effId !== 'illusion') return { legal: false, reason: 'Psychic extra only applies to Illusion' };
@@ -1648,6 +1673,21 @@ export function validateModifierLegality(effect, extras = [], flaws = [], mainPo
   }
   if (flawIds.has('noticeable') && (isAttackEffect || ['damage', 'blast', 'environment'].includes(effId))) {
     errors.push('Noticeable flaw only applies to passive, continuous, or defensive effects (attacks are already noticeable).');
+  }
+  if (extraIds.has('split')) {
+    if (baseRange === 'Personal' && !extraIds.has('attack') && !extraIds.has('affects_others')) {
+      errors.push('Split extra only applies to effects that can target others (requires Attack or Affects Others for Personal effects).');
+    }
+    const hasArea = Array.from(extraIds).some(id => id.startsWith('area_') || id === 'area');
+    if (hasArea) {
+      errors.push('Split extra cannot apply to Area effects (Area already affects multiple targets).');
+    }
+  }
+  if (extraIds.has('triggered') && baseRange === 'Personal' && !extraIds.has('attack') && !extraIds.has('affects_others')) {
+    errors.push('Triggered extra only applies to effects targeting others, locations, or attacks (requires Attack or Affects Others for Personal effects).');
+  }
+  if (extraIds.has('reversible') && baseRange === 'Personal' && !extraIds.has('attack') && !extraIds.has('affects_others')) {
+    errors.push('Reversible extra only applies to effects that impose conditions or changes on others or the environment.');
   }
 
   // Rank limits

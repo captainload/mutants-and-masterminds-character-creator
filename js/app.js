@@ -90,6 +90,7 @@ class AppController {
     this.setupCustomPowerBuilder();
     this.setupGearAndHQ();
     this.setupHistoryTab();
+    this.setupAutoResizingTextareas();
     this.setupAbilitiesDefensesModal();
     this.setupArchetypeWizard();
     this.setupUpdateChecker();
@@ -282,6 +283,9 @@ class AppController {
         const pane = document.getElementById(target);
         if (pane) pane.classList.add('active');
         updateSpendHpVisibility(target);
+        if (target === 'tab-history') {
+          setTimeout(() => this.resizeAllTextareas?.(), 50);
+        }
       });
     });
 
@@ -1066,7 +1070,7 @@ class AppController {
   }
 
   async checkForUpdates({ isManual = false } = {}) {
-    const CURRENT_VERSION = '3.31';
+    const CURRENT_VERSION = '3.32';
     const versionEl = document.getElementById('header-version-tag');
     const updateBtn = document.getElementById('btn-header-update-alert');
     if (typeof window === 'undefined' || !window.location || !window.location.href || window.location.href === 'about:blank') return;
@@ -2179,6 +2183,60 @@ class AppController {
   }
 
   // =======================================================
+  // 14b. AUTO-RESIZING TEXT WINDOWS
+  // =======================================================
+  setupAutoResizingTextareas() {
+    const textareas = [
+      { id: 'history-origin-text', minHeight: 110 },
+      { id: 'history-contacts-text', minHeight: 110 },
+      { id: 'input-session-notes', minHeight: 90 }
+    ];
+
+    const resize = (el, minH = 100) => {
+      if (!el) return;
+      el.style.resize = 'none';
+      el.style.boxSizing = 'border-box';
+      el.style.height = 'auto';
+
+      const rect = el.getBoundingClientRect();
+      const vh = window.innerHeight || document.documentElement.clientHeight || 800;
+      if (rect.height === 0 && rect.top === 0) {
+        el.style.height = `${minH}px`;
+        return;
+      }
+      const topOffset = Math.max(10, rect.top);
+      const maxAvailable = Math.max(minH, vh - topOffset - 40);
+      const contentH = el.scrollHeight;
+
+      if (contentH > maxAvailable) {
+        el.style.height = `${maxAvailable}px`;
+        el.style.overflowY = 'auto';
+      } else {
+        el.style.height = `${Math.max(minH, contentH)}px`;
+        el.style.overflowY = 'hidden';
+      }
+    };
+
+    this.resizeAllTextareas = () => {
+      textareas.forEach(({ id, minHeight }) => {
+        const el = document.getElementById(id);
+        if (el) resize(el, minHeight);
+      });
+    };
+
+    textareas.forEach(({ id, minHeight }) => {
+      const el = document.getElementById(id);
+      if (el) {
+        el.addEventListener('input', () => resize(el, minHeight));
+      }
+    });
+
+    window.addEventListener('resize', () => {
+      this.resizeAllTextareas();
+    });
+  }
+
+  // =======================================================
   // 15. SETTINGS FLY-OUT & MULTI-DISCORD CONFIGURATIONS
   // =======================================================
   setupSettingsFlyout() {
@@ -2785,6 +2843,7 @@ class AppController {
 
   loadCharacterToUI() {
     this.renderAll();
+    setTimeout(() => this.resizeAllTextareas?.(), 50);
   }
 
   renderAll() {
@@ -5605,6 +5664,9 @@ class AppController {
     }
     const el = document.getElementById(id);
     if (el) el.classList.add('active');
+    if (id === 'modal-log-session') {
+      setTimeout(() => this.resizeAllTextareas?.(), 50);
+    }
   }
 
   closeModal(id) {

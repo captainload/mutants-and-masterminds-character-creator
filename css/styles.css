@@ -511,13 +511,13 @@ body {
 
 .nav-tab-btn {
   background: none;
-  border: none;
-  border-bottom: 3px solid transparent;
+  border: 2px solid transparent;
+  border-radius: var(--radius-sm);
   color: var(--text-muted);
   font-size: var(--font-size-md);
   font-weight: 800;
-  padding: 0.65rem 1.15rem;
-  min-height: 46px;
+  padding: 0.55rem 1.15rem;
+  min-height: 44px;
   cursor: pointer;
   white-space: nowrap;
   display: flex;
@@ -533,8 +533,9 @@ body {
 
 .nav-tab-btn.active {
   color: var(--hero-cyan);
-  border-bottom-color: var(--hero-cyan);
-  background-color: rgba(6, 182, 212, 0.08);
+  border-color: var(--hero-cyan);
+  background-color: rgba(6, 182, 212, 0.12);
+  box-shadow: 0 0 10px rgba(6, 182, 212, 0.3);
 }
 
 /* Main Content Area */
@@ -981,6 +982,19 @@ input, select, textarea {
 input:focus, select:focus, textarea:focus {
   border-color: var(--hero-blue);
   outline: none;
+}
+
+textarea {
+  resize: none !important;
+  box-sizing: border-box;
+  line-height: 1.45;
+}
+
+#history-origin-text,
+#history-contacts-text {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 /* History / Log Entry */

@@ -1,5 +1,5 @@
 {
-  "version": "3.31",
-  "updatedAt": "2026-10-27T13:10:00Z",
-  "releaseNotes": "Echo HP spending to chat, context-aware Spend HP button, session HP/PP adjustments with stepper controls, PL advancement notifications, session character backups with restore and export, and tables close state persistence."
+  "version": "3.32",
+  "updatedAt": "2026-10-27T14:15:00Z",
+  "releaseNotes": "Auto-resizing text windows up to visible whitespace limit with equal-width background/contacts columns, and full outline for active navigation tabs."
 }

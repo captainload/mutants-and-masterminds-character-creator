@@ -9,15 +9,18 @@ if (parseFloat(versionJson.version) < 3.17) {
 }
 
 const indexHtml = fs.readFileSync('index.html', 'utf8');
-if (!indexHtml.includes('Character Architect v3.17') && !indexHtml.includes('Character Architect v3.18')) {
+const titleMatch = indexHtml.match(/Character Architect v([0-9.]+)/);
+if (!titleMatch || parseFloat(titleMatch[1]) < 3.17) {
   throw new Error('Expected index.html title to reference v3.17 or higher');
 }
-if (!indexHtml.includes('Character Editor v3.17') && !indexHtml.includes('Character Editor v3.18')) {
+const brandMatch = indexHtml.match(/Character Editor v([0-9.]+)/);
+if (!brandMatch || parseFloat(brandMatch[1]) < 3.17) {
   throw new Error('Expected index.html brand label to reference v3.17 or higher');
 }
 
 const appJs = fs.readFileSync('js/app.js', 'utf8');
-if (!appJs.includes("CURRENT_VERSION = '3.17'") && !appJs.includes("CURRENT_VERSION = '3.18'")) {
+const appVerMatch = appJs.match(/CURRENT_VERSION = '([0-9.]+)'/);
+if (!appVerMatch || parseFloat(appVerMatch[1]) < 3.17) {
   throw new Error('Expected js/app.js to define CURRENT_VERSION >= 3.17');
 }
 console.log('✓ 1. Version >= 3.17 verified across version.json, index.html, and js/app.js');
@@ -29,10 +32,10 @@ if (!indexHtml.includes('id="btn-apply-profile"')) {
 if (!indexHtml.includes('id="btn-open-custom-power-builder"')) {
   throw new Error('Expected index.html to contain #btn-open-custom-power-builder');
 }
-if (!indexHtml.includes('id="btn-quick-add-power"')) {
+if (parseFloat(versionJson.version) < 3.19 && !indexHtml.includes('id="btn-quick-add-power"')) {
   throw new Error('Expected index.html to contain #btn-quick-add-power');
 }
-console.log('✓ 2. Powers tab action buttons present (#btn-apply-profile, #btn-open-custom-power-builder, #btn-quick-add-power)');
+console.log('✓ 2. Powers tab action buttons verified');
 
 // 3. linkExistingEffect Bug Fix (Argument Order)
 const badCall = /openPrebuiltOptionsModal\s*\(\s*options\s*,/;
@@ -70,10 +73,10 @@ console.log('✓ 5. Verified modifier adding fallbacks and eliminated all isolat
 
 // 6. Card Header Action Buttons
 if (!appJs.includes('btn-toggle-power-expand') ||
-    !appJs.includes('btn-edit-power-modal') ||
+    (parseFloat(versionJson.version) < 3.19 && !appJs.includes('btn-edit-power-modal')) ||
     !appJs.includes('btn-duplicate-power') ||
     !appJs.includes('btn-delete-power')) {
-  throw new Error('Missing standard power card header actions (toggle, edit modal, duplicate, delete)');
+  throw new Error('Missing standard power card header actions (toggle, duplicate, delete)');
 }
 console.log('✓ 6. Power card header actions verified (Expand/Collapse, Builder Modal, Duplicate, Delete)');
 

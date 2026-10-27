@@ -3,6 +3,8 @@
  * Official rules text from Green Ronin Publishing M&M 3e Deluxe Hero's Handbook.
  */
 
+import { MEASUREMENTS_TABLE } from './tables.js';
+
 export const ABILITIES = [
   { id: 'str', name: 'Strength', short: 'STR', desc: 'Strength measures sheer muscle and physical power of your character. It affects the damage you deal in close combat, how far you can jump, your athletic prowess, and how much weight you can lift and carry.' },
   { id: 'sta', name: 'Stamina', short: 'STA', desc: 'Stamina represents health, physical resilience, and vigor. It is critical for defending against physical and energy harm (adding directly to Toughness) as well as resisting diseases, poisons, and environmental hazards (adding to Fortitude).' },
@@ -765,6 +767,7 @@ export const POWER_EFFECTS_CATALOG = [
 
 export const EXTRAS_CATALOG = [
   { id: 'accurate', name: 'Accurate', cost: 1, isFlat: true, isRanked: true, maxRank: 10, minRank: 1, isUnique: false, isEffectSpecific: false, desc: '+2 to attack check rolls with this power per rank of Accurate.' },
+  { id: 'action_extra', name: 'Action (Faster)', cost: 1, isFlat: false, isRanked: true, maxRank: 2, minRank: 1, isUnique: false, isEffectSpecific: false, desc: 'Decreases the time required to use the effect by one step per rank (Standard -> Move -> Free).' },
   { id: 'affects_corporeal', name: '★ Affects Corporeal', cost: 1, isFlat: false, isUnique: true, isEffectSpecific: true, desc: 'Can affect physical targets while you are Insubstantial (specific to Insubstantial).' },
   { id: 'affects_insubstantial', name: 'Affects Insubstantial', cost: 1, isFlat: true, isRanked: true, maxRank: 2, minRank: 1, isUnique: false, isEffectSpecific: false, desc: 'Full effect against Insubstantial targets (Rank 1 half, Rank 2 full).' },
   { id: 'affects_others', name: '★ Affects Others', cost: 1, isFlat: false, isUnique: true, isEffectSpecific: true, desc: 'Can grant personal powers (Flight, Protection, etc.) to allies at Close range (specific to Personal range powers).' },
@@ -802,6 +805,7 @@ export const EXTRAS_CATALOG = [
 ];
 
 export const FLAWS_CATALOG = [
+  { id: 'action_flaw', name: 'Action (Slower)', cost: 1, isFlat: false, isRanked: true, maxRank: 2, minRank: 1, isUnique: false, isEffectSpecific: false, desc: 'Increases the time required to use the effect by one step per rank (Free -> Move -> Standard).' },
   { id: 'activation_move', name: 'Activation (Move Action)', cost: 1, isFlat: true, isUnique: false, isEffectSpecific: false, desc: 'Takes a move action to activate before benefits apply.' },
   { id: 'activation_standard', name: 'Activation (Standard Action)', cost: 2, isFlat: true, isUnique: false, isEffectSpecific: false, desc: 'Takes a standard action to activate.' },
   { id: 'check_required', name: 'Check Required (Skill DC 11+)', cost: 1, isFlat: false, isRanked: true, maxRank: 10, minRank: 1, isUnique: false, isEffectSpecific: false, desc: 'Requires successful skill check to activate (DC 11 + rank).' },
@@ -1002,10 +1006,34 @@ export function computePowerRangeAndDuration(effect, extras = [], flaws = []) {
   };
 }
 
-export function computePowerEffectiveStats(effect, extras = [], flaws = [], action = null) {
+export function computePowerEffectiveStats(effect, extras = [], flaws = [], action = null, rank = null) {
   const rd = computePowerRangeAndDuration(effect, extras, flaws);
   const baseAction = effect?.action || 'Standard';
-  const effectiveAction = action || baseAction;
+  let effectiveAction = baseAction;
+
+  const hasReaction = (extras || []).some(e => e.id === 'reaction');
+  const actionEx = (extras || []).find(e => e.id === 'action_extra');
+  const actionFl = (flaws || []).find(f => f.id === 'action_flaw');
+
+  if (hasReaction) {
+    effectiveAction = 'Reaction';
+  } else if (actionEx) {
+    const r = parseInt(actionEx.rank, 10) || 1;
+    if (baseAction === 'Standard') {
+      effectiveAction = r >= 2 ? 'Free' : 'Move';
+    } else if (baseAction === 'Move') {
+      effectiveAction = 'Free';
+    }
+  } else if (actionFl) {
+    const r = parseInt(actionFl.rank, 10) || 1;
+    if (baseAction === 'Free') {
+      effectiveAction = r >= 2 ? 'Standard' : 'Move';
+    } else if (baseAction === 'Move') {
+      effectiveAction = 'Standard';
+    }
+  } else if (action) {
+    effectiveAction = action;
+  }
 
   // Area calculation
   let effectiveArea = 'Single Target';
@@ -1027,10 +1055,36 @@ export function computePowerEffectiveStats(effect, extras = [], flaws = [], acti
     effectiveArea = 'Personal';
   }
 
+  // Measurements derivation
+  const effectRank = Math.max(0, parseInt(rank ?? effect?.rank ?? 10, 10));
+  let rangeMeasurement = '';
+  if (rd.effectiveRange === 'Ranged') {
+    const extRange = (extras || []).find(e => e.id === 'extended_range');
+    const dimRange = (flaws || []).find(f => f.id === 'diminished_range');
+    let distRank = effectRank;
+    if (extRange) distRank += (parseInt(extRange.rank, 10) || 1);
+    if (dimRange) distRank = Math.max(0, distRank - (parseInt(dimRange.rank, 10) || 1));
+    const clampedRank = Math.min(20, Math.max(-5, Math.round(distRank)));
+    const entry = MEASUREMENTS_TABLE.find(m => m.rank === clampedRank);
+    rangeMeasurement = entry ? entry.distance : `${effectRank * 100} ft.`;
+  } else if (rd.effectiveRange === 'Close') {
+    const reach = (extras || []).find(e => e.id === 'reach');
+    const reachRanks = reach ? (parseInt(reach.rank, 10) || 1) : 0;
+    rangeMeasurement = `${5 + reachRanks * 5} ft.`;
+  } else if (rd.effectiveRange === 'Personal') {
+    rangeMeasurement = 'Self';
+  } else if (rd.effectiveRange === 'Perception') {
+    rangeMeasurement = 'Line of Sight';
+  }
+
+  const rangeDisplay = rangeMeasurement ? `${rd.effectiveRange} (${rangeMeasurement})` : rd.effectiveRange;
+
   return {
     ...rd,
     action: effectiveAction,
     baseAction,
+    rangeDisplay,
+    rangeMeasurement,
     area: effectiveArea,
     areaNotes
   };
@@ -1071,6 +1125,28 @@ export function isModifierLegalForEffect(modifier, effect, extras = [], flaws = 
   }
   if (modifier.id === 'reduced_range' && extraIds.has('increased_range')) {
     return { legal: false, reason: 'Incompatible with Increased Range' };
+  }
+
+  // 4b. Action extra / flaw constraints
+  const baseAction = effect?.action || 'Standard';
+  if (modifier.id === 'action_extra') {
+    if (flawIds.has('action_flaw')) return { legal: false, reason: 'Incompatible with Action (Slower) flaw' };
+    if (extraIds.has('reaction')) return { legal: false, reason: 'Incompatible with Reaction Action' };
+    if (baseAction === 'Free') return { legal: false, reason: 'Effect is already Free action' };
+    if (baseAction === 'Reaction') return { legal: false, reason: 'Reaction is already instantaneous' };
+    if (baseAction === 'None') return { legal: false, reason: 'Passive effect cannot take Action extra' };
+  }
+  if (modifier.id === 'reaction') {
+    if (flawIds.has('action_flaw')) return { legal: false, reason: 'Incompatible with Action (Slower) flaw' };
+    if (extraIds.has('action_extra')) return { legal: false, reason: 'Incompatible with Action (Faster) extra' };
+    if (baseAction === 'Reaction') return { legal: false, reason: 'Effect is already Reaction action' };
+    if (baseAction === 'None') return { legal: false, reason: 'Passive effect cannot take Reaction' };
+  }
+  if (modifier.id === 'action_flaw') {
+    if (extraIds.has('action_extra')) return { legal: false, reason: 'Incompatible with Action (Faster) extra' };
+    if (extraIds.has('reaction')) return { legal: false, reason: 'Incompatible with Reaction Action' };
+    if (baseAction === 'Standard') return { legal: false, reason: 'Standard action cannot be made slower' };
+    if (baseAction === 'None') return { legal: false, reason: 'Passive effect cannot take Action flaw' };
   }
 
   // 5. Range-specific constraints
@@ -1203,6 +1279,15 @@ export function validateModifierLegality(effect, extras = [], flaws = []) {
   // Range and Duration Conflicts
   if (extraIds.has('increased_range') && flawIds.has('reduced_range')) {
     errors.push('Cannot combine Increased Range and Reduced Range on the same effect.');
+  }
+  if (extraIds.has('action_extra') && flawIds.has('action_flaw')) {
+    errors.push('Cannot combine Action (Faster) extra and Action (Slower) flaw.');
+  }
+  if (extraIds.has('reaction') && flawIds.has('action_flaw')) {
+    errors.push('Cannot combine Reaction Action extra and Action (Slower) flaw.');
+  }
+  if (extraIds.has('action_extra') && extraIds.has('reaction')) {
+    errors.push('Cannot combine Action (Faster) and Reaction Action on the same effect.');
   }
   if (flawIds.has('removable') && flawIds.has('easily_removable')) {
     errors.push('A power cannot be both Removable and Easily Removable.');

@@ -1,5 +1,5 @@
 {
-  "version": "3.18",
-  "updatedAt": "2026-10-27T00:46:00Z",
-  "releaseNotes": "Resolved fatal ReferenceError (effectiveRange) in isModifierLegalForEffect preventing power card expansion. Fortified power creation pop-up with full modifier rank controls, recalculation synchronization, and failure-safe card rendering."
+  "version": "3.19",
+  "updatedAt": "2026-10-27T01:30:00Z",
+  "releaseNotes": "Replaced redundant power builder pop-up and in-place button with direct power record generation; replaced manual action dropdown with dynamic Action extra/flaw derivation and conflict validation; formatted real-time stats with measurements in parentheses (e.g. Range: Ranged (1 mile)) without vertical bars; introduced dedicated Power Feats and Drawbacks row with full legality validation; implemented bidirectional [ ] Linked effect checkbox; streamlined power arrays with Dynamic primary checkbox; updated Affliction degree labels to concise failure ranges."
 }

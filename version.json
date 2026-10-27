@@ -1,5 +1,5 @@
 {
-  "version": "3.27",
-  "updatedAt": "2026-10-27T09:45:00Z",
-  "releaseNotes": "Full review of modifier rules: correct Feedback uniqueness and legal effect applications, enforce duration/range/target restrictions across all extras and flaws."
+  "version": "3.28",
+  "updatedAt": "2026-10-27T10:30:00Z",
+  "releaseNotes": "Dynamic Alternate Effect naming based on assigned effect, Limited: Custom flaw, clean footer, disable modifier and profile buttons until selected."
 }

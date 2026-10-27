@@ -1029,7 +1029,7 @@ class AppController {
   }
 
   async checkForUpdates({ isManual = false } = {}) {
-    const CURRENT_VERSION = '3.27';
+    const CURRENT_VERSION = '3.28';
     const versionEl = document.getElementById('header-version-tag');
     const updateBtn = document.getElementById('btn-header-update-alert');
     if (typeof window === 'undefined' || !window.location || !window.location.href || window.location.href === 'about:blank') return;
@@ -1444,7 +1444,15 @@ class AppController {
       select.appendChild(optGroup);
     });
 
-    document.getElementById('btn-apply-profile')?.addEventListener('click', async () => {
+    const applyBtn = document.getElementById('btn-apply-profile');
+    if (applyBtn) {
+      applyBtn.disabled = !select.value;
+      select.addEventListener('change', () => {
+        applyBtn.disabled = !select.value;
+      });
+    }
+
+    applyBtn?.addEventListener('click', async () => {
       const profileId = select.value;
       if (!profileId) {
         await this.showAlertDialog('Please select a power profile from the library first.', { title: 'No Profile Selected' });
@@ -1478,6 +1486,8 @@ class AppController {
       this.char.powers.push(newPower);
       if (!this.expandedPowerIds) this.expandedPowerIds = new Set();
       this.expandedPowerIds.add(newPower.id);
+      select.value = '';
+      if (applyBtn) applyBtn.disabled = true;
       this.refreshPowersState();
       await this.showAlertDialog(`Power Profile "${matchedProfile.name}" added to character!`, { title: 'Power Profile Added' });
     });
@@ -4289,12 +4299,17 @@ class AppController {
             ? '<option value="" disabled selected>No additional legal extras available</option>'
             : '<option value="" disabled selected>Select extra to add...</option>' + legalExtras.map(ex => `<option value="${ex.id}">${ex.name} (${ex.isFlat ? `+${ex.cost} flat` : `+${ex.cost}/rank`})</option>`).join('')}
         </select>
-        <button class="btn btn-outline btn-add-extra" style="font-size: var(--font-size-sm); min-height: 32px; padding: 0.2rem 0.55rem; white-space: nowrap; flex-shrink: 0; border-color: var(--hero-blue); color: #fff;" ${legalExtras.length === 0 ? 'disabled' : ''}>+ Add Extra</button>
+        <button class="btn btn-outline btn-add-extra" style="font-size: var(--font-size-sm); min-height: 32px; padding: 0.2rem 0.55rem; white-space: nowrap; flex-shrink: 0; border-color: var(--hero-blue); color: #fff;" disabled>+ Add Extra</button>
       </div>
       <div class="extras-items-container" style="display: flex; flex-direction: column; gap: 0.35rem;"></div>
     `;
 
     const extrasContainer = extrasCol.querySelector('.extras-items-container');
+    const extraSelectEl = extrasCol.querySelector('.select-add-extra');
+    const extraAddBtnEl = extrasCol.querySelector('.btn-add-extra');
+    extraSelectEl?.addEventListener('change', () => {
+      if (extraAddBtnEl) extraAddBtnEl.disabled = !extraSelectEl.value;
+    });
     targetObj.extras.filter(ex => ex.id !== 'linked').forEach((ex) => {
       const exDef = EXTRAS_CATALOG.find(e => e.id === ex.id) || ex;
       const r = parseInt(ex.rank, 10) || 1;
@@ -4353,8 +4368,7 @@ class AppController {
     });
 
     extrasCol.querySelector('.btn-add-extra')?.addEventListener('click', () => {
-      let selectedId = extrasCol.querySelector('.select-add-extra').value;
-      if (!selectedId && legalExtras.length > 0) selectedId = legalExtras[0].id;
+      const selectedId = extrasCol.querySelector('.select-add-extra')?.value;
       if (!selectedId) return;
       const exDef = EXTRAS_CATALOG.find(e => e.id === selectedId);
       if (!exDef) return;
@@ -4389,12 +4403,17 @@ class AppController {
             ? '<option value="" disabled selected>No additional legal flaws available</option>'
             : '<option value="" disabled selected>Select flaw to add...</option>' + legalFlaws.map(fl => `<option value="${fl.id}">${fl.name} (${fl.isDevice ? `Device -${fl.discountPer5}/5` : (fl.isFlat ? `-${fl.cost} flat` : `-${fl.cost}/rank`)})</option>`).join('')}
         </select>
-        <button class="btn btn-outline btn-add-flaw" style="font-size: var(--font-size-sm); min-height: 32px; padding: 0.2rem 0.55rem; white-space: nowrap; flex-shrink: 0; border-color: var(--hero-blue); color: #fff;" ${legalFlaws.length === 0 ? 'disabled' : ''}>+ Add Flaw</button>
+        <button class="btn btn-outline btn-add-flaw" style="font-size: var(--font-size-sm); min-height: 32px; padding: 0.2rem 0.55rem; white-space: nowrap; flex-shrink: 0; border-color: var(--hero-blue); color: #fff;" disabled>+ Add Flaw</button>
       </div>
       <div class="flaws-items-container" style="display: flex; flex-direction: column; gap: 0.35rem;"></div>
     `;
 
     const flawsContainer = flawsCol.querySelector('.flaws-items-container');
+    const flawSelectEl = flawsCol.querySelector('.select-add-flaw');
+    const flawAddBtnEl = flawsCol.querySelector('.btn-add-flaw');
+    flawSelectEl?.addEventListener('change', () => {
+      if (flawAddBtnEl) flawAddBtnEl.disabled = !flawSelectEl.value;
+    });
     targetObj.flaws.forEach((fl) => {
       const flDef = FLAWS_CATALOG.find(f => f.id === fl.id) || fl;
       const r = parseInt(fl.rank, 10) || 1;
@@ -4431,6 +4450,12 @@ class AppController {
             <input type="text" class="input-quirk-desc" value="${fl.description || ''}" placeholder="Describe quirk (e.g. Only when angry, Cannot affect lead, Requires spoken words)..." style="width: 100%; font-size: var(--font-size-xs); padding: 0.2rem 0.45rem; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.15); border-radius: 3px; color: var(--hero-gold);">
           </div>
         ` : ''}
+        ${fl.id === 'limited_custom' ? `
+          <div style="width: 100%; margin-top: 0.25rem; display: flex; align-items: center; gap: 0.45rem;">
+            <label style="font-size: var(--font-size-xs); color: var(--hero-blue); font-weight: 700; white-space: nowrap;">Limited:</label>
+            <input type="text" class="input-limited-custom-desc" value="${fl.description || ''}" placeholder="Specify limitation (e.g. Only in direct sunlight, Only against machines)..." style="flex: 1; font-size: var(--font-size-xs); padding: 0.2rem 0.45rem; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.15); border-radius: 3px; color: var(--hero-gold);">
+          </div>
+        ` : ''}
       `;
 
       flRow.querySelector('.btn-modifier-info-link')?.addEventListener('click', (e) => {
@@ -4439,6 +4464,10 @@ class AppController {
         this.showModifierDescriptionDialog(flDef);
       });
       flRow.querySelector('.input-quirk-desc')?.addEventListener('input', (e) => {
+        fl.description = e.target.value;
+        this.saveAndAudit();
+      });
+      flRow.querySelector('.input-limited-custom-desc')?.addEventListener('input', (e) => {
         fl.description = e.target.value;
         this.saveAndAudit();
       });
@@ -4475,8 +4504,7 @@ class AppController {
     });
 
     flawsCol.querySelector('.btn-add-flaw')?.addEventListener('click', () => {
-      let selectedId = flawsCol.querySelector('.select-add-flaw').value;
-      if (!selectedId && legalFlaws.length > 0) selectedId = legalFlaws[0].id;
+      const selectedId = flawsCol.querySelector('.select-add-flaw')?.value;
       if (!selectedId) return;
       const flDef = FLAWS_CATALOG.find(f => f.id === selectedId);
       if (!flDef) return;
@@ -4494,7 +4522,7 @@ class AppController {
         isDevice: flDef.isDevice,
         discountPer5: flDef.discountPer5,
         rank: 1,
-        description: flDef.id === 'quirk' ? '' : undefined
+        description: (flDef.id === 'quirk' || flDef.id === 'limited_custom') ? '' : undefined
       });
       this.refreshPowersState();
     });
@@ -4999,6 +5027,7 @@ class AppController {
 
             aeRow1.querySelector('.input-ae-name')?.addEventListener('input', (e) => {
               ae.name = e.target.value;
+              ae.isCustomName = true;
               this.saveAndAudit();
             });
             aeRow1.querySelector('.input-ae-desc')?.addEventListener('input', (e) => {
@@ -5023,7 +5052,11 @@ class AppController {
                 );
                 return;
               }
+              const oldEffectName = ae.effect?.name;
               ae.effect = newEff;
+              if (!ae.isCustomName || !ae.name || ae.name === oldEffectName) {
+                ae.name = newEff.name;
+              }
               this.refreshPowersState();
             });
             aeRow1.querySelector('.btn-ae-minus')?.addEventListener('click', () => {
@@ -5116,7 +5149,6 @@ class AppController {
 
         aeSection.querySelector('.btn-add-ae-effect')?.addEventListener('click', () => {
           if (!p.alternateEffects) p.alternateEffects = [];
-          const nextNum = p.alternateEffects.length + 1;
           const mainCost = calculatePowerCost({
             ...p,
             isAlternateEffect: false,
@@ -5132,7 +5164,8 @@ class AppController {
           }
           const newAe = {
             id: 'ae_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6),
-            name: `${p.name || 'Power'} (Alt ${nextNum})`,
+            name: defaultEffect.name,
+            isCustomName: false,
             descriptor: '',
             effect: defaultEffect,
             rank: initialRank,
@@ -5177,29 +5210,19 @@ class AppController {
           body.appendChild(linkedSection);
         }
 
-        // Row 6: Notes & Collapse Bar
+        // Row 6: Collapse Bar
         const footerBar = document.createElement('div');
-        footerBar.style.cssText = 'display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-color); padding-top: 0.65rem;';
+        footerBar.style.cssText = 'display: flex; justify-content: flex-end; align-items: center; border-top: 1px solid var(--border-color); padding-top: 0.65rem;';
         footerBar.innerHTML = `
-          <div style="flex: 1; margin-right: 1rem;">
-            <input type="text" class="input-power-notes" value="${p.notes || ''}" placeholder="Power Notes & Mechanics (e.g. DC, special conditions)" style="width: 100%; font-size: var(--font-size-xs);">
-          </div>
-          <div style="display: flex; align-items: center; gap: 0.75rem;">
-            <div style="font-weight: 900; color: var(--hero-gold); font-size: var(--font-size-md);">
-              Total: ${cost} PP
-            </div>
-            <button class="btn btn-outline btn-collapse-card" style="font-size: var(--font-size-sm); min-height: 30px;">
-              ▲ Collapse Card
-            </button>
-          </div>
+          <button class="btn btn-outline btn-collapse-card" style="font-size: var(--font-size-sm); min-height: 30px;">
+            ▲ Collapse Card
+          </button>
         `;
 
-        footerBar.querySelector('.input-power-notes')?.addEventListener('input', (e) => {
-          p.notes = e.target.value;
-          this.saveAndAudit();
-        });
         footerBar.querySelector('.btn-collapse-card')?.addEventListener('click', () => {
           this.expandedPowerIds.delete(p.id);
+          this.refreshPowersState();
+        });
           this.refreshPowersState();
         });
 

@@ -306,29 +306,33 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 0.65rem;
+  gap: 0.5rem;
   background-color: rgba(255, 255, 255, 0.02);
   border: 1px solid rgba(255, 255, 255, 0.05);
   border-radius: var(--radius-sm);
-  padding: 0.3rem 0.65rem;
+  padding: 0.25rem 0.5rem;
+  flex-wrap: nowrap;
 }
 
 .row-2-left {
   display: flex;
   align-items: center;
-  gap: 1.15rem;
+  gap: 0.65rem;
+  flex-wrap: nowrap;
 }
 
 .row-2-right {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.35rem;
+  flex-shrink: 0;
 }
 
 .pp-status-badge {
   display: flex;
   align-items: baseline;
-  gap: 0.35rem;
+  gap: 0.25rem;
+  white-space: nowrap;
 }
 
 .pp-status-label {
@@ -336,35 +340,62 @@ body {
   font-weight: 800;
   color: var(--text-muted);
   text-transform: uppercase;
+  white-space: nowrap;
 }
 
 .pp-status-value {
   font-size: var(--font-size-base);
   font-weight: 800;
   color: var(--hero-gold);
+  white-space: nowrap;
 }
 
 .hp-status-group {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.35rem;
+  white-space: nowrap;
+  flex-wrap: nowrap;
+}
+
+#btn-quick-spend-hp {
+  white-space: nowrap;
+  flex-shrink: 0;
+  min-width: 130px;
+  padding: 0.35rem 1.25rem;
+  font-weight: 800;
+  font-size: var(--font-size-sm);
+  min-height: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.35);
+  transition: all 0.15s ease;
+}
+
+#btn-quick-spend-hp:hover {
+  filter: brightness(1.15);
+  transform: translateY(-1px);
 }
 
 .btn-archetype {
   background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
   color: #fff;
   border: none;
-  font-size: var(--font-size-base);
+  font-size: var(--font-size-sm);
   font-weight: 800;
-  padding: 0.45rem 1rem;
+  padding: 0.35rem 0.85rem;
   border-radius: var(--radius-sm);
   cursor: pointer;
   display: flex;
   align-items: center;
   gap: 0.35rem;
-  min-height: 40px;
+  min-height: 38px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
   transition: all 0.15s ease;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .btn-archetype:hover {
@@ -376,17 +407,19 @@ body {
   background: linear-gradient(135deg, #059669 0%, #047857 100%);
   color: #fff;
   border: none;
-  font-size: var(--font-size-base);
+  font-size: var(--font-size-sm);
   font-weight: 800;
-  padding: 0.45rem 1rem;
+  padding: 0.35rem 0.85rem;
   border-radius: var(--radius-sm);
   cursor: pointer;
   display: flex;
   align-items: center;
   gap: 0.35rem;
-  min-height: 40px;
+  min-height: 38px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
   transition: all 0.15s ease;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .btn-tables:hover {

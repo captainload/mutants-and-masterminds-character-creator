@@ -108,4 +108,17 @@ if (!appJs.includes("tablesManager.savePopoutClosedState()")) {
 }
 console.log('✓ 8. Tables popup close button and popout closed state memory verified');
 
+// 9. PP row whitespace reduction and widened Spend HP button
+const cssContent = fs.readFileSync('css/styles.css', 'utf8');
+if (!cssContent.includes('#btn-quick-spend-hp') || !cssContent.includes('white-space: nowrap') || !cssContent.includes('min-width: 130px')) {
+  throw new Error('Expected widened non-wrapping #btn-quick-spend-hp styles in css/styles.css');
+}
+if (!cssContent.includes('gap: 0.65rem;') || !cssContent.includes('gap: 0.5rem;')) {
+  throw new Error('Expected reduced horizontal whitespace on PP row and row-2-left in css/styles.css');
+}
+if (!indexHtml.includes('white-space: nowrap') || !indexHtml.includes('min-width: 130px')) {
+  throw new Error('Expected widened non-wrapping #btn-quick-spend-hp in index.html');
+}
+console.log('✓ 9. PP row horizontal whitespace reduction and widened Spend HP button verified');
+
 console.log('\nAll v3.31 requirements passed successfully!');

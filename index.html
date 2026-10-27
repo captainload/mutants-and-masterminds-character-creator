@@ -113,14 +113,14 @@
               <span class="pp-status-value" id="header-pp-used">0 / 150 used</span>
             </div>
 
-            <div class="pl-status-group" style="display: flex; align-items: center; gap: 0.45rem;">
+            <div class="pl-status-group" style="display: flex; align-items: center; gap: 0.3rem;">
               <span class="pp-status-label">PL:</span>
               <div class="stepper-control" id="header-pl-stepper">
                 <button class="btn-stepper compact" id="btn-pl-minus" title="Reduce Power Level">-</button>
                 <span class="stepper-value compact" id="header-pl-display" style="min-width: 36px; font-weight: 900; color: var(--hero-gold);">10</span>
                 <button class="btn-stepper compact" id="btn-pl-plus" title="Increase Power Level">+</button>
               </div>
-              <label style="display: inline-flex; align-items: center; gap: 0.35rem; cursor: pointer; user-select: none; font-size: var(--font-size-sm); color: var(--text-muted); font-weight: 700; margin-left: 0.25rem;" title="Lock Power Level to prevent accidental changes">
+              <label style="display: inline-flex; align-items: center; gap: 0.35rem; cursor: pointer; user-select: none; font-size: var(--font-size-sm); color: var(--text-muted); font-weight: 700; " title="Lock Power Level to prevent accidental changes">
                 <input type="checkbox" id="header-pl-lock" style="cursor: pointer; width: 16px; height: 16px; accent-color: var(--hero-blue);">
                 <span id="header-pl-lock-label">🔒 Lock</span>
               </label>
@@ -133,7 +133,7 @@
                 <span class="stepper-value compact" id="header-hp-val">1</span>
                 <button class="btn-stepper compact" id="btn-hp-plus" title="Add Hero Point">+</button>
               </div>
-              <button class="btn btn-primary" id="btn-quick-spend-hp" style="min-height: 40px; padding: 0.45rem 1rem; font-size: var(--font-size-base); font-weight: 800;">
+              <button class="btn btn-primary" id="btn-quick-spend-hp" style="min-height: 38px; min-width: 130px; padding: 0.35rem 1.25rem; font-size: var(--font-size-sm); font-weight: 800; white-space: nowrap; flex-shrink: 0;">
                 ⚡ Spend HP
               </button>
             </div>

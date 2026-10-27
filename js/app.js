@@ -5223,8 +5223,6 @@ class AppController {
           this.expandedPowerIds.delete(p.id);
           this.refreshPowersState();
         });
-          this.refreshPowersState();
-        });
 
         body.appendChild(footerBar);
         card.appendChild(body);

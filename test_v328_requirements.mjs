@@ -121,4 +121,14 @@ if (!appJs.includes('applyBtn.disabled = !select.value;')) {
 
 console.log('✓ 5. Modifier and profile add buttons disabled unless item selected; fallbacks to unseen dropdown items eliminated');
 
+// 6. JS Syntax & App Initialization Check
+import { execSync } from 'child_process';
+try {
+  execSync('node --check js/app.js', { stdio: 'pipe' });
+  execSync('node test_app_init.mjs', { stdio: 'pipe' });
+} catch (err) {
+  throw new Error(`Syntax or initialization error in app.js: ${err.message}`);
+}
+console.log('✓ 6. js/app.js syntax check and test_app_init initialization verified');
+
 console.log('\n=== ALL v3.28 REQUIREMENTS VERIFIED SUCCESSFULLY! ===');

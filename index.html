@@ -6,8 +6,8 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Mutants & Masterminds 3E - Character Editor v3.33</title>
-  <link rel="stylesheet" href="css/styles.css?v=3.33">
+  <title>Mutants & Masterminds 3E - Character Editor v3.34</title>
+  <link rel="stylesheet" href="css/styles.css?v=3.34">
 </head>
 <body>
 
@@ -80,7 +80,7 @@
 
           <div class="brand-title-centered">
             <span>Mutants & Masterminds 3E Character Editor</span>
-            <span id="header-version-tag" class="header-version-tag up-to-date" title="Current Version">v3.33</span>
+            <span id="header-version-tag" class="header-version-tag up-to-date" title="Current Version">v3.34</span>
             <button type="button" id="btn-header-update-alert" class="btn-header-update-alert" title="Check for updates / Update status">!</button>
           </div>
 
@@ -836,7 +836,10 @@
     <div class="modal-container" style="max-width: 840px;">
       <div class="modal-header-bar">
         <div class="modal-header-title">✨ Interactive Archetype Character Builder</div>
-        <button class="btn btn-outline" id="btn-close-archetype-wizard" style="min-height: 28px; padding: 0.1rem 0.5rem;">✕</button>
+        <div class="modal-header-actions" style="display: flex; gap: 0.4rem; align-items: center;">
+          <button class="btn btn-primary" id="btn-archetype-popout" style="font-size: var(--font-size-sm); min-height: 28px; padding: 0.2rem 0.7rem;">🗗 Pop-Out Window</button>
+          <button class="btn btn-outline" id="btn-close-archetype-wizard" style="min-height: 28px; padding: 0.1rem 0.5rem;">✕</button>
+        </div>
       </div>
       <div class="modal-scroll-body" id="archetype-wizard-body" style="padding: 1rem;">
         <!-- Dynamically rendered step-by-step wizard -->
@@ -1255,6 +1258,6 @@
     </div>
   </div>
 
-  <script type="module" src="js/app.js?v=3.33"></script>
+  <script type="module" src="js/app.js?v=3.34"></script>
 </body>
 </html>

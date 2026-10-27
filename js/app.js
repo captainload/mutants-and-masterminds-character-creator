@@ -41,6 +41,7 @@ import {
 
 import { POWER_PROFILES_LIBRARY } from './power_profiles.js';
 import { ARCHETYPES } from './archetypes.js';
+import { archetypeManager } from './archetype_window.js';
 import { ARCHETYPE_CUSTOMIZATION_OPTIONS, buildCustomizedArchetype } from './archetype_builder.js';
 import { diceRoller } from './dice.js';
 import { DiscordConfig, discordIntegrator } from './discord.js';
@@ -242,11 +243,29 @@ class AppController {
       this.openModal('modal-hero-point');
     });
 
-    // Archetypes Button (Row 2 Right) - Toggle modal
+    // Archetypes Button (Row 2 Right) - Toggle modal / popout, restore popout if closed while popped out
     document.getElementById('btn-open-archetypes').addEventListener('click', () => {
       const archModal = document.getElementById('modal-archetype-wizard');
-      if (archModal && archModal.classList.contains('active')) {
+      const isModalActive = archModal && archModal.classList.contains('active');
+      const isPopoutActive = typeof archetypeManager !== 'undefined' && archetypeManager.popoutWindow && !archetypeManager.popoutWindow.closed;
+
+      if (isModalActive) {
         this.closeModal('modal-archetype-wizard');
+        return;
+      }
+
+      if (isPopoutActive) {
+        archetypeManager.popoutWindow.close();
+        archetypeManager.popoutWindow = null;
+        if (typeof archetypeManager !== 'undefined') {
+          archetypeManager.setClosedWhilePoppedOut(true);
+        }
+        return;
+      }
+
+      // If closed while popped out and display width allows for it, restore popout; else open modal
+      if (typeof archetypeManager !== 'undefined' && archetypeManager.wasClosedWhilePoppedOut() && archetypeManager.canDisplayPopout()) {
+        this.openArchetypePopout();
       } else {
         this.openArchetypeWizard();
       }
@@ -355,7 +374,13 @@ class AppController {
   // =======================================================
   setupArchetypeWizard() {
     document.getElementById('btn-close-archetype-wizard').addEventListener('click', () => {
+      if (typeof archetypeManager !== 'undefined') archetypeManager.setClosedWhilePoppedOut(false);
       this.closeModal('modal-archetype-wizard');
+    });
+
+    document.getElementById('btn-archetype-popout')?.addEventListener('click', () => {
+      this.closeModal('modal-archetype-wizard');
+      this.openArchetypePopout();
     });
 
     document.getElementById('btn-wizard-back').addEventListener('click', () => {
@@ -368,6 +393,7 @@ class AppController {
     document.getElementById('btn-wizard-next').addEventListener('click', async () => {
       if (this.wizardState.step === 1) {
         if (!this.wizardState.selectedArchetypeId) {
+          window.focus();
           await this.showAlertDialog('Please select an archetype from the list before proceeding.', { title: 'Selection Required' });
           return;
         }
@@ -383,24 +409,83 @@ class AppController {
   }
 
   openArchetypeWizard() {
-    this.wizardState = {
-      step: 1,
-      selectedArchetypeId: null,
-      selectedSpecializationId: null,
-      selectedComplication: null,
-      heroName: ''
-    };
+    if (!this.wizardState) {
+      this.wizardState = {
+        step: 1,
+        selectedArchetypeId: null,
+        selectedSpecializationId: null,
+        selectedComplication: null,
+        heroName: ''
+      };
+    }
+    if (typeof archetypeManager !== 'undefined') archetypeManager.setClosedWhilePoppedOut(false);
     this.renderWizardStep();
     this.openModal('modal-archetype-wizard');
   }
 
-  renderWizardStep() {
-    const body = document.getElementById('archetype-wizard-body');
-    const backBtn = document.getElementById('btn-wizard-back');
-    const nextBtn = document.getElementById('btn-wizard-next');
+  openArchetypePopout() {
+    if (!this.wizardState) {
+      this.wizardState = {
+        step: 1,
+        selectedArchetypeId: null,
+        selectedSpecializationId: null,
+        selectedComplication: null,
+        heroName: ''
+      };
+    }
+    if (typeof archetypeManager !== 'undefined') {
+      archetypeManager.openPopout();
+      setTimeout(() => this.renderWizardStep(), 50);
+    }
+  }
 
-    backBtn.style.display = this.wizardState.step === 1 ? 'none' : 'inline-flex';
-    nextBtn.textContent = this.wizardState.step === 3 ? '⚡ Apply Archetype' : 'Next Step ➜';
+  renderWizardStep() {
+    this.renderWizardStepToTarget(document);
+    if (typeof archetypeManager !== 'undefined' && archetypeManager.popoutWindow && !archetypeManager.popoutWindow.closed) {
+      try {
+        this.renderWizardStepToTarget(archetypeManager.popoutWindow.document);
+      } catch (e) {
+        console.warn('Could not render to popout document', e);
+      }
+    }
+  }
+
+  renderWizardStepToTarget(targetDoc) {
+    if (!targetDoc) return;
+    const body = targetDoc.getElementById('archetype-wizard-body');
+    const backBtn = targetDoc.getElementById('btn-wizard-back');
+    const nextBtn = targetDoc.getElementById('btn-wizard-next');
+    if (!body) return;
+
+    if (backBtn) {
+      backBtn.style.display = this.wizardState.step === 1 ? 'none' : 'inline-flex';
+      backBtn.onclick = () => {
+        if (this.wizardState.step > 1) {
+          this.wizardState.step--;
+          this.renderWizardStep();
+        }
+      };
+    }
+
+    if (nextBtn) {
+      nextBtn.textContent = this.wizardState.step === 3 ? '⚡ Apply Archetype' : 'Next Step ➜';
+      nextBtn.onclick = async () => {
+        if (this.wizardState.step === 1) {
+          if (!this.wizardState.selectedArchetypeId) {
+            window.focus();
+            await this.showAlertDialog('Please select an archetype from the list before proceeding.', { title: 'Selection Required' });
+            return;
+          }
+          this.wizardState.step = 2;
+          this.renderWizardStep();
+        } else if (this.wizardState.step === 2) {
+          this.wizardState.step = 3;
+          this.renderWizardStep();
+        } else if (this.wizardState.step === 3) {
+          await this.finishArchetypeWizard();
+        }
+      };
+    }
 
     if (this.wizardState.step === 1) {
       // Step 1: Select Archetype
@@ -530,10 +615,12 @@ class AppController {
       html += `</div>`;
       body.innerHTML = html;
 
-      const nameInput = document.getElementById('wizard-hero-name');
-      nameInput.addEventListener('input', (e) => {
-        this.wizardState.heroName = e.target.value.trim();
-      });
+      const nameInput = targetDoc.getElementById('wizard-hero-name') || body.querySelector('#wizard-hero-name');
+      if (nameInput) {
+        nameInput.addEventListener('input', (e) => {
+          this.wizardState.heroName = e.target.value;
+        });
+      }
 
       body.querySelectorAll('[data-comp-idx]').forEach(card => {
         card.addEventListener('click', () => {
@@ -546,6 +633,7 @@ class AppController {
   }
 
   async finishArchetypeWizard() {
+    window.focus();
     const activeName = this.char.name || 'Current Character';
     const confirmed = await this.showConfirmDialog(
       `⚠️ WARNING: Applying this archetype will overwrite all currently loaded character data for "${activeName}".\n\nAre you sure you want to proceed and replace the active character?`,
@@ -555,7 +643,12 @@ class AppController {
       return;
     }
 
-    const heroName = (document.getElementById('wizard-hero-name')?.value || this.wizardState.heroName || 'Champion').trim();
+    const modalInput = document.getElementById('wizard-hero-name');
+    const popoutInput = (typeof archetypeManager !== 'undefined' && archetypeManager.popoutWindow && !archetypeManager.popoutWindow.closed)
+      ? archetypeManager.popoutWindow.document.getElementById('wizard-hero-name')
+      : null;
+    const heroName = (popoutInput?.value || modalInput?.value || this.wizardState.heroName || 'Champion').trim();
+
     const newHero = buildCustomizedArchetype(
       this.wizardState.selectedArchetypeId,
       heroName,
@@ -567,6 +660,10 @@ class AppController {
     newHero.userApplied = true;
     this.char = newHero;
     storageManager.saveCharacter(this.char);
+    if (typeof archetypeManager !== 'undefined' && archetypeManager.popoutWindow && !archetypeManager.popoutWindow.closed) {
+      archetypeManager.popoutWindow.close();
+      archetypeManager.popoutWindow = null;
+    }
     this.closeModal('modal-archetype-wizard');
     this.renderAll();
     await this.showAlertDialog(`Archetype successfully applied! "${newHero.name}" is now the active character.`, { title: 'Archetype Applied' });
@@ -894,6 +991,8 @@ class AppController {
   setupPointerPopup() {
     const popup = document.getElementById('pointer-rules-popup');
     window.tablesManager = tablesManager;
+    window.archetypeManager = archetypeManager;
+    window.appController = this;
 
     document.addEventListener('click', (e) => {
       const link = e.target.closest('.rules-link');
@@ -1090,7 +1189,7 @@ class AppController {
   }
 
   async checkForUpdates({ isManual = false } = {}) {
-    const CURRENT_VERSION = '3.33';
+    const CURRENT_VERSION = '3.34';
     const versionEl = document.getElementById('header-version-tag');
     const updateBtn = document.getElementById('btn-header-update-alert');
     if (typeof window === 'undefined' || !window.location || !window.location.href || window.location.href === 'about:blank') return;
@@ -5889,6 +5988,9 @@ class AppController {
     if (el) el.classList.remove('active');
     if (id === 'modal-tables' && typeof tablesManager !== 'undefined') {
       tablesManager.setClosedWhilePoppedOut(false);
+    }
+    if (id === 'modal-archetype-wizard' && typeof archetypeManager !== 'undefined') {
+      archetypeManager.setClosedWhilePoppedOut(false);
     }
   }
 

@@ -1,5 +1,5 @@
 {
-  "version": "3.33",
-  "updatedAt": "2026-10-27T18:36:21.601Z",
-  "releaseNotes": "Toughness defense direct purchase disabled (derived only); toggle for Tables and Archetypes popups; Tables popout state restored on open when display allows; Array main power clarification and interactive linking for Alternate Effects."
+  "version": "3.34",
+  "updatedAt": "2026-10-27T19:49:05.977Z",
+  "releaseNotes": "Interactive Archetype Character Builder pop-out window capability with close button, position and size memory, and state restoration."
 }

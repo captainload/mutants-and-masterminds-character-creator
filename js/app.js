@@ -54,6 +54,7 @@ class AppController {
     this.activePowerEditing = null;
     this.currentFileHandle = null;
     this.expandedPowerIds = new Set();
+    this.expandedAeIds = new Set();
 
     // Interactive Archetype Wizard State (No default archetype loaded)
     this.wizardState = {
@@ -1025,7 +1026,7 @@ class AppController {
   }
 
   async checkForUpdates({ isManual = false } = {}) {
-    const CURRENT_VERSION = '3.20';
+    const CURRENT_VERSION = '3.21';
     if (typeof window === 'undefined' || !window.location || !window.location.href || window.location.href === 'about:blank') return;
     try {
       const url = new URL('version.json', window.location.href);
@@ -3803,9 +3804,8 @@ class AppController {
     }
 
     const box = document.createElement('div');
-    box.className = 'power-section-box';
-    box.style.borderLeft = '3px solid var(--hero-blue)';
-    box.style.marginTop = '0.5rem';
+    box.className = 'power-unified-subblock';
+    box.style.marginTop = '0.35rem';
 
     if (effId === 'affliction') {
       if (!p.afflictionConfig) {
@@ -4151,23 +4151,52 @@ class AppController {
     return row;
   }
 
-  renderModifierColumns(targetObj) {
+  renderModifierColumns(targetObj, powerContext = null) {
     if (!targetObj.extras) targetObj.extras = [];
     if (!targetObj.flaws) targetObj.flaws = [];
 
+    const checkAeOverrun = (testExtras, testFlaws) => {
+      if (!powerContext || powerContext === targetObj) return false;
+      const mainCost = calculatePowerCost({
+        ...powerContext,
+        isAlternateEffect: false,
+        alternateEffects: [],
+        linkedEffects: [],
+        isDynamicArray: false
+      });
+      const testCost = calculatePowerCost({
+        ...targetObj,
+        extras: testExtras !== undefined ? testExtras : targetObj.extras || [],
+        flaws: testFlaws !== undefined ? testFlaws : targetObj.flaws || [],
+        isAlternateEffect: false,
+        alternateEffects: [],
+        linkedEffects: [],
+        isDynamicArray: false
+      });
+      if (testCost > mainCost) {
+        this.showAlertDialog(
+          `Cannot apply modifier: An Alternate Effect cannot cost more than the primary effect (${mainCost} PP). Standalone cost would increase to ${testCost} PP.`,
+          { title: 'Alternate Effect Cost Limit', icon: '⚠️' }
+        );
+        return true;
+      }
+      return false;
+    };
+
     const container = document.createElement('div');
-    container.style.cssText = 'display: flex; flex-direction: column; gap: 0.65rem;';
+    container.style.cssText = 'display: flex; flex-direction: column; gap: 0.45rem;';
 
     const activeExtraIds = new Set(targetObj.extras.map(e => e.id));
     const activeFlawIds = new Set(targetObj.flaws.map(f => f.id));
 
     // Row 3: Per-Rank Extras & Flaws
     const row3 = document.createElement('div');
-    row3.style.cssText = 'display: grid; grid-template-columns: 1fr 1fr; gap: 0.65rem;';
+    row3.className = 'power-unified-row';
+    row3.style.cssText = 'display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; border-top: 1px solid rgba(255, 255, 255, 0.08); padding-top: 0.45rem;';
 
     // Extras Column (Per-Rank)
     const extrasCol = document.createElement('div');
-    extrasCol.className = 'power-section-box';
+    extrasCol.className = 'power-unified-subblock';
     const legalRankExtras = EXTRAS_CATALOG.filter(ex => {
       if (ex.isFlat) return false;
       if (activeExtraIds.has(ex.id)) return false;
@@ -4178,7 +4207,7 @@ class AppController {
       <div class="power-section-header">
         <span style="font-weight: 800; font-size: var(--font-size-base); color: var(--hero-blue);">➕ Extras (★ = Effect-Specific) (+PP/Rank)</span>
       </div>
-      <div style="display: flex; gap: 0.45rem; margin-bottom: 0.5rem;">
+      <div style="display: flex; gap: 0.45rem; margin-bottom: 0.4rem;">
         <select class="select-add-extra" style="flex: 1; font-size: var(--font-size-sm); min-height: 32px;">
           ${legalRankExtras.length === 0
             ? '<option value="" disabled selected>No additional legal extras available</option>'
@@ -4186,7 +4215,7 @@ class AppController {
         </select>
         <button class="btn btn-outline btn-add-extra" style="font-size: var(--font-size-sm); min-height: 32px; padding: 0.2rem 0.65rem; white-space: nowrap; border-color: var(--hero-blue); color: #fff;" ${legalRankExtras.length === 0 ? 'disabled' : ''}>+ Add Extra</button>
       </div>
-      <div class="extras-items-container" style="display: flex; flex-direction: column; gap: 0.4rem;"></div>
+      <div class="extras-items-container" style="display: flex; flex-direction: column; gap: 0.35rem;"></div>
     `;
 
     const extrasContainer = extrasCol.querySelector('.extras-items-container');
@@ -4196,7 +4225,7 @@ class AppController {
       const maxR = exDef.maxRankByEffect ? (parseInt(targetObj.rank, 10) || 10) : (exDef.maxRank || 10);
 
       const exRow = document.createElement('div');
-      exRow.style.cssText = 'display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.25); padding: 0.4rem 0.65rem; border-radius: 4px; border: 1px solid rgba(255,255,255,0.08);';
+      exRow.style.cssText = 'display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.25); padding: 0.35rem 0.55rem; border-radius: 4px; border: 1px solid rgba(255,255,255,0.08);';
       exRow.innerHTML = `
         <div style="flex: 1; display: flex; align-items: center; gap: 0.35rem; flex-wrap: wrap;">
           <button type="button" class="btn-modifier-info-link" style="color: ${(exDef.isEffectSpecific || exDef.isUnique) ? 'var(--hero-gold)' : 'var(--text-bright)'};" title="Click to view rules description">
@@ -4233,6 +4262,8 @@ class AppController {
         this.refreshPowersState();
       });
       exRow.querySelector('.btn-ex-plus')?.addEventListener('click', () => {
+        const testExtras = targetObj.extras.map(item => item.id === ex.id ? { ...item, rank: item.rank + 1 } : item);
+        if (checkAeOverrun(testExtras, undefined)) return;
         ex.rank = Math.min(maxR, r + 1);
         this.refreshPowersState();
       });
@@ -4256,13 +4287,15 @@ class AppController {
         this.showAlertDialog(`Cannot add ${exDef.name}: ${legality.reason}`, { title: 'Illegal Modifier Combination' });
         return;
       }
+      const testExtras = [...targetObj.extras, { id: exDef.id, name: exDef.name, cost: exDef.cost, isFlat: false, isRanked: exDef.isRanked, rank: 1 }];
+      if (checkAeOverrun(testExtras, undefined)) return;
       targetObj.extras.push({ id: exDef.id, name: exDef.name, cost: exDef.cost, isFlat: false, isRanked: exDef.isRanked, rank: 1 });
       this.refreshPowersState();
     });
 
     // Flaws Column (Per-Rank)
     const flawsCol = document.createElement('div');
-    flawsCol.className = 'power-section-box';
+    flawsCol.className = 'power-unified-subblock';
     const legalRankFlaws = FLAWS_CATALOG.filter(fl => {
       if (fl.isFlat || fl.isDevice) return false;
       if (activeFlawIds.has(fl.id)) return false;
@@ -4273,7 +4306,7 @@ class AppController {
       <div class="power-section-header">
         <span style="font-weight: 800; font-size: var(--font-size-base); color: var(--hero-blue);">➖ Flaws (★ = Effect-Specific) (-PP/Rank)</span>
       </div>
-      <div style="display: flex; gap: 0.45rem; margin-bottom: 0.5rem;">
+      <div style="display: flex; gap: 0.45rem; margin-bottom: 0.4rem;">
         <select class="select-add-flaw" style="flex: 1; font-size: var(--font-size-sm); min-height: 32px;">
           ${legalRankFlaws.length === 0
             ? '<option value="" disabled selected>No additional legal flaws available</option>'
@@ -4281,7 +4314,7 @@ class AppController {
         </select>
         <button class="btn btn-outline btn-add-flaw" style="font-size: var(--font-size-sm); min-height: 32px; padding: 0.2rem 0.65rem; white-space: nowrap; border-color: var(--hero-blue); color: #fff;" ${legalRankFlaws.length === 0 ? 'disabled' : ''}>+ Add Flaw</button>
       </div>
-      <div class="flaws-items-container" style="display: flex; flex-direction: column; gap: 0.4rem;"></div>
+      <div class="flaws-items-container" style="display: flex; flex-direction: column; gap: 0.35rem;"></div>
     `;
 
     const flawsContainer = flawsCol.querySelector('.flaws-items-container');
@@ -4291,7 +4324,7 @@ class AppController {
       const maxR = flDef.maxRank || 5;
 
       const flRow = document.createElement('div');
-      flRow.style.cssText = 'display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.25); padding: 0.4rem 0.65rem; border-radius: 4px; border: 1px solid rgba(255,255,255,0.08);';
+      flRow.style.cssText = 'display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.25); padding: 0.35rem 0.55rem; border-radius: 4px; border: 1px solid rgba(255,255,255,0.08);';
       flRow.innerHTML = `
         <div style="flex: 1; display: flex; align-items: center; gap: 0.35rem; flex-wrap: wrap;">
           <button type="button" class="btn-modifier-info-link" style="color: ${(flDef.isEffectSpecific || flDef.isUnique) ? 'var(--hero-gold)' : 'var(--text-bright)'};" title="Click to view rules description">
@@ -4319,6 +4352,14 @@ class AppController {
         this.showModifierDescriptionDialog(flDef);
       });
       flRow.querySelector('.btn-fl-minus')?.addEventListener('click', () => {
+        let testFlaws;
+        if (r <= 1) {
+          testFlaws = targetObj.flaws.filter(item => item.id !== fl.id);
+        } else {
+          testFlaws = targetObj.flaws.map(item => item.id === fl.id ? { ...item, rank: item.rank - 1 } : item);
+        }
+        if (checkAeOverrun(undefined, testFlaws)) return;
+
         if (r <= 1) {
           const flIdx = targetObj.flaws.findIndex(item => item.id === fl.id);
           if (flIdx >= 0) targetObj.flaws.splice(flIdx, 1);
@@ -4332,6 +4373,8 @@ class AppController {
         this.refreshPowersState();
       });
       flRow.querySelector('.btn-remove-flaw')?.addEventListener('click', () => {
+        const testFlaws = targetObj.flaws.filter(item => item.id !== fl.id);
+        if (checkAeOverrun(undefined, testFlaws)) return;
         const flIdx = targetObj.flaws.findIndex(item => item.id === fl.id);
         if (flIdx >= 0) targetObj.flaws.splice(flIdx, 1);
         this.refreshPowersState();
@@ -4361,11 +4404,12 @@ class AppController {
 
     // Row 4: Power Feats & Drawbacks
     const row4 = document.createElement('div');
-    row4.style.cssText = 'display: grid; grid-template-columns: 1fr 1fr; gap: 0.65rem;';
+    row4.className = 'power-unified-row';
+    row4.style.cssText = 'display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; border-top: 1px solid rgba(255, 255, 255, 0.08); padding-top: 0.45rem;';
 
     // Power Feats Column (Flat Extras)
     const featsCol = document.createElement('div');
-    featsCol.className = 'power-section-box';
+    featsCol.className = 'power-unified-subblock';
     const legalPowerFeats = EXTRAS_CATALOG.filter(ex => {
       if (!ex.isFlat || ex.id === 'linked') return false;
       if (activeExtraIds.has(ex.id)) return false;
@@ -4376,7 +4420,7 @@ class AppController {
       <div class="power-section-header">
         <span style="font-weight: 800; font-size: var(--font-size-base); color: var(--hero-gold);">⭐ Power Feats (+Flat PP Extras)</span>
       </div>
-      <div style="display: flex; gap: 0.45rem; margin-bottom: 0.5rem;">
+      <div style="display: flex; gap: 0.45rem; margin-bottom: 0.4rem;">
         <select class="select-add-feat" style="flex: 1; font-size: var(--font-size-sm); min-height: 32px;">
           ${legalPowerFeats.length === 0
             ? '<option value="" disabled selected>No additional legal power feats available</option>'
@@ -4384,7 +4428,7 @@ class AppController {
         </select>
         <button class="btn btn-outline btn-add-feat" style="font-size: var(--font-size-sm); min-height: 32px; padding: 0.2rem 0.65rem; white-space: nowrap; border-color: var(--hero-gold); color: #fff;" ${legalPowerFeats.length === 0 ? 'disabled' : ''}>+ Add Feat</button>
       </div>
-      <div class="feats-items-container" style="display: flex; flex-direction: column; gap: 0.4rem;"></div>
+      <div class="feats-items-container" style="display: flex; flex-direction: column; gap: 0.35rem;"></div>
     `;
 
     const featsContainer = featsCol.querySelector('.feats-items-container');
@@ -4394,7 +4438,7 @@ class AppController {
       const maxR = exDef.maxRank || 5;
 
       const featRow = document.createElement('div');
-      featRow.style.cssText = 'display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.25); padding: 0.4rem 0.65rem; border-radius: 4px; border: 1px solid rgba(255,255,255,0.08);';
+      featRow.style.cssText = 'display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.25); padding: 0.35rem 0.55rem; border-radius: 4px; border: 1px solid rgba(255,255,255,0.08);';
       featRow.innerHTML = `
         <div style="flex: 1; display: flex; align-items: center; gap: 0.35rem; flex-wrap: wrap;">
           <button type="button" class="btn-modifier-info-link" style="color: var(--hero-gold);" title="Click to view rules description">
@@ -4431,6 +4475,8 @@ class AppController {
         this.refreshPowersState();
       });
       featRow.querySelector('.btn-feat-plus')?.addEventListener('click', () => {
+        const testExtras = targetObj.extras.map(item => item.id === ex.id ? { ...item, rank: item.rank + 1 } : item);
+        if (checkAeOverrun(testExtras, undefined)) return;
         ex.rank = Math.min(maxR, r + 1);
         this.refreshPowersState();
       });
@@ -4454,13 +4500,15 @@ class AppController {
         this.showAlertDialog(`Cannot add ${exDef.name}: ${legality.reason}`, { title: 'Illegal Modifier Combination' });
         return;
       }
+      const testExtras = [...targetObj.extras, { id: exDef.id, name: exDef.name, cost: exDef.cost, isFlat: true, isRanked: exDef.isRanked, rank: 1 }];
+      if (checkAeOverrun(testExtras, undefined)) return;
       targetObj.extras.push({ id: exDef.id, name: exDef.name, cost: exDef.cost, isFlat: true, isRanked: exDef.isRanked, rank: 1 });
       this.refreshPowersState();
     });
 
     // Drawbacks Column (Flat Flaws & Devices)
     const drawbacksCol = document.createElement('div');
-    drawbacksCol.className = 'power-section-box';
+    drawbacksCol.className = 'power-unified-subblock';
     const legalDrawbacks = FLAWS_CATALOG.filter(fl => {
       if (!fl.isFlat && !fl.isDevice) return false;
       if (activeFlawIds.has(fl.id)) return false;
@@ -4471,7 +4519,7 @@ class AppController {
       <div class="power-section-header">
         <span style="font-weight: 800; font-size: var(--font-size-base); color: var(--hero-blue);">⚠️ Drawbacks (-Flat PP & Devices)</span>
       </div>
-      <div style="display: flex; gap: 0.45rem; margin-bottom: 0.5rem;">
+      <div style="display: flex; gap: 0.45rem; margin-bottom: 0.4rem;">
         <select class="select-add-drawback" style="flex: 1; font-size: var(--font-size-sm); min-height: 32px;">
           ${legalDrawbacks.length === 0
             ? '<option value="" disabled selected>No additional legal drawbacks available</option>'
@@ -4479,7 +4527,7 @@ class AppController {
         </select>
         <button class="btn btn-outline btn-add-drawback" style="font-size: var(--font-size-sm); min-height: 32px; padding: 0.2rem 0.65rem; white-space: nowrap; border-color: var(--hero-blue); color: #fff;" ${legalDrawbacks.length === 0 ? 'disabled' : ''}>+ Add Drawback</button>
       </div>
-      <div class="drawbacks-items-container" style="display: flex; flex-direction: column; gap: 0.4rem;"></div>
+      <div class="drawbacks-items-container" style="display: flex; flex-direction: column; gap: 0.35rem;"></div>
     `;
 
     const drawbacksContainer = drawbacksCol.querySelector('.drawbacks-items-container');
@@ -4489,7 +4537,7 @@ class AppController {
       const maxR = flDef.maxRank || 5;
 
       const drawbackRow = document.createElement('div');
-      drawbackRow.style.cssText = 'display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.25); padding: 0.4rem 0.65rem; border-radius: 4px; border: 1px solid rgba(255,255,255,0.08);';
+      drawbackRow.style.cssText = 'display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.25); padding: 0.35rem 0.55rem; border-radius: 4px; border: 1px solid rgba(255,255,255,0.08);';
       drawbackRow.innerHTML = `
         <div style="flex: 1; display: flex; align-items: center; gap: 0.35rem; flex-wrap: wrap;">
           <button type="button" class="btn-modifier-info-link" style="color: ${(flDef.isEffectSpecific || flDef.isUnique) ? 'var(--hero-gold)' : 'var(--text-bright)'};" title="Click to view rules description">
@@ -4517,6 +4565,14 @@ class AppController {
         this.showModifierDescriptionDialog(flDef);
       });
       drawbackRow.querySelector('.btn-drawback-minus')?.addEventListener('click', () => {
+        let testFlaws;
+        if (r <= 1) {
+          testFlaws = targetObj.flaws.filter(item => item.id !== fl.id);
+        } else {
+          testFlaws = targetObj.flaws.map(item => item.id === fl.id ? { ...item, rank: item.rank - 1 } : item);
+        }
+        if (checkAeOverrun(undefined, testFlaws)) return;
+
         if (r <= 1) {
           const flIdx = targetObj.flaws.findIndex(item => item.id === fl.id);
           if (flIdx >= 0) targetObj.flaws.splice(flIdx, 1);
@@ -4530,6 +4586,8 @@ class AppController {
         this.refreshPowersState();
       });
       drawbackRow.querySelector('.btn-remove-drawback')?.addEventListener('click', () => {
+        const testFlaws = targetObj.flaws.filter(item => item.id !== fl.id);
+        if (checkAeOverrun(undefined, testFlaws)) return;
         const flIdx = targetObj.flaws.findIndex(item => item.id === fl.id);
         if (flIdx >= 0) targetObj.flaws.splice(flIdx, 1);
         this.refreshPowersState();
@@ -4740,14 +4798,74 @@ class AppController {
           e.stopPropagation();
           this.showEffectDescriptionDialog(p.effect);
         });
-        row1.querySelector('.select-power-effect')?.addEventListener('change', (e) => {
+        row1.querySelector('.select-power-effect')?.addEventListener('change', async (e) => {
           const newEff = POWER_EFFECTS_CATALOG.find(eff => eff.id === e.target.value) || POWER_EFFECTS_CATALOG[0];
+          if (p.alternateEffects && p.alternateEffects.length > 0) {
+            const testMainCost = calculatePowerCost({
+              ...p,
+              effect: newEff,
+              isAlternateEffect: false,
+              alternateEffects: [],
+              linkedEffects: [],
+              isDynamicArray: false
+            });
+            for (let i = 0; i < p.alternateEffects.length; i++) {
+              const ae = p.alternateEffects[i];
+              const aeCost = calculatePowerCost({
+                ...ae,
+                isAlternateEffect: false,
+                alternateEffects: [],
+                linkedEffects: [],
+                isDynamicArray: false
+              });
+              if (aeCost > testMainCost) {
+                e.target.value = p.effect?.id || POWER_EFFECTS_CATALOG[0].id;
+                await this.showAlertDialog(
+                  `Cannot change primary effect to "${newEff.name}": Alternate Effect "${ae.name || 'ALTERNATE ' + (i + 1)}" costs ${aeCost} PP, which would exceed the new primary power cost (${testMainCost} PP). In official M&M 3E rules, alternate effects cannot cost more than the primary effect. Adjust the alternate effect first.`,
+                  { title: 'Alternate Effect Cost Limit' }
+                );
+                return;
+              }
+            }
+          }
           p.effect = newEff;
           p.action = newEff.action || 'Standard';
           this.refreshPowersState();
         });
-        row1.querySelector('.btn-p-rank-minus')?.addEventListener('click', () => {
-          p.rank = Math.max(1, (parseInt(p.rank, 10) || 1) - 1);
+        row1.querySelector('.btn-p-rank-minus')?.addEventListener('click', async () => {
+          const currentRank = parseInt(p.rank, 10) || 1;
+          const newRank = Math.max(1, currentRank - 1);
+          if (newRank === currentRank) return;
+
+          if (p.alternateEffects && p.alternateEffects.length > 0) {
+            const testMainCost = calculatePowerCost({
+              ...p,
+              rank: newRank,
+              isAlternateEffect: false,
+              alternateEffects: [],
+              linkedEffects: [],
+              isDynamicArray: false
+            });
+            for (let i = 0; i < p.alternateEffects.length; i++) {
+              const ae = p.alternateEffects[i];
+              const aeCost = calculatePowerCost({
+                ...ae,
+                isAlternateEffect: false,
+                alternateEffects: [],
+                linkedEffects: [],
+                isDynamicArray: false
+              });
+              if (aeCost > testMainCost) {
+                await this.showAlertDialog(
+                  `Cannot reduce primary power rank: Alternate Effect "${ae.name || 'ALTERNATE ' + (i + 1)}" costs ${aeCost} PP, which would exceed the new primary power cost (${testMainCost} PP). In official M&M 3E rules, alternate effects cannot cost more than the primary effect. Adjust the alternate effect first.`,
+                  { title: 'Alternate Effect Cost Limit' }
+                );
+                return;
+              }
+            }
+          }
+
+          p.rank = newRank;
           this.refreshPowersState();
         });
         row1.querySelector('.btn-p-rank-plus')?.addEventListener('click', () => {
@@ -4809,16 +4927,21 @@ class AppController {
             this.refreshPowersState();
           }
         });
-        body.appendChild(row1);
+
+        // Unified Main Effect Block: Visually combine all separate blocks in the primary effect
+        const mainBlock = document.createElement('div');
+        mainBlock.className = 'power-main-effect-unified';
+
+        mainBlock.appendChild(row1);
 
         // Row 2: Final Effect Stats Summary Bar (Action, Range with measurement, Duration, Area)
         const row2 = this.renderEffectStatsSummaryBar(p);
-        body.appendChild(row2);
+        mainBlock.appendChild(row2);
 
         // Power Effect Specific Configuration (Affliction, Immunity, Senses, Weaken, Nullify)
         const configSection = this.renderEffectConfigSection(p);
         if (configSection) {
-          body.appendChild(configSection);
+          mainBlock.appendChild(configSection);
         }
 
         // Validation Banner (Errors and Warnings)
@@ -4841,12 +4964,14 @@ class AppController {
               </div>
             `;
           }
-          body.appendChild(valBox);
+          mainBlock.appendChild(valBox);
         }
 
         // Row 3 & 4: Per-Rank Extras & Flaws and Power Feats & Drawbacks
-        const modCols = this.renderModifierColumns(p);
-        body.appendChild(modCols);
+        const modCols = this.renderModifierColumns(p, p);
+        mainBlock.appendChild(modCols);
+
+        body.appendChild(mainBlock);
 
         // Row 5: Power Arrays & Alternate Effects (Standard 1 PP, Dynamic 2 PP)
         const aeSection = document.createElement('div');
@@ -4865,43 +4990,75 @@ class AppController {
 
         const aeContainer = aeSection.querySelector('.ae-items-container');
         if (!p.alternateEffects) p.alternateEffects = [];
+        if (!this.expandedAeIds) this.expandedAeIds = new Set();
 
         if (p.alternateEffects.length === 0) {
           aeContainer.innerHTML = `<div style="font-size: var(--font-size-sm); color: var(--text-muted); font-style: italic; padding: 0.25rem 0;">No alternate effects added. Click "➕ Add Alternate Effect to Array" above to add one.</div>`;
         } else {
           p.alternateEffects.forEach((ae, aeIdx) => {
+            if (!ae.id) {
+              ae.id = 'ae_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6);
+            }
             if (!ae.extras) ae.extras = [];
             if (!ae.flaws) ae.flaws = [];
             if (!ae.effect) ae.effect = POWER_EFFECTS_CATALOG[0];
             if (typeof ae.rank !== 'number') ae.rank = parseInt(ae.rank, 10) || p.rank || 1;
 
-            const aeStandaloneCost = calculatePowerCost({ ...ae, isAlternateEffect: false, alternateEffects: [], linkedEffects: [] });
+            const isAeExpanded = this.expandedAeIds.has(ae.id);
+            const aeStandaloneCost = calculatePowerCost({ ...ae, isAlternateEffect: false, alternateEffects: [], linkedEffects: [], isDynamicArray: false });
             const aeSlotCost = p.isDynamicArray ? 2 : (ae.isDynamic ? 2 : 1);
+            const mainStandaloneCost = calculatePowerCost({ ...p, isAlternateEffect: false, alternateEffects: [], linkedEffects: [], isDynamicArray: false });
 
             const aeCard = document.createElement('div');
-            aeCard.className = 'power-ae-card';
+            aeCard.className = `power-ae-card power-ae-unified ${isAeExpanded ? 'expanded' : 'collapsed'}`;
 
-            // AE Header
+            // Collapsible AE Header
             const aeHeader = document.createElement('div');
             aeHeader.className = 'power-ae-header';
+            aeHeader.style.cursor = 'pointer';
             aeHeader.innerHTML = `
               <div style="display: flex; align-items: center; gap: 0.55rem; flex-wrap: wrap;">
+                <span class="ae-toggle-icon" style="font-size: var(--font-size-sm); color: var(--hero-blue); line-height: 1;">${isAeExpanded ? '▼' : '▶'}</span>
                 <strong style="color: var(--hero-gold); font-size: var(--font-size-base); letter-spacing: 0.04em;">⚡ ALTERNATE ${aeIdx + 1}</strong>
-                <span class="badge-tag ae" style="font-size: var(--font-size-xs);">+${aeSlotCost} PP array slot</span>
-                <span style="font-size: var(--font-size-sm); color: var(--text-muted);">(Standalone: ${aeStandaloneCost} PP)</span>
+                <span style="font-weight: 600; color: var(--text-bright); font-size: var(--font-size-base);">${ae.name || 'Unnamed Effect'}</span>
+                <span style="font-size: var(--font-size-sm); color: var(--hero-blue); font-weight: 600;">— ${ae.effect?.name || 'Effect'} Rank ${ae.rank || 1}</span>
+                <span class="badge-tag ae" style="font-size: var(--font-size-xs);">+${aeSlotCost} PP slot</span>
+                <span style="font-size: var(--font-size-sm); color: var(--text-muted);">(Standalone: ${aeStandaloneCost} PP / Max: ${mainStandaloneCost} PP)</span>
               </div>
-              <button class="btn btn-outline btn-delete-ae" style="padding: 0.2rem 0.65rem; min-height: 32px; font-size: var(--font-size-sm); color: #fff; border-color: rgba(255, 255, 255, 0.25);" title="Remove this alternate effect">🗑️ Remove Alternate Effect</button>
+              <div style="display: flex; gap: 0.45rem; align-items: center;">
+                <button type="button" class="btn btn-outline btn-toggle-ae" style="padding: 0.2rem 0.65rem; min-height: 32px; font-size: var(--font-size-sm); color: var(--hero-blue); border-color: var(--hero-blue);">
+                  ${isAeExpanded ? '▲ Collapse' : '▼ Configure'}
+                </button>
+                <button type="button" class="btn btn-outline btn-delete-ae" style="padding: 0.2rem 0.65rem; min-height: 32px; font-size: var(--font-size-sm); color: #fff; border-color: rgba(255, 255, 255, 0.25);" title="Remove this alternate effect">🗑️</button>
+              </div>
             `;
 
-            aeHeader.querySelector('.btn-delete-ae')?.addEventListener('click', () => {
+            aeHeader.addEventListener('click', (e) => {
+              if (e.target.closest('.btn-delete-ae')) return;
+              if (this.expandedAeIds.has(ae.id)) {
+                this.expandedAeIds.delete(ae.id);
+              } else {
+                this.expandedAeIds.add(ae.id);
+              }
+              this.refreshPowersState();
+            });
+
+            aeHeader.querySelector('.btn-delete-ae')?.addEventListener('click', (e) => {
+              e.stopPropagation();
+              if (this.expandedAeIds) this.expandedAeIds.delete(ae.id);
               p.alternateEffects.splice(aeIdx, 1);
               this.refreshPowersState();
             });
+
             aeCard.appendChild(aeHeader);
+
+            // AE Body (shown when expanded)
+            const aeBody = document.createElement('div');
+            aeBody.className = 'power-ae-body';
 
             // Row 1 for AE: Name, Descriptors, Base Effect with Info Icon, Rank Stepper, Linked Checkbox, Cost
             const aeRow1 = document.createElement('div');
-            aeRow1.style.cssText = 'display: flex; gap: 0.65rem; align-items: flex-end; flex-wrap: wrap; margin-bottom: 0.5rem;';
+            aeRow1.style.cssText = 'display: flex; gap: 0.65rem; align-items: flex-end; flex-wrap: wrap; margin-bottom: 0.25rem;';
             aeRow1.innerHTML = `
               <div style="flex: 2; min-width: 180px;">
                 <label class="field-label">Alternate Name</label>
@@ -4953,16 +5110,40 @@ class AppController {
               e.stopPropagation();
               this.showEffectDescriptionDialog(ae.effect);
             });
-            aeRow1.querySelector('.select-ae-effect')?.addEventListener('change', (e) => {
-              ae.effect = POWER_EFFECTS_CATALOG.find(eff => eff.id === e.target.value) || POWER_EFFECTS_CATALOG[0];
+            aeRow1.querySelector('.select-ae-effect')?.addEventListener('change', async (e) => {
+              const newEff = POWER_EFFECTS_CATALOG.find(eff => eff.id === e.target.value) || POWER_EFFECTS_CATALOG[0];
+              const testAe = { ...ae, effect: newEff };
+              const testAeCost = calculatePowerCost({ ...testAe, isAlternateEffect: false, alternateEffects: [], linkedEffects: [], isDynamicArray: false });
+              const mainCost = calculatePowerCost({ ...p, isAlternateEffect: false, alternateEffects: [], linkedEffects: [], isDynamicArray: false });
+              if (testAeCost > mainCost) {
+                e.target.value = ae.effect?.id || POWER_EFFECTS_CATALOG[0].id;
+                await this.showAlertDialog(
+                  `Cannot select "${newEff.name}": Alternate Effects cannot cost more than the primary effect (${mainCost} PP). With ${newEff.name}, this alternate effect would cost ${testAeCost} PP.`,
+                  { title: 'Alternate Effect Cost Exceeded' }
+                );
+                return;
+              }
+              ae.effect = newEff;
               this.refreshPowersState();
             });
             aeRow1.querySelector('.btn-ae-minus')?.addEventListener('click', () => {
               ae.rank = Math.max(1, (parseInt(ae.rank, 10) || 1) - 1);
               this.refreshPowersState();
             });
-            aeRow1.querySelector('.btn-ae-plus')?.addEventListener('click', () => {
-              ae.rank = (parseInt(ae.rank, 10) || 1) + 1;
+            aeRow1.querySelector('.btn-ae-plus')?.addEventListener('click', async () => {
+              const currentRank = parseInt(ae.rank, 10) || 1;
+              const newRank = currentRank + 1;
+              const testAe = { ...ae, rank: newRank };
+              const testAeCost = calculatePowerCost({ ...testAe, isAlternateEffect: false, alternateEffects: [], linkedEffects: [], isDynamicArray: false });
+              const mainCost = calculatePowerCost({ ...p, isAlternateEffect: false, alternateEffects: [], linkedEffects: [], isDynamicArray: false });
+              if (testAeCost > mainCost) {
+                await this.showAlertDialog(
+                  `Cannot increase alternate effect rank: Alternate Effects cannot cost more than the primary effect (${mainCost} PP). At rank ${newRank}, this alternate effect would cost ${testAeCost} PP.`,
+                  { title: 'Alternate Effect Cost Exceeded' }
+                );
+                return;
+              }
+              ae.rank = newRank;
               this.refreshPowersState();
             });
             aeRow1.querySelector('.cb-ae-linked')?.addEventListener('change', (e) => {
@@ -4976,34 +5157,23 @@ class AppController {
               }
               this.refreshPowersState();
             });
-            aeCard.appendChild(aeRow1);
+            aeBody.appendChild(aeRow1);
 
             // Row 2 for AE: Stats Summary Bar
             const aeStatsBar = this.renderEffectStatsSummaryBar(ae);
-            aeCard.appendChild(aeStatsBar);
+            aeBody.appendChild(aeStatsBar);
 
             // Effect Config Section for AE (Affliction, Immunity, Senses, Weaken, Nullify)
             const aeConfigSection = this.renderEffectConfigSection(ae);
             if (aeConfigSection) {
-              aeCard.appendChild(aeConfigSection);
+              aeBody.appendChild(aeConfigSection);
             }
 
-            // Validation Banner for AE
+            // Validation Banner for AE (Rule errors and modifier advisories only; NO static overrun banner)
             const aeValResult = validateModifierLegality(ae.effect, ae.extras, ae.flaws);
-            const mainStandaloneCost = calculatePowerCost({ ...p, alternateEffects: [], linkedEffects: [] });
-            const isCostOverrun = aeStandaloneCost > mainStandaloneCost;
-
-            if (aeValResult.errors.length > 0 || aeValResult.warnings.length > 0 || isCostOverrun) {
+            if (aeValResult.errors.length > 0 || aeValResult.warnings.length > 0) {
               const valBox = document.createElement('div');
               valBox.style.cssText = 'display: flex; flex-direction: column; gap: 0.35rem;';
-              if (isCostOverrun) {
-                valBox.innerHTML += `
-                  <div class="power-validation-warning">
-                    <strong style="color: var(--hero-gold);">ℹ️ Array Cost Advisory:</strong>
-                    <div>• Alternate effect standalone cost (${aeStandaloneCost} PP) exceeds primary power base cost (${mainStandaloneCost} PP). In official M&M 3E rules, alternate effects cannot cost more than the primary effect.</div>
-                  </div>
-                `;
-              }
               if (aeValResult.errors.length > 0) {
                 valBox.innerHTML += `
                   <div class="power-validation-alert">
@@ -5020,12 +5190,12 @@ class AppController {
                   </div>
                 `;
               }
-              aeCard.appendChild(valBox);
+              aeBody.appendChild(valBox);
             }
 
-            // Row 3 & 4 for AE: Modifiers (Extras, Flaws, Power Feats, Drawbacks)
-            const aeModifiersSection = this.renderModifierColumns(ae);
-            aeCard.appendChild(aeModifiersSection);
+            // Row 3 & 4 for AE: Modifiers (Extras, Flaws, Power Feats, Drawbacks) with powerContext passed
+            const aeModifiersSection = this.renderModifierColumns(ae, p);
+            aeBody.appendChild(aeModifiersSection);
 
             // AE Notes Input
             const aeNotesRow = document.createElement('div');
@@ -5037,8 +5207,9 @@ class AppController {
               ae.notes = e.target.value;
               this.saveAndAudit();
             });
-            aeCard.appendChild(aeNotesRow);
+            aeBody.appendChild(aeNotesRow);
 
+            aeCard.appendChild(aeBody);
             aeContainer.appendChild(aeCard);
           });
         }
@@ -5046,17 +5217,33 @@ class AppController {
         aeSection.querySelector('.btn-add-ae-effect')?.addEventListener('click', () => {
           if (!p.alternateEffects) p.alternateEffects = [];
           const nextNum = p.alternateEffects.length + 1;
-          p.alternateEffects.push({
-            id: 'ae_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
-            name: `${p.name} (Alt ${nextNum})`,
+          const mainCost = calculatePowerCost({
+            ...p,
+            isAlternateEffect: false,
+            alternateEffects: [],
+            linkedEffects: [],
+            isDynamicArray: false
+          });
+          const defaultEffect = POWER_EFFECTS_CATALOG[0];
+          const effCostPerRank = Math.max(1, defaultEffect.baseCost || 1);
+          let initialRank = p.rank || 1;
+          while (initialRank > 1 && (initialRank * effCostPerRank) > mainCost) {
+            initialRank--;
+          }
+          const newAe = {
+            id: 'ae_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6),
+            name: `${p.name || 'Power'} (Alt ${nextNum})`,
             descriptor: '',
-            effect: POWER_EFFECTS_CATALOG[0],
-            rank: p.rank || 10,
+            effect: defaultEffect,
+            rank: initialRank,
             isDynamic: !!p.isDynamicArray,
             extras: [],
             flaws: [],
             notes: ''
-          });
+          };
+          p.alternateEffects.push(newAe);
+          if (!this.expandedAeIds) this.expandedAeIds = new Set();
+          this.expandedAeIds.add(newAe.id);
           this.refreshPowersState();
         });
 

@@ -1,5 +1,5 @@
 {
-  "version": "3.20",
-  "updatedAt": "2026-10-27T03:00:00Z",
-  "releaseNotes": "Unbolded effect stat summary values and formatted separators as bullets with concise 'Stats:' label; removed default descriptors in favor of placeholder text; auto-removing modifiers when decremented to 0 ranks; full 'ALTERNATE #' sections for alternate effects containing complete configuration settings; official rules description popups for added extras, flaws, feats, and drawbacks names, and info 'ℹ️' popups for base and alternate effects."
+  "version": "3.21",
+  "updatedAt": "2026-10-27T04:15:00Z",
+  "releaseNotes": "Removed vertical bars between effect stats; enforced alternate effect cost limits via pop-ups (preventing overruns on rank, effect, and modifier adjustments) without static warnings; visually combined main effect entry into a unified block reclaiming vertical space; unified alternate effect blocks with separation blank lines and collapsible toggle headers."
 }

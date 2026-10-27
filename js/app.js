@@ -2129,6 +2129,8 @@ class AppController {
             newPotentialPL = Math.floor(this.char.powerPointsBudget / 15);
             if (deltaPP > 0 && newPotentialPL > oldPL) plIncreased = true;
           }
+          item.characterName = (this.char.name || 'Hero').trim();
+          item.characterPL = this.char.powerLevel || 10;
           item.characterHP = this.char.heroPoints;
           item.characterPP = this.char.powerPointsBudget;
         }
@@ -2152,10 +2154,12 @@ class AppController {
           time,
           title,
           notes,
-          hpAdjust: hpAdj,
-          ppAdjust: ppAdj,
+          characterName: (this.char.name || 'Hero').trim(),
+          characterPL: oldPL,
           characterHP: newHP,
           characterPP: newPP,
+          hpAdjust: hpAdj,
+          ppAdjust: ppAdj,
           characterSnapshot
         });
       }
@@ -5453,6 +5457,9 @@ class AppController {
     }
 
     this.char.historyLog.forEach((sess, idx) => {
+      const charName = sess.characterName || sess.characterSnapshot?.name || this.char.name || 'Hero';
+      const charPL = sess.characterPL ?? sess.characterSnapshot?.powerLevel ?? this.char.powerLevel ?? 10;
+
       const entry = document.createElement('div');
       entry.className = 'history-entry';
       entry.style.cssText = `
@@ -5467,16 +5474,17 @@ class AppController {
           <strong style="color: var(--hero-cyan); font-size: var(--font-size-sm);">${sess.title}</strong>
           <span style="font-size: var(--font-size-xs); color: var(--text-muted); font-weight: 600;">${sess.date} • ${sess.time}</span>
         </div>
-        ${(sess.characterHP !== undefined || sess.characterPP !== undefined) ? `
-        <div style="display: flex; gap: 0.5rem; align-items: center; margin-bottom: 0.4rem;">
+        <div style="display: flex; gap: 0.45rem; align-items: center; margin-bottom: 0.4rem; flex-wrap: wrap;">
+          <span style="display: inline-flex; align-items: center; gap: 0.25rem; background: rgba(147, 51, 234, 0.15); border: 1px solid #a855f7; color: #d8b4fe; font-size: 0.72rem; font-weight: 700; padding: 0.1rem 0.45rem; border-radius: 4px;">👤 <strong>${charName}</strong></span>
           <span style="display: inline-block; background: rgba(255, 180, 0, 0.15); border: 1px solid var(--hero-gold); color: var(--hero-gold); font-size: 0.72rem; font-weight: 700; padding: 0.1rem 0.4rem; border-radius: 4px;">HP: ${sess.characterHP ?? '—'}${sess.hpAdjust ? ` (${sess.hpAdjust > 0 ? '+' : ''}${sess.hpAdjust})` : ''}</span>
+          <span style="display: inline-block; background: rgba(239, 68, 68, 0.15); border: 1px solid #f87171; color: #fca5a5; font-size: 0.72rem; font-weight: 700; padding: 0.1rem 0.4rem; border-radius: 4px;">PL: ${charPL}</span>
           <span style="display: inline-block; background: rgba(56, 189, 248, 0.15); border: 1px solid var(--hero-cyan); color: var(--hero-cyan); font-size: 0.72rem; font-weight: 700; padding: 0.1rem 0.4rem; border-radius: 4px;">PP: ${sess.characterPP ?? '—'}${sess.ppAdjust ? ` (${sess.ppAdjust > 0 ? '+' : ''}${sess.ppAdjust})` : ''}</span>
           ${sess.characterSnapshot ? '<span style="font-size: 0.7rem; color: var(--hero-green); font-weight: 600;">🔒 Backup Saved</span>' : ''}
-        </div>` : ''}
+        </div>
         <div style="font-size: var(--font-size-xs); color: var(--text-bright); line-height: 1.45; white-space: pre-line;">${sess.notes || '<span style="color: var(--text-muted); font-style: italic;">No session notes recorded.</span>'}</div>
         <div style="display: flex; justify-content: flex-end; gap: 0.4rem; margin-top: 0.5rem; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 0.4rem; flex-wrap: wrap;">
           <button class="btn btn-outline btn-export-session" title="Export character state as saved in this session" style="min-height: 28px; padding: 0.2rem 0.6rem; font-size: var(--font-size-sm);">💾 Export Backup</button>
-          ${sess.characterSnapshot ? '<button class="btn btn-warning btn-restore-session" title="Roll back character to state saved in this session" style="min-height: 28px; padding: 0.2rem 0.6rem; font-size: var(--font-size-sm); color: #000; font-weight: 700;">⏪ Restore</button>' : ''}
+          ${sess.characterSnapshot ? '<button class="btn btn-warning btn-restore-session" title="Roll back character to state saved in this session" style="min-height: 28px; padding: 0.2rem 0.6rem; font-size: var(--font-size-sm); color: #fff; font-weight: 800; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); border: none;">⏪ Restore</button>' : ''}
           <button class="btn btn-outline btn-edit-session" style="min-height: 28px; padding: 0.2rem 0.6rem; font-size: var(--font-size-sm);">✏️ Edit</button>
           <button class="btn btn-danger btn-delete-session" style="min-height: 28px; padding: 0.2rem 0.6rem; font-size: var(--font-size-sm);">🗑️ Delete</button>
         </div>

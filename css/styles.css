@@ -939,6 +939,15 @@ button, .btn, .btn-stepper, .nav-tab-btn, .condition-btn {
   color: #fff;
 }
 
+.btn-warning {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  color: #fff;
+}
+
+.btn-warning:hover {
+  filter: brightness(1.15);
+}
+
 .btn-success {
   background: linear-gradient(135deg, #10b981 0%, #059669 100%);
   color: #fff;
@@ -2022,6 +2031,22 @@ button.action-save-card:active {
   margin-bottom: 0.35rem;
   padding-bottom: 0.25rem;
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+#session-log-list {
+  max-height: 490px;
+  overflow-y: auto;
+  padding-right: 0.35rem;
+  scrollbar-width: thin;
+}
+
+#session-log-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+#session-log-list::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: var(--radius-sm);
 }
 
 

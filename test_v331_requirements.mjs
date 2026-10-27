@@ -130,4 +130,19 @@ if (!indexHtml.includes('</div>\n\n          <div class="hp-status-group">') && 
 }
 console.log('✓ 10. HP stepper and Spend HP button centered with equal whitespace verified');
 
+// 11. Restore button white text, session log character stats (Name, HP, PL, PP), and 4-entry scrollable pane
+if (!appJs.includes('btn-restore-session') || !appJs.includes('color: #fff')) {
+  throw new Error('Expected Restore button to have white text');
+}
+if (!appJs.includes('${charName}') || !appJs.includes('PL: ${charPL}')) {
+  throw new Error('Expected session log entries to display character name and PL alongside HP and PP');
+}
+if (!cssContent.includes('#session-log-list') || !cssContent.includes('max-height') || !cssContent.includes('overflow-y: auto')) {
+  throw new Error('Expected #session-log-list scrollable pane styling in css/styles.css');
+}
+if (!indexHtml.includes('max-height: 490px; overflow-y: auto')) {
+  throw new Error('Expected scrollable container for session-log-list in index.html');
+}
+console.log('✓ 11. Restore button white text, log entry Name/HP/PL/PP display, and scrollable pane verified');
+
 console.log('\nAll v3.31 requirements passed successfully!');

@@ -1489,7 +1489,6 @@ class AppController {
       select.value = '';
       if (applyBtn) applyBtn.disabled = true;
       this.refreshPowersState();
-      await this.showAlertDialog(`Power Profile "${matchedProfile.name}" added to character!`, { title: 'Power Profile Added' });
     });
 
     document.getElementById('btn-open-custom-power-builder')?.addEventListener('click', () => {

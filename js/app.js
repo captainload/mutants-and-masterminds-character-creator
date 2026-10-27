@@ -1029,7 +1029,7 @@ class AppController {
   }
 
   async checkForUpdates({ isManual = false } = {}) {
-    const CURRENT_VERSION = '3.23';
+    const CURRENT_VERSION = '3.24';
     const versionEl = document.getElementById('header-version-tag');
     const updateBtn = document.getElementById('btn-header-update-alert');
     if (typeof window === 'undefined' || !window.location || !window.location.href || window.location.href === 'about:blank') return;
@@ -1604,7 +1604,8 @@ class AppController {
 
     const sel = document.createElement('select');
     sel.style.cssText = 'flex: 1; min-height: 34px; font-size: var(--font-size-base); font-weight: 600;';
-    EXTRAS_CATALOG.forEach(ex => {
+    const sortedExtras = [...EXTRAS_CATALOG].sort((a, b) => a.name.replace(/^★\s*/, '').localeCompare(b.name.replace(/^★\s*/, '')));
+    sortedExtras.forEach(ex => {
       const opt = document.createElement('option');
       opt.value = ex.id;
       opt.textContent = `${ex.name} (${ex.isFlat ? `+${ex.cost} flat` : `+${ex.cost}/rank`})`;
@@ -1648,7 +1649,8 @@ class AppController {
 
     const sel = document.createElement('select');
     sel.style.cssText = 'flex: 1; min-height: 34px; font-size: var(--font-size-base); font-weight: 600;';
-    FLAWS_CATALOG.forEach(fl => {
+    const sortedFlaws = [...FLAWS_CATALOG].sort((a, b) => a.name.replace(/^★\s*/, '').localeCompare(b.name.replace(/^★\s*/, '')));
+    sortedFlaws.forEach(fl => {
       const opt = document.createElement('option');
       opt.value = fl.id;
       opt.textContent = `${fl.name} (${fl.isDevice ? `Device -${fl.discountPer5}/5` : fl.isFlat ? `-${fl.cost} flat` : `-${fl.cost}/rank`})`;
@@ -4226,7 +4228,7 @@ class AppController {
       if (ex.id === 'linked') return false;
       if (activeExtraIds.has(ex.id)) return false;
       return isModifierLegalForEffect(ex, targetObj.effect, targetObj.extras, targetObj.flaws).legal;
-    });
+    }).sort((a, b) => a.name.replace(/^★\s*/, '').localeCompare(b.name.replace(/^★\s*/, '')));
 
     extrasCol.innerHTML = `
       <div class="power-section-header">
@@ -4324,7 +4326,7 @@ class AppController {
     const legalFlaws = FLAWS_CATALOG.filter(fl => {
       if (activeFlawIds.has(fl.id)) return false;
       return isModifierLegalForEffect(fl, targetObj.effect, targetObj.extras, targetObj.flaws).legal;
-    });
+    }).sort((a, b) => a.name.replace(/^★\s*/, '').localeCompare(b.name.replace(/^★\s*/, '')));
 
     flawsCol.innerHTML = `
       <div class="power-section-header">

@@ -1,5 +1,5 @@
 {
-  "version": "3.23",
-  "updatedAt": "2026-10-27T05:05:00Z",
-  "releaseNotes": "Reclassified Power Feats as Extras (unified Extras column for ranked and flat extras); unified program title to 'Mutants & Masterminds 3E Character Editor' with blue/red version badge and '!' update button; eliminated duplicate title badge to prevent text overrun."
+  "version": "3.24",
+  "updatedAt": "2026-10-27T06:00:00Z",
+  "releaseNotes": "Integrated complete Power Profiles official library across all 39 chapters (1,076 profiles); Power Profiles takes priority over core rules in conflicts; added Power Profiles effects and modifiers; alphabetized extras and flaws dropdown lists."
 }

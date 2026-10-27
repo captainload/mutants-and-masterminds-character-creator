@@ -34,12 +34,13 @@ assert.ok(indexHtml.includes('data-alt-type="sidekick"'), 'modal should have Sid
 assert.ok(indexHtml.includes('id="alts-list-container"'), 'modal should have #alts-list-container for Column 2');
 assert.ok(indexHtml.includes('id="btn-modal-switch-to-main"'), 'modal should have #btn-modal-switch-to-main');
 
-// Integrated Alt Naming Inputs
+// Integrated Alt Naming Inputs & Modal Sizing (near viewport margins & taller)
 assert.ok(indexHtml.includes('id="input-create-alt-name-alternate_form"'), 'modal should have integrated name input for Alternate Form');
 assert.ok(indexHtml.includes('id="input-create-alt-name-minion"'), 'modal should have integrated name input for Minion');
 assert.ok(indexHtml.includes('id="input-create-alt-name-sidekick"'), 'modal should have integrated name input for Sidekick');
+assert.ok(indexHtml.includes('width: 98%') && indexHtml.includes('height: 92vh'), 'modal should have near-viewport width (98%) and taller height (92vh)');
 
-console.log('✓ DOM element structure and integrated naming inputs verified successfully');
+console.log('✓ DOM element structure, modal dimensions, and integrated naming inputs verified successfully');
 
 // 3. Storage blank hero test
 const { storageManager } = await import('./js/storage.js');
@@ -223,7 +224,10 @@ assert.ok(archWindowJs.includes('styles.css?v=3.35'), 'archetype_window.js links
 const stylesCss = fs.readFileSync(path.join(projectDir, 'css/styles.css'), 'utf8');
 assert.ok(stylesCss.includes('z-index: 2500'), 'styles.css defines z-index: 2500 for prompt and alert overlays');
 
-console.log('✓ All AppController methods, version 3.35 signatures, and styles verified');
+assert.ok(appJs.includes("alternate_form: 'Alt form:'") && appJs.includes("minion: 'Minion:'") && appJs.includes("sidekick: 'Sidekick:'"), 'app.js uses Alt form:, Minion:, and Sidekick: labels');
+assert.ok(appJs.includes("typePrefix = 'Alt form:'") && appJs.includes("typePrefix = 'Minion:'") && appJs.includes("typePrefix = 'Sidekick:'"), 'app.js prefixes alt types before alt name in list modal');
+
+console.log('✓ All AppController methods, version 3.35 signatures, alt prefixes, and styles verified');
 
 console.log('\n========================================');
 console.log('ALL v3.35 REQUIREMENTS VERIFIED 100% PASS!');

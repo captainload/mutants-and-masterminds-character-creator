@@ -455,12 +455,20 @@ class AppController {
       const isAltForm = alt.altType === 'alternate_form';
 
       let typeBadge = '';
+      let typePrefix = 'Alt:';
+      let typeColor = 'var(--hero-purple)';
       if (isAltForm) {
         typeBadge = '<span class="badge-tag" style="background: rgba(147, 51, 234, 0.2); color: #d8b4fe;">🎭 Alternate Form</span>';
+        typePrefix = 'Alt form:';
+        typeColor = '#d8b4fe';
       } else if (isMinion) {
         typeBadge = `<span class="badge-tag" style="background: rgba(245, 158, 11, 0.2); color: var(--hero-gold);">🤖 Minion (Rank ${alt.minionRank || 1})</span>`;
+        typePrefix = 'Minion:';
+        typeColor = 'var(--hero-gold)';
       } else if (isSidekick) {
         typeBadge = `<span class="badge-tag" style="background: rgba(56, 189, 248, 0.2); color: var(--hero-cyan);">🦸 Sidekick (Rank ${alt.sidekickRank || 1})</span>`;
+        typePrefix = 'Sidekick:';
+        typeColor = 'var(--hero-cyan)';
       } else {
         typeBadge = '<span class="badge-tag">Alt</span>';
       }
@@ -479,7 +487,8 @@ class AppController {
 
       card.innerHTML = `
         <div style="display: flex; justify-content: space-between; align-items: center; gap: 0.5rem;">
-          <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+          <div style="display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap;">
+            <span style="color: ${typeColor}; font-weight: 800; font-size: var(--font-size-sm);">${typePrefix}</span>
             <strong style="color: var(--text-bright); font-size: var(--font-size-sm);">${alt.name || 'Unnamed Alt'}</strong>
             ${typeBadge}
             ${isCurrentlyActive ? '<span class="badge-tag" style="background: var(--hero-green); color: #fff; font-weight: 800; font-size: 10px;">ACTIVE IN EDITOR</span>' : ''}
@@ -3566,14 +3575,19 @@ class AppController {
       if (activeAltNameEl) activeAltNameEl.textContent = this.char.name || 'Unnamed Alt';
       if (activeAltTypeEl) {
         const typeLabels = {
-          alternate_form: '(Alternate Form)',
-          minion: '(Minion)',
-          sidekick: '(Sidekick)'
+          alternate_form: 'Alt form:',
+          minion: 'Minion:',
+          sidekick: 'Sidekick:'
         };
-        activeAltTypeEl.textContent = typeLabels[this.char.altType] || '(Alt)';
+        activeAltTypeEl.textContent = typeLabels[this.char.altType] || 'Alt:';
       }
       if (charLabelEl) {
-        charLabelEl.textContent = 'Alt:';
+        const labelMap = {
+          alternate_form: 'Alt form:',
+          minion: 'Minion:',
+          sidekick: 'Sidekick:'
+        };
+        charLabelEl.textContent = labelMap[this.char.altType] || 'Alt:';
         charLabelEl.style.color = 'var(--hero-purple)';
       }
       if (cNameEl) {
@@ -6413,9 +6427,12 @@ class AppController {
           <span style="display: inline-block; background: rgba(239, 68, 68, 0.15); border: 1px solid #f87171; color: #fca5a5; font-size: 0.72rem; font-weight: 700; padding: 0.1rem 0.4rem; border-radius: 4px;">PL: ${charPL}</span>
           <span style="display: inline-block; background: rgba(56, 189, 248, 0.15); border: 1px solid var(--hero-cyan); color: var(--hero-cyan); font-size: 0.72rem; font-weight: 700; padding: 0.1rem 0.4rem; border-radius: 4px;">PP: ${sess.characterPP ?? '—'}${sess.ppAdjust ? ` (${sess.ppAdjust > 0 ? '+' : ''}${sess.ppAdjust})` : ''}</span>
           ${(() => {
-            const altsList = sess.alts || (sess.characterSnapshot?.alts || []).map(a => ({ name: a.name, type: a.altType }));
+            const altsList = sess.alts || (sess.characterSnapshot?.alts || []).map(a => ({ name: a.name, type: a.altType || a.type }));
             if (altsList && altsList.length > 0) {
-              const altNamesStr = altsList.map(a => a.name || 'Unnamed Alt').join(', ');
+              const altNamesStr = altsList.map(a => {
+                const prefix = a.type === 'alternate_form' ? 'Alt form: ' : (a.type === 'minion' ? 'Minion: ' : (a.type === 'sidekick' ? 'Sidekick: ' : ''));
+                return `${prefix}${a.name || 'Unnamed Alt'}`;
+              }).join(', ');
               return `<span style="display: inline-flex; align-items: center; gap: 0.25rem; background: rgba(139, 92, 246, 0.15); border: 1px solid var(--hero-purple); color: #d8b4fe; font-size: 0.72rem; font-weight: 700; padding: 0.1rem 0.45rem; border-radius: 4px;" title="${altNamesStr}">👥 Alts: ${altNamesStr}</span>`;
             }
             return '';

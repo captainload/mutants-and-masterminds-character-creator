@@ -108,11 +108,10 @@
             <input type="text" id="header-campaign-name" class="header-field-input" placeholder="Campaign / Setting" style="width: 150px;">
           </div>
 
-          <div id="header-active-alt-badge" style="display: none; align-items: center; gap: 0.4rem; background: rgba(139, 92, 246, 0.18); border: 1px solid var(--hero-purple); border-radius: var(--radius-sm); padding: 0.2rem 0.65rem; min-height: 38px; font-size: var(--font-size-xs); color: #fff; white-space: nowrap;">
-            <span style="color: var(--hero-purple); font-weight: 800;">Alt:</span>
+          <div id="header-active-alt-badge" style="display: none; align-items: center; gap: 0.35rem; background: rgba(139, 92, 246, 0.18); border: 1px solid var(--hero-purple); border-radius: var(--radius-sm); padding: 0.2rem 0.65rem; min-height: 38px; font-size: var(--font-size-xs); color: #fff; white-space: nowrap;">
+            <span id="header-active-alt-type" style="color: var(--hero-purple); font-weight: 800;">Alt form:</span>
             <strong id="header-active-alt-name" style="color: var(--hero-cyan);">Alt Name</strong>
-            <span id="header-active-alt-type" style="color: var(--text-muted); font-size: 11px;">(Alternate Form)</span>
-            <button type="button" id="btn-return-primary-char" title="Return to Primary Hero" style="background: none; border: none; color: var(--hero-gold); cursor: pointer; font-size: 11px; font-weight: 800; padding: 0 2px; text-decoration: underline;">↩ Main Hero</button>
+            <button type="button" id="btn-return-primary-char" title="Return to Primary Hero" style="background: none; border: none; color: var(--hero-gold); cursor: pointer; font-size: 11px; font-weight: 800; padding: 0 2px; text-decoration: underline; margin-left: 0.25rem;">↩ Main Hero</button>
           </div>
         </div>
 
@@ -1255,13 +1254,13 @@
   <!-- MODAL: ALTERNATE CHARACTERS, MINIONS & SIDEKICKS        -->
   <!-- ======================================================= -->
   <div class="modal-overlay" id="modal-alt-characters">
-    <div class="modal-container" style="max-width: 900px; width: 95%;">
+    <div class="modal-container" style="width: 98%; max-width: 1550px; height: 92vh; max-height: 94vh; display: flex; flex-direction: column;">
       <div class="modal-header-bar">
         <div class="modal-header-title">👥 Alt Characters, Minions &amp; Sidekicks</div>
         <button class="btn btn-outline" id="btn-close-alts-modal" style="min-height: 28px; padding: 0.1rem 0.5rem;">✕</button>
       </div>
-      <div class="modal-scroll-body" style="padding: 1.25rem;">
-        <div style="display: grid; grid-template-columns: 1fr 1.35fr; gap: 1.25rem;">
+      <div class="modal-scroll-body" style="padding: 1.25rem; flex: 1; overflow-y: auto;">
+        <div style="display: grid; grid-template-columns: 1fr 1.35fr; gap: 1.5rem; min-height: 100%;">
           
           <!-- COLUMN 1: CREATE NEW ALT -->
           <div style="background: var(--bg-input); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 1rem; display: flex; flex-direction: column; gap: 0.85rem;">
@@ -1334,7 +1333,7 @@
               </button>
             </div>
 
-            <div id="alts-list-container" style="flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 0.65rem; min-height: 240px; max-height: 480px;">
+            <div id="alts-list-container" style="flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 0.65rem; min-height: 380px;">
               <!-- Dynamically rendered alt character cards -->
             </div>
           </div>

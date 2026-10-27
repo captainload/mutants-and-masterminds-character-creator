@@ -242,19 +242,39 @@ class AppController {
       this.openModal('modal-hero-point');
     });
 
-    // Archetypes Button (Row 2 Right)
+    // Archetypes Button (Row 2 Right) - Toggle modal
     document.getElementById('btn-open-archetypes').addEventListener('click', () => {
-      this.openArchetypeWizard();
+      const archModal = document.getElementById('modal-archetype-wizard');
+      if (archModal && archModal.classList.contains('active')) {
+        this.closeModal('modal-archetype-wizard');
+      } else {
+        this.openArchetypeWizard();
+      }
     });
 
-    // Tables Button (Row 2 Right)
+    // Tables Button (Row 2 Right) - Toggle modal / popout, restore popout if closed while popped out
     document.getElementById('btn-open-tables').addEventListener('click', () => {
-      if (typeof tablesManager !== 'undefined' && tablesManager.isPoppedOut()) {
-        if (tablesManager.popoutWindow && !tablesManager.popoutWindow.closed) {
-          tablesManager.popoutWindow.focus();
-        } else {
-          tablesManager.openPopout();
+      const tablesModal = document.getElementById('modal-tables');
+      const isModalActive = tablesModal && tablesModal.classList.contains('active');
+      const isPopoutActive = typeof tablesManager !== 'undefined' && tablesManager.popoutWindow && !tablesManager.popoutWindow.closed;
+
+      if (isModalActive) {
+        this.closeModal('modal-tables');
+        return;
+      }
+
+      if (isPopoutActive) {
+        tablesManager.popoutWindow.close();
+        tablesManager.popoutWindow = null;
+        if (typeof tablesManager !== 'undefined') {
+          tablesManager.setClosedWhilePoppedOut(true);
         }
+        return;
+      }
+
+      // If closed while popped out and display width allows for it, restore popout; else open modal
+      if (typeof tablesManager !== 'undefined' && tablesManager.wasClosedWhilePoppedOut() && tablesManager.canDisplayPopout()) {
+        tablesManager.openPopout();
       } else {
         this.openModal('modal-tables');
       }
@@ -809,18 +829,18 @@ class AppController {
     });
 
     document.getElementById('btn-close-tables').addEventListener('click', () => {
-      if (typeof tablesManager !== 'undefined') tablesManager.savePopoutClosedState();
+      if (typeof tablesManager !== 'undefined') tablesManager.setClosedWhilePoppedOut(false);
       this.closeModal('modal-tables');
     });
 
     document.getElementById('btn-close-tables-footer')?.addEventListener('click', () => {
-      if (typeof tablesManager !== 'undefined') tablesManager.savePopoutClosedState();
+      if (typeof tablesManager !== 'undefined') tablesManager.setClosedWhilePoppedOut(false);
       this.closeModal('modal-tables');
     });
 
     document.getElementById('btn-tables-popout').addEventListener('click', () => {
-      tablesManager.openPopout();
       this.closeModal('modal-tables');
+      if (typeof tablesManager !== 'undefined') tablesManager.openPopout();
     });
   }
 
@@ -1070,7 +1090,7 @@ class AppController {
   }
 
   async checkForUpdates({ isManual = false } = {}) {
-    const CURRENT_VERSION = '3.32';
+    const CURRENT_VERSION = '3.33';
     const versionEl = document.getElementById('header-version-tag');
     const updateBtn = document.getElementById('btn-header-update-alert');
     if (typeof window === 'undefined' || !window.location || !window.location.href || window.location.href === 'about:blank') return;
@@ -1604,6 +1624,25 @@ class AppController {
       confirmClass: 'btn-danger'
     });
     if (confirmed) {
+      if (p.linkedToId) {
+        const targetId = p.linkedToId;
+        const tp = (this.char.powers || []).find(op => op.id === targetId);
+        if (tp) {
+          tp.isLinked = false;
+          tp.linkedToId = null;
+          tp.extras = (tp.extras || []).filter(ex => ex.id !== 'linked');
+        } else {
+          for (const op of (this.char.powers || [])) {
+            const tae = (op.alternateEffects || []).find(oae => oae.id === targetId);
+            if (tae) {
+              tae.isLinked = false;
+              tae.linkedToId = null;
+              tae.extras = (tae.extras || []).filter(ex => ex.id !== 'linked');
+              break;
+            }
+          }
+        }
+      }
       this.char.powers = this.char.powers.filter(item => item.id !== powerId);
       if (this.expandedPowerIds) this.expandedPowerIds.delete(powerId);
       this.refreshPowersState();
@@ -3440,32 +3479,72 @@ class AppController {
         gap: 0.4rem;
         box-sizing: border-box;
       `;
-      card.innerHTML = `
-        <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
-          <div style="display: flex; align-items: center; gap: 0.25rem;">
-            <span class="rules-link" data-id="${def.id}" data-type="defense" data-name="${def.name}" data-cat="Defense" style="font-weight: 800; font-size: var(--font-size-sm); color: var(--hero-cyan); cursor: pointer;" title="Click for rules">${def.name}</span>
-            <span class="rules-info-badge" style="font-size: var(--font-size-xs); opacity: 0.8; cursor: pointer; padding: 1px 3px;" title="View ${def.name} rules">ℹ️</span>
-            <span style="font-size: var(--font-size-xs); color: var(--text-muted); margin-left: 0.15rem;">[${abName}]</span>
-          </div>
-          <div style="display: flex; align-items: baseline; gap: 0.35rem;">
-            <span style="font-size: var(--font-size-xs); color: var(--text-muted);">Total:</span>
-            <strong style="font-size: var(--font-size-md); font-weight: 900; color: var(--text-bright);">${total}</strong>
-          </div>
-        </div>
 
-        <div style="display: flex; justify-content: space-between; align-items: center; font-size: var(--font-size-xs); color: var(--text-muted); background: rgba(0,0,0,0.18); padding: 0.2rem 0.45rem; border-radius: 3px;">
-          <span>Base (${abName}): <strong>${baseVal}</strong></span>
-          <span>+ Bought: <strong>${bought} PP</strong></span>
-        </div>
+      if (def.id === 'toughness') {
+        let protBonus = 0;
+        (this.char.powers || []).forEach(p => {
+          if (p.effect?.id === 'protection' || p.effectId === 'protection') {
+            protBonus += parseInt(p.rank, 10) || 0;
+          }
+        });
+        let defRollBonus = 0;
+        (this.char.advantages || []).forEach(adv => {
+          if (adv.id === 'defensive_roll') {
+            defRollBonus += parseInt(adv.rank, 10) || 1;
+          }
+        });
 
-        <div style="display: flex; justify-content: center; width: 100%;">
-          <div class="stepper-control compact">
-            <button class="btn-stepper compact" data-def="${def.id}" data-dir="-1" title="Decrease Bought Ranks">-</button>
-            <span class="stepper-value compact" style="min-width: 32px; font-weight: 800;">${bought}</span>
-            <button class="btn-stepper compact" data-def="${def.id}" data-dir="1" title="Increase Bought Ranks">+</button>
+        card.innerHTML = `
+          <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+            <div style="display: flex; align-items: center; gap: 0.25rem;">
+              <span class="rules-link" data-id="${def.id}" data-type="defense" data-name="${def.name}" data-cat="Defense" style="font-weight: 800; font-size: var(--font-size-sm); color: var(--hero-cyan); cursor: pointer;" title="Click for rules">${def.name}</span>
+              <span class="rules-info-badge" style="font-size: var(--font-size-xs); opacity: 0.8; cursor: pointer; padding: 1px 3px;" title="View ${def.name} rules">ℹ️</span>
+              <span style="font-size: var(--font-size-xs); color: var(--text-muted); margin-left: 0.15rem;">[${abName}]</span>
+            </div>
+            <div style="display: flex; align-items: baseline; gap: 0.35rem;">
+              <span style="font-size: var(--font-size-xs); color: var(--text-muted);">Total:</span>
+              <strong style="font-size: var(--font-size-md); font-weight: 900; color: var(--text-bright);">${total}</strong>
+            </div>
           </div>
-        </div>
-      `;
+
+          <div style="display: flex; justify-content: space-between; align-items: center; font-size: var(--font-size-xs); color: var(--text-muted); background: rgba(0,0,0,0.18); padding: 0.2rem 0.45rem; border-radius: 3px;">
+            <span>STA: <strong>${baseVal}</strong></span>
+            <span>Prot: <strong>+${protBonus}</strong></span>
+            <span>Def Roll: <strong>+${defRollBonus}</strong></span>
+          </div>
+
+          <div style="display: flex; align-items: center; justify-content: center; width: 100%; min-height: 28px; font-size: var(--font-size-xs); color: var(--text-muted); font-style: italic; text-align: center;">
+            Derived &bull; Cannot buy with PP
+          </div>
+        `;
+      } else {
+        card.innerHTML = `
+          <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+            <div style="display: flex; align-items: center; gap: 0.25rem;">
+              <span class="rules-link" data-id="${def.id}" data-type="defense" data-name="${def.name}" data-cat="Defense" style="font-weight: 800; font-size: var(--font-size-sm); color: var(--hero-cyan); cursor: pointer;" title="Click for rules">${def.name}</span>
+              <span class="rules-info-badge" style="font-size: var(--font-size-xs); opacity: 0.8; cursor: pointer; padding: 1px 3px;" title="View ${def.name} rules">ℹ️</span>
+              <span style="font-size: var(--font-size-xs); color: var(--text-muted); margin-left: 0.15rem;">[${abName}]</span>
+            </div>
+            <div style="display: flex; align-items: baseline; gap: 0.35rem;">
+              <span style="font-size: var(--font-size-xs); color: var(--text-muted);">Total:</span>
+              <strong style="font-size: var(--font-size-md); font-weight: 900; color: var(--text-bright);">${total}</strong>
+            </div>
+          </div>
+
+          <div style="display: flex; justify-content: space-between; align-items: center; font-size: var(--font-size-xs); color: var(--text-muted); background: rgba(0,0,0,0.18); padding: 0.2rem 0.45rem; border-radius: 3px;">
+            <span>Base (${abName}): <strong>${baseVal}</strong></span>
+            <span>+ Bought: <strong>${bought} PP</strong></span>
+          </div>
+
+          <div style="display: flex; justify-content: center; width: 100%;">
+            <div class="stepper-control compact">
+              <button class="btn-stepper compact" data-def="${def.id}" data-dir="-1" title="Decrease Bought Ranks">-</button>
+              <span class="stepper-value compact" style="min-width: 32px; font-weight: 800;">${bought}</span>
+              <button class="btn-stepper compact" data-def="${def.id}" data-dir="1" title="Increase Bought Ranks">+</button>
+            </div>
+          </div>
+        `;
+      }
 
       const openDefRules = (e) => {
         e.preventDefault();
@@ -3475,14 +3554,16 @@ class AppController {
       card.querySelector('.rules-link')?.addEventListener('click', openDefRules);
       card.querySelector('.rules-info-badge')?.addEventListener('click', openDefRules);
 
-      card.querySelectorAll('.btn-stepper').forEach(btn => {
-        btn.addEventListener('click', () => {
-          const dir = parseInt(btn.dataset.dir, 10);
-          if (!this.char.defenses) this.char.defenses = {};
-          this.char.defenses[def.id] = Math.max(0, (parseInt(this.char.defenses[def.id], 10) || 0) + dir);
-          this.renderAll();
+      if (def.id !== 'toughness') {
+        card.querySelectorAll('.btn-stepper').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const dir = parseInt(btn.dataset.dir, 10);
+            if (!this.char.defenses) this.char.defenses = {};
+            this.char.defenses[def.id] = Math.max(0, (parseInt(this.char.defenses[def.id], 10) || 0) + dir);
+            this.renderAll();
+          });
         });
-      });
+      }
 
       defGrid.appendChild(card);
     });
@@ -3975,7 +4056,7 @@ class AppController {
   // =======================================================
   // 20. PREBUILT OPTIONS MODAL (Includes Custom "Other" Input Field)
   // =======================================================
-  openPrebuiltOptionsModal(title, optionsList, onSelectCallback) {
+  openPrebuiltOptionsModal(title, optionsList, onSelectCallback, onCancelCallback = null) {
     document.getElementById('prebuilt-modal-title').textContent = title;
     const container = document.getElementById('prebuilt-options-list');
     container.innerHTML = '';
@@ -4033,6 +4114,7 @@ class AppController {
     container.appendChild(otherOptionBtn);
 
     document.getElementById('btn-close-prebuilt').onclick = () => {
+      if (typeof onCancelCallback === 'function') onCancelCallback();
       this.closeModal('modal-prebuilt-options');
     };
 
@@ -4806,8 +4888,10 @@ class AppController {
           <span class="power-title-sep">—</span>
           <span class="power-title-effect">${p.effect?.name || 'Effect'} Rank ${p.rank || 1}</span>
           <span class="power-title-details">(${cost} PP${p.alternateEffects?.length ? ` total • ${mainStandaloneCost} PP base` : ''} • ${effStats.action} • ${effStats.effectiveRange} • ${effStats.effectiveDuration} • ${effStats.area})</span>
+          <span class="badge-tag" style="background: rgba(56, 189, 248, 0.15); border: 1px solid var(--hero-cyan); color: var(--hero-cyan); font-weight: 700;" title="Primary Base Effect of this Power / Array">★ Primary Effect${p.alternateEffects?.length ? ' (Array Main)' : ''}</span>
           ${p.isDynamicArray ? '<span class="badge-tag dynamic">Dynamic Array</span>' : ''}
           ${p.alternateEffects?.length ? `<span class="badge-tag ae">${p.alternateEffects.length} AE</span>` : ''}
+          ${(p.isLinked || p.linkedToId) ? `<span class="badge-tag linked">🔗 Linked</span>` : ''}
           ${p.linkedEffects?.length ? `<span class="badge-tag linked">${p.linkedEffects.length} Linked</span>` : ''}
           ${!valResult.valid ? '<span class="badge-tag conflict" title="Rule conflicts detected">⚠️ Conflict</span>' : ''}
         </div>
@@ -4865,7 +4949,10 @@ class AppController {
         row1.style.cssText = 'display: flex; gap: 0.65rem; align-items: flex-end; flex-wrap: wrap; margin-bottom: 0.5rem;';
         row1.innerHTML = `
           <div style="flex: 2; min-width: 180px;">
-            <label class="field-label">Power Name</label>
+            <label class="field-label" style="display: flex; justify-content: space-between; align-items: center;">
+              <span>Power Name</span>
+              <span style="font-size: var(--font-size-xs); color: var(--hero-cyan); font-weight: 700;" title="This power is the Primary Effect / Array Base">★ Primary Effect</span>
+            </label>
             <input type="text" class="input-power-name" value="${p.name || ''}" placeholder="e.g. Plasma Ray, Force Field" style="width: 100%; font-size: var(--font-size-base); min-height: 36px;">
           </div>
           <div style="flex: 1.3; min-width: 140px;">
@@ -5006,7 +5093,12 @@ class AppController {
             const otherEligible = (this.char.powers || []).filter(op => op.id !== p.id && !op.isLinked && !op.linkedToId);
             if (otherEligible.length === 0) {
               e.target.checked = false;
-              await this.showAlertDialog('No other eligible unlinked effects found to link with. Build another power first.', { title: 'No Eligible Effects' });
+              await this.showAlertDialog(
+                'No other eligible unlinked powers found to link with.\n\n' +
+                '• To build an Alternate Effect Array (alternate powers sharing PP): This power is already the Primary Effect! Simply click "+ Add Alternate Effect" at the bottom of this power card.\n\n' +
+                '• To build a Linked Power (multiple powers activating simultaneously): You must first create another power, then check "Linked" to combine them.',
+                { title: 'Linked Effects vs Alternate Effect Arrays' }
+              );
               return;
             }
             const options = otherEligible.map(oe => `${oe.name || 'Unnamed Power'} (${oe.effect?.name || 'Effect'} Rank ${oe.rank || 1})`);
@@ -5033,6 +5125,9 @@ class AppController {
                   targetPower.extras.push({ id: 'linked', name: 'Linked', cost: 0, isFlat: true, rank: 1 });
                 }
                 this.refreshPowersState();
+              },
+              () => {
+                e.target.checked = false;
               }
             );
           } else {
@@ -5046,6 +5141,16 @@ class AppController {
                 targetPower.isLinked = false;
                 targetPower.linkedToId = null;
                 targetPower.extras = (targetPower.extras || []).filter(ex => ex.id !== 'linked');
+              } else {
+                for (const op of (this.char.powers || [])) {
+                  const targetAe = (op.alternateEffects || []).find(oae => oae.id === targetId);
+                  if (targetAe) {
+                    targetAe.isLinked = false;
+                    targetAe.linkedToId = null;
+                    targetAe.extras = (targetAe.extras || []).filter(ex => ex.id !== 'linked');
+                    break;
+                  }
+                }
               }
             }
             this.refreshPowersState();
@@ -5182,6 +5287,25 @@ class AppController {
             aeHeader.querySelector('.btn-delete-ae')?.addEventListener('click', (e) => {
               e.stopPropagation();
               if (this.expandedAeIds) this.expandedAeIds.delete(ae.id);
+              if (ae.linkedToId) {
+                const targetId = ae.linkedToId;
+                const tp = (this.char.powers || []).find(op => op.id === targetId);
+                if (tp) {
+                  tp.isLinked = false;
+                  tp.linkedToId = null;
+                  tp.extras = (tp.extras || []).filter(ex => ex.id !== 'linked');
+                } else {
+                  for (const op of (this.char.powers || [])) {
+                    const tae = (op.alternateEffects || []).find(oae => oae.id === targetId);
+                    if (tae) {
+                      tae.isLinked = false;
+                      tae.linkedToId = null;
+                      tae.extras = (tae.extras || []).filter(ex => ex.id !== 'linked');
+                      break;
+                    }
+                  }
+                }
+              }
               p.alternateEffects.splice(aeIdx, 1);
               this.refreshPowersState();
             });
@@ -5191,6 +5315,22 @@ class AppController {
             // AE Body (shown when expanded)
             const aeBody = document.createElement('div');
             aeBody.className = 'power-ae-body';
+
+            let aePartnerName = '';
+            if (ae.linkedToId) {
+              const partnerPower = (this.char.powers || []).find(op => op.id === ae.linkedToId);
+              if (partnerPower) {
+                aePartnerName = partnerPower.name || 'Power';
+              } else {
+                for (const op of (this.char.powers || [])) {
+                  const partnerAe = (op.alternateEffects || []).find(oae => oae.id === ae.linkedToId);
+                  if (partnerAe) {
+                    aePartnerName = partnerAe.name || 'AE';
+                    break;
+                  }
+                }
+              }
+            }
 
             // Row 1 for AE: Name, Descriptors, Base Effect with Info Icon, Rank Stepper, Linked Checkbox, Cost
             const aeRow1 = document.createElement('div');
@@ -5222,9 +5362,9 @@ class AppController {
                 </div>
               </div>
               <div style="display: flex; align-items: center; min-height: 36px; padding-bottom: 2px;">
-                <label style="display: inline-flex; align-items: center; gap: 0.35rem; font-size: var(--font-size-base); color: var(--hero-blue); font-weight: 700; cursor: pointer; user-select: none;" title="Link this alternate effect">
+                <label style="display: inline-flex; align-items: center; gap: 0.35rem; font-size: var(--font-size-base); color: var(--hero-blue); font-weight: 700; cursor: pointer; user-select: none;" title="Link this alternate effect with another effect">
                   <input type="checkbox" class="cb-ae-linked" ${(ae.isLinked || ae.linkedToId || ae.extras?.some(e => e.id === 'linked')) ? 'checked' : ''} style="width: 16px; height: 16px; accent-color: var(--hero-blue); cursor: pointer;">
-                  <span>🔗 Linked</span>
+                  <span>🔗 Linked${aePartnerName ? ` (${aePartnerName})` : ''}</span>
                 </label>
               </div>
               <div style="min-width: 85px; text-align: right; padding-bottom: 0.35rem; margin-left: auto;">
@@ -5291,16 +5431,91 @@ class AppController {
               ae.rank = newRank;
               this.refreshPowersState();
             });
-            aeRow1.querySelector('.cb-ae-linked')?.addEventListener('change', (e) => {
-              ae.isLinked = e.target.checked;
-              if (ae.isLinked) {
-                if (!ae.extras.some(ex => ex.id === 'linked')) {
-                  ae.extras.push({ id: 'linked', name: 'Linked', cost: 0, isFlat: true, rank: 1 });
+            aeRow1.querySelector('.cb-ae-linked')?.addEventListener('change', async (e) => {
+              const isNowChecked = e.target.checked;
+              if (isNowChecked) {
+                const eligiblePowers = (this.char.powers || []).filter(op => op.id !== p.id && !op.isLinked && !op.linkedToId);
+                const eligibleAes = [];
+                (this.char.powers || []).forEach(op => {
+                  (op.alternateEffects || []).forEach(otherAe => {
+                    if (otherAe.id !== ae.id && !otherAe.isLinked && !otherAe.linkedToId) {
+                      eligibleAes.push({ ae: otherAe, parentName: op.name || 'Power' });
+                    }
+                  });
+                });
+
+                if (eligiblePowers.length === 0 && eligibleAes.length === 0) {
+                  e.target.checked = false;
+                  await this.showAlertDialog(
+                    'No other eligible unlinked effects found to link with. Build another power or alternate effect first to link with this effect.',
+                    { title: 'No Eligible Effects' }
+                  );
+                  return;
                 }
+
+                const optionsList = [
+                  ...eligiblePowers.map(ep => ({ id: ep.id, obj: ep, label: `Power: ${ep.name || 'Power'} (${ep.effect?.name || 'Effect'} Rank ${ep.rank || 1})` })),
+                  ...eligibleAes.map(ea => ({ id: ea.ae.id, obj: ea.ae, label: `Alternate Effect: ${ea.ae.name || 'AE'} in "${ea.parentName}" (${ea.ae.effect?.name || 'Effect'} Rank ${ea.ae.rank || 1})` }))
+                ];
+
+                const labels = optionsList.map(opt => opt.label);
+
+                this.openPrebuiltOptionsModal(
+                  `Link "${ae.name || 'Alternate Effect'}" With Existing Effect`,
+                  labels,
+                  (selectedOpt) => {
+                    const idx = labels.indexOf(selectedOpt);
+                    const selected = idx >= 0 ? optionsList[idx] : optionsList[0];
+                    if (!selected) {
+                      e.target.checked = false;
+                      return;
+                    }
+                    ae.isLinked = true;
+                    ae.linkedToId = selected.obj.id;
+                    if (!ae.extras) ae.extras = [];
+                    if (!ae.extras.some(ex => ex.id === 'linked')) {
+                      ae.extras.push({ id: 'linked', name: 'Linked', cost: 0, isFlat: true, rank: 1 });
+                    }
+
+                    selected.obj.isLinked = true;
+                    selected.obj.linkedToId = ae.id;
+                    if (!selected.obj.extras) selected.obj.extras = [];
+                    if (!selected.obj.extras.some(ex => ex.id === 'linked')) {
+                      selected.obj.extras.push({ id: 'linked', name: 'Linked', cost: 0, isFlat: true, rank: 1 });
+                    }
+
+                    this.refreshPowersState();
+                  },
+                  () => {
+                    e.target.checked = false;
+                  }
+                );
               } else {
-                ae.extras = ae.extras.filter(ex => ex.id !== 'linked');
+                ae.isLinked = false;
+                const targetId = ae.linkedToId;
+                ae.linkedToId = null;
+                ae.extras = (ae.extras || []).filter(ex => ex.id !== 'linked');
+
+                if (targetId) {
+                  const targetPower = (this.char.powers || []).find(op => op.id === targetId);
+                  if (targetPower) {
+                    targetPower.isLinked = false;
+                    targetPower.linkedToId = null;
+                    targetPower.extras = (targetPower.extras || []).filter(ex => ex.id !== 'linked');
+                  } else {
+                    for (const op of (this.char.powers || [])) {
+                      const targetAe = (op.alternateEffects || []).find(oae => oae.id === targetId);
+                      if (targetAe) {
+                        targetAe.isLinked = false;
+                        targetAe.linkedToId = null;
+                        targetAe.extras = (targetAe.extras || []).filter(ex => ex.id !== 'linked');
+                        break;
+                      }
+                    }
+                  }
+                }
+                this.refreshPowersState();
               }
-              this.refreshPowersState();
             });
             aeBody.appendChild(aeRow1);
 
@@ -5672,6 +5887,9 @@ class AppController {
   closeModal(id) {
     const el = document.getElementById(id);
     if (el) el.classList.remove('active');
+    if (id === 'modal-tables' && typeof tablesManager !== 'undefined') {
+      tablesManager.setClosedWhilePoppedOut(false);
+    }
   }
 
   showAlertDialog(message, { title = 'Notification', icon = 'ℹ️', isHtml = false } = {}) {

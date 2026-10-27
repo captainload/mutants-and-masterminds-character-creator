@@ -20,7 +20,7 @@ export const DEFENSES = [
   { id: 'dodge', name: 'Dodge', ability: 'agi', desc: 'Dodge measures your agility and quickness to avoid ranged attacks, explosions, and hazards. Ranged attack checks are compared against your Dodge defense value (10 + Dodge).' },
   { id: 'parry', name: 'Parry', ability: 'fgt', desc: 'Parry measures your ability to parry, duck, and deflect close melee attacks. Close attack checks are made against your Parry defense value (10 + Parry).' },
   { id: 'fortitude', name: 'Fortitude', ability: 'sta', desc: 'Fortitude measures your physical resistance to illness, drugs, fatigue, radiation, suffocation, poison, and other biological threats.' },
-  { id: 'toughness', name: 'Toughness', ability: 'sta', desc: 'Toughness measures your character’s resistance to direct physical damage, concussive force, and energetic assault. Toughness checks resist damage conditions (DC 15 + Damage rank).' },
+  { id: 'toughness', name: 'Toughness', ability: 'sta', canBuyDirectly: false, desc: 'Toughness measures your character’s resistance to direct physical damage, concussive force, and energetic assault. Unlike other defenses, Toughness cannot be bought directly with Power Points; it is derived from Stamina, Protection powers, and advantages like Defensive Roll.' },
   { id: 'will', name: 'Will', ability: 'awe', desc: 'Will measures your mental fortitude, psychological stability, spiritual strength, and resistance to mind control, fear, illusions, and mental attacks.' }
 ];
 
@@ -1815,9 +1815,11 @@ export function auditCharacter(char) {
   const computedDefenses = {};
   DEFENSES.forEach(def => {
     const baseVal = parseInt(char.abilities?.[def.ability], 10) || 0;
-    const boughtRanks = parseInt(char.defenses?.[def.id], 10) || 0;
-    defensesCost += Math.max(0, boughtRanks);
-    computedDefenses[def.id] = baseVal + boughtRanks;
+    if (def.id !== 'toughness') {
+      const boughtRanks = parseInt(char.defenses?.[def.id], 10) || 0;
+      defensesCost += Math.max(0, boughtRanks);
+      computedDefenses[def.id] = baseVal + boughtRanks;
+    }
   });
 
   let protectionBonus = 0;
@@ -1835,7 +1837,6 @@ export function auditCharacter(char) {
   });
 
   computedDefenses.toughness = (parseInt(char.abilities?.sta, 10) || 0) +
-    (parseInt(char.defenses?.toughness, 10) || 0) +
     protectionBonus +
     defensiveRollBonus;
 

@@ -117,11 +117,12 @@ export class TablesWindowManager {
     this.storageKey = 'mm3e_tables_window_coords';
     this.popoutWindow = null;
     this.isEmbeddedOpen = false;
+    this._memoryFallback = {};
   }
 
   getSavedCoords() {
     try {
-      const raw = localStorage.getItem(this.storageKey);
+      const raw = typeof localStorage !== 'undefined' ? localStorage.getItem(this.storageKey) : this._memoryFallback[this.storageKey];
       return raw ? JSON.parse(raw) : { left: 100, top: 100, width: 850, height: 750 };
     } catch {
       return { left: 100, top: 100, width: 850, height: 750 };
@@ -130,7 +131,12 @@ export class TablesWindowManager {
 
   saveCoords(coords) {
     try {
-      localStorage.setItem(this.storageKey, JSON.stringify(coords));
+      const str = JSON.stringify(coords);
+      if (typeof localStorage !== 'undefined') {
+        localStorage.setItem(this.storageKey, str);
+      } else {
+        this._memoryFallback[this.storageKey] = str;
+      }
     } catch (e) {
       console.warn('Failed to save table window coords', e);
     }
@@ -138,7 +144,13 @@ export class TablesWindowManager {
 
   savePopoutOpenedState() {
     try {
-      localStorage.setItem('mm3e_tables_popped_out', 'true');
+      if (typeof localStorage !== 'undefined') {
+        localStorage.setItem('mm3e_tables_popped_out', 'true');
+        localStorage.setItem('mm3e_tables_preferred_mode', 'popout');
+      } else {
+        this._memoryFallback['mm3e_tables_popped_out'] = 'true';
+        this._memoryFallback['mm3e_tables_preferred_mode'] = 'popout';
+      }
     } catch (e) {
       console.warn('Failed to save table window state', e);
     }
@@ -146,15 +158,53 @@ export class TablesWindowManager {
 
   savePopoutClosedState() {
     try {
-      localStorage.setItem('mm3e_tables_popped_out', 'false');
+      if (typeof localStorage !== 'undefined') {
+        localStorage.setItem('mm3e_tables_popped_out', 'false');
+        localStorage.setItem('mm3e_tables_preferred_mode', 'popout');
+      } else {
+        this._memoryFallback['mm3e_tables_popped_out'] = 'false';
+        this._memoryFallback['mm3e_tables_preferred_mode'] = 'popout';
+      }
     } catch (e) {
       console.warn('Failed to save table window state', e);
     }
   }
 
+  wasClosedWhilePoppedOut() {
+    try {
+      if (typeof localStorage !== 'undefined') {
+        return localStorage.getItem('mm3e_tables_preferred_mode') === 'popout';
+      }
+      return this._memoryFallback['mm3e_tables_preferred_mode'] === 'popout';
+    } catch {
+      return false;
+    }
+  }
+
+  setClosedWhilePoppedOut(wasPoppedOut) {
+    try {
+      if (typeof localStorage !== 'undefined') {
+        localStorage.setItem('mm3e_tables_preferred_mode', wasPoppedOut ? 'popout' : 'modal');
+      } else {
+        this._memoryFallback['mm3e_tables_preferred_mode'] = wasPoppedOut ? 'popout' : 'modal';
+      }
+    } catch (e) {
+      console.warn('Failed to save table window preferred mode', e);
+    }
+  }
+
+  canDisplayPopout() {
+    const winWidth = typeof window !== 'undefined' ? (window.innerWidth || 0) : 1024;
+    const screenWidth = typeof window !== 'undefined' && window.screen ? (window.screen.availWidth || window.screen.width || winWidth) : winWidth;
+    return winWidth >= 900 || screenWidth >= 1024;
+  }
+
   isPoppedOut() {
     try {
-      return localStorage.getItem('mm3e_tables_popped_out') === 'true';
+      if (typeof localStorage !== 'undefined') {
+        return localStorage.getItem('mm3e_tables_popped_out') === 'true';
+      }
+      return this._memoryFallback['mm3e_tables_popped_out'] === 'true';
     } catch {
       return false;
     }
@@ -256,6 +306,9 @@ export class TablesWindowManager {
             document.querySelectorAll('.collapsible-content').forEach(c => c.classList.add('collapsed'));
           });
           document.getElementById('btn-popout-close').addEventListener('click', () => {
+            if (window.opener && window.opener.tablesManager) {
+              window.opener.tablesManager.setClosedWhilePoppedOut(true);
+            }
             window.close();
           });
 

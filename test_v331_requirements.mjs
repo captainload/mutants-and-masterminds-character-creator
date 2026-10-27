@@ -121,4 +121,13 @@ if (!indexHtml.includes('white-space: nowrap') || !indexHtml.includes('min-width
 }
 console.log('✓ 9. PP row horizontal whitespace reduction and widened Spend HP button verified');
 
+// 10. HP stepper and Spend HP button shifted for equal whitespace on either side
+if (!cssContent.includes('margin-left: auto') || !cssContent.includes('margin-right: auto')) {
+  throw new Error('Expected hp-status-group to have auto margins for equal whitespace distribution');
+}
+if (!indexHtml.includes('</div>\n\n          <div class="hp-status-group">') && !indexHtml.includes('</div>\r\n\r\n          <div class="hp-status-group">')) {
+  throw new Error('Expected hp-status-group to be positioned between row-2-left and row-2-right');
+}
+console.log('✓ 10. HP stepper and Spend HP button centered with equal whitespace verified');
+
 console.log('\nAll v3.31 requirements passed successfully!');

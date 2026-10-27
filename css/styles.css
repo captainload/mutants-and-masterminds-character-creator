@@ -319,6 +319,7 @@ body {
   align-items: center;
   gap: 0.65rem;
   flex-wrap: nowrap;
+  flex-shrink: 0;
 }
 
 .row-2-right {
@@ -356,6 +357,8 @@ body {
   gap: 0.35rem;
   white-space: nowrap;
   flex-wrap: nowrap;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 #btn-quick-spend-hp {

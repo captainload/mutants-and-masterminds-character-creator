@@ -34,7 +34,12 @@ assert.ok(indexHtml.includes('data-alt-type="sidekick"'), 'modal should have Sid
 assert.ok(indexHtml.includes('id="alts-list-container"'), 'modal should have #alts-list-container for Column 2');
 assert.ok(indexHtml.includes('id="btn-modal-switch-to-main"'), 'modal should have #btn-modal-switch-to-main');
 
-console.log('✓ DOM element structure verified successfully');
+// Integrated Alt Naming Inputs
+assert.ok(indexHtml.includes('id="input-create-alt-name-alternate_form"'), 'modal should have integrated name input for Alternate Form');
+assert.ok(indexHtml.includes('id="input-create-alt-name-minion"'), 'modal should have integrated name input for Minion');
+assert.ok(indexHtml.includes('id="input-create-alt-name-sidekick"'), 'modal should have integrated name input for Sidekick');
+
+console.log('✓ DOM element structure and integrated naming inputs verified successfully');
 
 // 3. Storage blank hero test
 const { storageManager } = await import('./js/storage.js');
@@ -143,11 +148,11 @@ assert.strictEqual(restored.alts[0].name, 'Diamond Form', 'Restored alt 0 name r
 assert.strictEqual(restored.alts[2].name, 'Cadet Shadow', 'Restored alt 2 (deleted alt) was recovered');
 console.log('✓ Session log rollback restores all alts accurately');
 
-// 6. Test App.js Code Signatures
+// 6. Test App.js Code Signatures & Version
 const appJs = fs.readFileSync(path.join(projectDir, 'js/app.js'), 'utf8');
+assert.ok(appJs.includes("CURRENT_VERSION = '3.35'"), 'app.js defines CURRENT_VERSION as 3.35');
 assert.ok(appJs.includes('setupAltCharactersModal'), 'app.js includes setupAltCharactersModal');
 assert.ok(appJs.includes('renderAltsListModal'), 'app.js includes renderAltsListModal');
-assert.ok(appJs.includes('promptCreateAlt'), 'app.js includes promptCreateAlt');
 assert.ok(appJs.includes('createAltCharacter'), 'app.js includes createAltCharacter');
 assert.ok(appJs.includes('loadAltIntoEditor'), 'app.js includes loadAltIntoEditor');
 assert.ok(appJs.includes('switchToMainHero'), 'app.js includes switchToMainHero');
@@ -156,7 +161,15 @@ assert.ok(appJs.includes('renderAltPowersConfig'), 'app.js includes renderAltPow
 assert.ok(appJs.includes('this.activeAltId'), 'app.js tracks activeAltId');
 assert.ok(appJs.includes('header-active-alt-badge'), 'app.js manages header-active-alt-badge');
 assert.ok(appJs.includes('header-alts-count-badge'), 'app.js manages header-alts-count-badge');
-console.log('✓ All AppController methods and bindings present and verified');
+assert.ok(appJs.includes('input-create-alt-name-'), 'app.js binds integrated alt naming inputs');
+
+const archWindowJs = fs.readFileSync(path.join(projectDir, 'js/archetype_window.js'), 'utf8');
+assert.ok(archWindowJs.includes('styles.css?v=3.35'), 'archetype_window.js links to v3.35 stylesheet');
+
+const stylesCss = fs.readFileSync(path.join(projectDir, 'css/styles.css'), 'utf8');
+assert.ok(stylesCss.includes('z-index: 2500'), 'styles.css defines z-index: 2500 for prompt and alert overlays');
+
+console.log('✓ All AppController methods, version 3.35 signatures, and styles verified');
 
 console.log('\n========================================');
 console.log('ALL v3.35 REQUIREMENTS VERIFIED 100% PASS!');

@@ -809,6 +809,12 @@ body {
   pointer-events: auto;
 }
 
+#modal-alert-dialog,
+#modal-confirm-dialog,
+#modal-prompt-dialog {
+  z-index: 2500;
+}
+
 .modal-container {
   background-color: var(--bg-card);
   border: 1px solid var(--border-color);

@@ -1271,7 +1271,7 @@
             </div>
 
             <!-- Option 1: New Alternate Form -->
-            <div class="alt-create-card" data-alt-type="alternate_form" style="background: rgba(147, 51, 234, 0.08); border: 1px solid rgba(168, 85, 247, 0.3); border-radius: 6px; padding: 0.75rem; cursor: pointer; transition: all 0.15s ease;">
+            <div class="alt-create-card" data-alt-type="alternate_form" style="background: rgba(147, 51, 234, 0.08); border: 1px solid rgba(168, 85, 247, 0.3); border-radius: 6px; padding: 0.75rem;">
               <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.25rem;">
                 <strong style="color: var(--hero-purple); font-size: var(--font-size-sm);">🎭 Alternate Form</strong>
                 <span class="badge-tag" style="background: rgba(168, 85, 247, 0.2); color: #d8b4fe;">Same PL &amp; Budget</span>
@@ -1279,11 +1279,14 @@
               <p style="font-size: var(--font-size-xs); color: var(--text-muted); margin: 0 0 0.5rem 0;">
                 Morph / Metamorph form with alternate traits. Built with the full PL and PP budget of the main hero.
               </p>
-              <button type="button" class="btn btn-primary btn-create-alt-action" data-alt-type="alternate_form" style="width: 100%; min-height: 30px; font-size: var(--font-size-xs);">+ New Alternate Form</button>
+              <div style="display: flex; gap: 0.4rem; align-items: center;">
+                <input type="text" id="input-create-alt-name-alternate_form" class="alt-name-input dropdown-input" placeholder="Name (e.g. Diamond Form)" style="flex: 1; min-height: 30px; padding: 0.2rem 0.55rem; font-size: var(--font-size-xs);">
+                <button type="button" class="btn btn-primary btn-create-alt-action" data-alt-type="alternate_form" style="min-height: 30px; padding: 0.2rem 0.75rem; font-size: var(--font-size-xs); white-space: nowrap;">+ Create</button>
+              </div>
             </div>
 
             <!-- Option 2: New Minion -->
-            <div class="alt-create-card" data-alt-type="minion" style="background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 6px; padding: 0.75rem; cursor: pointer; transition: all 0.15s ease;">
+            <div class="alt-create-card" data-alt-type="minion" style="background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 6px; padding: 0.75rem;">
               <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.25rem;">
                 <strong style="color: var(--hero-gold); font-size: var(--font-size-sm);">🤖 Minion</strong>
                 <span class="badge-tag" style="background: rgba(245, 158, 11, 0.2); color: var(--hero-gold);">15 PP / Rank</span>
@@ -1291,11 +1294,14 @@
               <p style="font-size: var(--font-size-xs); color: var(--text-muted); margin: 0 0 0.5rem 0;">
                 Constructed via Minion Advantage. 15 PP per rank, subject to minion rules, PL capped by main hero.
               </p>
-              <button type="button" class="btn btn-primary btn-create-alt-action" data-alt-type="minion" style="width: 100%; min-height: 30px; font-size: var(--font-size-xs); background: linear-gradient(135deg, #d97706 0%, #b45309 100%);">+ New Minion</button>
+              <div style="display: flex; gap: 0.4rem; align-items: center;">
+                <input type="text" id="input-create-alt-name-minion" class="alt-name-input dropdown-input" placeholder="Name (e.g. Cyber Drone)" style="flex: 1; min-height: 30px; padding: 0.2rem 0.55rem; font-size: var(--font-size-xs);">
+                <button type="button" class="btn btn-primary btn-create-alt-action" data-alt-type="minion" style="min-height: 30px; padding: 0.2rem 0.75rem; font-size: var(--font-size-xs); white-space: nowrap; background: linear-gradient(135deg, #d97706 0%, #b45309 100%);">+ Create</button>
+              </div>
             </div>
 
             <!-- Option 3: New Sidekick -->
-            <div class="alt-create-card" data-alt-type="sidekick" style="background: rgba(56, 189, 248, 0.08); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 6px; padding: 0.75rem; cursor: pointer; transition: all 0.15s ease;">
+            <div class="alt-create-card" data-alt-type="sidekick" style="background: rgba(56, 189, 248, 0.08); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 6px; padding: 0.75rem;">
               <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.25rem;">
                 <strong style="color: var(--hero-cyan); font-size: var(--font-size-sm);">🦸 Sidekick</strong>
                 <span class="badge-tag" style="background: rgba(56, 189, 248, 0.2); color: var(--hero-cyan);">5 PP / Rank</span>
@@ -1303,7 +1309,10 @@
               <p style="font-size: var(--font-size-xs); color: var(--text-muted); margin: 0 0 0.5rem 0;">
                 Constructed via Sidekick Advantage. 5 PP per rank, independent companion, PL capped by main hero.
               </p>
-              <button type="button" class="btn btn-primary btn-create-alt-action" data-alt-type="sidekick" style="width: 100%; min-height: 30px; font-size: var(--font-size-xs); background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);">+ New Sidekick</button>
+              <div style="display: flex; gap: 0.4rem; align-items: center;">
+                <input type="text" id="input-create-alt-name-sidekick" class="alt-name-input dropdown-input" placeholder="Name (e.g. Cadet Shadow)" style="flex: 1; min-height: 30px; padding: 0.2rem 0.55rem; font-size: var(--font-size-xs);">
+                <button type="button" class="btn btn-primary btn-create-alt-action" data-alt-type="sidekick" style="min-height: 30px; padding: 0.2rem 0.75rem; font-size: var(--font-size-xs); white-space: nowrap; background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);">+ Create</button>
+              </div>
             </div>
 
           </div>

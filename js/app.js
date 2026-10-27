@@ -381,19 +381,34 @@ class AppController {
       this.switchToMainHero();
     });
 
+    const handleCreateAlt = (type) => {
+      const nameInput = document.getElementById(`input-create-alt-name-${type}`);
+      const enteredName = nameInput ? nameInput.value.trim() : '';
+      const defaultNames = {
+        alternate_form: 'Alternate Form',
+        minion: 'Minion',
+        sidekick: 'Sidekick'
+      };
+      const finalName = enteredName || defaultNames[type] || 'Alt';
+      if (nameInput) nameInput.value = '';
+      this.createAltCharacter(type, finalName);
+    };
+
     document.querySelectorAll('.btn-create-alt-action').forEach(btn => {
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
         const type = btn.dataset.altType;
-        this.promptCreateAlt(type);
+        handleCreateAlt(type);
       });
     });
 
-    document.querySelectorAll('.alt-create-card').forEach(card => {
-      card.addEventListener('click', (e) => {
-        if (e.target.closest('.btn-create-alt-action')) return;
-        const type = card.dataset.altType;
-        this.promptCreateAlt(type);
+    ['alternate_form', 'minion', 'sidekick'].forEach(type => {
+      const input = document.getElementById(`input-create-alt-name-${type}`);
+      input?.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          handleCreateAlt(type);
+        }
       });
     });
   }
@@ -402,6 +417,13 @@ class AppController {
     const primary = this.primaryChar || this.char;
     const nameEl = document.getElementById('alts-primary-name');
     if (nameEl) nameEl.textContent = primary.name || 'Current Hero';
+
+    // Reset input fields
+    ['alternate_form', 'minion', 'sidekick'].forEach(type => {
+      const input = document.getElementById(`input-create-alt-name-${type}`);
+      if (input) input.value = '';
+    });
+
     this.renderAltsListModal();
     this.openModal('modal-alt-characters');
   }
@@ -488,34 +510,19 @@ class AppController {
   }
 
   async promptCreateAlt(type) {
-    let title = 'New Alt Character';
-    let label = 'Enter name for this character:';
-    let defaultValue = 'New Alt';
-
-    if (type === 'alternate_form') {
-      title = 'New Alternate Form';
-      label = 'Enter name for this alternate form (e.g. Diamond Form, Werewolf, Metamorph):';
-      defaultValue = 'Alternate Form';
-    } else if (type === 'minion') {
-      title = 'New Minion';
-      label = 'Enter name for this minion (e.g. Security Drone, War Wolf, Thug):';
-      defaultValue = 'Minion';
-    } else if (type === 'sidekick') {
-      title = 'New Sidekick';
-      label = 'Enter name for this sidekick (e.g. Boy Wonder, Apprentice, Wonder Dog):';
-      defaultValue = 'Sidekick';
+    const input = document.getElementById(`input-create-alt-name-${type}`);
+    if (input && input.value.trim()) {
+      const name = input.value.trim();
+      input.value = '';
+      this.createAltCharacter(type, name);
+      return;
     }
-
-    const name = await this.showPromptDialog({
-      title,
-      label,
-      defaultValue,
-      confirmText: 'Create Alt'
-    });
-
-    if (name && name.trim()) {
-      this.createAltCharacter(type, name.trim());
-    }
+    const defaultNames = {
+      alternate_form: 'Alternate Form',
+      minion: 'Minion',
+      sidekick: 'Sidekick'
+    };
+    this.createAltCharacter(type, defaultNames[type] || 'Alt');
   }
 
   createAltCharacter(type, name) {
@@ -1642,7 +1649,7 @@ class AppController {
   }
 
   async checkForUpdates({ isManual = false } = {}) {
-    const CURRENT_VERSION = '3.34';
+    const CURRENT_VERSION = '3.35';
     const versionEl = document.getElementById('header-version-tag');
     const updateBtn = document.getElementById('btn-header-update-alert');
     if (typeof window === 'undefined' || !window.location || !window.location.href || window.location.href === 'about:blank') return;

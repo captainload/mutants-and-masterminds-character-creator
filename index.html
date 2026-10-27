@@ -6,8 +6,8 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Mutants & Masterminds 3E - Character Editor v3.34</title>
-  <link rel="stylesheet" href="css/styles.css?v=3.34">
+  <title>Mutants & Masterminds 3E - Character Editor v3.35</title>
+  <link rel="stylesheet" href="css/styles.css?v=3.35">
 </head>
 <body>
 
@@ -80,7 +80,7 @@
 
           <div class="brand-title-centered">
             <span>Mutants & Masterminds 3E Character Editor</span>
-            <span id="header-version-tag" class="header-version-tag up-to-date" title="Current Version">v3.34</span>
+            <span id="header-version-tag" class="header-version-tag up-to-date" title="Current Version">v3.35</span>
             <button type="button" id="btn-header-update-alert" class="btn-header-update-alert" title="Check for updates / Update status">!</button>
           </div>
 
@@ -94,14 +94,23 @@
             <input type="text" id="header-player-name" class="header-field-input" placeholder="Player Name" style="width: 140px;">
           </div>
 
-          <div class="header-field">
+          <div class="header-field" style="display: flex; align-items: center; gap: 0.4rem;">
             <span class="header-field-label">Hero:</span>
             <input type="text" id="header-char-name" class="header-field-input" placeholder="Character Name" style="width: 190px;">
+            <button type="button" class="btn btn-outline" id="btn-open-alts" title="Manage alternate forms, minions, and sidekicks" style="padding: 0.2rem 0.65rem; min-height: 28px; font-size: var(--font-size-xs); font-weight: 700; white-space: nowrap; color: var(--hero-purple); border-color: var(--hero-purple); display: inline-flex; align-items: center; gap: 0.3rem;">
+              👥 Alt Characters <span id="header-alts-count-badge" class="badge-tag" style="display:none; font-size:10px; padding:1px 5px; margin-left:2px; background:var(--hero-purple); color:#fff; border-radius:10px;">0</span>
+            </button>
           </div>
 
-          <div class="header-field">
+          <div class="header-field" style="display: flex; align-items: center; gap: 0.4rem;">
             <span class="header-field-label">Campaign:</span>
             <input type="text" id="header-campaign-name" class="header-field-input" placeholder="Campaign / Setting" style="width: 160px;">
+            <div id="header-active-alt-badge" style="display: none; align-items: center; gap: 0.35rem; background: rgba(139, 92, 246, 0.18); border: 1px solid var(--hero-purple); border-radius: 4px; padding: 2px 8px; font-size: var(--font-size-xs); color: #fff; white-space: nowrap;">
+              <span style="color: var(--hero-purple); font-weight: 800;">Alt:</span>
+              <strong id="header-active-alt-name" style="color: var(--hero-cyan);">Alt Name</strong>
+              <span id="header-active-alt-type" style="color: var(--text-muted); font-size: 11px;">(Alternate Form)</span>
+              <button type="button" id="btn-return-primary-char" title="Return to Primary Hero" style="background: none; border: none; color: var(--hero-gold); cursor: pointer; font-size: 11px; font-weight: 800; padding: 0 2px; text-decoration: underline;">↩ Main Hero</button>
+            </div>
           </div>
         </div>
 
@@ -402,6 +411,7 @@
       <!-- TAB 4: ADVANTAGES CATALOG                           -->
       <!-- =================================================== -->
       <div class="tab-pane" id="tab-advantages">
+        <div id="alt-config-advantages-banner" style="display: none; margin-bottom: 0.85rem;"></div>
         <div class="card-box">
           <div class="card-box-header">
             <div class="card-box-title">🎖️ Official Advantages (1 PP per Rank)</div>
@@ -431,7 +441,7 @@
       <!-- TAB 5: POWERS & POWER PROFILES                      -->
       <!-- =================================================== -->
       <div class="tab-pane" id="tab-powers">
-        
+        <div id="alt-config-powers-banner" style="display: none; margin-bottom: 0.85rem;"></div>
         <div class="card-box" style="margin-bottom: 0.85rem; background: linear-gradient(135deg, #1b263b 0%, #151e30 100%);">
           <div class="card-box-header">
             <div class="card-box-title">⚡ Official 3E Power Profiles Library</div>
@@ -1240,6 +1250,87 @@
   </div>
 
   <!-- ======================================================= -->
+  <!-- MODAL: ALTERNATE CHARACTERS, MINIONS & SIDEKICKS        -->
+  <!-- ======================================================= -->
+  <div class="modal-overlay" id="modal-alt-characters">
+    <div class="modal-container" style="max-width: 900px; width: 95%;">
+      <div class="modal-header-bar">
+        <div class="modal-header-title">👥 Alt Characters, Minions &amp; Sidekicks</div>
+        <button class="btn btn-outline" id="btn-close-alts-modal" style="min-height: 28px; padding: 0.1rem 0.5rem;">✕</button>
+      </div>
+      <div class="modal-scroll-body" style="padding: 1.25rem;">
+        <div style="display: grid; grid-template-columns: 1fr 1.35fr; gap: 1.25rem;">
+          
+          <!-- COLUMN 1: CREATE NEW ALT -->
+          <div style="background: var(--bg-input); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 1rem; display: flex; flex-direction: column; gap: 0.85rem;">
+            <div style="border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem;">
+              <strong style="color: var(--hero-purple); font-size: var(--font-size-sm); text-transform: uppercase;">✨ Create New Alt</strong>
+              <p style="font-size: var(--font-size-xs); color: var(--text-muted); margin: 0.25rem 0 0 0;">
+                Construct an official subsidiary sheet linked to <strong id="alts-primary-name" style="color: var(--hero-cyan);">Current Hero</strong>:
+              </p>
+            </div>
+
+            <!-- Option 1: New Alternate Form -->
+            <div class="alt-create-card" data-alt-type="alternate_form" style="background: rgba(147, 51, 234, 0.08); border: 1px solid rgba(168, 85, 247, 0.3); border-radius: 6px; padding: 0.75rem; cursor: pointer; transition: all 0.15s ease;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.25rem;">
+                <strong style="color: var(--hero-purple); font-size: var(--font-size-sm);">🎭 Alternate Form</strong>
+                <span class="badge-tag" style="background: rgba(168, 85, 247, 0.2); color: #d8b4fe;">Same PL &amp; Budget</span>
+              </div>
+              <p style="font-size: var(--font-size-xs); color: var(--text-muted); margin: 0 0 0.5rem 0;">
+                Morph / Metamorph form with alternate traits. Built with the full PL and PP budget of the main hero.
+              </p>
+              <button type="button" class="btn btn-primary btn-create-alt-action" data-alt-type="alternate_form" style="width: 100%; min-height: 30px; font-size: var(--font-size-xs);">+ New Alternate Form</button>
+            </div>
+
+            <!-- Option 2: New Minion -->
+            <div class="alt-create-card" data-alt-type="minion" style="background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 6px; padding: 0.75rem; cursor: pointer; transition: all 0.15s ease;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.25rem;">
+                <strong style="color: var(--hero-gold); font-size: var(--font-size-sm);">🤖 Minion</strong>
+                <span class="badge-tag" style="background: rgba(245, 158, 11, 0.2); color: var(--hero-gold);">15 PP / Rank</span>
+              </div>
+              <p style="font-size: var(--font-size-xs); color: var(--text-muted); margin: 0 0 0.5rem 0;">
+                Constructed via Minion Advantage. 15 PP per rank, subject to minion rules, PL capped by main hero.
+              </p>
+              <button type="button" class="btn btn-primary btn-create-alt-action" data-alt-type="minion" style="width: 100%; min-height: 30px; font-size: var(--font-size-xs); background: linear-gradient(135deg, #d97706 0%, #b45309 100%);">+ New Minion</button>
+            </div>
+
+            <!-- Option 3: New Sidekick -->
+            <div class="alt-create-card" data-alt-type="sidekick" style="background: rgba(56, 189, 248, 0.08); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 6px; padding: 0.75rem; cursor: pointer; transition: all 0.15s ease;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.25rem;">
+                <strong style="color: var(--hero-cyan); font-size: var(--font-size-sm);">🦸 Sidekick</strong>
+                <span class="badge-tag" style="background: rgba(56, 189, 248, 0.2); color: var(--hero-cyan);">5 PP / Rank</span>
+              </div>
+              <p style="font-size: var(--font-size-xs); color: var(--text-muted); margin: 0 0 0.5rem 0;">
+                Constructed via Sidekick Advantage. 5 PP per rank, independent companion, PL capped by main hero.
+              </p>
+              <button type="button" class="btn btn-primary btn-create-alt-action" data-alt-type="sidekick" style="width: 100%; min-height: 30px; font-size: var(--font-size-xs); background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);">+ New Sidekick</button>
+            </div>
+
+          </div>
+
+          <!-- COLUMN 2: EXISTING ALTS LIST & ACTIONS -->
+          <div style="background: var(--bg-input); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 1rem; display: flex; flex-direction: column;">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem; margin-bottom: 0.75rem;">
+              <div>
+                <strong style="color: var(--hero-cyan); font-size: var(--font-size-sm); text-transform: uppercase;">📋 Existing Alts</strong>
+                <div style="font-size: var(--font-size-xs); color: var(--text-muted);">Load an alt into the editor to view and edit its sheet</div>
+              </div>
+              <button type="button" id="btn-modal-switch-to-main" class="btn btn-outline" style="min-height: 28px; padding: 0.2rem 0.65rem; font-size: var(--font-size-xs); color: var(--hero-gold); border-color: var(--hero-gold);">
+                ↩ Main Hero
+              </button>
+            </div>
+
+            <div id="alts-list-container" style="flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 0.65rem; min-height: 240px; max-height: 480px;">
+              <!-- Dynamically rendered alt character cards -->
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================= -->
   <!-- MODAL: REUSABLE HTML ALERT DIALOG                       -->
   <!-- ======================================================= -->
   <div class="modal-overlay" id="modal-alert-dialog">
@@ -1258,6 +1349,6 @@
     </div>
   </div>
 
-  <script type="module" src="js/app.js?v=3.34"></script>
+  <script type="module" src="js/app.js?v=3.35"></script>
 </body>
 </html>

@@ -57,6 +57,7 @@ export class StorageManager {
       advantages: [],
       powers: [],
       gear: [],
+      alts: [],
       complications: [
         { type: 'Motivation', name: 'Justice', desc: 'Driven to fight crime and protect innocents.' }
       ],

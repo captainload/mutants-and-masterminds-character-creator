@@ -52,6 +52,9 @@ import { BASIC_CONDITIONS, COMBINED_CONDITIONS, calculateConditionModifiers } fr
 class AppController {
   constructor() {
     this.char = storageManager.getActiveCharacter();
+    if (!this.char.alts) this.char.alts = [];
+    this.primaryChar = this.char;
+    this.activeAltId = null;
     this.activePowerEditing = null;
     this.currentFileHandle = null;
     this.expandedPowerIds = new Set();
@@ -94,6 +97,7 @@ class AppController {
     this.setupAutoResizingTextareas();
     this.setupAbilitiesDefensesModal();
     this.setupArchetypeWizard();
+    this.setupAltCharactersModal();
     this.setupUpdateChecker();
     this.renderAll();
     this.checkForUpdates({ isManual: false });
@@ -150,7 +154,7 @@ class AppController {
     playerNameInput.value = this.char.playerName || '';
     playerNameInput.addEventListener('input', (e) => {
       this.char.playerName = e.target.value;
-      storageManager.saveCharacter(this.char);
+      this.saveAndAudit();
     });
 
     // Character Name
@@ -158,7 +162,11 @@ class AppController {
     charNameInput.value = this.char.name || '';
     charNameInput.addEventListener('input', (e) => {
       this.char.name = e.target.value;
-      storageManager.saveCharacter(this.char);
+      if (this.activeAltId) {
+        const altNameEl = document.getElementById('header-active-alt-name');
+        if (altNameEl) altNameEl.textContent = this.char.name || 'Unnamed Alt';
+      }
+      this.saveAndAudit();
     });
 
     // Campaign Name
@@ -166,7 +174,7 @@ class AppController {
     campaignInput.value = this.char.campaign || 'Earth-Prime';
     campaignInput.addEventListener('input', (e) => {
       this.char.campaign = e.target.value;
-      storageManager.saveCharacter(this.char);
+      this.saveAndAudit();
     });
 
     // Power Level (PL) Steppers & Lock (Top Row)
@@ -180,13 +188,27 @@ class AppController {
       this.renderHeaderStatus();
     });
 
-    plPlusBtn?.addEventListener('click', () => {
+    plPlusBtn?.addEventListener('click', async () => {
       if (this.char.plLocked) return;
       const currentPL = parseInt(this.char.powerLevel, 10) || 10;
       if (currentPL >= 25) return;
       const nextPL = currentPL + 1;
+
+      if (this.activeAltId && (this.char.altType === 'minion' || this.char.altType === 'sidekick')) {
+        const heroPL = parseInt(this.primaryChar?.powerLevel, 10) || 10;
+        if (nextPL > heroPL) {
+          await this.showAlertDialog(
+            `Cannot increase Power Level to PL ${nextPL}.\n\nUnder M&M 3E rules, a Minion or Sidekick's Power Level cannot exceed the primary hero's Power Level (PL ${heroPL}).`,
+            { title: 'Power Level Cap' }
+          );
+          return;
+        }
+      }
+
       this.char.powerLevel = nextPL;
-      this.char.powerPointsBudget = nextPL * 15;
+      if (!this.activeAltId || this.char.altType === 'alternate_form') {
+        this.char.powerPointsBudget = nextPL * 15;
+      }
       this.saveAndAudit();
       this.renderAll();
     });
@@ -331,6 +353,431 @@ class AppController {
     // Initial check: only show Spend HP on Action tab
     const initialActiveTab = document.querySelector('.nav-tab-btn.active')?.dataset?.tab || 'tab-basics';
     updateSpendHpVisibility(initialActiveTab);
+  }
+
+  switchTab(tabId) {
+    const tabBtn = document.querySelector(`.nav-tab-btn[data-tab="${tabId}"]`);
+    if (tabBtn) tabBtn.click();
+  }
+
+
+  // =======================================================
+  // ALT CHARACTERS, MINIONS & SIDEKICKS MANAGEMENT
+  // =======================================================
+  setupAltCharactersModal() {
+    document.getElementById('btn-open-alts')?.addEventListener('click', () => {
+      this.openAltCharactersModal();
+    });
+
+    document.getElementById('btn-close-alts-modal')?.addEventListener('click', () => {
+      this.closeModal('modal-alt-characters');
+    });
+
+    document.getElementById('btn-return-primary-char')?.addEventListener('click', () => {
+      this.switchToMainHero();
+    });
+
+    document.getElementById('btn-modal-switch-to-main')?.addEventListener('click', () => {
+      this.switchToMainHero();
+    });
+
+    document.querySelectorAll('.btn-create-alt-action').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const type = btn.dataset.altType;
+        this.promptCreateAlt(type);
+      });
+    });
+
+    document.querySelectorAll('.alt-create-card').forEach(card => {
+      card.addEventListener('click', (e) => {
+        if (e.target.closest('.btn-create-alt-action')) return;
+        const type = card.dataset.altType;
+        this.promptCreateAlt(type);
+      });
+    });
+  }
+
+  openAltCharactersModal() {
+    const primary = this.primaryChar || this.char;
+    const nameEl = document.getElementById('alts-primary-name');
+    if (nameEl) nameEl.textContent = primary.name || 'Current Hero';
+    this.renderAltsListModal();
+    this.openModal('modal-alt-characters');
+  }
+
+  renderAltsListModal() {
+    const primary = this.primaryChar || this.char;
+    const nameEl = document.getElementById('alts-primary-name');
+    if (nameEl) nameEl.textContent = primary.name || 'Current Hero';
+
+    const listEl = document.getElementById('alts-list-container');
+    if (!listEl) return;
+    listEl.innerHTML = '';
+
+    const alts = primary.alts || [];
+    if (alts.length === 0) {
+      listEl.innerHTML = `
+        <div style="text-align: center; color: var(--text-muted); font-size: var(--font-size-xs); padding: 2.5rem 1rem;">
+          No alternate characters, minions, or sidekicks created yet.<br><br>
+          Use the options on the left to create an Alternate Form, Minion, or Sidekick.
+        </div>
+      `;
+      return;
+    }
+
+    alts.forEach((alt) => {
+      const isCurrentlyActive = (this.activeAltId === alt.id);
+      const isMinion = alt.altType === 'minion';
+      const isSidekick = alt.altType === 'sidekick';
+      const isAltForm = alt.altType === 'alternate_form';
+
+      let typeBadge = '';
+      if (isAltForm) {
+        typeBadge = '<span class="badge-tag" style="background: rgba(147, 51, 234, 0.2); color: #d8b4fe;">🎭 Alternate Form</span>';
+      } else if (isMinion) {
+        typeBadge = `<span class="badge-tag" style="background: rgba(245, 158, 11, 0.2); color: var(--hero-gold);">🤖 Minion (Rank ${alt.minionRank || 1})</span>`;
+      } else if (isSidekick) {
+        typeBadge = `<span class="badge-tag" style="background: rgba(56, 189, 248, 0.2); color: var(--hero-cyan);">🦸 Sidekick (Rank ${alt.sidekickRank || 1})</span>`;
+      } else {
+        typeBadge = '<span class="badge-tag">Alt</span>';
+      }
+
+      const card = document.createElement('div');
+      card.className = 'alt-sheet-card';
+      card.style.cssText = `
+        background: ${isCurrentlyActive ? 'rgba(139, 92, 246, 0.12)' : 'var(--bg-card)'};
+        border: 1px solid ${isCurrentlyActive ? 'var(--hero-purple)' : 'var(--border-color)'};
+        border-radius: var(--radius-sm);
+        padding: 0.75rem 0.85rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.45rem;
+      `;
+
+      card.innerHTML = `
+        <div style="display: flex; justify-content: space-between; align-items: center; gap: 0.5rem;">
+          <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+            <strong style="color: var(--text-bright); font-size: var(--font-size-sm);">${alt.name || 'Unnamed Alt'}</strong>
+            ${typeBadge}
+            ${isCurrentlyActive ? '<span class="badge-tag" style="background: var(--hero-green); color: #fff; font-weight: 800; font-size: 10px;">ACTIVE IN EDITOR</span>' : ''}
+          </div>
+          <div style="font-size: var(--font-size-xs); color: var(--text-muted); font-weight: 700; white-space: nowrap;">
+            PL ${alt.powerLevel || 10} · ${alt.powerPointsBudget || 150} PP
+          </div>
+        </div>
+        <div style="display: flex; justify-content: flex-end; align-items: center; gap: 0.4rem; margin-top: 0.25rem;">
+          ${!isCurrentlyActive ? `<button type="button" class="btn btn-primary btn-load-alt" data-alt-id="${alt.id}" style="min-height: 26px; padding: 0.15rem 0.6rem; font-size: var(--font-size-xs);">Load into Editor</button>` : ''}
+          <button type="button" class="btn btn-outline btn-dup-alt" data-alt-id="${alt.id}" title="Duplicate this alt" style="min-height: 26px; padding: 0.15rem 0.5rem; font-size: var(--font-size-xs);">📋 Duplicate</button>
+          <button type="button" class="btn btn-danger btn-del-alt" data-alt-id="${alt.id}" title="Delete this alt" style="min-height: 26px; padding: 0.15rem 0.5rem; font-size: var(--font-size-xs);">🗑️ Delete</button>
+        </div>
+      `;
+
+      card.querySelector('.btn-load-alt')?.addEventListener('click', () => {
+        this.loadAltIntoEditor(alt.id);
+      });
+      card.querySelector('.btn-dup-alt')?.addEventListener('click', () => {
+        this.duplicateAlt(alt.id);
+      });
+      card.querySelector('.btn-del-alt')?.addEventListener('click', () => {
+        this.deleteAlt(alt.id);
+      });
+
+      listEl.appendChild(card);
+    });
+  }
+
+  async promptCreateAlt(type) {
+    let title = 'New Alt Character';
+    let label = 'Enter name for this character:';
+    let defaultValue = 'New Alt';
+
+    if (type === 'alternate_form') {
+      title = 'New Alternate Form';
+      label = 'Enter name for this alternate form (e.g. Diamond Form, Werewolf, Metamorph):';
+      defaultValue = 'Alternate Form';
+    } else if (type === 'minion') {
+      title = 'New Minion';
+      label = 'Enter name for this minion (e.g. Security Drone, War Wolf, Thug):';
+      defaultValue = 'Minion';
+    } else if (type === 'sidekick') {
+      title = 'New Sidekick';
+      label = 'Enter name for this sidekick (e.g. Boy Wonder, Apprentice, Wonder Dog):';
+      defaultValue = 'Sidekick';
+    }
+
+    const name = await this.showPromptDialog({
+      title,
+      label,
+      defaultValue,
+      confirmText: 'Create Alt'
+    });
+
+    if (name && name.trim()) {
+      this.createAltCharacter(type, name.trim());
+    }
+  }
+
+  createAltCharacter(type, name) {
+    if (!this.primaryChar) this.primaryChar = this.char;
+    if (!this.primaryChar.alts) this.primaryChar.alts = [];
+
+    // Save current active alt state back if needed
+    if (this.activeAltId && this.char) {
+      const idx = this.primaryChar.alts.findIndex(a => a.id === this.activeAltId);
+      if (idx >= 0) this.primaryChar.alts[idx] = this.char;
+    }
+
+    const newAlt = storageManager.buildBlankHero();
+    newAlt.id = 'alt_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
+    newAlt.name = name;
+    newAlt.altType = type;
+    newAlt.primaryCharId = this.primaryChar.id;
+    newAlt.playerName = this.primaryChar.playerName || '';
+    newAlt.campaign = this.primaryChar.campaign || 'Earth-Prime';
+
+    const heroPL = parseInt(this.primaryChar.powerLevel, 10) || 10;
+
+    if (type === 'alternate_form') {
+      newAlt.powerLevel = heroPL;
+      newAlt.powerPointsBudget = this.primaryChar.powerPointsBudget || (heroPL * 15);
+      newAlt.alternateFormConfig = { activation: 'free' };
+    } else if (type === 'minion') {
+      newAlt.minionRank = 1;
+      newAlt.powerPointsBudget = 15; // 1 rank * 15 PP
+      newAlt.powerLevel = Math.min(10, heroPL);
+    } else if (type === 'sidekick') {
+      newAlt.sidekickRank = 1;
+      newAlt.powerPointsBudget = 5; // 1 rank * 5 PP
+      newAlt.powerLevel = Math.min(10, heroPL);
+    }
+
+    this.primaryChar.alts.push(newAlt);
+    this.activeAltId = newAlt.id;
+    this.char = newAlt;
+    this.saveAndAudit();
+    this.loadCharacterToUI();
+    this.closeModal('modal-alt-characters');
+
+    if (type === 'alternate_form') {
+      this.switchTab('tab-powers');
+    } else {
+      this.switchTab('tab-advantages');
+    }
+  }
+
+  loadAltIntoEditor(altId) {
+    if (!this.primaryChar) this.primaryChar = this.char;
+    if (!this.primaryChar.alts) this.primaryChar.alts = [];
+
+    if (this.activeAltId && this.char) {
+      const idx = this.primaryChar.alts.findIndex(a => a.id === this.activeAltId);
+      if (idx >= 0) this.primaryChar.alts[idx] = this.char;
+    }
+
+    const alt = this.primaryChar.alts.find(a => a.id === altId);
+    if (!alt) return;
+
+    this.activeAltId = altId;
+    this.char = alt;
+    this.saveAndAudit();
+    this.loadCharacterToUI();
+    this.closeModal('modal-alt-characters');
+  }
+
+  switchToMainHero() {
+    if (!this.primaryChar) return;
+    if (this.activeAltId && this.char && this.primaryChar.alts) {
+      const idx = this.primaryChar.alts.findIndex(a => a.id === this.activeAltId);
+      if (idx >= 0) this.primaryChar.alts[idx] = this.char;
+    }
+    this.activeAltId = null;
+    this.char = this.primaryChar;
+    this.saveAndAudit();
+    this.loadCharacterToUI();
+    this.closeModal('modal-alt-characters');
+  }
+
+  duplicateAlt(altId) {
+    const primary = this.primaryChar || this.char;
+    if (!primary.alts) primary.alts = [];
+    const alt = primary.alts.find(a => a.id === altId);
+    if (!alt) return;
+    const copy = JSON.parse(JSON.stringify(alt));
+    copy.id = 'alt_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
+    copy.name = (alt.name || 'Alt') + ' (Copy)';
+    primary.alts.push(copy);
+    this.saveAndAudit();
+    this.renderAltsListModal();
+    this.renderHeaderStatus();
+  }
+
+  async deleteAlt(altId) {
+    const primary = this.primaryChar || this.char;
+    if (!primary.alts) return;
+    const alt = primary.alts.find(a => a.id === altId);
+    if (!alt) return;
+
+    const confirmed = await this.showConfirmDialog(
+      `Are you sure you want to delete alt character "${alt.name || 'Alt'}"?\n\nThis subsidiary sheet and its powers, abilities, and gear will be permanently removed.`,
+      {
+        title: 'Delete Alt Character',
+        confirmText: 'Delete Alt',
+        confirmClass: 'btn-danger'
+      }
+    );
+
+    if (confirmed) {
+      primary.alts = primary.alts.filter(a => a.id !== altId);
+      if (this.activeAltId === altId) {
+        this.switchToMainHero();
+      } else {
+        this.saveAndAudit();
+        this.renderAltsListModal();
+        this.renderHeaderStatus();
+      }
+    }
+  }
+
+  renderAltAdvantagesConfig(audit) {
+    const banner = document.getElementById('alt-config-advantages-banner');
+    if (!banner) return;
+
+    if (!this.activeAltId || !this.char || (this.char.altType !== 'minion' && this.char.altType !== 'sidekick')) {
+      banner.style.display = 'none';
+      banner.innerHTML = '';
+      return;
+    }
+
+    const isMinion = this.char.altType === 'minion';
+    const primaryPL = parseInt(this.primaryChar?.powerLevel, 10) || 10;
+    const currentRank = isMinion ? (parseInt(this.char.minionRank, 10) || 1) : (parseInt(this.char.sidekickRank, 10) || 1);
+    const ppMultiplier = isMinion ? 15 : 5;
+    const calculatedBudget = currentRank * ppMultiplier;
+
+    banner.style.display = 'block';
+    banner.innerHTML = `
+      <div class="card-box" style="border-left: 4px solid ${isMinion ? 'var(--hero-gold)' : 'var(--hero-cyan)'}; background: linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(15, 23, 42, 0.98) 100%);">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;">
+          <div>
+            <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
+              <strong style="color: ${isMinion ? 'var(--hero-gold)' : 'var(--hero-cyan)'}; font-size: var(--font-size-base); text-transform: uppercase;">
+                ${isMinion ? '🤖 Minion Advantage Configuration' : '🦸 Sidekick Advantage Configuration'}
+              </strong>
+              <span class="badge-tag" style="background: ${isMinion ? 'rgba(245, 158, 11, 0.2)' : 'rgba(56, 189, 248, 0.2)'}; color: ${isMinion ? 'var(--hero-gold)' : 'var(--hero-cyan)'};">
+                ${ppMultiplier} PP / Rank
+              </span>
+            </div>
+            <div style="font-size: var(--font-size-xs); color: var(--text-muted); line-height: 1.4;">
+              ${isMinion
+                ? `Minions are subsidiary characters built with 15 PP per rank. Maximum PL cannot exceed the primary hero (PL ${primaryPL}). Minions are subject to minion combat rules.`
+                : `Sidekicks are loyal companions built with 5 PP per rank. Maximum PL cannot exceed the primary hero (PL ${primaryPL}). Sidekicks follow standard hero rules.`}
+            </div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 0.75rem; background: var(--bg-input); padding: 0.4rem 0.8rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+            <div style="font-size: var(--font-size-xs); font-weight: 700; color: var(--text-bright);">
+              Advantage Rank:
+            </div>
+            <div class="stepper-control" style="display: inline-flex; align-items: center; gap: 4px;">
+              <button type="button" class="btn btn-outline" id="btn-alt-rank-minus" style="min-width: 28px; height: 28px; padding: 0; font-size: 14px; font-weight: 800;">-</button>
+              <span id="alt-rank-display" style="min-width: 32px; text-align: center; font-weight: 800; font-size: var(--font-size-sm); color: ${isMinion ? 'var(--hero-gold)' : 'var(--hero-cyan)'};">${currentRank}</span>
+              <button type="button" class="btn btn-outline" id="btn-alt-rank-plus" style="min-width: 28px; height: 28px; padding: 0; font-size: 14px; font-weight: 800;">+</button>
+            </div>
+            <div style="font-size: var(--font-size-xs); font-weight: 800; color: var(--hero-green); padding-left: 0.4rem; border-left: 1px solid var(--border-color);">
+              Budget: ${calculatedBudget} PP
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    document.getElementById('btn-alt-rank-minus')?.addEventListener('click', () => {
+      if (currentRank <= 1) return;
+      const nextRank = currentRank - 1;
+      if (isMinion) {
+        this.char.minionRank = nextRank;
+      } else {
+        this.char.sidekickRank = nextRank;
+      }
+      this.char.powerPointsBudget = nextRank * ppMultiplier;
+      this.saveAndAudit();
+      this.renderAll();
+    });
+
+    document.getElementById('btn-alt-rank-plus')?.addEventListener('click', () => {
+      if (currentRank >= 30) return;
+      const nextRank = currentRank + 1;
+      if (isMinion) {
+        this.char.minionRank = nextRank;
+      } else {
+        this.char.sidekickRank = nextRank;
+      }
+      this.char.powerPointsBudget = nextRank * ppMultiplier;
+      this.saveAndAudit();
+      this.renderAll();
+    });
+  }
+
+  renderAltPowersConfig(audit) {
+    const banner = document.getElementById('alt-config-powers-banner');
+    if (!banner) return;
+
+    if (!this.activeAltId || !this.char || this.char.altType !== 'alternate_form') {
+      banner.style.display = 'none';
+      banner.innerHTML = '';
+      return;
+    }
+
+    const primaryHero = this.primaryChar || this.char;
+    const heroName = primaryHero.name || 'Hero';
+    const heroPL = primaryHero.powerLevel || 10;
+    const heroBudget = primaryHero.powerPointsBudget || (heroPL * 15);
+    const activation = this.char.alternateFormConfig?.activation || 'free';
+
+    banner.style.display = 'block';
+    banner.innerHTML = `
+      <div class="card-box" style="border-left: 4px solid var(--hero-purple); background: linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(15, 23, 42, 0.98) 100%);">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;">
+          <div>
+            <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
+              <strong style="color: var(--hero-purple); font-size: var(--font-size-base); text-transform: uppercase;">
+                🎭 Alternate Form Configuration (Morph / Metamorph)
+              </strong>
+              <span class="badge-tag" style="background: rgba(168, 85, 247, 0.2); color: #d8b4fe;">
+                Shares Hero PL &amp; PP
+              </span>
+            </div>
+            <div style="font-size: var(--font-size-xs); color: var(--text-muted); line-height: 1.4;">
+              Alternate Forms represent metamorphs or shape changes sharing the primary hero (${heroName})'s full Power Level (PL ${heroPL}) and Power Points budget (${heroBudget} PP).
+            </div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 0.75rem; background: var(--bg-input); padding: 0.4rem 0.8rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+            <label for="alt-form-activation-select" style="font-size: var(--font-size-xs); font-weight: 700; color: var(--text-bright);">Activation Action:</label>
+            <select id="alt-form-activation-select" class="dropdown-input" style="padding: 2px 8px; font-size: var(--font-size-xs); min-height: 28px;">
+              <option value="free" ${activation === 'free' ? 'selected' : ''}>Free Action (0 PP)</option>
+              <option value="move" ${activation === 'move' ? 'selected' : ''}>Move Action (-1 flat PP)</option>
+              <option value="standard" ${activation === 'standard' ? 'selected' : ''}>Standard Action (-2 flat PP)</option>
+            </select>
+            <button type="button" class="btn btn-outline" id="btn-sync-alt-form-budget" style="min-height: 28px; padding: 0.2rem 0.65rem; font-size: var(--font-size-xs); color: var(--hero-cyan); border-color: var(--hero-cyan);" title="Sync PL and budget from primary hero">
+              🔄 Sync Hero Budget
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+
+    document.getElementById('alt-form-activation-select')?.addEventListener('change', (e) => {
+      if (!this.char.alternateFormConfig) this.char.alternateFormConfig = {};
+      this.char.alternateFormConfig.activation = e.target.value;
+      this.saveAndAudit();
+    });
+
+    document.getElementById('btn-sync-alt-form-budget')?.addEventListener('click', () => {
+      this.char.powerLevel = heroPL;
+      this.char.powerPointsBudget = heroBudget;
+      this.saveAndAudit();
+      this.renderAll();
+    });
   }
 
   // =======================================================
@@ -1107,6 +1554,9 @@ class AppController {
       if (name && name.trim()) {
         const newHero = storageManager.createFreeformCharacter(name.trim(), 10, 150);
         this.char = newHero;
+        this.primaryChar = newHero;
+        this.activeAltId = null;
+        if (!this.char.alts) this.char.alts = [];
         this.renderAll();
       }
     });
@@ -1145,6 +1595,9 @@ class AppController {
           const loadedChar = storageManager.parseMM3File(event.target.result);
           if (loadedChar) {
             this.char = loadedChar;
+            this.primaryChar = loadedChar;
+            this.activeAltId = null;
+            if (!this.char.alts) this.char.alts = [];
             this.currentFileHandle = null;
             this.saveAndAudit();
             this.loadCharacterToUI();
@@ -2275,6 +2728,11 @@ class AppController {
           item.characterPL = this.char.powerLevel || 10;
           item.characterHP = this.char.heroPoints;
           item.characterPP = this.char.powerPointsBudget;
+          const primary = this.primaryChar || this.char;
+          item.alts = (primary.alts || []).map(a => ({
+            name: a.name || 'Unnamed Alt',
+            type: a.altType || 'alt'
+          }));
         }
       } else {
         const newHP = Math.max(0, oldHP + hpAdj);
@@ -2287,8 +2745,14 @@ class AppController {
           plIncreased = true;
         }
 
-        const characterSnapshot = JSON.parse(JSON.stringify(this.char));
+        const primary = this.primaryChar || this.char;
+        const characterSnapshot = JSON.parse(JSON.stringify(primary));
         delete characterSnapshot.historyLog;
+
+        const altsList = (primary.alts || []).map(a => ({
+          name: a.name || 'Unnamed Alt',
+          type: a.altType || 'alt'
+        }));
 
         this.char.historyLog.unshift({
           id: 'sess_' + Date.now(),
@@ -2302,6 +2766,7 @@ class AppController {
           characterPP: newPP,
           hpAdjust: hpAdj,
           ppAdjust: ppAdj,
+          alts: altsList,
           characterSnapshot
         });
       }
@@ -2975,7 +3440,24 @@ class AppController {
   // 16. MASTER RENDER ALL
   // =======================================================
   saveAndAudit() {
-    storageManager.saveCharacter(this.char);
+    if (!this.primaryChar) {
+      this.primaryChar = this.char;
+    }
+    if (!this.primaryChar.alts) {
+      this.primaryChar.alts = [];
+    }
+
+    if (this.activeAltId && this.char) {
+      const idx = this.primaryChar.alts.findIndex(a => a.id === this.activeAltId);
+      if (idx >= 0) {
+        this.primaryChar.alts[idx] = this.char;
+      } else {
+        this.primaryChar.alts.push(this.char);
+      }
+      storageManager.saveCharacter(this.primaryChar);
+    } else {
+      storageManager.saveCharacter(this.primaryChar);
+    }
     return auditCharacter(this.char);
   }
 
@@ -3031,6 +3513,40 @@ class AppController {
     if (cNameEl) cNameEl.value = this.char.name || '';
     const campEl = document.getElementById('header-campaign-name');
     if (campEl) campEl.value = this.char.campaign || 'Earth-Prime';
+
+    // Alt Characters count badge
+    const altsCountBadge = document.getElementById('header-alts-count-badge');
+    const primary = this.primaryChar || this.char;
+    const altsList = primary.alts || [];
+    if (altsCountBadge) {
+      if (altsList.length > 0) {
+        altsCountBadge.textContent = altsList.length;
+        altsCountBadge.style.display = 'inline-block';
+      } else {
+        altsCountBadge.style.display = 'none';
+      }
+    }
+
+    // Active Alt indicator badge next to Campaign field
+    const activeAltBadge = document.getElementById('header-active-alt-badge');
+    const activeAltNameEl = document.getElementById('header-active-alt-name');
+    const activeAltTypeEl = document.getElementById('header-active-alt-type');
+    if (activeAltBadge) {
+      if (this.activeAltId && this.char) {
+        activeAltBadge.style.display = 'inline-flex';
+        if (activeAltNameEl) activeAltNameEl.textContent = this.char.name || 'Unnamed Alt';
+        if (activeAltTypeEl) {
+          const typeLabels = {
+            alternate_form: '(Alternate Form)',
+            minion: '(Minion)',
+            sidekick: '(Sidekick)'
+          };
+          activeAltTypeEl.textContent = typeLabels[this.char.altType] || '(Alt)';
+        }
+      } else {
+        activeAltBadge.style.display = 'none';
+      }
+    }
   }
 
   renderActionCenter(audit) {
@@ -4011,6 +4527,7 @@ class AppController {
   // 19. ADVANTAGES CATALOG TAB
   // =======================================================
   renderAdvantagesTab(audit) {
+    this.renderAltAdvantagesConfig(audit);
     document.getElementById('advantages-cost-display').textContent = `${audit.advantagesCost} PP`;
     const grid = document.getElementById('advantages-catalog-grid');
     grid.innerHTML = '';
@@ -4925,6 +5442,7 @@ class AppController {
   // 21. POWERS TAB RENDER (In-Place Collapsible Power Cards)
   // =======================================================
   renderPowersTab(audit) {
+    this.renderAltPowersConfig(audit);
     document.getElementById('powers-cost-display').textContent = `${audit.powersCost} PP`;
     const list = document.getElementById('character-powers-list');
     list.innerHTML = '';
@@ -5852,6 +6370,14 @@ class AppController {
           <span style="display: inline-block; background: rgba(255, 180, 0, 0.15); border: 1px solid var(--hero-gold); color: var(--hero-gold); font-size: 0.72rem; font-weight: 700; padding: 0.1rem 0.4rem; border-radius: 4px;">HP: ${sess.characterHP ?? '—'}${sess.hpAdjust ? ` (${sess.hpAdjust > 0 ? '+' : ''}${sess.hpAdjust})` : ''}</span>
           <span style="display: inline-block; background: rgba(239, 68, 68, 0.15); border: 1px solid #f87171; color: #fca5a5; font-size: 0.72rem; font-weight: 700; padding: 0.1rem 0.4rem; border-radius: 4px;">PL: ${charPL}</span>
           <span style="display: inline-block; background: rgba(56, 189, 248, 0.15); border: 1px solid var(--hero-cyan); color: var(--hero-cyan); font-size: 0.72rem; font-weight: 700; padding: 0.1rem 0.4rem; border-radius: 4px;">PP: ${sess.characterPP ?? '—'}${sess.ppAdjust ? ` (${sess.ppAdjust > 0 ? '+' : ''}${sess.ppAdjust})` : ''}</span>
+          ${(() => {
+            const altsList = sess.alts || (sess.characterSnapshot?.alts || []).map(a => ({ name: a.name, type: a.altType }));
+            if (altsList && altsList.length > 0) {
+              const altNamesStr = altsList.map(a => a.name || 'Unnamed Alt').join(', ');
+              return `<span style="display: inline-flex; align-items: center; gap: 0.25rem; background: rgba(139, 92, 246, 0.15); border: 1px solid var(--hero-purple); color: #d8b4fe; font-size: 0.72rem; font-weight: 700; padding: 0.1rem 0.45rem; border-radius: 4px;" title="${altNamesStr}">👥 Alts: ${altNamesStr}</span>`;
+            }
+            return '';
+          })()}
           ${sess.characterSnapshot ? '<span style="font-size: 0.7rem; color: var(--hero-green); font-weight: 600;">🔒 Backup Saved</span>' : ''}
         </div>
         <div style="font-size: var(--font-size-xs); color: var(--text-bright); line-height: 1.45; white-space: pre-line;">${sess.notes || '<span style="color: var(--text-muted); font-style: italic;">No session notes recorded.</span>'}</div>
@@ -5882,13 +6408,16 @@ class AppController {
           }
         );
         if (confirmed) {
-          const currentLogs = this.char.historyLog || [];
+          const currentLogs = (this.primaryChar || this.char).historyLog || [];
           const restored = JSON.parse(JSON.stringify(sess.characterSnapshot));
           restored.historyLog = currentLogs;
+          if (!restored.alts) restored.alts = [];
+          this.primaryChar = restored;
           this.char = restored;
+          this.activeAltId = null;
           this.saveAndAudit();
           this.loadCharacterToUI();
-          await this.showAlertDialog(`Character successfully rolled back to state from session "${sess.title}"!`, { title: 'Restore Complete' });
+          await this.showAlertDialog(`Character and all alts successfully rolled back to state from session "${sess.title}"!`, { title: 'Restore Complete' });
         }
       });
 

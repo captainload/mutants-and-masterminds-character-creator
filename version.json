@@ -1,5 +1,5 @@
 {
-  "version": "3.34",
-  "updatedAt": "2026-10-27T19:49:05.977Z",
-  "releaseNotes": "Interactive Archetype Character Builder pop-out window capability with close button, position and size memory, and state restoration."
+  "version": "3.35",
+  "updatedAt": "2026-10-27T20:26:40.810Z",
+  "releaseNotes": "Alt characters system: New Alternate Form, Minion, and Sidekick creation with rules-compliant PL and PP budgets, two-column management pop-up, active alt indicator next to Campaign field, tab-specific configuration (Minion/Sidekick on Advantages, Alternate Form on Powers), and session log rollback and alt history tracking."
 }

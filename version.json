@@ -1,5 +1,5 @@
 {
-  "version": "3.35",
-  "updatedAt": "2026-10-27T20:26:40.810Z",
-  "releaseNotes": "Alt characters system: New Alternate Form, Minion, and Sidekick creation with rules-compliant PL and PP budgets, two-column management pop-up, active alt indicator next to Campaign field, tab-specific configuration (Minion/Sidekick on Advantages, Alternate Form on Powers), and session log rollback and alt history tracking."
+  "version": "3.36",
+  "updatedAt": "2026-10-27T22:04:00.000Z",
+  "releaseNotes": "Alt Characters UI refinement: Display alt type icons directly to the left of the alt type labels ('🎭 Alt form:', '🤖 Minion:', '🦸 Sidekick:') in front of alt names, remove redundant trailing alt type badges from existing alts list cards, and widen and heighten the Alt Characters dialog."
 }

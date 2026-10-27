@@ -835,7 +835,7 @@ export const FLAWS_CATALOG = [
   { id: 'easily_removable', name: 'Easily Removable (Device / Disarmable)', cost: 0, isFlat: false, isDevice: true, discountPer5: 2, isUnique: false, isEffectSpecific: false, desc: 'Handheld item easily knocked away or stolen (-2 PP per 5 PP total).' },
   { id: 'empathic', name: '★ Empathic', cost: 1, isFlat: false, isUnique: true, isEffectSpecific: true, desc: 'You suffer any damage conditions that you successfully heal from others (specific to Healing).' },
   { id: 'fades', name: 'Fades', cost: 1, isFlat: false, isUnique: false, isEffectSpecific: false, desc: 'Loses 1 rank per use until restored by recharge or rest.' },
-  { id: 'feedback', name: '★ Feedback', cost: 1, isFlat: false, isUnique: true, isEffectSpecific: true, desc: 'Damage inflicted on power manifestations damages you directly (specific to physical manifestations/constructs).' },
+  { id: 'feedback', name: 'Feedback', cost: 1, isFlat: false, isUnique: false, isEffectSpecific: true, desc: 'Damage inflicted on power manifestations damages you directly (specific to physical or sensory manifestations: Create, Illusion, Summon, Remote Sensing).' },
   { id: 'grab_based', name: '★ Grab-Based', cost: 1, isFlat: false, isUnique: true, isEffectSpecific: true, desc: 'Must first successfully grab or pin target before power takes effect (specific to Close attacks).' },
   { id: 'inaccurate', name: 'Inaccurate (-2 to hit)', cost: 1, isFlat: true, isRanked: true, maxRank: 5, minRank: 1, isUnique: false, isEffectSpecific: false, desc: '-2 penalty on attack checks per rank of Inaccurate.' },
   { id: 'limited', name: 'Limited (Half Utility/Specific Targets)', cost: 1, isFlat: false, isRanked: true, maxRank: 2, minRank: 1, isUnique: false, isEffectSpecific: false, desc: 'Only works in limited conditions, against specific foes (-1/rank per tier of limitation).' },
@@ -1346,6 +1346,90 @@ export function isModifierLegalForEffect(modifier, effect, extras = [], flaws = 
     }
   }
 
+  // Feedback flaw
+  if (modifier.id === 'feedback') {
+    if (!['create', 'illusion', 'summon', 'remote_sensing'].includes(effId)) {
+      return { legal: false, reason: 'Feedback flaw only applies to effects with physical or sensory manifestations (Create, Illusion, Summon, Remote Sensing)' };
+    }
+  }
+
+  // Impervious extra
+  if (modifier.id === 'impervious') {
+    if (!['protection', 'enhanced_trait'].includes(effId)) {
+      return { legal: false, reason: 'Impervious extra only applies to Protection or defensive traits' };
+    }
+  }
+
+  // Continuous extra: Sustained duration only
+  if (modifier.id === 'continuous') {
+    if (rd.effectiveDuration !== 'Sustained') {
+      return { legal: false, reason: 'Continuous extra only applies to Sustained duration effects' };
+    }
+  }
+
+  // Sustained extra: Permanent duration only
+  if (modifier.id === 'sustained') {
+    if (effect?.duration !== 'Permanent' && rd.effectiveDuration !== 'Permanent') {
+      return { legal: false, reason: 'Sustained extra only applies to Permanent duration effects' };
+    }
+  }
+
+  // Concentration flaw: Sustained duration only
+  if (modifier.id === 'concentration') {
+    if (rd.effectiveDuration !== 'Sustained') {
+      return { legal: false, reason: 'Concentration flaw only applies to Sustained duration effects' };
+    }
+  }
+
+  // Incurable extra
+  if (modifier.id === 'incurable') {
+    if (!isAttackEffect && !['damage', 'blast', 'affliction', 'weaken'].includes(effId)) {
+      return { legal: false, reason: 'Incurable extra only applies to damaging or condition-imposing attack effects' };
+    }
+  }
+
+  // Limited: Ambient Source
+  if (modifier.id === 'limited_ambient') {
+    if (!['blast', 'damage', 'create', 'environment', 'move_object', 'transform'].includes(effId)) {
+      return { legal: false, reason: 'Limited: Ambient Source flaw only applies to manipulation, creation, or energy blast/damage effects' };
+    }
+  }
+
+  // Limited to Minds
+  if (modifier.id === 'limited_to_minds') {
+    if (!['mind_reading', 'affliction', 'illusion', 'weaken', 'communication', 'damage', 'blast'].includes(effId) && !isAttackEffect) {
+      return { legal: false, reason: 'Limited to Minds flaw only applies to mental or attack effects targeting minds' };
+    }
+  }
+
+  // Limited: Single Resistance
+  if (modifier.id === 'limited_to_resistance') {
+    if (!isAttackEffect && !['affliction', 'weaken', 'nullify', 'damage', 'blast'].includes(effId)) {
+      return { legal: false, reason: 'Limited: Single Resistance flaw only applies to resistance-checked attack effects' };
+    }
+  }
+
+  // Sense-Dependent flaw
+  if (modifier.id === 'sense_dependent') {
+    if (baseRange === 'Personal' && !extraIds.has('attack') && !extraIds.has('affects_others')) {
+      return { legal: false, reason: 'Sense-Dependent flaw only applies to effects targeting others or attacks' };
+    }
+  }
+
+  // Resistible flaw
+  if (modifier.id === 'resistible') {
+    if (baseRange === 'Personal' && !extraIds.has('attack') && !extraIds.has('affects_others')) {
+      return { legal: false, reason: 'Resistible flaw only applies to effects targeting others or attacks' };
+    }
+  }
+
+  // Noticeable flaw
+  if (modifier.id === 'noticeable') {
+    if (isAttackEffect || ['damage', 'blast', 'environment'].includes(effId)) {
+      return { legal: false, reason: 'Noticeable flaw only applies to passive, continuous, or defensive effects (attacks are already noticeable)' };
+    }
+  }
+
   // Power Profiles specific modifiers
   if (modifier.id === 'psychic') {
     if (effId !== 'illusion') return { legal: false, reason: 'Psychic extra only applies to Illusion' };
@@ -1448,6 +1532,7 @@ export function validateModifierLegality(effect, extras = [], flaws = [], mainPo
   }
 
   const baseRange = effect?.range || 'Personal';
+  const effId = effect?.id || '';
   const rd = computePowerRangeAndDuration(effect, extras, flaws);
   const effectiveRange = rd.effectiveRange;
   const isAttackEffect = !!(effect?.isAttack || extraIds.has('attack') || (extras || []).some(e => e.id === 'attack'));
@@ -1524,6 +1609,44 @@ export function validateModifierLegality(effect, extras = [], flaws = [], mainPo
   }
   if (extraIds.has('attack') && baseRange !== 'Personal') {
     errors.push('Attack extra only applies to Personal range effects.');
+  }
+
+  // Effect-specific flaws & extras
+  if (flawIds.has('feedback') && !['create', 'illusion', 'summon', 'remote_sensing'].includes(effId)) {
+    errors.push('Feedback flaw only applies to effects with physical or sensory manifestations (Create, Illusion, Summon, Remote Sensing).');
+  }
+  if (extraIds.has('impervious') && !['protection', 'enhanced_trait'].includes(effId)) {
+    errors.push('Impervious extra only applies to Protection or defensive traits.');
+  }
+  if (extraIds.has('continuous') && rd.effectiveDuration !== 'Sustained') {
+    errors.push('Continuous extra only applies to Sustained duration effects.');
+  }
+  if (extraIds.has('sustained') && effect?.duration !== 'Permanent' && rd.effectiveDuration !== 'Permanent') {
+    errors.push('Sustained extra only applies to Permanent duration effects.');
+  }
+  if (flawIds.has('concentration') && rd.effectiveDuration !== 'Sustained') {
+    errors.push('Concentration flaw only applies to Sustained duration effects.');
+  }
+  if (extraIds.has('incurable') && !isAttackEffect && !['damage', 'blast', 'affliction', 'weaken'].includes(effId)) {
+    errors.push('Incurable extra only applies to damaging or condition-imposing attack effects.');
+  }
+  if (flawIds.has('limited_ambient') && !['blast', 'damage', 'create', 'environment', 'move_object', 'transform'].includes(effId)) {
+    errors.push('Limited: Ambient Source flaw only applies to manipulation, creation, or energy blast/damage effects.');
+  }
+  if (flawIds.has('limited_to_minds') && !['mind_reading', 'affliction', 'illusion', 'weaken', 'communication', 'damage', 'blast'].includes(effId) && !isAttackEffect) {
+    errors.push('Limited to Minds flaw only applies to mental or attack effects targeting minds.');
+  }
+  if (flawIds.has('limited_to_resistance') && !isAttackEffect && !['affliction', 'weaken', 'nullify', 'damage', 'blast'].includes(effId)) {
+    errors.push('Limited: Single Resistance flaw only applies to resistance-checked attack effects.');
+  }
+  if (flawIds.has('sense_dependent') && baseRange === 'Personal' && !extraIds.has('attack') && !extraIds.has('affects_others')) {
+    errors.push('Sense-Dependent flaw only applies to effects targeting others or attacks.');
+  }
+  if (flawIds.has('resistible') && baseRange === 'Personal' && !extraIds.has('attack') && !extraIds.has('affects_others')) {
+    errors.push('Resistible flaw only applies to effects targeting others or attacks.');
+  }
+  if (flawIds.has('noticeable') && (isAttackEffect || ['damage', 'blast', 'environment'].includes(effId))) {
+    errors.push('Noticeable flaw only applies to passive, continuous, or defensive effects (attacks are already noticeable).');
   }
 
   // Rank limits

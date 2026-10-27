@@ -1,5 +1,5 @@
 {
-  "version": "3.26",
-  "updatedAt": "2026-10-27T09:30:00Z",
-  "releaseNotes": "Filter attack modifiers from non-attack effects, correct Affects Others uniqueness classification, and close popups and modals when clicking outside."
+  "version": "3.27",
+  "updatedAt": "2026-10-27T09:45:00Z",
+  "releaseNotes": "Full review of modifier rules: correct Feedback uniqueness and legal effect applications, enforce duration/range/target restrictions across all extras and flaws."
 }

@@ -1,5 +1,5 @@
 {
-  "version": "3.28",
-  "updatedAt": "2026-10-27T10:30:00Z",
-  "releaseNotes": "Dynamic Alternate Effect naming based on assigned effect, Limited: Custom flaw, clean footer, disable modifier and profile buttons until selected."
+  "version": "3.29",
+  "updatedAt": "2026-10-27T12:05:00Z",
+  "releaseNotes": "Clarified primary effect standalone cost and array total display across power card headers, cost badges, and alternate effect limit advisories."
 }

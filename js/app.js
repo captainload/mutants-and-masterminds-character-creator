@@ -1029,7 +1029,7 @@ class AppController {
   }
 
   async checkForUpdates({ isManual = false } = {}) {
-    const CURRENT_VERSION = '3.28';
+    const CURRENT_VERSION = '3.29';
     const versionEl = document.getElementById('header-version-tag');
     const updateBtn = document.getElementById('btn-header-update-alert');
     if (typeof window === 'undefined' || !window.location || !window.location.href || window.location.href === 'about:blank') return;
@@ -4254,8 +4254,10 @@ class AppController {
         isDynamicArray: false
       });
       if (testCost > mainCost) {
+        const powerTotalCost = calculatePowerCost(powerContext);
+        const aeNote = powerTotalCost !== mainCost ? ` (note: the power card displays ${powerTotalCost} PP total including Alternate Effect slots)` : '';
         this.showAlertDialog(
-          `Cannot apply modifier: An Alternate Effect cannot cost more than the primary effect (${mainCost} PP). Standalone cost would increase to ${testCost} PP.`,
+          `Cannot apply modifier: An Alternate Effect cannot cost more than the primary effect's standalone cost (${mainCost} PP)${aeNote}. Standalone cost would increase to ${testCost} PP.`,
           { title: 'Alternate Effect Cost Limit', icon: '⚠️' }
         );
         return true;
@@ -4581,6 +4583,7 @@ class AppController {
       const valResult = validateModifierLegality(p.effect, p.extras, p.flaws);
 
       const cost = calculatePowerCost(p);
+      const mainStandaloneCost = calculatePowerCost({ ...p, isAlternateEffect: false, alternateEffects: [], linkedEffects: [], isDynamicArray: false });
       const isDevice = (p.flaws || []).some(f => f.isDevice);
       const isExpanded = this.expandedPowerIds.has(p.id);
 
@@ -4597,7 +4600,7 @@ class AppController {
           <strong class="power-title-name">⚡ ${p.name || 'Unnamed Power'}</strong>
           <span class="power-title-sep">—</span>
           <span class="power-title-effect">${p.effect?.name || 'Effect'} Rank ${p.rank || 1}</span>
-          <span class="power-title-details">(${cost} PP • ${effStats.action} • ${effStats.effectiveRange} • ${effStats.effectiveDuration} • ${effStats.area})</span>
+          <span class="power-title-details">(${cost} PP${p.alternateEffects?.length ? ` total • ${mainStandaloneCost} PP base` : ''} • ${effStats.action} • ${effStats.effectiveRange} • ${effStats.effectiveDuration} • ${effStats.area})</span>
           ${p.isDynamicArray ? '<span class="badge-tag dynamic">Dynamic Array</span>' : ''}
           ${p.alternateEffects?.length ? `<span class="badge-tag ae">${p.alternateEffects.length} AE</span>` : ''}
           ${p.linkedEffects?.length ? `<span class="badge-tag linked">${p.linkedEffects.length} Linked</span>` : ''}
@@ -4693,9 +4696,10 @@ class AppController {
               <span>🔗 Linked${p.linkedToId ? ` (${(this.char.powers || []).find(x => x.id === p.linkedToId)?.name || 'Linked'})` : ''}</span>
             </label>
           </div>
-          <div style="min-width: 75px; text-align: right; padding-bottom: 0.35rem; margin-left: auto;">
+          <div style="min-width: 85px; text-align: right; padding-bottom: 0.35rem; margin-left: auto;">
             <span class="field-label" style="display: block; margin-bottom: 0.15rem;">Cost</span>
-            <strong style="color: var(--hero-gold); font-size: var(--font-size-md);">${cost} PP</strong>
+            <strong style="color: var(--hero-gold); font-size: var(--font-size-md);" title="Primary effect standalone cost: ${mainStandaloneCost} PP">${mainStandaloneCost} PP</strong>
+            ${p.alternateEffects?.length ? `<div style="font-size: var(--font-size-xs); color: var(--text-muted); white-space: nowrap;">(${cost} PP total)</div>` : ''}
           </div>
         `;
 
@@ -4736,7 +4740,7 @@ class AppController {
               if (aeCost > testMainCost) {
                 e.target.value = p.effect?.id || POWER_EFFECTS_CATALOG[0].id;
                 await this.showAlertDialog(
-                  `Cannot change primary effect to "${newEff.name}": Alternate Effect "${ae.name || 'ALTERNATE ' + (i + 1)}" costs ${aeCost} PP, which would exceed the new primary power cost (${testMainCost} PP). In official M&M 3E rules, alternate effects cannot cost more than the primary effect. Adjust the alternate effect first.`,
+                  `Cannot change primary effect to "${newEff.name}": Alternate Effect "${ae.name || 'ALTERNATE ' + (i + 1)}" costs ${aeCost} PP, which would exceed the new primary effect's standalone cost (${testMainCost} PP). In official M&M 3E rules, alternate effects cannot cost more than the primary effect. Adjust the alternate effect first.`,
                   { title: 'Alternate Effect Cost Limit' }
                 );
                 return;
@@ -4772,7 +4776,7 @@ class AppController {
               });
               if (aeCost > testMainCost) {
                 await this.showAlertDialog(
-                  `Cannot reduce primary power rank: Alternate Effect "${ae.name || 'ALTERNATE ' + (i + 1)}" costs ${aeCost} PP, which would exceed the new primary power cost (${testMainCost} PP). In official M&M 3E rules, alternate effects cannot cost more than the primary effect. Adjust the alternate effect first.`,
+                  `Cannot reduce primary power rank: Alternate Effect "${ae.name || 'ALTERNATE ' + (i + 1)}" costs ${aeCost} PP, which would exceed the new primary effect's standalone cost (${testMainCost} PP). In official M&M 3E rules, alternate effects cannot cost more than the primary effect. Adjust the alternate effect first.`,
                   { title: 'Alternate Effect Cost Limit' }
                 );
                 return;
@@ -4950,7 +4954,7 @@ class AppController {
                 <span style="font-weight: 600; color: var(--text-bright); font-size: var(--font-size-base);">${ae.name || 'Unnamed Effect'}</span>
                 <span style="font-size: var(--font-size-sm); color: var(--hero-blue); font-weight: 600;">— ${ae.effect?.name || 'Effect'} Rank ${ae.rank || 1}</span>
                 <span class="badge-tag ae" style="font-size: var(--font-size-xs);">+${aeSlotCost} PP slot</span>
-                <span style="font-size: var(--font-size-sm); color: var(--text-muted);">(Standalone: ${aeStandaloneCost} PP / Max: ${mainStandaloneCost} PP)</span>
+                <span style="font-size: var(--font-size-sm); color: var(--text-muted);">(AE Cost: ${aeStandaloneCost} PP / Max Allowed: ${mainStandaloneCost} PP)</span>
               </div>
               <div style="display: flex; gap: 0.45rem; align-items: center;">
                 <button type="button" class="btn btn-outline btn-toggle-ae" style="padding: 0.2rem 0.65rem; min-height: 32px; font-size: var(--font-size-sm); color: var(--hero-blue); border-color: var(--hero-blue);">
@@ -5045,8 +5049,10 @@ class AppController {
               const mainCost = calculatePowerCost({ ...p, isAlternateEffect: false, alternateEffects: [], linkedEffects: [], isDynamicArray: false });
               if (testAeCost > mainCost) {
                 e.target.value = ae.effect?.id || POWER_EFFECTS_CATALOG[0].id;
+                const powerTotalCost = calculatePowerCost(p);
+                const aeNote = powerTotalCost !== mainCost ? ` (note: the power card displays ${powerTotalCost} PP total including Alternate Effect slots)` : '';
                 await this.showAlertDialog(
-                  `Cannot select "${newEff.name}": Alternate Effects cannot cost more than the primary effect (${mainCost} PP). With ${newEff.name}, this alternate effect would cost ${testAeCost} PP.`,
+                  `Cannot select "${newEff.name}": Alternate Effects cannot cost more than the primary effect's standalone cost (${mainCost} PP)${aeNote}. With ${newEff.name}, this alternate effect would cost ${testAeCost} PP.`,
                   { title: 'Alternate Effect Cost Exceeded' }
                 );
                 return;
@@ -5069,8 +5075,10 @@ class AppController {
               const testAeCost = calculatePowerCost({ ...testAe, isAlternateEffect: false, alternateEffects: [], linkedEffects: [], isDynamicArray: false });
               const mainCost = calculatePowerCost({ ...p, isAlternateEffect: false, alternateEffects: [], linkedEffects: [], isDynamicArray: false });
               if (testAeCost > mainCost) {
+                const powerTotalCost = calculatePowerCost(p);
+                const aeNote = powerTotalCost !== mainCost ? ` (note: the power card displays ${powerTotalCost} PP total including Alternate Effect slots)` : '';
                 await this.showAlertDialog(
-                  `Cannot increase alternate effect rank: Alternate Effects cannot cost more than the primary effect (${mainCost} PP). At rank ${newRank}, this alternate effect would cost ${testAeCost} PP.`,
+                  `Cannot increase alternate effect rank: Alternate Effects cannot cost more than the primary effect's standalone cost (${mainCost} PP)${aeNote}. At rank ${newRank}, this alternate effect would cost ${testAeCost} PP.`,
                   { title: 'Alternate Effect Cost Exceeded' }
                 );
                 return;

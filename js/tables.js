@@ -136,12 +136,37 @@ export class TablesWindowManager {
     }
   }
 
+  savePopoutOpenedState() {
+    try {
+      localStorage.setItem('mm3e_tables_popped_out', 'true');
+    } catch (e) {
+      console.warn('Failed to save table window state', e);
+    }
+  }
+
+  savePopoutClosedState() {
+    try {
+      localStorage.setItem('mm3e_tables_popped_out', 'false');
+    } catch (e) {
+      console.warn('Failed to save table window state', e);
+    }
+  }
+
+  isPoppedOut() {
+    try {
+      return localStorage.getItem('mm3e_tables_popped_out') === 'true';
+    } catch {
+      return false;
+    }
+  }
+
   openPopout() {
     if (this.popoutWindow && !this.popoutWindow.closed) {
       this.popoutWindow.focus();
       return;
     }
 
+    this.savePopoutOpenedState();
     const coords = this.getSavedCoords();
     const features = `width=${coords.width},height=${coords.height},left=${coords.left},top=${coords.top},resizable=yes,scrollbars=yes`;
     
@@ -209,6 +234,7 @@ export class TablesWindowManager {
         <div class="top-bar">
           <button id="btn-popout-expand">Expand All</button>
           <button id="btn-popout-collapse">Collapse All</button>
+          <button id="btn-popout-close" style="background: #dc2626; color: #fff; border: none; padding: 5px 12px; border-radius: 4px; font-weight: 700; cursor: pointer;">✕ Close</button>
         </div>
         <h2>📜 Mutants & Masterminds 3E - Official Tables</h2>
         <div id="popout-tables-root"></div>
@@ -229,6 +255,9 @@ export class TablesWindowManager {
           document.getElementById('btn-popout-collapse').addEventListener('click', () => {
             document.querySelectorAll('.collapsible-content').forEach(c => c.classList.add('collapsed'));
           });
+          document.getElementById('btn-popout-close').addEventListener('click', () => {
+            window.close();
+          });
 
           window.addEventListener('beforeunload', () => {
             if (window.opener && window.opener.tablesManager) {
@@ -238,6 +267,7 @@ export class TablesWindowManager {
                 width: window.outerWidth,
                 height: window.outerHeight
               });
+              window.opener.tablesManager.savePopoutClosedState();
             }
           });
         </script>

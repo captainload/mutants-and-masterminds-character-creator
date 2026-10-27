@@ -221,6 +221,17 @@ class AppController {
     document.getElementById('btn-hp-minus').addEventListener('click', () => {
       if ((this.char.heroPoints || 0) > 0) {
         this.char.heroPoints--;
+        discordIntegrator.sendHeroPointSpend(this.char.name, 'Hero Point Expended', 'Manually deducted from character sheet');
+        const resultBanner = document.getElementById('action-dice-result');
+        if (resultBanner) {
+          resultBanner.innerHTML = `
+            <div style="display: flex; justify-content: space-between; align-items: center; gap: 0.5rem;">
+              <span style="font-weight: 800; color: var(--hero-gold);">⚡ Hero Point Expended</span>
+              <span style="font-size: var(--font-size-xs); color: var(--text-muted);">${this.char.name || 'Hero'} spent 1 Hero Point</span>
+            </div>
+          `;
+          resultBanner.style.display = 'block';
+        }
         this.saveAndAudit();
         this.renderHeaderStatus();
       }
@@ -237,7 +248,15 @@ class AppController {
 
     // Tables Button (Row 2 Right)
     document.getElementById('btn-open-tables').addEventListener('click', () => {
-      this.openModal('modal-tables');
+      if (typeof tablesManager !== 'undefined' && tablesManager.isPoppedOut()) {
+        if (tablesManager.popoutWindow && !tablesManager.popoutWindow.closed) {
+          tablesManager.popoutWindow.focus();
+        } else {
+          tablesManager.openPopout();
+        }
+      } else {
+        this.openModal('modal-tables');
+      }
     });
   }
 
@@ -246,6 +265,13 @@ class AppController {
   // =======================================================
   setupNavigation() {
     const tabs = document.querySelectorAll('.nav-tab-btn');
+    const updateSpendHpVisibility = (activeTab) => {
+      const spendBtn = document.getElementById('btn-quick-spend-hp');
+      if (spendBtn) {
+        spendBtn.style.display = (activeTab === 'tab-action') ? '' : 'none';
+      }
+    };
+
     tabs.forEach(tab => {
       tab.addEventListener('click', () => {
         const target = tab.dataset.tab;
@@ -255,8 +281,13 @@ class AppController {
         tab.classList.add('active');
         const pane = document.getElementById(target);
         if (pane) pane.classList.add('active');
+        updateSpendHpVisibility(target);
       });
     });
+
+    // Initial check: only show Spend HP on Action tab
+    const initialActiveTab = document.querySelector('.nav-tab-btn.active')?.dataset?.tab || 'tab-basics';
+    updateSpendHpVisibility(initialActiveTab);
   }
 
   // =======================================================
@@ -774,6 +805,12 @@ class AppController {
     });
 
     document.getElementById('btn-close-tables').addEventListener('click', () => {
+      if (typeof tablesManager !== 'undefined') tablesManager.savePopoutClosedState();
+      this.closeModal('modal-tables');
+    });
+
+    document.getElementById('btn-close-tables-footer')?.addEventListener('click', () => {
+      if (typeof tablesManager !== 'undefined') tablesManager.savePopoutClosedState();
       this.closeModal('modal-tables');
     });
 
@@ -1029,7 +1066,7 @@ class AppController {
   }
 
   async checkForUpdates({ isManual = false } = {}) {
-    const CURRENT_VERSION = '3.30';
+    const CURRENT_VERSION = '3.31';
     const versionEl = document.getElementById('header-version-tag');
     const updateBtn = document.getElementById('btn-header-update-alert');
     if (typeof window === 'undefined' || !window.location || !window.location.href || window.location.href === 'about:blank') return;
@@ -1381,6 +1418,16 @@ class AppController {
           else if ((this.char.bruises || 0) > 0) this.char.bruises--;
         }
         discordIntegrator.sendHeroPointSpend(this.char.name, action.name, action.desc);
+        const resultBanner = document.getElementById('action-dice-result');
+        if (resultBanner) {
+          resultBanner.innerHTML = `
+            <div style="display: flex; justify-content: space-between; align-items: center; gap: 0.5rem;">
+              <span style="font-weight: 800; color: var(--hero-gold);">⚡ Hero Point Expended: ${action.name}</span>
+              <span style="font-size: var(--font-size-xs); color: var(--text-muted);">${action.desc}</span>
+            </div>
+          `;
+          resultBanner.style.display = 'block';
+        }
         this.saveAndAudit();
         this.renderHeaderStatus();
         this.renderActionCenter(auditCharacter(this.char));
@@ -1972,6 +2019,49 @@ class AppController {
       storageManager.saveCharacter(this.char);
     });
 
+    const updateSessionAdjustDisplays = () => {
+      const curHP = this.char.heroPoints ?? 1;
+      const curPP = this.char.powerPointsBudget ?? ((this.char.powerLevel || 10) * 15);
+      const hpAdj = parseInt(document.getElementById('input-session-hp-adjust')?.value, 10) || 0;
+      const ppAdj = parseInt(document.getElementById('input-session-pp-adjust')?.value, 10) || 0;
+      const hpDisp = document.getElementById('session-hp-current-display');
+      const ppDisp = document.getElementById('session-pp-current-display');
+      if (hpDisp) hpDisp.textContent = `Current: ${curHP}${hpAdj !== 0 ? ` (➔ ${Math.max(0, curHP + hpAdj)})` : ''}`;
+      if (ppDisp) ppDisp.textContent = `Current: ${curPP}${ppAdj !== 0 ? ` (➔ ${Math.max(0, curPP + ppAdj)})` : ''}`;
+    };
+
+    document.getElementById('btn-session-hp-minus')?.addEventListener('click', () => {
+      const el = document.getElementById('input-session-hp-adjust');
+      if (el) {
+        el.value = (parseInt(el.value, 10) || 0) - 1;
+        updateSessionAdjustDisplays();
+      }
+    });
+    document.getElementById('btn-session-hp-plus')?.addEventListener('click', () => {
+      const el = document.getElementById('input-session-hp-adjust');
+      if (el) {
+        el.value = (parseInt(el.value, 10) || 0) + 1;
+        updateSessionAdjustDisplays();
+      }
+    });
+    document.getElementById('input-session-hp-adjust')?.addEventListener('input', updateSessionAdjustDisplays);
+
+    document.getElementById('btn-session-pp-minus')?.addEventListener('click', () => {
+      const el = document.getElementById('input-session-pp-adjust');
+      if (el) {
+        el.value = (parseInt(el.value, 10) || 0) - 1;
+        updateSessionAdjustDisplays();
+      }
+    });
+    document.getElementById('btn-session-pp-plus')?.addEventListener('click', () => {
+      const el = document.getElementById('input-session-pp-adjust');
+      if (el) {
+        el.value = (parseInt(el.value, 10) || 0) + 1;
+        updateSessionAdjustDisplays();
+      }
+    });
+    document.getElementById('input-session-pp-adjust')?.addEventListener('input', updateSessionAdjustDisplays);
+
     const openAddSessionModal = () => {
       this.editingSessionId = null;
       const titleEl = document.getElementById('modal-session-title');
@@ -1982,11 +2072,16 @@ class AppController {
       const timeInput = document.getElementById('input-session-time');
       const titleInput = document.getElementById('input-session-title');
       const notesInput = document.getElementById('input-session-notes');
+      const hpInput = document.getElementById('input-session-hp-adjust');
+      const ppInput = document.getElementById('input-session-pp-adjust');
 
       if (dateInput) dateInput.value = now.toLocaleDateString();
       if (timeInput) timeInput.value = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
       if (titleInput) titleInput.value = `Session of ${now.toLocaleDateString()}`;
       if (notesInput) notesInput.value = '';
+      if (hpInput) hpInput.value = '0';
+      if (ppInput) ppInput.value = '0';
+      updateSessionAdjustDisplays();
 
       this.openModal('modal-log-session');
       setTimeout(() => titleInput?.focus(), 50);
@@ -2005,30 +2100,77 @@ class AppController {
       const date = (document.getElementById('input-session-date')?.value || new Date().toLocaleDateString()).trim();
       const time = (document.getElementById('input-session-time')?.value || new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })).trim();
       const notes = (document.getElementById('input-session-notes')?.value || '').trim();
+      const hpAdj = parseInt(document.getElementById('input-session-hp-adjust')?.value, 10) || 0;
+      const ppAdj = parseInt(document.getElementById('input-session-pp-adjust')?.value, 10) || 0;
+
+      const oldHP = this.char.heroPoints ?? 1;
+      const oldPP = this.char.powerPointsBudget ?? ((this.char.powerLevel || 10) * 15);
+      const oldPL = this.char.powerLevel || 10;
 
       if (!this.char.historyLog) this.char.historyLog = [];
+
+      let plIncreased = false;
+      let newPotentialPL = oldPL;
 
       if (this.editingSessionId) {
         const item = this.char.historyLog.find(s => s.id === this.editingSessionId);
         if (item) {
+          const deltaHP = hpAdj - (item.hpAdjust || 0);
+          const deltaPP = ppAdj - (item.ppAdjust || 0);
           item.title = title;
           item.date = date;
           item.time = time;
           item.notes = notes;
+          item.hpAdjust = hpAdj;
+          item.ppAdjust = ppAdj;
+          if (deltaHP !== 0) this.char.heroPoints = Math.max(0, (this.char.heroPoints ?? 1) + deltaHP);
+          if (deltaPP !== 0) {
+            this.char.powerPointsBudget = Math.max(0, (this.char.powerPointsBudget ?? (oldPL * 15)) + deltaPP);
+            newPotentialPL = Math.floor(this.char.powerPointsBudget / 15);
+            if (deltaPP > 0 && newPotentialPL > oldPL) plIncreased = true;
+          }
+          item.characterHP = this.char.heroPoints;
+          item.characterPP = this.char.powerPointsBudget;
         }
       } else {
+        const newHP = Math.max(0, oldHP + hpAdj);
+        const newPP = Math.max(0, oldPP + ppAdj);
+        this.char.heroPoints = newHP;
+        this.char.powerPointsBudget = newPP;
+
+        newPotentialPL = Math.floor(newPP / 15);
+        if (ppAdj > 0 && newPotentialPL > oldPL) {
+          plIncreased = true;
+        }
+
+        const characterSnapshot = JSON.parse(JSON.stringify(this.char));
+        delete characterSnapshot.historyLog;
+
         this.char.historyLog.unshift({
           id: 'sess_' + Date.now(),
           date,
           time,
           title,
-          notes
+          notes,
+          hpAdjust: hpAdj,
+          ppAdjust: ppAdj,
+          characterHP: newHP,
+          characterPP: newPP,
+          characterSnapshot
         });
       }
 
       this.saveAndAudit();
       this.renderHistoryTab();
+      this.renderHeaderStatus();
       this.closeModal('modal-log-session');
+
+      if (plIncreased) {
+        await this.showAlertDialog(
+          `🎉 **Power Level Advancement Available!**\n\nYour character has accumulated **${this.char.powerPointsBudget} Power Points**, reaching the advancement threshold for **PL ${newPotentialPL}** (requires ${newPotentialPL * 15} PP; previously PL ${oldPL}).\n\nYou may increase your Power Level in the header stepper if your Gamemaster approves!`,
+          { title: 'Power Level Advancement Available' }
+        );
+      }
     });
   }
 
@@ -5325,12 +5467,49 @@ class AppController {
           <strong style="color: var(--hero-cyan); font-size: var(--font-size-sm);">${sess.title}</strong>
           <span style="font-size: var(--font-size-xs); color: var(--text-muted); font-weight: 600;">${sess.date} • ${sess.time}</span>
         </div>
+        ${(sess.characterHP !== undefined || sess.characterPP !== undefined) ? `
+        <div style="display: flex; gap: 0.5rem; align-items: center; margin-bottom: 0.4rem;">
+          <span style="display: inline-block; background: rgba(255, 180, 0, 0.15); border: 1px solid var(--hero-gold); color: var(--hero-gold); font-size: 0.72rem; font-weight: 700; padding: 0.1rem 0.4rem; border-radius: 4px;">HP: ${sess.characterHP ?? '—'}${sess.hpAdjust ? ` (${sess.hpAdjust > 0 ? '+' : ''}${sess.hpAdjust})` : ''}</span>
+          <span style="display: inline-block; background: rgba(56, 189, 248, 0.15); border: 1px solid var(--hero-cyan); color: var(--hero-cyan); font-size: 0.72rem; font-weight: 700; padding: 0.1rem 0.4rem; border-radius: 4px;">PP: ${sess.characterPP ?? '—'}${sess.ppAdjust ? ` (${sess.ppAdjust > 0 ? '+' : ''}${sess.ppAdjust})` : ''}</span>
+          ${sess.characterSnapshot ? '<span style="font-size: 0.7rem; color: var(--hero-green); font-weight: 600;">🔒 Backup Saved</span>' : ''}
+        </div>` : ''}
         <div style="font-size: var(--font-size-xs); color: var(--text-bright); line-height: 1.45; white-space: pre-line;">${sess.notes || '<span style="color: var(--text-muted); font-style: italic;">No session notes recorded.</span>'}</div>
-        <div style="display: flex; justify-content: flex-end; gap: 0.4rem; margin-top: 0.5rem; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 0.4rem;">
+        <div style="display: flex; justify-content: flex-end; gap: 0.4rem; margin-top: 0.5rem; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 0.4rem; flex-wrap: wrap;">
+          <button class="btn btn-outline btn-export-session" title="Export character state as saved in this session" style="min-height: 28px; padding: 0.2rem 0.6rem; font-size: var(--font-size-sm);">💾 Export Backup</button>
+          ${sess.characterSnapshot ? '<button class="btn btn-warning btn-restore-session" title="Roll back character to state saved in this session" style="min-height: 28px; padding: 0.2rem 0.6rem; font-size: var(--font-size-sm); color: #000; font-weight: 700;">⏪ Restore</button>' : ''}
           <button class="btn btn-outline btn-edit-session" style="min-height: 28px; padding: 0.2rem 0.6rem; font-size: var(--font-size-sm);">✏️ Edit</button>
           <button class="btn btn-danger btn-delete-session" style="min-height: 28px; padding: 0.2rem 0.6rem; font-size: var(--font-size-sm);">🗑️ Delete</button>
         </div>
       `;
+
+      entry.querySelector('.btn-export-session')?.addEventListener('click', () => {
+        const snapshot = sess.characterSnapshot || this.char;
+        this.exportCharacterSnapshot(snapshot, sess.title, sess.date);
+      });
+
+      entry.querySelector('.btn-restore-session')?.addEventListener('click', async () => {
+        if (!sess.characterSnapshot) {
+          await this.showAlertDialog('No character backup was found for this session entry.', { title: 'Restore Error' });
+          return;
+        }
+        const confirmed = await this.showConfirmDialog(
+          `Roll back "${this.char.name || 'Hero'}" to the state saved in session "${sess.title}" (${sess.date})?\n\nThis will restore your abilities, powers, skills, advantages, defenses, and HP/PP (${sess.characterHP ?? '—'} HP, ${sess.characterPP ?? '—'} PP) to the snapshot taken during that session.\n\nCurrent unsaved character stats will be overwritten.`,
+          {
+            title: 'Restore Character State',
+            confirmText: 'Restore Backup',
+            confirmClass: 'btn-warning'
+          }
+        );
+        if (confirmed) {
+          const currentLogs = this.char.historyLog || [];
+          const restored = JSON.parse(JSON.stringify(sess.characterSnapshot));
+          restored.historyLog = currentLogs;
+          this.char = restored;
+          this.saveAndAudit();
+          this.loadCharacterToUI();
+          await this.showAlertDialog(`Character successfully rolled back to state from session "${sess.title}"!`, { title: 'Restore Complete' });
+        }
+      });
 
       entry.querySelector('.btn-edit-session')?.addEventListener('click', () => {
         this.editingSessionId = sess.id;
@@ -5341,20 +5520,33 @@ class AppController {
         const timeInput = document.getElementById('input-session-time');
         const titleInput = document.getElementById('input-session-title');
         const notesInput = document.getElementById('input-session-notes');
+        const hpInput = document.getElementById('input-session-hp-adjust');
+        const ppInput = document.getElementById('input-session-pp-adjust');
 
         if (dateInput) dateInput.value = sess.date;
         if (timeInput) timeInput.value = sess.time;
         if (titleInput) titleInput.value = sess.title;
         if (notesInput) notesInput.value = sess.notes || '';
+        if (hpInput) hpInput.value = (sess.hpAdjust || 0).toString();
+        if (ppInput) ppInput.value = (sess.ppAdjust || 0).toString();
+
+        const hpDisp = document.getElementById('session-hp-current-display');
+        const ppDisp = document.getElementById('session-pp-current-display');
+        const curHP = this.char.heroPoints ?? 1;
+        const curPP = this.char.powerPointsBudget ?? ((this.char.powerLevel || 10) * 15);
+        if (hpDisp) hpDisp.textContent = `Current: ${curHP}`;
+        if (ppDisp) ppDisp.textContent = `Current: ${curPP}`;
 
         this.openModal('modal-log-session');
         setTimeout(() => titleInput?.focus(), 50);
       });
 
       entry.querySelector('.btn-delete-session')?.addEventListener('click', async () => {
-        const confirmed = await this.showConfirmDialog(`Delete session "${sess.title}"?`, {
+        const hasBackup = !!sess.characterSnapshot;
+        const backupWarning = hasBackup ? '\n\n⚠️ WARNING: This session contains a saved character backup. Deleting this log entry will permanently delete this backup and cannot be undone!' : '';
+        const confirmed = await this.showConfirmDialog(`Delete session "${sess.title}"?${backupWarning}`, {
           title: 'Delete Session Entry',
-          confirmText: 'Delete',
+          confirmText: 'Delete Entry & Backup',
           confirmClass: 'btn-danger'
         });
         if (confirmed) {
@@ -5366,6 +5558,37 @@ class AppController {
 
       list.appendChild(entry);
     });
+  }
+
+  exportCharacterSnapshot(snapshot, sessionTitle, sessionDate) {
+    if (!snapshot) return;
+    const targetChar = JSON.parse(JSON.stringify(snapshot));
+    const cleanCharName = (targetChar.name || 'Hero').trim().replace(/[^a-zA-Z0-9_\- ]/g, '');
+    const cleanDate = (sessionDate || '').replace(/[^a-zA-Z0-9_\-]/g, '_');
+    const filename = `${cleanCharName}_Session_${cleanDate || Date.now()}.mm3`;
+
+    const payload = {
+      format: 'MM3',
+      schemaVersion: '3.0',
+      exportedAt: new Date().toISOString(),
+      sessionBackup: {
+        title: sessionTitle || 'Session',
+        date: sessionDate || ''
+      },
+      character: targetChar
+    };
+    const jsonStr = JSON.stringify(payload, null, 2);
+    if (typeof Blob !== 'undefined' && typeof URL !== 'undefined' && typeof document !== 'undefined') {
+      const blob = new Blob([jsonStr], { type: 'application/x-mm3' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
   }
 
   openModal(id) {

@@ -4,31 +4,31 @@ import { POWER_EFFECTS_CATALOG, EXTRAS_CATALOG, isModifierLegalForEffect, valida
 
 console.log('=== Running v3.30 Requirements Test Suite ===\n');
 
-// 1. Version Check: 3.30 across files
+// 1. Version Check: >= 3.30 across files
 const versionJson = JSON.parse(fs.readFileSync('version.json', 'utf8'));
-if (versionJson.version !== '3.30') {
-  throw new Error(`Expected version.json to be 3.30, got ${versionJson.version}`);
+if (parseFloat(versionJson.version) < 3.30) {
+  throw new Error(`Expected version.json to be >= 3.30, got ${versionJson.version}`);
 }
 
 const indexHtml = fs.readFileSync('index.html', 'utf8');
-if (!indexHtml.includes('Character Editor v3.30')) {
-  throw new Error('Expected index.html title to reference Character Editor v3.30');
+if (!indexHtml.includes(`Character Editor v${versionJson.version}`)) {
+  throw new Error(`Expected index.html title to reference Character Editor v${versionJson.version}`);
 }
-if (!indexHtml.includes('css/styles.css?v=3.30')) {
-  throw new Error('Expected styles.css query param to be v3.30');
+if (!indexHtml.includes(`css/styles.css?v=${versionJson.version}`)) {
+  throw new Error(`Expected styles.css query param to be v${versionJson.version}`);
 }
-if (!indexHtml.includes('js/app.js?v=3.30')) {
-  throw new Error('Expected app.js script query param to be v3.30');
+if (!indexHtml.includes(`js/app.js?v=${versionJson.version}`)) {
+  throw new Error(`Expected app.js script query param to be v${versionJson.version}`);
 }
-if (!indexHtml.includes('>v3.30</span>')) {
-  throw new Error('Expected header version badge to display v3.30');
+if (!indexHtml.includes(`>v${versionJson.version}</span>`)) {
+  throw new Error(`Expected header version badge to display v${versionJson.version}`);
 }
 
 const appJs = fs.readFileSync('js/app.js', 'utf8');
-if (!appJs.includes("CURRENT_VERSION = '3.30'")) {
-  throw new Error('Expected js/app.js to define CURRENT_VERSION = "3.30"');
+if (!appJs.includes(`CURRENT_VERSION = '${versionJson.version}'`)) {
+  throw new Error(`Expected js/app.js to define CURRENT_VERSION = "${versionJson.version}"`);
 }
-console.log('✓ 1. Version 3.30 verified across version.json, index.html, and js/app.js');
+console.log(`✓ 1. Version ${versionJson.version} verified across version.json, index.html, and js/app.js`);
 
 // 2. Split extra legality on Enhanced Trait and Personal effects
 const enhancedTrait = POWER_EFFECTS_CATALOG.find(e => e.id === 'enhanced_trait');

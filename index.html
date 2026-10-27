@@ -6,8 +6,8 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Mutants & Masterminds 3E - Character Editor v3.30</title>
-  <link rel="stylesheet" href="css/styles.css?v=3.30">
+  <title>Mutants & Masterminds 3E - Character Editor v3.31</title>
+  <link rel="stylesheet" href="css/styles.css?v=3.31">
 </head>
 <body>
 
@@ -80,7 +80,7 @@
 
           <div class="brand-title-centered">
             <span>Mutants & Masterminds 3E Character Editor</span>
-            <span id="header-version-tag" class="header-version-tag up-to-date" title="Current Version">v3.30</span>
+            <span id="header-version-tag" class="header-version-tag up-to-date" title="Current Version">v3.31</span>
             <button type="button" id="btn-header-update-alert" class="btn-header-update-alert" title="Check for updates / Update status">!</button>
           </div>
 
@@ -938,6 +938,9 @@
         </div>
 
       </div>
+      <div class="modal-footer-bar">
+        <button class="btn btn-outline" id="btn-close-tables-footer">Close</button>
+      </div>
     </div>
   </div>
 
@@ -1160,6 +1163,26 @@
             <input type="text" id="input-session-time" style="width: 100%; font-size: var(--font-size-xs);">
           </div>
         </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.65rem; background: rgba(0,0,0,0.25); padding: 0.65rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+          <div>
+            <label style="font-size: var(--font-size-xs); font-weight: 700; color: var(--hero-blue); display: block; margin-bottom: 0.35rem;">⚡ HP Adjust</label>
+            <div class="stepper-control" style="width: 100%;">
+              <button type="button" class="btn-stepper compact" id="btn-session-hp-minus">-</button>
+              <input type="number" id="input-session-hp-adjust" value="0" style="width: 52px; text-align: center; font-weight: 800; background: transparent; border: none; color: #fff; font-size: var(--font-size-sm);">
+              <button type="button" class="btn-stepper compact" id="btn-session-hp-plus">+</button>
+            </div>
+            <span style="font-size: 11px; color: var(--text-muted); display: block; margin-top: 0.25rem;">Current: <strong id="session-hp-current-display" style="color: #fff;">1</strong> HP</span>
+          </div>
+          <div>
+            <label style="font-size: var(--font-size-xs); font-weight: 700; color: var(--hero-gold); display: block; margin-bottom: 0.35rem;">⭐ PP Adjust</label>
+            <div class="stepper-control" style="width: 100%;">
+              <button type="button" class="btn-stepper compact" id="btn-session-pp-minus">-</button>
+              <input type="number" id="input-session-pp-adjust" value="0" style="width: 52px; text-align: center; font-weight: 800; background: transparent; border: none; color: #fff; font-size: var(--font-size-sm);">
+              <button type="button" class="btn-stepper compact" id="btn-session-pp-plus">+</button>
+            </div>
+            <span style="font-size: 11px; color: var(--text-muted); display: block; margin-top: 0.25rem;">Current: <strong id="session-pp-current-display" style="color: var(--hero-gold);">150</strong> PP</span>
+          </div>
+        </div>
         <div>
           <label style="font-size: var(--font-size-xs); font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 0.35rem;">Recap & Campaign Notes</label>
           <textarea id="input-session-notes" rows="4" style="width: 100%; font-size: var(--font-size-xs);" placeholder="What happened in this session, villain encounters, PP awarded, key plot points..."></textarea>
@@ -1232,6 +1255,6 @@
     </div>
   </div>
 
-  <script type="module" src="js/app.js?v=3.30"></script>
+  <script type="module" src="js/app.js?v=3.31"></script>
 </body>
 </html>

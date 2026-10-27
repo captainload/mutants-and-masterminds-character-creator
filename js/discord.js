@@ -256,6 +256,7 @@ export class DiscordIntegrator {
 
     const promises = activeConfigs.map(config => {
       const payload = {
+        content: `⚡ **${characterName || 'Hero'}** expended 1 Hero Point for **${spendType}** (${spendDetails})`,
         username: config.botName || 'M&M 3E Hero Roller',
         avatar_url: config.avatarUrl || undefined,
         embeds: [embed]

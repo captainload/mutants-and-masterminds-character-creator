@@ -1,5 +1,5 @@
 {
-  "version": "3.30",
-  "updatedAt": "2026-10-27T12:25:00Z",
-  "releaseNotes": "Enforced target legality on Split, Triggered, and Reversible extras; forbidden on Personal range effects without Attack or Affects Others."
+  "version": "3.31",
+  "updatedAt": "2026-10-27T13:10:00Z",
+  "releaseNotes": "Echo HP spending to chat, context-aware Spend HP button, session HP/PP adjustments with stepper controls, PL advancement notifications, session character backups with restore and export, and tables close state persistence."
 }

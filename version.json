@@ -1,5 +1,5 @@
 {
-  "version": "3.53",
-  "updatedAt": "2026-10-28T22:47:19.307Z",
-  "releaseNotes": "Arrays: Shifted collapse/dupe/delete buttons upward on the same row as effect name. Moved 'Primary' tag to the stat summary row of primary effect in arrays. Added 'alternate' link on AE stat summary row with 'make primary' dropdown to promote alternate effects with cost limit verification."
+  "version": "3.54",
+  "updatedAt": "2026-10-28T23:34:07.627Z",
+  "releaseNotes": "Arrays: Positioned 'Primary' and 'alternate' tags on the stat summary row below the effect name and action buttons in power and alternate effect headers."
 }

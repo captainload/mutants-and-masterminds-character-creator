@@ -1727,8 +1727,7 @@ button.action-roll-card {
 
 .power-card-header {
   display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
+  flex-direction: column;
   padding: 0.5rem 0.85rem;
   cursor: pointer;
   background: rgba(255, 255, 255, 0.015);
@@ -2069,8 +2068,7 @@ button.action-roll-card {
 
 .power-ae-header {
   display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
+  flex-direction: column;
   padding: 0.55rem 0.75rem;
   background: rgba(0, 0, 0, 0.25);
   transition: background 0.15s ease;
@@ -2859,4 +2857,21 @@ html[data-theme="light"] .power-validation-warning {
   align-items: center;
   gap: 0.35rem;
   flex-shrink: 0;
+}
+
+.power-card-header-top,
+.power-ae-header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.power-card-header-subrow,
+.power-ae-header-subrow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  margin-top: 0.25rem;
 }

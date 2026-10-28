@@ -41,7 +41,7 @@ import {
   tablesManager
 } from './tables.js';
 
-import { POWER_PROFILES_LIBRARY } from './power_profiles.js?v=3.53';
+import { POWER_PROFILES_LIBRARY } from './power_profiles.js?v=3.54';
 import { ARCHETYPES } from './archetypes.js';
 import { archetypeManager } from './archetype_window.js';
 import { ARCHETYPE_CUSTOMIZATION_OPTIONS, buildCustomizedArchetype } from './archetype_builder.js';
@@ -1823,7 +1823,7 @@ class AppController {
   }
 
   async checkForUpdates({ isManual = false } = {}) {
-    const CURRENT_VERSION = '3.53';
+    const CURRENT_VERSION = '3.54';
     const versionEl = document.getElementById('header-version-tag');
     const updateBtn = document.getElementById('btn-header-update-alert');
     if (typeof window === 'undefined' || !window.location || !window.location.href || window.location.href === 'about:blank') return;
@@ -6243,35 +6243,10 @@ class AppController {
     this.showAlertDialog(html, { title: `${eff.name} — Effect Description`, icon: 'ℹ️', isHtml: true });
   }
 
-  renderEffectStatsSummaryBar(targetObj, isArray = false, isPrimary = false, powerContext = null, aeIndex = -1) {
+  renderEffectStatsSummaryBar(targetObj) {
     const stats = computePowerEffectiveStats(targetObj.effect, targetObj.extras || [], targetObj.flaws || [], null, targetObj.rank);
     const row = document.createElement('div');
     row.className = 'power-stats-summary-bar power-effective-stats-bar';
-
-    let rightContent = '';
-    if (isArray) {
-      if (isPrimary) {
-        rightContent = `
-          <div class="stats-summary-right" style="margin-left: auto; display: flex; align-items: center;">
-            <span class="badge-tag tag-primary-effect" style="background: rgba(56, 189, 248, 0.15); border: 1px solid var(--hero-cyan); color: var(--hero-cyan); font-weight: 700; text-transform: uppercase; font-size: var(--font-size-xs);" title="Primary effect of this array">Primary</span>
-          </div>
-        `;
-      } else {
-        rightContent = `
-          <div class="stats-summary-right ae-promote-container" style="margin-left: auto; position: relative; display: inline-flex; align-items: center;">
-            <button type="button" class="btn-ae-promote-link badge-tag" style="background: rgba(59, 130, 246, 0.15); border: 1px solid var(--hero-blue); color: var(--hero-blue); font-weight: 700; cursor: pointer; text-decoration: underline; font-size: var(--font-size-xs); padding: 0.15rem 0.5rem;" title="Click to manage array assignment">
-              alternate ▾
-            </button>
-            <div class="ae-promote-dropdown" style="display: none; position: absolute; right: 0; top: 100%; margin-top: 4px; z-index: 100; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-sm); box-shadow: 0 4px 14px rgba(0,0,0,0.35); padding: 0.35rem; min-width: 140px;">
-              <button type="button" class="btn btn-primary btn-action-make-primary" style="width: 100%; font-size: var(--font-size-xs); font-weight: 700; padding: 0.3rem 0.6rem; min-height: 28px; text-transform: uppercase; white-space: nowrap;">
-                make primary
-              </button>
-            </div>
-          </div>
-        `;
-      }
-    }
-
     row.innerHTML = `
       <div class="stats-summary-left" style="display: flex; gap: 0.65rem; align-items: center; flex-wrap: wrap;">
         <span class="stats-summary-title">Stats:</span>
@@ -6283,30 +6258,7 @@ class AppController {
         <span class="stat-sep">•</span>
         <span class="stat-item effective-stat-chip stat-area"><span class="stat-lbl effective-stat-label">Area:</span> <span class="stat-val effective-stat-val text-gold">${stats.area}</span></span>
       </div>
-      ${rightContent}
     `;
-
-    if (isArray && !isPrimary && powerContext && aeIndex >= 0) {
-      const link = row.querySelector('.btn-ae-promote-link');
-      const dropdown = row.querySelector('.ae-promote-dropdown');
-      const makePrimaryBtn = row.querySelector('.btn-action-make-primary');
-
-      link?.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const isOpen = dropdown.style.display === 'block';
-        document.querySelectorAll('.ae-promote-dropdown').forEach(d => d.style.display = 'none');
-        if (!isOpen) {
-          dropdown.style.display = 'block';
-        }
-      });
-
-      makePrimaryBtn?.addEventListener('click', (e) => {
-        e.stopPropagation();
-        dropdown.style.display = 'none';
-        this.promoteAlternateEffectToPrimary(powerContext, aeIndex);
-      });
-    }
-
     return row;
   }
 
@@ -6799,20 +6751,31 @@ class AppController {
       const header = document.createElement('div');
       header.className = 'power-card-header';
       header.innerHTML = `
-        <div class="power-card-header-left">
-          <span class="power-toggle-icon">${isExpanded ? '▼' : '▶'}</span>
-          <strong class="power-title-name">⚡ ${p.name || 'Unnamed Power'}</strong>
-          <span class="power-title-sep">—</span>
-          <span class="power-title-effect">${p.effect?.name || 'Effect'} Rank ${p.rank || 1}</span>
-          <span class="power-title-details">(${cost} PP • ${effStats.action} • ${effStats.effectiveRange} • ${effStats.effectiveDuration} • ${effStats.area})</span>
-          ${(p.isLinked || p.linkedToId) ? `<span class="badge-tag linked">🔗 Linked</span>` : ''}
-          ${p.linkedEffects?.length ? `<span class="badge-tag linked">${p.linkedEffects.length} Linked</span>` : ''}
-          ${!valResult.valid ? '<span class="badge-tag conflict" title="Rule conflicts detected">⚠️ Conflict</span>' : ''}
+        <div class="power-card-header-top" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+          <div style="display: flex; align-items: center; gap: 0.55rem; flex-wrap: wrap;">
+            <span class="power-toggle-icon">${isExpanded ? '▲' : '▶'}</span>
+            <strong class="power-title-name">⚡ ${p.name || 'Unnamed Power'}</strong>
+            <span class="power-title-sep">—</span>
+            <span class="power-title-effect">${p.effect?.name || 'Effect'} Rank ${p.rank || 1}</span>
+          </div>
+          <div class="power-card-header-actions" style="display: flex; gap: 0.35rem; align-items: center; margin-left: 0.5rem; flex-shrink: 0;">
+            <button class="btn btn-outline btn-toggle-power-expand" style="min-height: 32px; padding: 0.2rem 0.65rem; font-size: var(--font-size-base); font-weight: 700;">${isExpanded ? '▲ Collapse' : '▼ Configure'}</button>
+            <button class="btn btn-outline btn-duplicate-power" data-p-id="${p.id}" title="Duplicate Power" style="min-height: 32px; padding: 0.2rem 0.65rem; font-size: var(--font-size-base); font-weight: 700;">📋 Duplicate</button>
+            <button class="btn btn-outline btn-delete-power" data-p-id="${p.id}" title="Delete Power" style="min-height: 32px; padding: 0.2rem 0.65rem; font-size: var(--font-size-base); font-weight: 700;">🗑️ Delete</button>
+          </div>
         </div>
-        <div class="power-card-header-actions">
-          <button class="btn btn-outline btn-toggle-power-expand" style="min-height: 32px; padding: 0.2rem 0.65rem; font-size: var(--font-size-base); font-weight: 700;">${isExpanded ? '▲ Collapse' : '▼ Configure'}</button>
-          <button class="btn btn-outline btn-duplicate-power" data-p-id="${p.id}" title="Duplicate Power" style="min-height: 32px; padding: 0.2rem 0.65rem; font-size: var(--font-size-base); font-weight: 700;">📋 Duplicate</button>
-          <button class="btn btn-outline btn-delete-power" data-p-id="${p.id}" title="Delete Power" style="min-height: 32px; padding: 0.2rem 0.65rem; font-size: var(--font-size-base); font-weight: 700;">🗑️ Delete</button>
+        <div class="power-card-header-subrow" style="display: flex; justify-content: space-between; align-items: center; width: 100%; margin-top: 0.25rem;">
+          <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+            <span class="power-title-details">(${cost} PP • ${effStats.action} • ${effStats.effectiveRange} • ${effStats.effectiveDuration} • ${effStats.area})</span>
+            ${(p.isLinked || p.linkedToId) ? `<span class="badge-tag linked">🔗 Linked</span>` : ''}
+            ${p.linkedEffects?.length ? `<span class="badge-tag linked">${p.linkedEffects.length} Linked</span>` : ''}
+            ${!valResult.valid ? '<span class="badge-tag conflict" title="Rule conflicts detected">⚠️ Conflict</span>' : ''}
+          </div>
+          <div class="stats-summary-right" style="margin-left: auto; display: flex; align-items: center;">
+            ${(p.alternateEffects && p.alternateEffects.length > 0) ? `
+              <span class="badge-tag tag-primary-effect" style="background: rgba(56, 189, 248, 0.15); border: 1px solid var(--hero-cyan); color: var(--hero-cyan); font-weight: 700; text-transform: uppercase; font-size: var(--font-size-xs);" title="Primary effect of this array">Primary</span>
+            ` : ''}
+          </div>
         </div>
       `;
 
@@ -7075,8 +7038,7 @@ class AppController {
         mainBlock.appendChild(row1);
 
         // Row 2: Final Effect Stats Summary Bar (Action, Range with measurement, Duration, Area)
-        const isArray = Boolean(p.alternateEffects && p.alternateEffects.length > 0);
-        const row2 = this.renderEffectStatsSummaryBar(p, isArray, true, p, -1);
+        const row2 = this.renderEffectStatsSummaryBar(p);
         mainBlock.appendChild(row2);
 
         // Power Effect Specific Configuration (Affliction, Immunity, Senses, Weaken, Nullify)
@@ -7166,24 +7128,59 @@ class AppController {
             aeCard.className = `power-ae-card power-ae-unified ${isAeExpanded ? 'expanded' : 'collapsed'}`;
 
             // Collapsible AE Header
+            const aeEffStats = computePowerEffectiveStats(ae.effect, ae.extras || [], ae.flaws || [], null, ae.rank);
             const aeHeader = document.createElement('div');
             aeHeader.className = 'power-ae-header';
             aeHeader.style.cursor = 'pointer';
             aeHeader.innerHTML = `
-              <div style="display: flex; align-items: center; gap: 0.55rem; flex-wrap: wrap; flex: 1;">
-                <span class="ae-toggle-icon" style="font-size: var(--font-size-sm); color: var(--hero-blue); line-height: 1;">${isAeExpanded ? '▼' : '▶'}</span>
-                <strong class="power-title-name">⚡ ${ae.name || 'Unnamed Effect'}</strong>
-                <span class="power-title-sep">—</span>
-                <span class="power-title-effect">${ae.effect?.name || 'Effect'} Rank ${ae.rank || 1}</span>
-                <span class="power-title-details">(${aeSlotCost} PP)</span>
+              <div class="power-ae-header-top" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                <div style="display: flex; align-items: center; gap: 0.55rem; flex-wrap: wrap;">
+                  <span class="ae-toggle-icon" style="font-size: var(--font-size-sm); color: var(--hero-blue); line-height: 1;">${isAeExpanded ? '▲' : '▼'}</span>
+                  <strong class="power-title-name">⚡ ${ae.name || 'Unnamed Effect'}</strong>
+                  <span class="power-title-sep">—</span>
+                  <span class="power-title-effect">${ae.effect?.name || 'Effect'} Rank ${ae.rank || 1}</span>
+                </div>
+                <div style="display: flex; gap: 0.45rem; align-items: center; margin-left: 0.5rem; flex-shrink: 0;">
+                  <button type="button" class="btn btn-outline btn-toggle-ae" style="padding: 0.2rem 0.65rem; min-height: 32px; font-size: var(--font-size-sm); color: var(--hero-blue); border-color: var(--hero-blue);">
+                    ${isAeExpanded ? '▲ Collapse' : '▼ Configure'}
+                  </button>
+                  <button type="button" class="btn btn-outline btn-delete-ae" style="padding: 0.2rem 0.65rem; min-height: 32px; font-size: var(--font-size-sm);" title="Remove this alternate effect">🗑️</button>
+                </div>
               </div>
-              <div style="display: flex; gap: 0.45rem; align-items: center;">
-                <button type="button" class="btn btn-outline btn-toggle-ae" style="padding: 0.2rem 0.65rem; min-height: 32px; font-size: var(--font-size-sm); color: var(--hero-blue); border-color: var(--hero-blue);">
-                  ${isAeExpanded ? '▲ Collapse' : '▼ Configure'}
-                </button>
-                <button type="button" class="btn btn-outline btn-delete-ae" style="padding: 0.2rem 0.65rem; min-height: 32px; font-size: var(--font-size-sm);" title="Remove this alternate effect">🗑️</button>
+              <div class="power-ae-header-subrow" style="display: flex; justify-content: space-between; align-items: center; width: 100%; margin-top: 0.25rem;">
+                <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+                  <span class="power-title-details">(${aeSlotCost} PP • ${aeEffStats.action} • ${aeEffStats.effectiveRange} • ${aeEffStats.effectiveDuration} • ${aeEffStats.area})</span>
+                </div>
+                <div class="stats-summary-right ae-promote-container" style="margin-left: auto; position: relative; display: inline-flex; align-items: center;">
+                  <button type="button" class="btn-ae-promote-link badge-tag" style="background: rgba(59, 130, 246, 0.15); border: 1px solid var(--hero-blue); color: var(--hero-blue); font-weight: 700; cursor: pointer; text-decoration: underline; font-size: var(--font-size-xs); padding: 0.15rem 0.5rem;" title="Click to manage array assignment">
+                    alternate ▾
+                  </button>
+                  <div class="ae-promote-dropdown" style="display: none; position: absolute; right: 0; top: 100%; margin-top: 4px; z-index: 100; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-sm); box-shadow: 0 4px 14px rgba(0,0,0,0.35); padding: 0.35rem; min-width: 140px;">
+                    <button type="button" class="btn btn-primary btn-action-make-primary" style="width: 100%; font-size: var(--font-size-xs); font-weight: 700; padding: 0.3rem 0.6rem; min-height: 28px; text-transform: uppercase; white-space: nowrap;">
+                      make primary
+                    </button>
+                  </div>
+                </div>
               </div>
             `;
+
+            // AE Promote Dropdown Event Listeners
+            const aePromoteLink = aeHeader.querySelector('.btn-ae-promote-link');
+            const aePromoteDropdown = aeHeader.querySelector('.ae-promote-dropdown');
+            const aeMakePrimaryBtn = aeHeader.querySelector('.btn-action-make-primary');
+
+            aePromoteLink?.addEventListener('click', (e) => {
+              e.stopPropagation();
+              const isOpen = aePromoteDropdown.style.display === 'block';
+              document.querySelectorAll('.ae-promote-dropdown').forEach(d => d.style.display = 'none');
+              aePromoteDropdown.style.display = isOpen ? 'none' : 'block';
+            });
+
+            aeMakePrimaryBtn?.addEventListener('click', (e) => {
+              e.stopPropagation();
+              aePromoteDropdown.style.display = 'none';
+              this.promoteAlternateEffectToPrimary(p, aeIdx);
+            });
 
             aeHeader.addEventListener('click', (e) => {
               if (e.target.closest('.btn-delete-ae')) return;
@@ -7431,7 +7428,7 @@ class AppController {
             aeBody.appendChild(aeRow1);
 
             // Row 2 for AE: Stats Summary Bar
-            const aeStatsBar = this.renderEffectStatsSummaryBar(ae, true, false, p, aeIdx);
+            const aeStatsBar = this.renderEffectStatsSummaryBar(ae);
             aeBody.appendChild(aeStatsBar);
 
             // Effect Config Section for AE (Affliction, Immunity, Senses, Weaken, Nullify)
@@ -7968,4 +7965,10 @@ if (typeof document !== 'undefined') {
   } else {
     window.app = new AppController();
   }
+}
+
+if (typeof window !== 'undefined') {
+  window.addEventListener('click', () => {
+    document.querySelectorAll('.ae-promote-dropdown').forEach(d => d.style.display = 'none');
+  });
 }

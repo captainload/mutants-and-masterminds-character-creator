@@ -1,5 +1,5 @@
 {
-  "version": "3.54",
-  "updatedAt": "2026-10-28T23:34:07.627Z",
-  "releaseNotes": "Arrays: Positioned 'Primary' and 'alternate' tags on the stat summary row below the effect name and action buttons in power and alternate effect headers."
+  "version": "3.55",
+  "updatedAt": "2026-10-28T23:52:00.000Z",
+  "releaseNotes": "Aligned Alternate Effect (AE) delete button styling, text, and sizing to match the Primary Effect (PE) delete button."
 }

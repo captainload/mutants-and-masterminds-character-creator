@@ -41,7 +41,7 @@ import {
   tablesManager
 } from './tables.js';
 
-import { POWER_PROFILES_LIBRARY } from './power_profiles.js?v=3.54';
+import { POWER_PROFILES_LIBRARY } from './power_profiles.js?v=3.55';
 import { ARCHETYPES } from './archetypes.js';
 import { archetypeManager } from './archetype_window.js';
 import { ARCHETYPE_CUSTOMIZATION_OPTIONS, buildCustomizedArchetype } from './archetype_builder.js';
@@ -1823,7 +1823,7 @@ class AppController {
   }
 
   async checkForUpdates({ isManual = false } = {}) {
-    const CURRENT_VERSION = '3.54';
+    const CURRENT_VERSION = '3.55';
     const versionEl = document.getElementById('header-version-tag');
     const updateBtn = document.getElementById('btn-header-update-alert');
     if (typeof window === 'undefined' || !window.location || !window.location.href || window.location.href === 'about:blank') return;
@@ -7140,11 +7140,11 @@ class AppController {
                   <span class="power-title-sep">—</span>
                   <span class="power-title-effect">${ae.effect?.name || 'Effect'} Rank ${ae.rank || 1}</span>
                 </div>
-                <div style="display: flex; gap: 0.45rem; align-items: center; margin-left: 0.5rem; flex-shrink: 0;">
-                  <button type="button" class="btn btn-outline btn-toggle-ae" style="padding: 0.2rem 0.65rem; min-height: 32px; font-size: var(--font-size-sm); color: var(--hero-blue); border-color: var(--hero-blue);">
+                <div class="power-card-header-actions" style="display: flex; gap: 0.35rem; align-items: center; margin-left: 0.5rem; flex-shrink: 0;">
+                  <button type="button" class="btn btn-outline btn-toggle-ae" style="min-height: 32px; padding: 0.2rem 0.65rem; font-size: var(--font-size-base); font-weight: 700; color: var(--hero-blue); border-color: var(--hero-blue);">
                     ${isAeExpanded ? '▲ Collapse' : '▼ Configure'}
                   </button>
-                  <button type="button" class="btn btn-outline btn-delete-ae" style="padding: 0.2rem 0.65rem; min-height: 32px; font-size: var(--font-size-sm);" title="Remove this alternate effect">🗑️</button>
+                  <button type="button" class="btn btn-outline btn-delete-ae" title="Delete Alternate Effect" style="min-height: 32px; padding: 0.2rem 0.65rem; font-size: var(--font-size-base); font-weight: 700;">🗑️ Delete</button>
                 </div>
               </div>
               <div class="power-ae-header-subrow" style="display: flex; justify-content: space-between; align-items: center; width: 100%; margin-top: 0.25rem;">

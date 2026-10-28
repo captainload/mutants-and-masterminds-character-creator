@@ -1,5 +1,5 @@
 {
-  "version": "3.38",
-  "updatedAt": "2026-10-28T02:46:00.000Z",
-  "releaseNotes": "Changed the Alt Characters button from purple to blue. Added a light theme relying on off-white, light tan, and beige coloration with a theme picker in Settings."
+  "version": "3.39",
+  "updatedAt": "2026-10-28T03:07:00.000Z",
+  "releaseNotes": "Enlarged alt character count badge on the Alt Characters button with a square background. Made Edit Abilities & Defenses popup taller and enabled Row 2 (defenses) wrapping so cards do not exceed the right margin."
 }

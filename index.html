@@ -6,8 +6,8 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Mutants & Masterminds 3E - Character Editor v3.38</title>
-  <link rel="stylesheet" href="css/styles.css?v=3.38">
+  <title>Mutants & Masterminds 3E - Character Editor v3.39</title>
+  <link rel="stylesheet" href="css/styles.css?v=3.39">
 </head>
 <body>
 
@@ -80,7 +80,7 @@
 
           <div class="brand-title-centered">
             <span>Mutants & Masterminds 3E Character Editor</span>
-            <span id="header-version-tag" class="header-version-tag up-to-date" title="Current Version">v3.38</span>
+            <span id="header-version-tag" class="header-version-tag up-to-date" title="Current Version">v3.39</span>
             <button type="button" id="btn-header-update-alert" class="btn-header-update-alert" title="Check for updates / Update status">!</button>
           </div>
 
@@ -100,7 +100,7 @@
           </div>
 
           <button type="button" class="btn btn-outline" id="btn-open-alts" title="Manage alternate forms, minions, and sidekicks" style="padding: 0.2rem 0.75rem; min-height: 38px; font-size: var(--font-size-xs); font-weight: 700; white-space: nowrap; color: var(--hero-blue); border-color: var(--hero-blue); display: inline-flex; align-items: center; gap: 0.35rem;">
-            👥 Alt Characters <span id="header-alts-count-badge" class="badge-tag" style="display:none; font-size:10px; padding:1px 5px; margin-left:2px; background:var(--hero-blue); color:#fff; border-radius:10px;">0</span>
+            👥 Alt Characters <span id="header-alts-count-badge" style="display:none; min-width: 22px; height: 22px; font-size: 13px; font-weight: 900; padding: 0 4px; margin-left: 0.4rem; background: var(--hero-blue); color: #fff; border-radius: 0; line-height: 22px; text-align: center; box-sizing: border-box;">0</span>
           </button>
 
           <div class="header-field" id="header-campaign-box">
@@ -1120,7 +1120,7 @@
   <!-- MODAL: EDIT ABILITIES & DEFENSES                        -->
   <!-- ======================================================= -->
   <div class="modal-overlay" id="modal-abilities-defenses">
-    <div class="modal-container" style="max-width: 1100px; width: 95vw; max-height: 92vh;">
+    <div class="modal-container" style="max-width: 1180px; width: 96vw; height: 92vh; max-height: 94vh; display: flex; flex-direction: column;">
       <div class="modal-header-bar">
         <div class="modal-header-title" style="display: flex; align-items: center; gap: 0.5rem;">
           <span>🛡️</span> Edit Abilities & Defenses
@@ -1131,7 +1131,7 @@
           <button class="btn btn-outline" id="btn-close-abilities-dialog" style="min-height: 28px; padding: 0.1rem 0.5rem;">✕</button>
         </div>
       </div>
-      <div class="modal-scroll-body" style="padding: 1rem; display: flex; flex-direction: column; gap: 0.85rem;">
+      <div class="modal-scroll-body" style="padding: 1rem; display: flex; flex-direction: column; gap: 0.85rem; flex: 1; overflow-y: auto;">
         
         <!-- Row 1: Abilities (8 Columns) -->
         <div class="card-box" style="margin-bottom: 0; padding: 0.75rem 0.95rem;">
@@ -1139,7 +1139,7 @@
             <div class="card-box-title">🧬 Row 1: Abilities (2 PP per Rank)</div>
             <span style="font-size: var(--font-size-xs); color: var(--text-muted);">8 Core Attributes • Base for skills and defenses</span>
           </div>
-          <div id="abilities-stepper-grid" style="display: grid; grid-template-columns: repeat(8, 1fr); gap: 0.45rem;">
+          <div id="abilities-stepper-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(115px, 1fr)); gap: 0.45rem;">
             <!-- Populated via JS -->
           </div>
         </div>
@@ -1150,7 +1150,7 @@
             <div class="card-box-title">🛡️ Row 2: Defenses & Resistance Checks (1 PP per Rank)</div>
             <span style="font-size: var(--font-size-xs); color: var(--text-muted);">5 Resistance Modes • Point-bought ranks add directly to ability base</span>
           </div>
-          <div id="defenses-stepper-grid" style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.65rem;">
+          <div id="defenses-stepper-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 0.65rem;">
             <!-- Populated via JS -->
           </div>
         </div>
@@ -1388,6 +1388,6 @@
     </div>
   </div>
 
-  <script type="module" src="js/app.js?v=3.38"></script>
+  <script type="module" src="js/app.js?v=3.39"></script>
 </body>
 </html>

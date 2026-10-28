@@ -1693,7 +1693,7 @@ class AppController {
   }
 
   async checkForUpdates({ isManual = false } = {}) {
-    const CURRENT_VERSION = '3.38';
+    const CURRENT_VERSION = '3.39';
     const versionEl = document.getElementById('header-version-tag');
     const updateBtn = document.getElementById('btn-header-update-alert');
     if (typeof window === 'undefined' || !window.location || !window.location.href || window.location.href === 'about:blank') return;
@@ -3577,7 +3577,7 @@ class AppController {
     if (altsCountBadge) {
       if (altsList.length > 0) {
         altsCountBadge.textContent = altsList.length;
-        altsCountBadge.style.display = 'inline-block';
+        altsCountBadge.style.display = 'inline-flex';
       } else {
         altsCountBadge.style.display = 'none';
       }
@@ -4168,6 +4168,7 @@ class AppController {
         justify-content: space-between;
         gap: 0.4rem;
         box-sizing: border-box;
+        min-width: 0;
       `;
 
       if (def.id === 'toughness') {

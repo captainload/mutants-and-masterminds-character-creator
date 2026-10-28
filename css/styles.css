@@ -1560,11 +1560,13 @@ button.action-save-card:active {
   box-shadow: 0 2px 6px rgba(239, 68, 68, 0.4);
 }
 
-@media (max-width: 850px) {
-  #action-abilities-grid,
-  #abilities-stepper-grid {
-    grid-template-columns: repeat(4, 1fr) !important;
-  }
+/* Proportional row columns default / base styling */
+.ability-stepper-card-compact,
+.defense-stepper-card-compact,
+button.action-roll-card {
+  min-width: 0;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 /* Movement Speeds & Tertiary Badges */
@@ -2147,21 +2149,64 @@ button.action-save-card:active {
   flex-direction: column;
 }
 
-#defenses-stepper-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)) !important;
-  gap: 0.65rem;
-}
-
-.defense-stepper-card-compact {
-  min-width: 0;
-  box-sizing: border-box;
-}
-
+/* =====================================================================
+   PROPORTIONAL COLUMN WIDENING (DESKTOP & LANDSCAPE TABLETS)
+   Allows row columns (Abilities 8-col, Defenses 5-col, Action Center,
+   PL caps) to widen proportionally across wider displays rather than
+   wrapping prematurely.
+   ===================================================================== */
 #abilities-stepper-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(115px, 1fr)) !important;
-  gap: 0.45rem;
+  grid-template-columns: repeat(auto-fit, minmax(115px, 1fr));
+  gap: 0.5rem;
+  width: 100%;
+}
+
+#defenses-stepper-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 0.65rem;
+  width: 100%;
+}
+
+@media (min-width: 768px) {
+  #abilities-stepper-grid {
+    grid-template-columns: repeat(8, minmax(0, 1fr)) !important;
+  }
+  #defenses-stepper-grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+  }
+  #action-abilities-grid {
+    grid-template-columns: repeat(8, minmax(0, 1fr)) !important;
+  }
+  #action-defenses-grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+  }
+  #pl-caps-report {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (max-width: 767px) and (min-width: 480px) {
+  #abilities-stepper-grid,
+  #action-abilities-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  }
+  #defenses-stepper-grid,
+  #action-defenses-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (max-width: 479px) {
+  #abilities-stepper-grid,
+  #action-abilities-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+  #defenses-stepper-grid,
+  #action-defenses-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
 }
 
 /* =====================================================================
@@ -2259,13 +2304,90 @@ html[data-theme="light"] .card-box {
   border: 1px solid var(--border-color);
 }
 
-html[data-theme="light"] .btn-stepper {
-  background-color: #e4dacf;
+/* Action Center Roll Cards & Stat Buttons in Light Theme */
+html[data-theme="light"] button.action-roll-card {
+  background: linear-gradient(180deg, #ffffff 0%, #f7f1e7 100%) !important;
+  border-color: var(--border-color) !important;
+  color: var(--text-main) !important;
+  box-shadow: 0 1px 3px rgba(45, 38, 30, 0.08) !important;
+}
+
+html[data-theme="light"] button.action-ability-card:hover,
+html[data-theme="light"] button.action-save-card:hover {
+  background: linear-gradient(180deg, #ffffff 0%, #ede4d5 100%) !important;
+  border-color: var(--hero-blue) !important;
+  box-shadow: 0 3px 8px rgba(45, 38, 30, 0.12) !important;
+}
+
+html[data-theme="light"] button.action-roll-card strong {
   color: var(--text-bright);
 }
 
-html[data-theme="light"] .btn-stepper:hover {
-  background-color: #d6ccbf;
+/* Dice Roller Bar & Result Badge in Light Theme */
+html[data-theme="light"] .dice-roller-bar {
+  background: linear-gradient(135deg, #ede5d8 0%, #e2d9cb 100%) !important;
+  border-color: var(--border-color) !important;
+  box-shadow: 0 2px 6px rgba(45, 38, 30, 0.08) !important;
+}
+
+html[data-theme="light"] #action-dice-result {
+  background: #ffffff !important;
+  color: var(--text-main) !important;
+  border-color: var(--border-color) !important;
+}
+
+html[data-theme="light"] #btn-toggle-dice-history {
+  background: #e5dcce !important;
+  border-color: var(--border-color) !important;
+  color: var(--hero-blue) !important;
+}
+
+html[data-theme="light"] .dice-history-dropdown-panel {
+  background-color: var(--bg-card) !important;
+  border-color: var(--border-color) !important;
+  box-shadow: 0 12px 30px rgba(45, 38, 30, 0.22) !important;
+}
+
+html[data-theme="light"] .dice-history-item:hover {
+  background-color: rgba(0, 0, 0, 0.035) !important;
+}
+
+/* Conditions & Badges in Light Theme */
+html[data-theme="light"] .condition-btn {
+  background-color: #f7f1e7 !important;
+  border-color: var(--border-color) !important;
+  color: var(--text-muted) !important;
+}
+
+html[data-theme="light"] .condition-btn:hover {
+  background-color: #ede4d5 !important;
+  color: var(--text-bright) !important;
+  border-color: var(--hero-cyan) !important;
+}
+
+html[data-theme="light"] .movement-badge {
+  background: #f0e8dc !important;
+  border-color: var(--border-color) !important;
+  color: var(--text-main) !important;
+}
+
+/* Stepper Controls in Light Theme */
+html[data-theme="light"] .stepper-control {
+  background: #e5dcce !important;
+  border: 1px solid var(--border-color) !important;
+}
+
+html[data-theme="light"] .stepper-value {
+  color: var(--text-bright) !important;
+}
+
+html[data-theme="light"] .btn-stepper {
+  background-color: #ded4c5 !important;
+  color: var(--text-bright) !important;
+}
+
+html[data-theme="light"] .btn-stepper:hover:not(:disabled) {
+  background-color: #cfc4b3 !important;
 }
 
 html[data-theme="light"] .btn-outline {
@@ -2277,6 +2399,7 @@ html[data-theme="light"] .btn-outline:hover {
   background-color: rgba(0, 0, 0, 0.04);
 }
 
+/* Tables in Light Theme */
 html[data-theme="light"] .dense-table th {
   background-color: #ede5d8;
   color: var(--text-muted);
@@ -2290,6 +2413,7 @@ html[data-theme="light"] .dense-table tr:hover td {
   background-color: rgba(0, 0, 0, 0.025);
 }
 
+/* Modals & Popups in Light Theme */
 html[data-theme="light"] .modal-overlay {
   background-color: rgba(45, 38, 30, 0.5);
 }
@@ -2301,15 +2425,49 @@ html[data-theme="light"] .help-modal-container {
 }
 
 html[data-theme="light"] .modal-header-bar {
-  background: linear-gradient(180deg, #ede5d8 0%, #e2d9cb 100%);
-  border-bottom: 1px solid var(--border-color);
+  background: linear-gradient(180deg, #ede5d8 0%, #e2d9cb 100%) !important;
+  border-bottom: 1px solid var(--border-color) !important;
+  color: var(--text-bright) !important;
 }
 
 html[data-theme="light"] .modal-footer-bar {
-  background: #ede5d8;
-  border-top: 1px solid var(--border-color);
+  background: #ede5d8 !important;
+  border-top: 1px solid var(--border-color) !important;
 }
 
+html[data-theme="light"] .modal-container > div[style*="background: rgba(30, 41, 59"] {
+  background: #f0e8db !important;
+  border-bottom: 1px solid var(--border-color) !important;
+  color: var(--text-main) !important;
+}
+
+html[data-theme="light"] .modal-scroll-body {
+  background-color: var(--bg-card);
+  color: var(--text-main);
+}
+
+/* Abilities & Defenses Cards in Light Theme */
+html[data-theme="light"] .ability-stepper-card-compact,
+html[data-theme="light"] .defense-stepper-card-compact {
+  background-color: #ffffff !important;
+  border-color: var(--border-color) !important;
+}
+
+html[data-theme="light"] .ability-stepper-card-compact:hover,
+html[data-theme="light"] .defense-stepper-card-compact:hover {
+  background-color: #fdfaf6 !important;
+  border-color: var(--hero-blue) !important;
+}
+
+html[data-theme="light"] .ability-stepper-card-compact [style*="background: rgba(0,0,0"],
+html[data-theme="light"] .defense-stepper-card-compact [style*="background: rgba(0,0,0"],
+html[data-theme="light"] .ability-stepper-card-compact [style*="background: rgba(0, 0, 0"],
+html[data-theme="light"] .defense-stepper-card-compact [style*="background: rgba(0, 0, 0"] {
+  background: #f0e8dc !important;
+  border-color: var(--border-color) !important;
+}
+
+/* Settings Flyout & Menus in Light Theme */
 html[data-theme="light"] .flyout-panel {
   background-color: var(--bg-card);
   border-left: 2px solid var(--border-color);
@@ -2352,6 +2510,28 @@ html[data-theme="light"] textarea {
 html[data-theme="light"] .alt-name-input {
   background: var(--bg-input) !important;
   color: var(--text-bright) !important;
+  border-color: var(--border-color) !important;
+}
+
+html[data-theme="light"] .alt-character-row {
+  background: #f7f1e7 !important;
+  border-color: var(--border-color) !important;
+}
+
+html[data-theme="light"] #modal-alts-manager [style*="background: rgba(0,0,0,0.25)"] {
+  background: #ede5d8 !important;
+  border-color: var(--border-color) !important;
+}
+
+html[data-theme="light"] #discord-config-editor {
+  background-color: #f7f1e7 !important;
+  border-color: var(--border-color) !important;
+}
+
+html[data-theme="light"] #hp-reroll-target-info {
+  background: #f0e8dc !important;
+  border-color: var(--border-color) !important;
+  color: var(--text-main) !important;
 }
 
 html[data-theme="light"] #pointer-rules-popup {
@@ -2361,6 +2541,7 @@ html[data-theme="light"] #pointer-rules-popup {
   box-shadow: 0 8px 24px rgba(45, 38, 30, 0.2);
 }
 
+/* Powers & Profiles in Light Theme */
 html[data-theme="light"] .power-card-collapsible {
   background-color: var(--bg-card);
   border-color: var(--border-color);
@@ -2374,36 +2555,112 @@ html[data-theme="light"] .power-card-header:hover {
   background: rgba(0, 0, 0, 0.04);
 }
 
+html[data-theme="light"] .power-card-body {
+  background: rgba(0, 0, 0, 0.015) !important;
+}
+
+html[data-theme="light"] .power-ae-unified,
+html[data-theme="light"] .power-main-effect-unified {
+  background: #f7f1e7 !important;
+  border-color: var(--border-color) !important;
+}
+
+html[data-theme="light"] .power-ae-header {
+  background: #ede5d8 !important;
+  color: var(--text-bright) !important;
+}
+
+html[data-theme="light"] .power-ae-header:hover {
+  background: #e2d8c9 !important;
+}
+
+html[data-theme="light"] .power-unified-subblock {
+  background: #ffffff !important;
+  border-color: var(--border-color) !important;
+}
+
 html[data-theme="light"] .header-version-tag.up-to-date {
   color: var(--hero-blue);
   background: rgba(37, 99, 235, 0.12);
   border: 1px solid rgba(37, 99, 235, 0.35);
 }
 
-html[data-theme="light"] #action-dice-result {
-  background: var(--bg-input) !important;
+/* Help Window in Light Theme */
+html[data-theme="light"] .help-nav-bar,
+html[data-theme="light"] .help-filter-chips-container {
+  background-color: #ede5d8 !important;
+  border-bottom-color: var(--border-color) !important;
+}
+
+html[data-theme="light"] .help-search-bar {
+  background-color: #ffffff !important;
+  border-color: var(--border-color) !important;
+}
+
+html[data-theme="light"] .help-sidebar {
+  background-color: #f7f1e7 !important;
+  border-right-color: var(--border-color) !important;
+}
+
+html[data-theme="light"] .help-content-pane {
+  background-color: var(--bg-card) !important;
+  color: var(--text-main) !important;
+}
+
+/* Advantages & Skills Lists in Light Theme */
+html[data-theme="light"] .advantage-list-row {
+  background-color: var(--bg-card) !important;
+}
+
+html[data-theme="light"] .advantage-list-row [style*="background: rgba(255,255,255,0.08)"],
+html[data-theme="light"] .advantage-list-row [style*="background: rgba(255, 255, 255, 0.08)"] {
+  background: #ede5d8 !important;
   color: var(--text-muted) !important;
 }
 
-html[data-theme="light"] #btn-toggle-dice-history {
-  background: rgba(0, 0, 0, 0.04) !important;
+html[data-theme="light"] .advantage-list-row [style*="background: rgba(0,0,0,0.25)"],
+html[data-theme="light"] .advantage-list-row [style*="background: rgba(0, 0, 0, 0.25)"] {
+  background: #f0e8dc !important;
   border-color: var(--border-color) !important;
-  color: var(--hero-blue) !important;
 }
 
-html[data-theme="light"] .dice-history-dropdown-panel {
-  background-color: var(--bg-card) !important;
+html[data-theme="light"] label[style*="background: rgba(0,0,0"],
+html[data-theme="light"] label[style*="background: rgba(0, 0, 0"] {
+  background: #f0e8dc !important;
   border-color: var(--border-color) !important;
-  box-shadow: 0 12px 30px rgba(45, 38, 30, 0.22) !important;
+  color: var(--text-main) !important;
 }
 
-html[data-theme="light"] .dice-history-item:hover {
-  background-color: rgba(0, 0, 0, 0.035) !important;
+html[data-theme="light"] .assigned-immunities-list,
+html[data-theme="light"] .assigned-senses-list {
+  background: #ede5d8 !important;
 }
 
-/* =====================================================================
-   LANGUAGES MODAL STYLES (v3.43)
-   ===================================================================== */
+html[data-theme="light"] .immunity-options-catalog-list,
+html[data-theme="light"] .senses-options-catalog-list {
+  background: #ffffff !important;
+  border-color: var(--border-color) !important;
+}
+
+html[data-theme="light"] .input-quirk-desc,
+html[data-theme="light"] .input-limited-custom-desc {
+  background: #ffffff !important;
+  border-color: var(--border-color) !important;
+  color: var(--text-bright) !important;
+}
+
+html[data-theme="light"] .sm-skill-row {
+  background: #f7f1e7 !important;
+  border-color: var(--border-color) !important;
+  color: var(--text-main) !important;
+}
+
+html[data-theme="light"] .sm-skill-row[style*="rgba(234, 179, 8"] {
+  background: #fef9c3 !important;
+  border-color: #f59e0b !important;
+}
+
+/* Languages Modal */
 #modal-languages .modal-scroll-body {
   min-height: 400px;
 }

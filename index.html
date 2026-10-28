@@ -6,8 +6,8 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Mutants & Masterminds 3E - Character Editor v3.46</title>
-  <link rel="stylesheet" href="css/styles.css?v=3.46">
+  <title>Mutants & Masterminds 3E - Character Editor v3.47</title>
+  <link rel="stylesheet" href="css/styles.css?v=3.47">
 </head>
 <body>
 
@@ -80,7 +80,7 @@
 
           <div class="brand-title-centered">
             <span>Mutants & Masterminds 3E Character Editor</span>
-            <span id="header-version-tag" class="header-version-tag up-to-date" title="Current Version">v3.46</span>
+            <span id="header-version-tag" class="header-version-tag up-to-date" title="Current Version">v3.47</span>
             <button type="button" id="btn-header-update-alert" class="btn-header-update-alert" title="Check for updates / Update status">!</button>
           </div>
 
@@ -205,7 +205,7 @@
 
           <!-- Result Field directly on the dice roller row with History Dropdown -->
           <div class="dice-result-wrapper" style="flex: 1; min-width: 0; position: relative; display: flex; align-items: center;">
-            <div id="action-dice-result" class="dice-result-badge" style="flex: 1; min-height: 38px; display: flex; align-items: center; padding: 0 2.2rem 0 0.75rem; background: #0c1424; border: 1px solid var(--border-color); border-radius: var(--radius-sm); font-size: var(--font-size-xs); color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+            <div id="action-dice-result" class="dice-result-badge" style="flex: 1; min-height: 38px; display: flex; align-items: center; padding: 0 2.2rem 0 0.75rem; border: 1px solid var(--border-color); border-radius: var(--radius-sm); font-size: var(--font-size-xs); color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
               Result: Ready to roll
             </div>
             <button type="button" id="btn-toggle-dice-history" title="Show last 50 rolls" aria-label="Show last 50 rolls" style="position: absolute; right: 4px; top: 50%; transform: translateY(-50%); width: 28px; height: 28px; background: rgba(255, 255, 255, 0.06); border: 1px solid var(--border-color); color: var(--hero-cyan); border-radius: var(--radius-sm); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 800; transition: all 0.15s ease; z-index: 5;">
@@ -612,7 +612,7 @@
           <!-- Loaded dynamically -->
         </div>
       </div>
-      <div class="modal-header-bar" style="background: #10192a; justify-content: space-between;">
+      <div class="modal-header-bar" style="justify-content: space-between;">
         <button class="btn btn-outline" id="btn-load-modal-new-freeform">➕ New Character</button>
         <button class="btn btn-outline" id="btn-cancel-load-modal">Cancel</button>
       </div>
@@ -683,7 +683,7 @@
         </div>
 
         <!-- Inline Config Editor (hidden by default) -->
-        <div id="discord-config-editor" style="display: none; background-color: #0b1120; border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 0.75rem; margin-top: 0.65rem;">
+        <div id="discord-config-editor" style="display: none; border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 0.75rem; margin-top: 0.65rem;">
           <div style="font-weight: 800; font-size: var(--font-size-xs); color: var(--hero-gold); text-transform: uppercase; margin-bottom: 0.5rem;" id="discord-editor-title">
             Configure Discord Destination
           </div>
@@ -856,7 +856,7 @@
         <button class="btn btn-outline" id="btn-help-clear-search" style="min-height: 38px;">Clear</button>
       </div>
 
-      <div class="help-nav-bar" style="padding: 0.5rem 1rem; background-color: #0c1424; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; gap: 0.75rem;">
+      <div class="help-nav-bar" style="padding: 0.5rem 1rem; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; gap: 0.75rem;">
         <label for="help-section-dropdown" style="font-size: var(--font-size-xs); font-weight: 800; color: var(--hero-cyan); white-space: nowrap; display: flex; align-items: center; gap: 0.35rem;">
           <span>📖</span> Jump to Section:
         </label>
@@ -886,7 +886,7 @@
       <div class="modal-scroll-body" id="archetype-wizard-body" style="padding: 1rem;">
         <!-- Dynamically rendered step-by-step wizard -->
       </div>
-      <div class="modal-header-bar" style="background: #10192a; justify-content: space-between;">
+      <div class="modal-header-bar" style="justify-content: space-between;">
         <span id="wizard-pp-counter" style="font-weight: 800; color: var(--hero-gold);">PL 10 (150/150 PP Legal)</span>
         <div style="display: flex; gap: 0.5rem;">
           <button class="btn btn-outline" id="btn-wizard-back">Back</button>
@@ -1266,7 +1266,7 @@
   <!-- MODAL: EDIT ABILITIES & DEFENSES                        -->
   <!-- ======================================================= -->
   <div class="modal-overlay" id="modal-abilities-defenses">
-    <div class="modal-container" style="max-width: 1180px; width: 96vw; height: 92vh; max-height: 94vh; display: flex; flex-direction: column;">
+    <div class="modal-container" style="max-width: 1400px; width: 96vw; height: 92vh; max-height: 94vh; display: flex; flex-direction: column;">
       <div class="modal-header-bar">
         <div class="modal-header-title" style="display: flex; align-items: center; gap: 0.5rem;">
           <span>🛡️</span> Edit Abilities & Defenses
@@ -1454,7 +1454,7 @@
               </p>
               <label for="input-create-alt-name-alternate_form" style="font-size: 11px; font-weight: 800; color: #d8b4fe; display: block; margin-bottom: 4px; text-transform: uppercase;">Name Alternate Form:</label>
               <div style="display: flex; gap: 0.45rem; align-items: center;">
-                <input type="text" id="input-create-alt-name-alternate_form" class="alt-name-input" placeholder="e.g. Diamond Form, Werewolf" style="flex: 1; height: 32px; background: #0c1424; border: 1px solid #a855f7; border-radius: 4px; padding: 0.2rem 0.6rem; color: #fff; font-size: var(--font-size-xs); font-weight: 600;">
+                <input type="text" id="input-create-alt-name-alternate_form" class="alt-name-input" placeholder="e.g. Diamond Form, Werewolf" style="flex: 1; height: 32px; border: 1px solid #a855f7; border-radius: 4px; padding: 0.2rem 0.6rem; font-size: var(--font-size-xs); font-weight: 600;">
                 <button type="button" class="btn btn-primary btn-create-alt-action" data-alt-type="alternate_form" style="height: 32px; padding: 0.2rem 0.85rem; font-size: var(--font-size-xs); font-weight: 700; white-space: nowrap;">+ Create</button>
               </div>
             </div>
@@ -1470,7 +1470,7 @@
               </p>
               <label for="input-create-alt-name-minion" style="font-size: 11px; font-weight: 800; color: var(--hero-gold); display: block; margin-bottom: 4px; text-transform: uppercase;">Name Minion:</label>
               <div style="display: flex; gap: 0.45rem; align-items: center;">
-                <input type="text" id="input-create-alt-name-minion" class="alt-name-input" placeholder="e.g. Cyber Drone, War Wolf" style="flex: 1; height: 32px; background: #0c1424; border: 1px solid var(--hero-gold); border-radius: 4px; padding: 0.2rem 0.6rem; color: #fff; font-size: var(--font-size-xs); font-weight: 600;">
+                <input type="text" id="input-create-alt-name-minion" class="alt-name-input" placeholder="e.g. Cyber Drone, War Wolf" style="flex: 1; height: 32px; border: 1px solid var(--hero-gold); border-radius: 4px; padding: 0.2rem 0.6rem; font-size: var(--font-size-xs); font-weight: 600;">
                 <button type="button" class="btn btn-primary btn-create-alt-action" data-alt-type="minion" style="height: 32px; padding: 0.2rem 0.85rem; font-size: var(--font-size-xs); font-weight: 700; white-space: nowrap; background: linear-gradient(135deg, #d97706 0%, #b45309 100%);">+ Create</button>
               </div>
             </div>
@@ -1486,7 +1486,7 @@
               </p>
               <label for="input-create-alt-name-sidekick" style="font-size: 11px; font-weight: 800; color: var(--hero-cyan); display: block; margin-bottom: 4px; text-transform: uppercase;">Name Sidekick:</label>
               <div style="display: flex; gap: 0.45rem; align-items: center;">
-                <input type="text" id="input-create-alt-name-sidekick" class="alt-name-input" placeholder="e.g. Cadet Shadow, Wonder Pup" style="flex: 1; height: 32px; background: #0c1424; border: 1px solid var(--hero-cyan); border-radius: 4px; padding: 0.2rem 0.6rem; color: #fff; font-size: var(--font-size-xs); font-weight: 600;">
+                <input type="text" id="input-create-alt-name-sidekick" class="alt-name-input" placeholder="e.g. Cadet Shadow, Wonder Pup" style="flex: 1; height: 32px; border: 1px solid var(--hero-cyan); border-radius: 4px; padding: 0.2rem 0.6rem; font-size: var(--font-size-xs); font-weight: 600;">
                 <button type="button" class="btn btn-primary btn-create-alt-action" data-alt-type="sidekick" style="height: 32px; padding: 0.2rem 0.85rem; font-size: var(--font-size-xs); font-weight: 700; white-space: nowrap; background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);">+ Create</button>
               </div>
             </div>
@@ -1534,6 +1534,6 @@
     </div>
   </div>
 
-  <script type="module" src="js/app.js?v=3.46"></script>
+  <script type="module" src="js/app.js?v=3.47"></script>
 </body>
 </html>

@@ -530,19 +530,19 @@ export const ADVANTAGES_DATABASE = [
     desc: 'Each rank in Luck gives you one extra hero point per game session (usable only for rerolls and recovery). You cannot possess more ranks of Luck than half your campaign Power Level.'
   },
   {
-    id: 'move_by_action',
-    name: 'Move-by Action',
-    category: 'Combat',
-    maxRank: 1,
-    desc: 'When you take a standard action (such as an attack), you can split your movement, taking part of your move action before the standard action and the remainder after.'
-  },
-  {
     id: 'minion',
     name: 'Minion',
     category: 'General',
     maxRank: 30,
     hasOptions: false,
     desc: 'Each rank in the Minion advantage grants you 15 Power Points to build a loyal follower or servant. A minion cannot have a Power Level higher than your own, and is subject to minion combat rules.'
+  },
+  {
+    id: 'move_by_action',
+    name: 'Move-by Action',
+    category: 'Combat',
+    maxRank: 1,
+    desc: 'When you take a standard action (such as an attack), you can split your movement, taking part of your move action before the standard action and the remainder after.'
   },
   {
     id: 'power_attack',
@@ -631,7 +631,7 @@ export const ADVANTAGES_DATABASE = [
     name: 'Skill Mastery',
     category: 'Skill',
     maxRank: 16,
-    hasOptions: true,
+    hasOptions: false,
     desc: 'You are so practiced with chosen skills that you can make routine checks (take 10) even under extreme danger and combat pressure. Each rank applies to one skill.',
     options: ['Acrobatics', 'Athletics', 'Close Combat', 'Deception', 'Expertise', 'Insight', 'Intimidation', 'Investigation', 'Perception', 'Persuasion', 'Ranged Combat', 'Sleight of Hand', 'Stealth', 'Technology', 'Treatment', 'Vehicles']
   },

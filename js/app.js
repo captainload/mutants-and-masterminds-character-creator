@@ -1822,7 +1822,7 @@ class AppController {
   }
 
   async checkForUpdates({ isManual = false } = {}) {
-    const CURRENT_VERSION = '3.46';
+    const CURRENT_VERSION = '3.47';
     const versionEl = document.getElementById('header-version-tag');
     const updateBtn = document.getElementById('btn-header-update-alert');
     if (typeof window === 'undefined' || !window.location || !window.location.href || window.location.href === 'about:blank') return;
@@ -3900,7 +3900,7 @@ class AppController {
             <span class="rules-link rules-info-badge" data-id="${ab.id}" data-type="ability" data-name="${ab.name}" data-cat="Ability" title="${ab.name} (Click for rules)" style="font-size: var(--font-size-xs); opacity: 0.7; cursor: pointer; padding: 2px 4px; border-radius: 3px;">ℹ️</span>
           </div>
           <div style="display: flex; align-items: baseline; justify-content: space-between; width: 100%;">
-            <strong style="font-size: 1.35rem; font-weight: 900; line-height: 1; color: ${effRank !== baseRank ? 'var(--hero-red)' : '#fff'};">${effRank >= 0 ? '+' + effRank : effRank}</strong>
+            <strong style="font-size: 1.35rem; font-weight: 900; line-height: 1; color: ${effRank !== baseRank ? 'var(--hero-red)' : 'var(--text-bright)'};">${effRank >= 0 ? '+' + effRank : effRank}</strong>
             ${mods.checkPenalty !== 0 ? `<span style="font-size: var(--font-size-xs); color: var(--hero-red); font-weight: 800;">(${mods.checkPenalty})</span>` : ''}
           </div>
         `;
@@ -4834,7 +4834,8 @@ class AppController {
     const filterCat = document.getElementById('adv-filter-cat')?.value || 'all';
     const showDescriptions = document.getElementById('adv-show-descriptions')?.checked ?? false;
 
-    ADVANTAGES_DATABASE.forEach(advDef => {
+    const sortedCatalog = [...ADVANTAGES_DATABASE].sort((a, b) => a.name.localeCompare(b.name));
+    sortedCatalog.forEach(advDef => {
       if (filterCat !== 'all' && advDef.category !== filterCat) return;
       if (search && !advDef.name.toLowerCase().includes(search) && !advDef.desc.toLowerCase().includes(search)) return;
 
@@ -4987,8 +4988,8 @@ class AppController {
         });
       }
 
-      if (advDef.hasOptions) {
-        row.querySelector('[data-opt-adv]').addEventListener('click', () => {
+      if (advDef.hasOptions && advDef.id !== 'skill_mastery') {
+        row.querySelector('[data-opt-adv]')?.addEventListener('click', () => {
           this.openPrebuiltOptionsModal(`Select Option for ${advDef.name}`, advDef.options, (selected) => {
             let item = (this.char.advantages || []).find(a => a.id === advDef.id);
             if (!item) {
@@ -5245,7 +5246,7 @@ class AppController {
         align-items: center;
         justify-content: space-between;
         padding: 0.55rem 0.85rem;
-        background: ${isSelected ? 'rgba(234, 179, 8, 0.12)' : 'rgba(255, 255, 255, 0.03)'};
+        background: ${isSelected ? 'rgba(234, 179, 8, 0.15)' : 'var(--bg-input)'};
         border: 1px solid ${isSelected ? 'rgba(234, 179, 8, 0.45)' : 'var(--border-color)'};
         border-radius: var(--radius-sm);
         transition: background 0.15s ease;

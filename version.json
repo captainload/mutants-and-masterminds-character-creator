@@ -1,5 +1,5 @@
 {
-  "version": "3.46",
-  "updatedAt": "2026-10-28T17:35:00.000Z",
-  "releaseNotes": "Allowed Skill Mastery to select one known skill per rank with active mastery indicators across skills tab and action center quick rolls. Expanded settings flyout dialog to reach the Menu button, and strictly enforced M&M 3E PP and PL rules for alt characters."
+  "version": "3.47",
+  "updatedAt": "2026-10-28T17:55:00.000Z",
+  "releaseNotes": "Fixed Skill Mastery rendering and options listener in Advantages tab with alphabetical catalog sorting. Overhauled light theme to eliminate dark backgrounds across roll cards, steppers, dice bar, modals, and tables. Added proportional widening for row columns on wide desktop and landscape tablet displays."
 }

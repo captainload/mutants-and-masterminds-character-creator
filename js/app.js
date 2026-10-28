@@ -25,7 +25,9 @@ import {
   computePowerRangeAndDuration,
   computePowerEffectiveStats,
   validateModifierLegality,
-  isModifierLegalForEffect
+  isModifierLegalForEffect,
+  MAJOR_LANGUAGES_LIST,
+  getLanguagesLimit
 } from './rules.js';
 
 import {
@@ -99,6 +101,8 @@ class AppController {
     this.setupAbilitiesDefensesModal();
     this.setupArchetypeWizard();
     this.setupAltCharactersModal();
+    this.setupLanguagesModal();
+    this.migrateLanguagesSkillToAdvantage(this.char);
     this.setupUpdateChecker();
     this.renderAll();
     this.checkForUpdates({ isManual: false });
@@ -1807,7 +1811,7 @@ class AppController {
   }
 
   async checkForUpdates({ isManual = false } = {}) {
-    const CURRENT_VERSION = '3.42';
+    const CURRENT_VERSION = '3.43';
     const versionEl = document.getElementById('header-version-tag');
     const updateBtn = document.getElementById('btn-header-update-alert');
     if (typeof window === 'undefined' || !window.location || !window.location.href || window.location.href === 'about:blank') return;
@@ -4764,7 +4768,12 @@ class AppController {
                 Rank ${currentRank}${advDef.maxRank > 1 ? ` / ${advDef.maxRank}` : ''}
               </span>
             ` : ''}
-            ${existing?.note ? `
+            ${advDef.id === 'languages' && isSelected ? `
+              <span style="font-size: var(--font-size-xs); background: rgba(59, 130, 246, 0.2); border: 1px solid rgba(59, 130, 246, 0.4); color: #93c5fd; padding: 0.1rem 0.45rem; border-radius: 4px; font-weight: 700;">
+                ${(existing?.languages || []).length} / ${getLanguagesLimit(currentRank)} Languages
+              </span>
+            ` : ''}
+            ${existing?.note && advDef.id !== 'languages' ? `
               <span style="font-size: var(--font-size-xs); background: rgba(234, 179, 8, 0.15); border: 1px solid rgba(234, 179, 8, 0.35); color: var(--hero-gold); padding: 0.1rem 0.45rem; border-radius: 4px; font-weight: 600;">
                 🏷️ ${existing.note}
               </span>
@@ -4773,6 +4782,14 @@ class AppController {
           ${showDescriptions ? `
             <div class="adv-desc-text" style="font-size: var(--font-size-sm); color: var(--text-muted); line-height: 1.45;">
               ${advDef.desc}
+            </div>
+          ` : ''}
+          ${advDef.id === 'languages' && isSelected && (existing?.languages || []).length > 0 ? `
+            <div style="font-size: var(--font-size-xs); color: var(--hero-cyan); margin-top: 0.35rem; font-weight: 600; display: flex; align-items: center; gap: 0.35rem; flex-wrap: wrap;">
+              <span style="color: var(--text-muted);">Fluent in:</span>
+              <span style="background: rgba(0,0,0,0.25); padding: 0.15rem 0.5rem; border-radius: 4px; border: 1px solid var(--border-color); color: var(--hero-cyan); font-weight: 700;">
+                Native + ${existing.languages.join(', ')}
+              </span>
             </div>
           ` : ''}
         </div>
@@ -4784,6 +4801,12 @@ class AppController {
               <span class="stepper-value compact" style="min-width: 34px; height: 38px; font-weight: 800; font-size: var(--font-size-base);">${currentRank}</span>
               <button class="btn-stepper compact" data-adv="${advDef.id}" data-dir="1" title="Increase Rank" ${currentRank >= advDef.maxRank ? 'disabled style="opacity:0.4;cursor:not-allowed;"' : ''} style="width: 34px; height: 38px; font-size: 1.15rem;">+</button>
             </div>
+          ` : ''}
+
+          ${advDef.id === 'languages' && isSelected ? `
+            <button class="btn btn-outline" style="min-height: 38px; font-size: var(--font-size-base); font-weight: 700; padding: 0.35rem 0.8rem; border-color: var(--hero-blue); color: #93c5fd;" data-manage-languages="${advDef.id}" title="Manage known languages">
+              🗣️ Languages (${(existing?.languages || []).length}/${getLanguagesLimit(currentRank)})
+            </button>
           ` : ''}
 
           ${advDef.hasOptions ? `
@@ -4802,6 +4825,9 @@ class AppController {
         btn.addEventListener('click', () => {
           const dir = parseInt(btn.dataset.dir, 10);
           this.setAdvantageRank(advDef.id, advDef.name, currentRank + dir, advDef.maxRank);
+          if (advDef.id === 'languages' && dir > 0) {
+            this.openLanguagesModal();
+          }
         });
       });
 
@@ -4809,11 +4835,21 @@ class AppController {
         if (!this.char.advantages) this.char.advantages = [];
         if (isSelected) {
           this.char.advantages = this.char.advantages.filter(a => a.id !== advDef.id);
+          this.renderAll();
         } else {
-          this.char.advantages.push({ id: advDef.id, name: advDef.name, rank: 1 });
+          this.char.advantages.push({ id: advDef.id, name: advDef.name, rank: 1, languages: [] });
+          this.renderAll();
+          if (advDef.id === 'languages') {
+            this.openLanguagesModal();
+          }
         }
-        this.renderAll();
       });
+
+      if (advDef.id === 'languages') {
+        row.querySelector('[data-manage-languages]')?.addEventListener('click', () => {
+          this.openLanguagesModal();
+        });
+      }
 
       if (advDef.hasOptions) {
         row.querySelector('[data-opt-adv]').addEventListener('click', () => {
@@ -4857,6 +4893,340 @@ class AppController {
       }
     }
     this.renderAll();
+  }
+
+  // =======================================================
+  // LANGUAGES ADVANTAGE & SELECTION MODAL (M&M 3E)
+  // =======================================================
+  migrateLanguagesSkillToAdvantage(char) {
+    if (!char) return;
+    if (char.skills && char.skills.some(s => s.id === 'languages')) {
+      const legacyLangSkills = char.skills.filter(s => s.id === 'languages');
+      const extractedLangs = legacyLangSkills.map(s => s.specialty).filter(Boolean);
+      char.skills = char.skills.filter(s => s.id !== 'languages');
+
+      if (!char.advantages) char.advantages = [];
+      let advLang = char.advantages.find(a => a.id === 'languages');
+      if (!advLang) {
+        let rank = 1;
+        while (getLanguagesLimit(rank) < extractedLangs.length && rank < 20) {
+          rank++;
+        }
+        advLang = {
+          id: 'languages',
+          name: 'Languages',
+          rank: Math.max(1, rank),
+          languages: extractedLangs,
+          note: extractedLangs.join(', ')
+        };
+        char.advantages.push(advLang);
+      } else {
+        if (!advLang.languages) advLang.languages = [];
+        extractedLangs.forEach(l => {
+          if (!advLang.languages.includes(l)) advLang.languages.push(l);
+        });
+        advLang.note = advLang.languages.join(', ');
+      }
+      char.languages = [...(advLang.languages || [])];
+    }
+  }
+
+  setupLanguagesModal() {
+    const modalEl = document.getElementById('modal-languages');
+    if (!modalEl) return;
+
+    document.getElementById('btn-close-languages-modal')?.addEventListener('click', () => {
+      this.closeModal('modal-languages');
+      this.renderAll();
+    });
+
+    document.getElementById('btn-close-languages-modal-done')?.addEventListener('click', () => {
+      this.closeModal('modal-languages');
+      this.renderAll();
+    });
+
+    document.getElementById('btn-modal-lang-rank-minus')?.addEventListener('click', () => {
+      let adv = (this.char.advantages || []).find(a => a.id === 'languages');
+      if (adv) {
+        const curRank = parseInt(adv.rank, 10) || 1;
+        if (curRank > 1) {
+          adv.rank = curRank - 1;
+          this.saveAndAudit();
+          this.renderLanguagesModal();
+          this.renderAdvantagesTab(auditCharacter(this.char));
+        }
+      }
+    });
+
+    document.getElementById('btn-modal-lang-rank-plus')?.addEventListener('click', () => {
+      let adv = (this.char.advantages || []).find(a => a.id === 'languages');
+      if (adv) {
+        const curRank = parseInt(adv.rank, 10) || 1;
+        if (curRank < 20) {
+          adv.rank = curRank + 1;
+          this.saveAndAudit();
+          this.renderLanguagesModal();
+          this.renderAdvantagesTab(auditCharacter(this.char));
+        }
+      }
+    });
+
+    const searchInput = document.getElementById('modal-languages-search');
+    searchInput?.addEventListener('input', () => {
+      this.renderLanguagesAvailableList();
+    });
+
+    const addCustomAction = () => {
+      const customInput = document.getElementById('modal-lang-custom-input');
+      const val = (customInput?.value || '').trim();
+      if (!val) return;
+
+      let adv = (this.char.advantages || []).find(a => a.id === 'languages');
+      if (!adv) return;
+      if (!adv.languages) adv.languages = [];
+
+      const rank = parseInt(adv.rank, 10) || 1;
+      const limit = getLanguagesLimit(rank);
+      const alertEl = document.getElementById('modal-lang-limit-alert');
+
+      if (adv.languages.some(l => l.toLowerCase() === val.toLowerCase())) {
+        if (alertEl) {
+          alertEl.textContent = `"${val}" is already in your known languages list.`;
+          alertEl.style.display = 'block';
+        }
+        return;
+      }
+
+      if (adv.languages.length >= limit) {
+        if (alertEl) {
+          alertEl.textContent = `Languages limit reached! Rank ${rank} allows up to ${limit} extra language${limit === 1 ? '' : 's'}. Increase Languages rank to add more.`;
+          alertEl.style.display = 'block';
+        }
+        return;
+      }
+
+      if (alertEl) alertEl.style.display = 'none';
+      adv.languages.push(val);
+      adv.note = adv.languages.join(', ');
+      this.char.languages = [...adv.languages];
+      if (customInput) customInput.value = '';
+      this.saveAndAudit();
+      this.renderLanguagesModal();
+      this.renderAdvantagesTab(auditCharacter(this.char));
+    };
+
+    document.getElementById('btn-modal-add-custom-lang')?.addEventListener('click', addCustomAction);
+    document.getElementById('modal-lang-custom-input')?.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        addCustomAction();
+      }
+    });
+  }
+
+  openLanguagesModal() {
+    if (!this.char.advantages) this.char.advantages = [];
+    let adv = this.char.advantages.find(a => a.id === 'languages');
+    if (!adv) {
+      adv = { id: 'languages', name: 'Languages', rank: 1, languages: [] };
+      this.char.advantages.push(adv);
+      this.saveAndAudit();
+    }
+    if (!adv.languages) {
+      adv.languages = adv.note ? adv.note.split(',').map(s => s.trim()).filter(Boolean) : [];
+    }
+
+    const searchInput = document.getElementById('modal-languages-search');
+    if (searchInput) searchInput.value = '';
+    const customInput = document.getElementById('modal-lang-custom-input');
+    if (customInput) customInput.value = '';
+    const alertEl = document.getElementById('modal-lang-limit-alert');
+    if (alertEl) {
+      alertEl.style.display = 'none';
+      alertEl.textContent = '';
+    }
+
+    this.renderLanguagesModal();
+    this.openModal('modal-languages');
+    setTimeout(() => searchInput?.focus(), 50);
+  }
+
+  renderLanguagesModal() {
+    let adv = (this.char.advantages || []).find(a => a.id === 'languages');
+    if (!adv) return;
+    if (!adv.languages) adv.languages = [];
+
+    const rank = parseInt(adv.rank, 10) || 1;
+    const maxLanguages = getLanguagesLimit(rank);
+    const knownList = adv.languages;
+    const knownCount = knownList.length;
+
+    // Stepper & rank display
+    const rankDisplay = document.getElementById('modal-lang-rank-display');
+    if (rankDisplay) rankDisplay.textContent = rank;
+    const minusBtn = document.getElementById('btn-modal-lang-rank-minus');
+    if (minusBtn) minusBtn.disabled = (rank <= 1);
+    const plusBtn = document.getElementById('btn-modal-lang-rank-plus');
+    if (plusBtn) plusBtn.disabled = (rank >= 20);
+
+    // Counter badge
+    const badge = document.getElementById('modal-lang-count-badge');
+    if (badge) {
+      badge.textContent = `${knownCount} / ${maxLanguages} Allowed (Rank ${rank})`;
+      if (knownCount > maxLanguages) {
+        badge.style.background = 'rgba(239, 68, 68, 0.2)';
+        badge.style.borderColor = 'rgba(239, 68, 68, 0.4)';
+        badge.style.color = '#fca5a5';
+      } else if (knownCount === maxLanguages) {
+        badge.style.background = 'rgba(234, 179, 8, 0.2)';
+        badge.style.borderColor = 'rgba(234, 179, 8, 0.4)';
+        badge.style.color = 'var(--hero-gold)';
+      } else {
+        badge.style.background = 'rgba(59, 130, 246, 0.2)';
+        badge.style.borderColor = 'rgba(59, 130, 246, 0.4)';
+        badge.style.color = '#93c5fd';
+      }
+    }
+
+    // Alert element update
+    const alertEl = document.getElementById('modal-lang-limit-alert');
+    if (alertEl) {
+      if (knownCount > maxLanguages) {
+        alertEl.textContent = `⚠️ You currently have ${knownCount} languages selected, but Rank ${rank} allows ${maxLanguages}. Please remove ${knownCount - maxLanguages} language(s) or increase your Languages rank.`;
+        alertEl.style.display = 'block';
+      } else if (alertEl.textContent.startsWith('⚠️')) {
+        alertEl.style.display = 'none';
+        alertEl.textContent = '';
+      }
+    }
+
+    // Render Known Languages Column
+    const knownContainer = document.getElementById('modal-languages-known-list');
+    if (knownContainer) {
+      knownContainer.innerHTML = '';
+      if (knownCount === 0) {
+        knownContainer.innerHTML = `
+          <div style="color: var(--text-muted); font-size: var(--font-size-sm); font-style: italic; padding: 1.5rem 1rem; text-align: center; border: 1px dashed var(--border-color); border-radius: 4px;">
+            No extra languages selected yet.<br>Choose from the list on the right or enter a custom language above.
+          </div>
+        `;
+      } else {
+        knownList.forEach((lang, idx) => {
+          const item = document.createElement('div');
+          item.className = 'lang-known-row';
+          item.style.cssText = 'display: flex; align-items: center; justify-content: space-between; padding: 0.45rem 0.65rem; background: rgba(0,0,0,0.25); border: 1px solid var(--border-color); border-radius: var(--radius-sm);';
+          item.innerHTML = `
+            <div style="display: flex; align-items: center; gap: 0.5rem; overflow: hidden;">
+              <span style="font-size: var(--font-size-xs); color: var(--text-muted); min-width: 18px; font-weight: 700;">#${idx + 1}</span>
+              <strong style="font-size: var(--font-size-sm); color: var(--hero-cyan); text-overflow: ellipsis; white-space: nowrap; overflow: hidden;" title="${lang}">
+                🗣️ ${lang}
+              </strong>
+            </div>
+            <button class="btn btn-outline btn-compact btn-remove-known-lang" data-lang="${lang}" style="color: #fca5a5; border-color: rgba(239, 68, 68, 0.3); min-height: 28px; padding: 0.15rem 0.55rem; font-size: var(--font-size-xs);" title="Remove language">
+              ✕
+            </button>
+          `;
+
+          item.querySelector('.btn-remove-known-lang')?.addEventListener('click', () => {
+            adv.languages = adv.languages.filter(l => l !== lang);
+            adv.note = adv.languages.join(', ');
+            this.char.languages = [...adv.languages];
+            this.saveAndAudit();
+            this.renderLanguagesModal();
+            this.renderAdvantagesTab(auditCharacter(this.char));
+          });
+
+          knownContainer.appendChild(item);
+        });
+      }
+    }
+
+    // Render Available Languages Column
+    this.renderLanguagesAvailableList();
+
+    // Footer summary
+    const footerEl = document.getElementById('modal-lang-footer-summary');
+    if (footerEl) {
+      footerEl.textContent = `Fluency: Native language (free) + ${knownCount} of ${maxLanguages} extra language${maxLanguages === 1 ? '' : 's'} (Rank ${rank})`;
+    }
+  }
+
+  renderLanguagesAvailableList() {
+    let adv = (this.char.advantages || []).find(a => a.id === 'languages');
+    const knownList = adv?.languages || [];
+    const rank = parseInt(adv?.rank, 10) || 1;
+    const maxLanguages = getLanguagesLimit(rank);
+    const isLimitReached = knownList.length >= maxLanguages;
+
+    const searchInput = document.getElementById('modal-languages-search');
+    const search = (searchInput?.value || '').trim().toLowerCase();
+
+    const availableContainer = document.getElementById('modal-languages-available-list');
+    if (!availableContainer) return;
+    availableContainer.innerHTML = '';
+
+    const filtered = MAJOR_LANGUAGES_LIST.filter(l => !search || l.toLowerCase().includes(search));
+
+    if (filtered.length === 0) {
+      availableContainer.innerHTML = `
+        <div style="color: var(--text-muted); font-size: var(--font-size-sm); font-style: italic; padding: 1.5rem 1rem; text-align: center; border: 1px dashed var(--border-color); border-radius: 4px;">
+          No matching languages found in major list.<br>Type in the Custom Language box above to add it!
+        </div>
+      `;
+      return;
+    }
+
+    filtered.forEach(language => {
+      const isKnown = knownList.some(l => l.toLowerCase() === language.toLowerCase());
+      const row = document.createElement('div');
+      row.className = 'lang-available-row';
+      row.style.cssText = `
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0.4rem 0.65rem;
+        background: ${isKnown ? 'rgba(59, 130, 246, 0.12)' : 'rgba(255, 255, 255, 0.03)'};
+        border: 1px solid ${isKnown ? 'rgba(59, 130, 246, 0.35)' : 'var(--border-color)'};
+        border-radius: var(--radius-sm);
+        transition: background 0.15s ease;
+      `;
+
+      row.innerHTML = `
+        <span style="font-size: var(--font-size-sm); font-weight: ${isKnown ? '700' : '500'}; color: ${isKnown ? 'var(--hero-cyan)' : 'var(--text-main)'};">
+          ${language}
+        </span>
+        ${isKnown ? `
+          <span style="font-size: var(--font-size-xs); color: #93c5fd; font-weight: 700; padding: 0.15rem 0.45rem; background: rgba(37, 99, 235, 0.2); border-radius: 4px;">✓ Added</span>
+        ` : `
+          <button class="btn btn-primary btn-add-lang-item" ${isLimitReached ? 'disabled style="opacity: 0.4; cursor: not-allowed;"' : ''} style="min-height: 26px; padding: 0.15rem 0.6rem; font-size: var(--font-size-xs); font-weight: 700;">
+            + Add
+          </button>
+        `}
+      `;
+
+      if (!isKnown) {
+        row.querySelector('.btn-add-lang-item')?.addEventListener('click', () => {
+          if (knownList.length >= maxLanguages) {
+            const alertEl = document.getElementById('modal-lang-limit-alert');
+            if (alertEl) {
+              alertEl.textContent = `Languages limit reached! Rank ${rank} allows ${maxLanguages} extra language${maxLanguages === 1 ? '' : 's'}. Increase Languages rank to add more.`;
+              alertEl.style.display = 'block';
+            }
+            return;
+          }
+
+          if (!adv.languages) adv.languages = [];
+          adv.languages.push(language);
+          adv.note = adv.languages.join(', ');
+          this.char.languages = [...adv.languages];
+          this.saveAndAudit();
+          this.renderLanguagesModal();
+          this.renderAdvantagesTab(auditCharacter(this.char));
+        });
+      }
+
+      availableContainer.appendChild(row);
+    });
   }
 
   // =======================================================

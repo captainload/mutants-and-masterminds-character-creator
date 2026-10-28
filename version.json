@@ -1,5 +1,5 @@
 {
-  "version": "3.42",
-  "updatedAt": "2026-10-28T03:40:00.000Z",
-  "releaseNotes": "Enlarged Clear link, timestamps, and roll results in the dice history dropdown. Made the dropdown scrollbar slightly wider (9px), extended history capacity to 50 rolls, and sized the visible area to display 10 rolls."
+  "version": "3.43",
+  "updatedAt": "2026-10-28T05:35:00.000Z",
+  "releaseNotes": "Reworked Languages for 3E as an Advantage with doubling fluency progression (1, 2, 4, 8, 16...). Added two-column interactive Languages Selection Modal with known languages management, search, and custom/fictional language input."
 }

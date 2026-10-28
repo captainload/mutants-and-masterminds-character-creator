@@ -100,18 +100,6 @@ export const SKILLS_LIST = [
     options: ['Crime Scene Forensics', 'Evidence Gathering', 'Paper Trails / Records', 'Interrogation']
   },
   {
-    id: 'languages',
-    name: 'Languages',
-    ability: 'int',
-    trainedOnly: false,
-    hasSpecialty: true,
-    requiresOption3E: true,
-    isAssignedFocus: true,
-    maxRankPerInstance: 1,
-    desc: 'Each rank in Languages grants fluency in an assigned language. Each language instance has a 1 rank limit.',
-    options: ['Arabic', 'Atlantean', 'Chinese (Mandarin)', 'French', 'German', 'Greek (Ancient)', 'Japanese', 'Kryptonian / Alien', 'Latin', 'Russian', 'Sign Language (ASL)', 'Spanish']
-  },
-  {
     id: 'perception',
     name: 'Perception',
     ability: 'awe',
@@ -536,9 +524,8 @@ export const ADVANTAGES_DATABASE = [
     name: 'Languages',
     category: 'General',
     maxRank: 20,
-    hasOptions: true,
-    desc: 'Each rank of this advantage grants you fluency in an additional spoken and written language (Rank 1: 1 language, Rank 2: 2 languages, Rank 3: 4 languages, Rank 4: 8 languages, Rank 5: 16 languages... Rank 10: speak and understand every language).',
-    options: ['Spanish', 'Mandarin Chinese', 'French', 'Russian', 'German', 'Japanese', 'Arabic', 'Latin', 'Ancient Greek', 'Atlantean', 'Kryptonian / Alien']
+    hasOptions: false,
+    desc: 'Each rank of this advantage grants you fluency in an additional spoken and written language (Rank 1: 1 language, Rank 2: 2 languages, Rank 3: 4 languages, Rank 4: 8 languages, Rank 5: 16 languages, doubling each rank). Native language is free.'
   },
   {
     id: 'leadership',
@@ -1999,3 +1986,67 @@ export function getTraitDefinition(id, type, name) {
   }
   return null;
 }
+
+export function getLanguagesLimit(rank) {
+  const r = parseInt(rank, 10) || 0;
+  if (r <= 0) return 0;
+  return Math.pow(2, r - 1);
+}
+
+export const MAJOR_LANGUAGES_LIST = [
+  'Ancient Greek',
+  'Arabic (Standard)',
+  'Armenian',
+  'Atlantean',
+  'Bengali',
+  'Burmese',
+  'Cantonese (Chinese)',
+  'Cherokee',
+  'Czech',
+  'Danish',
+  'Dutch',
+  'Esperanto',
+  'Farsi (Persian)',
+  'Finnish',
+  'French',
+  'Gaelic (Irish)',
+  'Gaelic (Scottish)',
+  'German',
+  'Greek (Modern)',
+  'Hebrew',
+  'Hindi',
+  'Hungarian',
+  'Icelandic',
+  'Indonesian',
+  'Interlac',
+  'Italian',
+  'Japanese',
+  'Korean',
+  'Kryptonian',
+  'Latin',
+  'Mandarin Chinese',
+  'Norwegian',
+  'Polish',
+  'Portuguese',
+  'Punjabi',
+  'Romanian',
+  'Russian',
+  'Sanskrit',
+  'Sign Language (ASL)',
+  'Sign Language (BSL)',
+  'Spanish',
+  'Swahili',
+  'Swedish',
+  'Tagalog (Filipino)',
+  'Tamil',
+  'Thai',
+  'Thanagarian',
+  'Themysciran (Amazonian)',
+  'Turkish',
+  'Ukrainian',
+  'Urdu',
+  'Vietnamese',
+  'Welsh',
+  'Yiddish'
+].sort((a, b) => a.localeCompare(b));
+

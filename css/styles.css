@@ -2400,6 +2400,40 @@ html[data-theme="light"] .dice-history-item:hover {
   background-color: rgba(0, 0, 0, 0.035) !important;
 }
 
+/* =====================================================================
+   LANGUAGES MODAL STYLES (v3.43)
+   ===================================================================== */
+#modal-languages .modal-scroll-body {
+  min-height: 400px;
+}
+
+@media (max-width: 768px) {
+  #modal-languages .languages-modal-body {
+    grid-template-columns: 1fr !important;
+    overflow-y: auto !important;
+    height: auto !important;
+  }
+}
+
+.lang-available-row:hover {
+  background-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+html[data-theme="light"] .lang-available-row {
+  background-color: rgba(0, 0, 0, 0.02) !important;
+  border-color: var(--border-color) !important;
+}
+
+html[data-theme="light"] .lang-available-row:hover {
+  background-color: rgba(0, 0, 0, 0.05) !important;
+}
+
+html[data-theme="light"] .lang-known-row {
+  background-color: rgba(0, 0, 0, 0.02) !important;
+  border-color: var(--border-color) !important;
+}
+
+
 
 
 

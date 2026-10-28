@@ -1408,6 +1408,37 @@ textarea {
   box-shadow: 0 0 10px rgba(245, 158, 11, 0.4);
 }
 
+.dice-result-badge.result-nat20 {
+  background-color: rgba(16, 185, 129, 0.22) !important;
+  border-color: #10b981 !important;
+  color: #a7f3d0 !important;
+  font-weight: 800;
+  box-shadow: 0 0 12px rgba(16, 185, 129, 0.45);
+}
+
+.nat20-text,
+.nat20-val {
+  color: #10b981 !important;
+  font-weight: 900 !important;
+}
+
+.dice-history-dropdown-panel {
+  scrollbar-width: thin;
+}
+
+.dice-history-dropdown-panel::-webkit-scrollbar {
+  width: 6px;
+}
+
+.dice-history-dropdown-panel::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: var(--radius-sm);
+}
+
+.dice-history-item:hover {
+  background-color: rgba(255, 255, 255, 0.04) !important;
+}
+
 .dice-result-badge.result-initiative {
   background-color: rgba(245, 158, 11, 0.15) !important;
   border-color: var(--hero-gold) !important;
@@ -2341,6 +2372,27 @@ html[data-theme="light"] .header-version-tag.up-to-date {
   color: var(--hero-blue);
   background: rgba(37, 99, 235, 0.12);
   border: 1px solid rgba(37, 99, 235, 0.35);
+}
+
+html[data-theme="light"] #action-dice-result {
+  background: var(--bg-input) !important;
+  color: var(--text-muted) !important;
+}
+
+html[data-theme="light"] #btn-toggle-dice-history {
+  background: rgba(0, 0, 0, 0.04) !important;
+  border-color: var(--border-color) !important;
+  color: var(--hero-blue) !important;
+}
+
+html[data-theme="light"] .dice-history-dropdown-panel {
+  background-color: var(--bg-card) !important;
+  border-color: var(--border-color) !important;
+  box-shadow: 0 12px 30px rgba(45, 38, 30, 0.22) !important;
+}
+
+html[data-theme="light"] .dice-history-item:hover {
+  background-color: rgba(0, 0, 0, 0.035) !important;
 }
 
 

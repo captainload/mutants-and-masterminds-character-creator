@@ -1312,6 +1312,32 @@ class AppController {
 
     // Wire global roller listener
     diceRoller.onRoll((roll) => this.displayRollResult(roll));
+
+    // Toggle history dropdown
+    const toggleBtn = document.getElementById('btn-toggle-dice-history');
+    const dropdown = document.getElementById('dice-history-dropdown');
+    const arrowIcon = document.getElementById('dice-history-arrow-icon');
+
+    toggleBtn?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const isOpen = dropdown && dropdown.style.display !== 'none';
+      if (isOpen) {
+        if (dropdown) dropdown.style.display = 'none';
+        if (arrowIcon) arrowIcon.textContent = '▼';
+      } else {
+        this.renderDiceHistoryDropdown();
+        if (dropdown) dropdown.style.display = 'block';
+        if (arrowIcon) arrowIcon.textContent = '▲';
+      }
+    });
+
+    // Close when clicking outside
+    document.addEventListener('click', (e) => {
+      if (dropdown && dropdown.style.display !== 'none' && !dropdown.contains(e.target) && !toggleBtn?.contains(e.target)) {
+        dropdown.style.display = 'none';
+        if (arrowIcon) arrowIcon.textContent = '▼';
+      }
+    });
   }
 
   displayRollResult(roll) {
@@ -1327,16 +1353,26 @@ class AppController {
 
     resEl.className = 'dice-result-badge';
 
+    const isNat20 = !!roll.isNatural20 || roll.rawDie === 20 || (typeof roll.rawDie === 'string' && (roll.rawDie === '20' || roll.rawDie.split(', ').includes('20')));
+    if (isNat20) {
+      resEl.classList.add('result-nat20');
+    }
+
     // Special handling for Initiative: turn order only, no DC, no success/failure
     if (roll.rollType === 'initiative') {
       resEl.classList.add('result-initiative');
       const modStr = roll.modifier >= 0 ? '+' + roll.modifier : roll.modifier;
-      const formula = `d20(${roll.rawDie})${modStr}${roll.extraText ? ` (${roll.extraText})` : ''}`;
+      const dieFormatted = isNat20 
+        ? `<strong style="color: var(--hero-green); font-weight: 900;">20</strong>` 
+        : roll.rawDie;
+      const formula = `d20(${dieFormatted})${modStr}${roll.extraText ? ` (${roll.extraText})` : ''}`;
       resEl.innerHTML = `
         <strong style="color: #fff; margin-right: 0.4rem;">${roll.title}:</strong>
-        <span style="font-size: 0.95rem; font-weight: 900; color: var(--hero-gold); margin-right: 0.4rem;">${roll.total}</span>
-        <span style="color: var(--text-muted);">[${formula}]</span>
+        <span style="font-size: 0.95rem; font-weight: 900; color: ${isNat20 ? 'var(--hero-green)' : 'var(--hero-gold)'}; margin-right: 0.4rem;">${roll.total}</span>
+        <span style="color: var(--text-muted); margin-right: 0.5rem;">[${formula}]</span>
+        ${isNat20 ? '<span style="color: var(--hero-green); font-weight: 900;">🎯 NAT 20!</span>' : ''}
       `;
+      this.renderDiceHistoryDropdown();
       discordIntegrator.sendRollEmbed(roll);
       return;
     }
@@ -1344,7 +1380,9 @@ class AppController {
     let outcomeTag = '';
     if (roll.isCriticalHit) {
       resEl.classList.add('result-critical');
-      outcomeTag = '💥 CRIT!';
+      outcomeTag = isNat20 ? '🎯 NAT 20! 💥 CRIT!' : '💥 CRIT!';
+    } else if (isNat20) {
+      outcomeTag = '<span style="color: var(--hero-green); font-weight: 900;">🎯 NAT 20!</span>';
     } else if (roll.outcomeClass === 'success') {
       resEl.classList.add('result-success');
       outcomeTag = `✅ ${roll.degrees ? roll.degrees + '° ' : ''}Success`;
@@ -1359,15 +1397,91 @@ class AppController {
     }
 
     const dcText = roll.targetDC !== null && roll.targetDC !== undefined ? ` vs DC ${roll.targetDC}` : '';
-    const formula = roll.extraText || `d20(${roll.rawDie})${roll.modifier >= 0 ? '+' + roll.modifier : roll.modifier}`;
+    let dieStr = roll.rawDie;
+    if (isNat20 && (typeof dieStr === 'number' || typeof dieStr === 'string')) {
+      dieStr = String(dieStr).replace(/\b20\b/g, '<strong style="color: var(--hero-green); font-weight: 900;">20</strong>');
+    }
+    const formula = roll.extraText 
+      ? roll.extraText.replace(/\b20\b/g, '<strong style="color: var(--hero-green); font-weight: 900;">20</strong>')
+      : `d20(${dieStr})${roll.modifier >= 0 ? '+' + roll.modifier : roll.modifier}`;
+
     resEl.innerHTML = `
       <strong style="color: #fff; margin-right: 0.4rem;">${roll.title}:</strong>
-      <span style="font-size: 0.95rem; font-weight: 900; margin-right: 0.4rem;">${roll.total}</span>
+      <span style="font-size: 0.95rem; font-weight: 900; color: ${isNat20 ? 'var(--hero-green)' : 'inherit'}; margin-right: 0.4rem;">${roll.total}</span>
       <span style="color: var(--text-muted); margin-right: 0.5rem;">[${formula}${dcText}]</span>
       ${outcomeTag ? `<span>${outcomeTag}</span>` : ''}
     `;
 
+    this.renderDiceHistoryDropdown();
     discordIntegrator.sendRollEmbed(roll);
+  }
+
+  renderDiceHistoryDropdown() {
+    const dropdown = document.getElementById('dice-history-dropdown');
+    if (!dropdown) return;
+    const last10 = diceRoller.history.slice(0, 10);
+
+    if (last10.length === 0) {
+      dropdown.innerHTML = `
+        <div style="padding: 0.85rem 1rem; text-align: center; color: var(--text-muted); font-size: var(--font-size-xs); font-style: italic;">
+          No rolls recorded yet. Roll the dice to see the last 10 rolls here.
+        </div>
+      `;
+      return;
+    }
+
+    let html = `
+      <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.4rem 0.85rem 0.35rem 0.85rem; border-bottom: 1px solid var(--border-color); font-size: var(--font-size-xs); font-weight: 800; color: var(--hero-cyan);">
+        <span>🎲 Last ${last10.length} Roll${last10.length > 1 ? 's' : ''}</span>
+        <button type="button" id="btn-clear-dice-history" style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 11px; text-decoration: underline;">Clear</button>
+      </div>
+      <div style="display: flex; flex-direction: column;">
+    `;
+
+    last10.forEach((r, idx) => {
+      const isNat20 = !!r.isNatural20 || r.rawDie === 20 || (typeof r.rawDie === 'string' && (r.rawDie === '20' || r.rawDie.split(', ').includes('20')));
+      const dcText = r.targetDC !== null && r.targetDC !== undefined ? ` vs DC ${r.targetDC}` : '';
+      let outcomeLabel = '';
+      if (r.isCriticalHit) {
+        outcomeLabel = '<span style="color: var(--hero-green); font-weight: 800;">💥 CRIT!</span>';
+      } else if (r.outcomeClass === 'success') {
+        outcomeLabel = `<span style="color: var(--hero-green); font-weight: 700;">✅ ${r.degrees ? r.degrees + '° ' : ''}Success</span>`;
+      } else if (r.outcomeClass === 'failure') {
+        outcomeLabel = `<span style="color: var(--hero-red); font-weight: 700;">❌ ${r.degrees ? r.degrees + '° ' : ''}Fail</span>`;
+      }
+
+      let dieDisplay = r.rawDie;
+      if (isNat20 && (typeof dieDisplay === 'number' || typeof dieDisplay === 'string')) {
+        dieDisplay = String(dieDisplay).replace(/\b20\b/g, '<strong style="color: var(--hero-green); font-weight: 900;">20</strong>');
+      }
+      const formula = r.extraText 
+        ? r.extraText.replace(/\b20\b/g, '<strong style="color: var(--hero-green); font-weight: 900;">20</strong>')
+        : `d20(${dieDisplay})${r.modifier >= 0 ? '+' + r.modifier : r.modifier}`;
+
+      html += `
+        <div class="dice-history-item" style="display: flex; justify-content: space-between; align-items: center; padding: 0.45rem 0.85rem; border-bottom: 1px solid rgba(255,255,255,0.05); gap: 0.5rem; font-size: var(--font-size-xs); background: ${isNat20 ? 'rgba(16, 185, 129, 0.08)' : 'transparent'};">
+          <div style="display: flex; align-items: center; gap: 0.4rem; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+            <span style="color: var(--text-muted); font-size: 11px;">${r.timestamp || `#${idx + 1}`}</span>
+            <strong style="color: var(--text-bright); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${r.title || 'Roll'}</strong>
+            <span style="color: var(--text-muted); font-size: 11px;">[${formula}${dcText}]</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 0.4rem; white-space: nowrap; flex-shrink: 0;">
+            ${isNat20 ? '<span style="color: var(--hero-green); font-weight: 900; background: rgba(16, 185, 129, 0.2); padding: 1px 5px; border-radius: 3px; border: 1px solid var(--hero-green); font-size: 10px;">NAT 20</span>' : ''}
+            <strong style="font-size: var(--font-size-sm); color: ${isNat20 ? 'var(--hero-green)' : 'var(--hero-gold)'}; font-weight: 900;">${r.total}</strong>
+            ${outcomeLabel}
+          </div>
+        </div>
+      `;
+    });
+
+    html += `</div>`;
+    dropdown.innerHTML = html;
+
+    dropdown.querySelector('#btn-clear-dice-history')?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      diceRoller.history = [];
+      this.renderDiceHistoryDropdown();
+    });
   }
 
   // =======================================================
@@ -1693,7 +1807,7 @@ class AppController {
   }
 
   async checkForUpdates({ isManual = false } = {}) {
-    const CURRENT_VERSION = '3.39';
+    const CURRENT_VERSION = '3.40';
     const versionEl = document.getElementById('header-version-tag');
     const updateBtn = document.getElementById('btn-header-update-alert');
     if (typeof window === 'undefined' || !window.location || !window.location.href || window.location.href === 'about:blank') return;

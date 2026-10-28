@@ -1,5 +1,5 @@
 {
-  "version": "3.39",
-  "updatedAt": "2026-10-28T03:07:00.000Z",
-  "releaseNotes": "Enlarged alt character count badge on the Alt Characters button with a square background. Made Edit Abilities & Defenses popup taller and enabled Row 2 (defenses) wrapping so cards do not exceed the right margin."
+  "version": "3.40",
+  "updatedAt": "2026-10-28T03:25:00.000Z",
+  "releaseNotes": "Added dropdown arrow to the right of the dice roll output to show the last 10 rolls. Natural 20 rolls are highlighted in green across roll results and the history dropdown."
 }

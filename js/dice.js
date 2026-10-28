@@ -119,8 +119,8 @@ export class DiceRoller {
       outcome,
       outcomeClass,
       outcomeDescription,
-      isNatural20: isSingleD20 && rolls[0] === 20,
-      isNatural1: isSingleD20 && rolls[0] === 1,
+      isNatural20: isSingleD20 ? (rolls[0] === 20) : (sides === 20 && rolls.includes(20)),
+      isNatural1: isSingleD20 ? (rolls[0] === 1) : (sides === 20 && rolls.includes(1)),
       isCriticalHit: isSingleD20 && rolls[0] === 20,
       extraText: `Dice: [${rolls.join(', ')}] ${mod !== 0 ? (mod > 0 ? '+ ' + mod : '- ' + Math.abs(mod)) : ''}`
     };

@@ -1,5 +1,5 @@
 {
-  "version": "3.50",
-  "updatedAt": "2026-10-28T18:36:13.130Z",
-  "releaseNotes": "Fixed white-on-white unreadable styling on 'Add Alternate Power / Effect' button, modifier buttons, and delete buttons across light and dark themes."
+  "version": "3.51",
+  "updatedAt": "2026-10-28T18:48:34.964Z",
+  "releaseNotes": "Moved 'Primary Effect' and 'Array Main' tags to appear right-justified after the actual effect name in power effect entries. Changed add alternate power button label to 'Add alternate power effect'."
 }

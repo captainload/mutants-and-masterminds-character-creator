@@ -41,7 +41,7 @@ import {
   tablesManager
 } from './tables.js';
 
-import { POWER_PROFILES_LIBRARY } from './power_profiles.js?v=3.50';
+import { POWER_PROFILES_LIBRARY } from './power_profiles.js?v=3.51';
 import { ARCHETYPES } from './archetypes.js';
 import { archetypeManager } from './archetype_window.js';
 import { ARCHETYPE_CUSTOMIZATION_OPTIONS, buildCustomizedArchetype } from './archetype_builder.js';
@@ -1823,7 +1823,7 @@ class AppController {
   }
 
   async checkForUpdates({ isManual = false } = {}) {
-    const CURRENT_VERSION = '3.50';
+    const CURRENT_VERSION = '3.51';
     const versionEl = document.getElementById('header-version-tag');
     const updateBtn = document.getElementById('btn-header-update-alert');
     if (typeof window === 'undefined' || !window.location || !window.location.href || window.location.href === 'about:blank') return;
@@ -6633,12 +6633,15 @@ class AppController {
           <span class="power-title-sep">—</span>
           <span class="power-title-effect">${p.effect?.name || 'Effect'} Rank ${p.rank || 1}</span>
           <span class="power-title-details">(${cost} PP${p.alternateEffects?.length ? ` total • ${mainStandaloneCost} PP base` : ''} • ${effStats.action} • ${effStats.effectiveRange} • ${effStats.effectiveDuration} • ${effStats.area})</span>
-          <span class="badge-tag" style="background: rgba(56, 189, 248, 0.15); border: 1px solid var(--hero-cyan); color: var(--hero-cyan); font-weight: 700;" title="Primary Base Effect of this Power / Array">★ Primary Effect${p.alternateEffects?.length ? ' (Array Main)' : ''}</span>
           ${p.isDynamicArray ? '<span class="badge-tag dynamic">Dynamic Array</span>' : ''}
           ${p.alternateEffects?.length ? `<span class="badge-tag ae">${p.alternateEffects.length} AE</span>` : ''}
           ${(p.isLinked || p.linkedToId) ? `<span class="badge-tag linked">🔗 Linked</span>` : ''}
           ${p.linkedEffects?.length ? `<span class="badge-tag linked">${p.linkedEffects.length} Linked</span>` : ''}
           ${!valResult.valid ? '<span class="badge-tag conflict" title="Rule conflicts detected">⚠️ Conflict</span>' : ''}
+          <div class="power-effect-tags-right" style="margin-left: auto; display: inline-flex; align-items: center; gap: 0.35rem;">
+            <span class="badge-tag tag-primary-effect" style="background: rgba(56, 189, 248, 0.15); border: 1px solid var(--hero-cyan); color: var(--hero-cyan); font-weight: 700;" title="Primary Base Effect of this Power">Primary Effect</span>
+            ${p.alternateEffects?.length ? '<span class="badge-tag tag-array-main" style="background: rgba(59, 130, 246, 0.18); border: 1px solid var(--hero-blue); color: var(--hero-blue); font-weight: 700;" title="Main effect of this Power Array">Array Main</span>' : ''}
+          </div>
         </div>
         <div class="power-card-header-actions">
           <button class="btn btn-outline btn-toggle-power-expand" style="min-height: 32px; padding: 0.2rem 0.65rem; font-size: var(--font-size-base); font-weight: 700;">${isExpanded ? '▲ Collapse' : '▼ Configure'}</button>
@@ -6694,10 +6697,7 @@ class AppController {
         row1.style.cssText = 'display: flex; gap: 0.65rem; align-items: flex-end; flex-wrap: wrap; margin-bottom: 0.5rem;';
         row1.innerHTML = `
           <div style="flex: 2; min-width: 180px;">
-            <label class="field-label" style="display: flex; justify-content: space-between; align-items: center;">
-              <span>Power Name</span>
-              <span style="font-size: var(--font-size-xs); color: var(--hero-cyan); font-weight: 700;" title="This power is the Primary Effect / Array Base">★ Primary Effect</span>
-            </label>
+            <label class="field-label">Power Name</label>
             <input type="text" class="input-power-name" value="${p.name || ''}" placeholder="e.g. Plasma Ray, Force Field" style="width: 100%; font-size: var(--font-size-base); min-height: 36px;">
           </div>
           <div style="flex: 1.3; min-width: 140px;">
@@ -6707,7 +6707,11 @@ class AppController {
           <div style="flex: 1.6; min-width: 160px;">
             <label class="field-label" style="display: flex; align-items: center; justify-content: space-between;">
               <span>Base Effect</span>
-              <button type="button" class="btn-effect-info" title="View effect rules description" style="background: none; border: none; cursor: pointer; font-size: var(--font-size-base); padding: 0 0.2rem; color: var(--hero-blue); line-height: 1;">ℹ️</button>
+              <div style="display: flex; align-items: center; gap: 0.35rem;">
+                <span class="badge-tag tag-primary-effect" style="background: rgba(56, 189, 248, 0.15); border: 1px solid var(--hero-cyan); color: var(--hero-cyan); font-size: 11px; font-weight: 700; padding: 0.1rem 0.4rem;" title="Primary Effect">Primary Effect</span>
+                ${p.alternateEffects?.length ? '<span class="badge-tag tag-array-main" style="background: rgba(59, 130, 246, 0.18); border: 1px solid var(--hero-blue); color: var(--hero-blue); font-size: 11px; font-weight: 700; padding: 0.1rem 0.4rem;" title="Array Main">Array Main</span>' : ''}
+                <button type="button" class="btn-effect-info" title="View effect rules description" style="background: none; border: none; cursor: pointer; font-size: var(--font-size-base); padding: 0 0.2rem; color: var(--hero-blue); line-height: 1;">ℹ️</button>
+              </div>
             </label>
             <select class="select-power-effect" style="width: 100%; font-size: var(--font-size-base); min-height: 36px;">
               ${POWER_EFFECTS_CATALOG.map(e => `<option value="${e.id}" ${p.effect?.id === e.id ? 'selected' : ''}>${e.name} (${e.baseCost} PP/rk)</option>`).join('')}
@@ -6840,7 +6844,7 @@ class AppController {
               e.target.checked = false;
               await this.showAlertDialog(
                 'No other eligible unlinked powers found to link with.\n\n' +
-                '• To build an Alternate Effect Array (alternate powers sharing PP): This power is already the Primary Effect! Simply click "+ Add Alternate Power / Effect" at the bottom of this power card.\n\n' +
+                '• To build an Alternate Effect Array (alternate powers sharing PP): This power is already the Primary Effect! Simply click "Add alternate power effect" at the bottom of this power card.\n\n' +
                 '• To build a Linked Power (multiple powers activating simultaneously): You must first create another power, then check "Linked" to combine them.',
                 { title: 'Linked Effects vs Alternate Effect Arrays' }
               );
@@ -6969,7 +6973,7 @@ class AppController {
               <strong style="color: var(--hero-blue); font-size: var(--font-size-base);">🔄 Power Array & Alternate Effects (AE)</strong>
               <span style="font-size: var(--font-size-sm); color: var(--text-muted); margin-left: 0.65rem;">Primary effect is above.</span>
             </div>
-            <button class="btn btn-outline btn-add-ae-effect" style="font-size: var(--font-size-sm); min-height: 32px; padding: 0.2rem 0.75rem;" title="Add Alternate Effect / Power to Array">➕ Add Alternate Power / Effect to Array</button>
+            <button class="btn btn-outline btn-add-ae-effect" style="font-size: var(--font-size-sm); min-height: 32px; padding: 0.2rem 0.75rem;" title="Add alternate power effect to array">Add alternate power effect</button>
           </div>
           <div class="ae-items-container" style="display: flex; flex-direction: column; gap: 0.75rem; margin-top: 0.5rem;"></div>
         `;
@@ -6979,7 +6983,7 @@ class AppController {
         if (!this.expandedAeIds) this.expandedAeIds = new Set();
 
         if (p.alternateEffects.length === 0) {
-          aeContainer.innerHTML = `<div style="font-size: var(--font-size-sm); color: var(--text-muted); font-style: italic; padding: 0.25rem 0;">No alternate effects added. Click "➕ Add Alternate Power / Effect to Array" above to add one.</div>`;
+          aeContainer.innerHTML = `<div style="font-size: var(--font-size-sm); color: var(--text-muted); font-style: italic; padding: 0.25rem 0;">No alternate effects added. Click "Add alternate power effect" above to add one.</div>`;
         } else {
           p.alternateEffects.forEach((ae, aeIdx) => {
             if (!ae.id) {

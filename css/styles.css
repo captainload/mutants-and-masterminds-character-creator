@@ -2852,3 +2852,11 @@ html[data-theme="light"] .power-validation-alert,
 html[data-theme="light"] .power-validation-warning {
   color: var(--text-bright) !important;
 }
+
+.power-effect-tags-right {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-shrink: 0;
+}

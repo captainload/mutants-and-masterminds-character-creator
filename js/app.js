@@ -1419,26 +1419,26 @@ class AppController {
   renderDiceHistoryDropdown() {
     const dropdown = document.getElementById('dice-history-dropdown');
     if (!dropdown) return;
-    const last25 = diceRoller.history.slice(0, 25);
+    const last50 = diceRoller.history.slice(0, 50);
 
-    if (last25.length === 0) {
+    if (last50.length === 0) {
       dropdown.innerHTML = `
         <div style="padding: 0.85rem 1rem; text-align: center; color: var(--text-muted); font-size: var(--font-size-xs); font-style: italic;">
-          No rolls recorded yet. Roll the dice to see the last 25 rolls here.
+          No rolls recorded yet. Roll the dice to see the last 50 rolls here.
         </div>
       `;
       return;
     }
 
     let html = `
-      <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.4rem 0.85rem 0.35rem 0.85rem; border-bottom: 1px solid var(--border-color); font-size: var(--font-size-xs); font-weight: 800; color: var(--hero-cyan);">
-        <span>🎲 Last ${last25.length} Roll${last25.length > 1 ? 's' : ''}</span>
-        <button type="button" id="btn-clear-dice-history" style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 11px; text-decoration: underline;">Clear</button>
+      <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0.85rem 0.4rem 0.85rem; border-bottom: 1px solid var(--border-color); font-size: var(--font-size-xs); font-weight: 800; color: var(--hero-cyan);">
+        <span>🎲 Last ${last50.length} Roll${last50.length > 1 ? 's' : ''}</span>
+        <button type="button" id="btn-clear-dice-history" style="background: none; border: none; color: var(--hero-red); cursor: pointer; font-size: var(--font-size-xs); font-weight: 700; text-decoration: underline; padding: 2px 6px;">Clear History</button>
       </div>
       <div style="display: flex; flex-direction: column;">
     `;
 
-    last25.forEach((r, idx) => {
+    last50.forEach((r, idx) => {
       const isNat20 = !!r.isNatural20 || r.rawDie === 20 || (typeof r.rawDie === 'string' && (r.rawDie === '20' || r.rawDie.split(', ').includes('20')));
       const dcText = r.targetDC !== null && r.targetDC !== undefined ? ` vs DC ${r.targetDC}` : '';
       let outcomeLabel = '';
@@ -1459,15 +1459,15 @@ class AppController {
         : `d20(${dieDisplay})${r.modifier >= 0 ? '+' + r.modifier : r.modifier}`;
 
       html += `
-        <div class="dice-history-item" style="display: flex; justify-content: space-between; align-items: center; padding: 0.45rem 0.85rem; border-bottom: 1px solid rgba(255,255,255,0.05); gap: 0.5rem; font-size: var(--font-size-xs); background: ${isNat20 ? 'rgba(16, 185, 129, 0.08)' : 'transparent'};">
-          <div style="display: flex; align-items: center; gap: 0.4rem; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-            <span style="color: var(--text-muted); font-size: 11px;">${r.timestamp || `#${idx + 1}`}</span>
-            <strong style="color: var(--text-bright); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${r.title || 'Roll'}</strong>
-            <span style="color: var(--text-muted); font-size: 11px;">[${formula}${dcText}]</span>
+        <div class="dice-history-item" style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0.85rem; border-bottom: 1px solid rgba(255,255,255,0.05); gap: 0.55rem; font-size: var(--font-size-sm); background: ${isNat20 ? 'rgba(16, 185, 129, 0.08)' : 'transparent'};">
+          <div style="display: flex; align-items: center; gap: 0.45rem; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+            <span style="color: var(--text-muted); font-size: var(--font-size-xs); font-weight: 600; white-space: nowrap;">${r.timestamp || `#${idx + 1}`}</span>
+            <strong style="color: var(--text-bright); font-size: var(--font-size-sm); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${r.title || 'Roll'}</strong>
+            <span style="color: var(--text-muted); font-size: var(--font-size-xs);">[${formula}${dcText}]</span>
           </div>
-          <div style="display: flex; align-items: center; gap: 0.4rem; white-space: nowrap; flex-shrink: 0;">
-            ${isNat20 ? '<span style="color: var(--hero-green); font-weight: 900; background: rgba(16, 185, 129, 0.2); padding: 1px 5px; border-radius: 3px; border: 1px solid var(--hero-green); font-size: 10px;">NAT 20</span>' : ''}
-            <strong style="font-size: var(--font-size-sm); color: ${isNat20 ? 'var(--hero-green)' : 'var(--hero-gold)'}; font-weight: 900;">${r.total}</strong>
+          <div style="display: flex; align-items: center; gap: 0.45rem; white-space: nowrap; flex-shrink: 0;">
+            ${isNat20 ? '<span style="color: var(--hero-green); font-weight: 900; background: rgba(16, 185, 129, 0.2); padding: 1px 5px; border-radius: 3px; border: 1px solid var(--hero-green); font-size: 11px;">NAT 20</span>' : ''}
+            <strong style="font-size: var(--font-size-base); color: ${isNat20 ? 'var(--hero-green)' : 'var(--hero-gold)'}; font-weight: 900; min-width: 28px; text-align: right;">${r.total}</strong>
             ${outcomeLabel}
           </div>
         </div>
@@ -1807,7 +1807,7 @@ class AppController {
   }
 
   async checkForUpdates({ isManual = false } = {}) {
-    const CURRENT_VERSION = '3.41';
+    const CURRENT_VERSION = '3.42';
     const versionEl = document.getElementById('header-version-tag');
     const updateBtn = document.getElementById('btn-header-update-alert');
     if (typeof window === 'undefined' || !window.location || !window.location.href || window.location.href === 'about:blank') return;

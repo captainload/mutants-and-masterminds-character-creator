@@ -1,5 +1,5 @@
 {
-  "version": "3.41",
-  "updatedAt": "2026-10-28T03:34:00.000Z",
-  "releaseNotes": "Extended dice roller history dropdown from 10 to the last 25 rolls."
+  "version": "3.42",
+  "updatedAt": "2026-10-28T03:40:00.000Z",
+  "releaseNotes": "Enlarged Clear link, timestamps, and roll results in the dice history dropdown. Made the dropdown scrollbar slightly wider (9px), extended history capacity to 50 rolls, and sized the visible area to display 10 rolls."
 }

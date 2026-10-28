@@ -1423,16 +1423,21 @@ textarea {
 }
 
 .dice-history-dropdown-panel {
+  max-height: 510px !important;
   scrollbar-width: thin;
 }
 
 .dice-history-dropdown-panel::-webkit-scrollbar {
-  width: 6px;
+  width: 9px;
 }
 
 .dice-history-dropdown-panel::-webkit-scrollbar-thumb {
   background: var(--border-color);
-  border-radius: var(--radius-sm);
+  border-radius: 4px;
+}
+
+.dice-history-dropdown-panel::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2);
 }
 
 .dice-history-item:hover {

@@ -18,7 +18,7 @@ export class DiceRoller {
 
   notify(rollResult) {
     this.history.unshift(rollResult);
-    if (this.history.length > 50) this.history.pop();
+    if (this.history.length > 100) this.history.pop();
     if (rollResult.rollType !== 'initiative') {
       this.mostRecentCheck = rollResult;
       if (rollResult.outcomeClass === 'failure' || rollResult.outcome === 'Failure') {

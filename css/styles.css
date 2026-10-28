@@ -193,13 +193,13 @@ body {
   border-radius: 50%;
   font-size: 13px;
   font-weight: 900;
-  display: inline-flex;
+  display: none; /* Only show if update detected */
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  border: 1px solid rgba(37, 99, 235, 0.5);
-  background: rgba(37, 99, 235, 0.2);
-  color: var(--hero-blue);
+  border: 1px solid rgba(239, 68, 68, 0.8);
+  background: rgba(239, 68, 68, 0.25);
+  color: #ef4444;
   line-height: 1;
   padding: 0;
   transition: all 0.2s ease;
@@ -211,10 +211,15 @@ body {
 }
 
 .btn-header-update-alert.out-of-date {
+  display: inline-flex !important;
   border-color: rgba(239, 68, 68, 0.8);
   background: rgba(239, 68, 68, 0.25);
   color: #ef4444;
   animation: pulse-update-btn 1.5s infinite;
+}
+
+.btn-header-update-alert.up-to-date {
+  display: none !important;
 }
 
 @keyframes pulse-update-btn {
@@ -2689,6 +2694,63 @@ html[data-theme="light"] .lang-available-row:hover {
 html[data-theme="light"] .lang-known-row {
   background-color: rgba(0, 0, 0, 0.02) !important;
   border-color: var(--border-color) !important;
+}
+
+/* =====================================================================
+   POWER EFFECT NOTES EXPANDABLE TO TWO VISIBLE ROWS (v3.48)
+   ===================================================================== */
+.input-power-notes,
+.input-ae-notes {
+  width: 100%;
+  min-height: 48px;
+  font-size: var(--font-size-xs);
+  line-height: 1.35;
+  resize: vertical;
+  box-sizing: border-box;
+  font-family: inherit;
+  padding: 0.35rem 0.55rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-color);
+  background-color: var(--bg-input);
+  color: var(--text-bright);
+  display: block;
+}
+
+.power-profiles-card {
+  background: linear-gradient(135deg, #1b263b 0%, #151e30 100%);
+  border: 1px solid var(--border-color);
+}
+
+html[data-theme="light"] .power-profiles-card {
+  background: linear-gradient(135deg, #ede5d8 0%, #e2d9cb 100%) !important;
+  border-color: var(--border-color) !important;
+}
+
+html[data-theme="light"] #power-profiles-select {
+  background-color: #ffffff !important;
+  color: #14100c !important;
+  border-color: var(--border-color) !important;
+}
+
+html[data-theme="light"] #power-profiles-select optgroup,
+html[data-theme="light"] #power-profiles-select option {
+  background-color: #ffffff !important;
+  color: #14100c !important;
+}
+
+html[data-theme="light"] #btn-open-custom-power-builder {
+  color: var(--hero-blue) !important;
+  border-color: var(--hero-blue) !important;
+}
+
+html[data-theme="light"] #btn-power-profile-info {
+  background-color: #f7f1e7 !important;
+  border-color: var(--border-color) !important;
+  color: var(--hero-blue) !important;
+}
+
+html[data-theme="light"] #btn-power-profile-info:hover:not(:disabled) {
+  background-color: #ede4d5 !important;
 }
 
 

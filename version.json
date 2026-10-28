@@ -1,5 +1,5 @@
 {
-  "version": "3.47",
-  "updatedAt": "2026-10-28T17:55:00.000Z",
-  "releaseNotes": "Fixed Skill Mastery rendering and options listener in Advantages tab with alphabetical catalog sorting. Overhauled light theme to eliminate dark backgrounds across roll cards, steppers, dice bar, modals, and tables. Added proportional widening for row columns on wide desktop and landscape tablet displays."
+  "version": "3.48",
+  "updatedAt": "2026-10-28T18:15:00.000Z",
+  "releaseNotes": "Only show version update alert icon when updates are detected. Reparsed all 1,076 Power Profiles to fix truncated descriptions and eliminate errant text. Expanded effect notes fields to two visible rows. Added profile information 'i' button and fixed light theme styling on power profile picker."
 }

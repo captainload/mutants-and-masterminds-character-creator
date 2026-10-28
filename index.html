@@ -6,8 +6,8 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Mutants & Masterminds 3E - Character Editor v3.47</title>
-  <link rel="stylesheet" href="css/styles.css?v=3.47">
+  <title>Mutants & Masterminds 3E - Character Editor v3.48</title>
+  <link rel="stylesheet" href="css/styles.css?v=3.48">
 </head>
 <body>
 
@@ -80,8 +80,8 @@
 
           <div class="brand-title-centered">
             <span>Mutants & Masterminds 3E Character Editor</span>
-            <span id="header-version-tag" class="header-version-tag up-to-date" title="Current Version">v3.47</span>
-            <button type="button" id="btn-header-update-alert" class="btn-header-update-alert" title="Check for updates / Update status">!</button>
+            <span id="header-version-tag" class="header-version-tag up-to-date" title="Current Version">v3.48</span>
+            <button type="button" id="btn-header-update-alert" class="btn-header-update-alert" title="Check for updates / Update status" style="display: none;">!</button>
           </div>
 
           <div class="header-right-spacer" style="width: 95px;" aria-hidden="true"></div>
@@ -451,7 +451,7 @@
       <!-- =================================================== -->
       <div class="tab-pane" id="tab-powers">
         <div id="alt-config-powers-banner" style="display: none; margin-bottom: 0.85rem;"></div>
-        <div class="card-box" style="margin-bottom: 0.85rem; background: linear-gradient(135deg, #1b263b 0%, #151e30 100%);">
+        <div class="card-box power-profiles-card" style="margin-bottom: 0.85rem;">
           <div class="card-box-header">
             <div class="card-box-title">⚡ Official 3E Power Profiles Library</div>
           </div>
@@ -460,10 +460,11 @@
               <option value="" disabled selected>-select power profile-</option>
               <!-- Populated from POWER_PROFILES_LIBRARY -->
             </select>
+            <button type="button" class="btn btn-outline" id="btn-power-profile-info" style="min-height: 40px; min-width: 42px; padding: 0 0.65rem; font-size: 1.15rem; font-weight: 800; border-color: var(--hero-blue);" title="View Power Profile Description" disabled>ℹ️</button>
             <button class="btn btn-primary" id="btn-apply-profile" style="min-height: 40px; font-size: var(--font-size-base); font-weight: 800;" disabled>
               ⚡ Load Power Profile
             </button>
-            <button class="btn btn-outline" id="btn-open-custom-power-builder" style="min-height: 40px; font-size: var(--font-size-base); font-weight: 800; border-color: var(--hero-blue); color: #fff;">
+            <button class="btn btn-outline" id="btn-open-custom-power-builder" style="min-height: 40px; font-size: var(--font-size-base); font-weight: 800; border-color: var(--hero-blue);">
               ➕ Build new power
             </button>
           </div>
@@ -1097,6 +1098,38 @@
     </div>
   </div>
 
+
+  <!-- ======================================================= -->
+  <!-- MODAL: POWER PROFILE INFORMATION POP-UP                 -->
+  <!-- ======================================================= -->
+  <div class="modal-overlay" id="modal-power-profile-info">
+    <div class="modal-container" style="max-width: 620px; width: 95vw; max-height: 85vh; display: flex; flex-direction: column;">
+      <div class="modal-header-bar">
+        <div class="modal-header-title" style="display: flex; align-items: center; gap: 0.5rem;">
+          <span>⚡</span> <span id="profile-info-title">Power Profile</span>
+        </div>
+        <button class="btn btn-outline" id="btn-close-profile-info" style="min-height: 28px; padding: 0.1rem 0.5rem;" title="Close">✕</button>
+      </div>
+      <div class="modal-scroll-body" style="padding: 1.25rem; display: flex; flex-direction: column; gap: 0.75rem; overflow-y: auto;">
+        <div style="display: flex; justify-content: space-between; align-items: baseline; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem;">
+          <div>
+            <span id="profile-info-category" style="font-size: var(--font-size-xs); background: rgba(37,99,235,0.15); border: 1px solid rgba(37,99,235,0.3); color: var(--hero-cyan); padding: 0.15rem 0.5rem; border-radius: 4px; font-weight: 700;"></span>
+            <span id="profile-info-descriptor" style="font-size: var(--font-size-xs); color: var(--text-muted); margin-left: 0.5rem; font-style: italic;"></span>
+          </div>
+          <span id="profile-info-cost" style="font-size: var(--font-size-sm); font-weight: 800; color: var(--hero-gold);"></span>
+        </div>
+        <div id="profile-info-mechanics" style="font-size: var(--font-size-xs); font-family: monospace; background: var(--bg-input); padding: 0.5rem 0.75rem; border-radius: 4px; border: 1px solid var(--border-color); color: var(--hero-cyan);"></div>
+        <div>
+          <strong style="font-size: var(--font-size-xs); color: var(--text-muted); text-transform: uppercase;">Official Description &amp; Notes:</strong>
+          <p id="profile-info-desc" style="font-size: var(--font-size-sm); color: var(--text-main); line-height: 1.5; margin-top: 0.35rem; white-space: pre-line;"></p>
+        </div>
+      </div>
+      <div class="modal-footer-bar" style="justify-content: flex-end;">
+        <button class="btn btn-primary" id="btn-done-profile-info">Close</button>
+      </div>
+    </div>
+  </div>
+
   <!-- ======================================================= -->
   <!-- MODAL: SKILL MASTERY ADVANTAGE (3E)                     -->
   <!-- ======================================================= -->
@@ -1534,6 +1567,6 @@
     </div>
   </div>
 
-  <script type="module" src="js/app.js?v=3.47"></script>
+  <script type="module" src="js/app.js?v=3.48"></script>
 </body>
 </html>

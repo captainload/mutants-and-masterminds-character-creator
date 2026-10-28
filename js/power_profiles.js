@@ -108,7 +108,7 @@ export const POWER_PROFILES_LIBRARY = [
             "description": "Direction"
           }
         ],
-        "notes": "Note that a character with the Aerokinesis power (under Utility Powers) can duplicate the effects of this power. Area versions of this power are common, including Wind Wall (under Defensive Powers, following) and Wind Blast (in the Weather Powers section). (Move Object, Limited Direction • 1 point per rank)"
+        "notes": "A powerful gust of wind picks up your target and flings it a considerable distance. If the attack hits, the target makes a Strength or Dodge check against your effect rank check. If the target wins, there is no effect. If you win, the target is flung a distance rank equal to your effect rank minus the target's weight rank. So a 200 lb. man (weight rank 2) hit with a rank 8 Flinging Gust would be hurled 1,800 feet (distance rank 6, or 8 minus 2). Note that a character with the Aerokinesis power (under Utility Powers) can duplicate the effects of this power. Area versions of this power are common, including Wind Wall (under Defensive Powers, following) and Wind Blast (in the Weather Powers section). (Move Object, Limited Direction • 1 point per rank)"
       },
       {
         "id": "prof_air_powers_stench",
@@ -199,7 +199,7 @@ export const POWER_PROFILES_LIBRARY = [
           }
         ],
         "flaws": [],
-        "notes": "rank 8 in terms of both wind speed and lifting capabilities (sufficient to pick up and hurl vehicles), but the GM can allow cyclones of any rank. Because the power is Damaging, it can lift objects, \"hold\" them (trapped in the whirlwind), hurl them away, or simply damage them. (Cylinder Area Move Object, Damaging • 4 points per rank, +1 point per rank per +1 area distance rank)"
+        "notes": "You create a powerful whirlwind capable of damaging structures and picking up unsecured objects. The basic tornado has a radius of 30 feet (distance rank 0). It can \"grab\" or lift objects with weight rank equal to or less than its rank; a realistic tornado should be limited to around rank 8 in terms of both wind speed and lifting capabilities (sufficient to pick up and hurl vehicles), but the GM can allow cyclones of any rank. Because the power is Damaging, it can lift objects, \"hold\" them (trapped in the whirlwind), hurl them away, or simply damage them. (Cylinder Area Move Object, Damaging • 4 points per rank, +1 point per rank per +1 area distance rank)"
       },
       {
         "id": "prof_air_powers_air_bubble",
@@ -227,7 +227,7 @@ export const POWER_PROFILES_LIBRARY = [
           }
         ],
         "flaws": [],
-        "notes": "protects against other hazards, increase the rank of the Immunity (at a cost of 3 points per rank) to cover them. This includes the bubble resisting pressure (such as deep under water) or vacuum (in space) or maintaining a constant temperature. (Immunity 2 (Suffocation), Affects Others, Cloud Area, Sustained • 6 points + 2 points per +1 area distance rank)"
+        "notes": "You create a bubble of fresh, clean, breathable air around you, 30 feet across (distance rank 0). Anyone inside the bubble is able to breathe normally (assuming they are an air-breather). If you stop sustaining the air bubble, its surface tension is sufficient to keep it intact for one more round before it pops. If you can create an air bubble at a distance, apply the Ranged modifier for an additional 2 points. If the bubble protects against other hazards, increase the rank of the Immunity (at a cost of 3 points per rank) to cover them. This includes the bubble resisting pressure (such as deep under water) or vacuum (in space) or maintaining a constant temperature. (Immunity 2 (Suffocation), Affects Others, Cloud Area, Sustained • 6 points + 2 points per +1 area distance rank)"
       },
       {
         "id": "prof_air_powers_air_shield",
@@ -283,7 +283,7 @@ export const POWER_PROFILES_LIBRARY = [
             "description": "Physical Projectiles"
           }
         ],
-        "notes": "active defense for targets inside the area if it is higher than their normal active defense. See Whirlwind in the Weather Powers section for a similar effect, with an expanded Cloud Area, allowing the whirlwind to deflect attacks on the round after it is used as well. (Deflect, Burst Area, Limited to Physical Projectiles • 1 point per rank)"
+        "notes": "You can wield the winds to deflect ranged attacks at a distance, setting up a swirling barrier protecting anyone inside it. Roll the die and add your Deflect rank, adding 10 to the die roll if it is a 10 or less. The result becomes the active defense for targets inside the area if it is higher than their normal active defense. See Whirlwind in the Weather Powers section for a similar effect, with an expanded Cloud Area, allowing the whirlwind to deflect attacks on the round after it is used as well. (Deflect, Burst Area, Limited to Physical Projectiles • 1 point per rank)"
       },
       {
         "id": "prof_air_powers_mist",
@@ -296,7 +296,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Air, Visibility",
         "extras": [],
         "flaws": [],
-        "notes": "You are unable to see through your own mist unless you have an appropriate Senses effect (such as Counters Concealment or the Air Sense power, following). You can also apply a Feature to your power (does not impede your own vision) or make it Selective in order to decide who is and is not affected. (Environment (Visibility) • 1 point per rank (-2 modifier) or 2 points per rank (-5 modifier))"
+        "notes": "You condense a heavy mist out of the air. It imposes a -2 visibility modifier in the area. For twice the cost (2 points per rank), the mist imposes a -5 visibility modifier. You are unable to see through your own mist unless you have an appropriate Senses effect (such as Counters Concealment or the Air Sense power, following). You can also apply a Feature to your power (does not impede your own vision) or make it Selective in order to decide who is and is not affected. (Environment (Visibility) • 1 point per rank (-2 modifier) or 2 points per rank (-5 modifier))"
       },
       {
         "id": "prof_air_powers_wind_wall",
@@ -326,7 +326,7 @@ export const POWER_PROFILES_LIBRARY = [
             "description": "Direction"
           }
         ],
-        "notes": "d20 + 8 (the wall's rank) or be thrown distance rank 8 - 2 (average human weight) or 1,800 feet (distance rank 6). A Wind Wall can be combined with Deflecting Winds (previously) to create a barrier that provides a defensive bonus as well as flinging aside things trying to cross the barrier. (Line Area Move Object, Limited Direction (along the length of the line) • 2 points per rank +1 point per rank)"
+        "notes": "You create a narrow corridor or \"wall\" where the wind blows strongly in one direction, creating a barrier of sorts: anything trying to pass through the wind wall must beat an opposed check of Strength or Speed against the wall's rank. If the wall wins the check, the target is flung in the direction the wind is moving a distance rank equal to the wall's rank minus the target's weight rank. So a STR 4 person running into a rank 8 wind wall (moving at Speed rank 0) must make a Strength check (d20 + 4) versus d20 + 8 (the wall's rank) or be thrown distance rank 8 - 2 (average human weight) or 1,800 feet (distance rank 6). A Wind Wall can be combined with Deflecting Winds (previously) to create a barrier that provides a defensive bonus as well as flinging aside things trying to cross the barrier. (Line Area Move Object, Limited Direction (along the length of the line) • 2 points per rank +1 point per rank)"
       },
       {
         "id": "prof_air_powers_air_walking",
@@ -412,7 +412,7 @@ export const POWER_PROFILES_LIBRARY = [
           }
         ],
         "flaws": [],
-        "notes": "dard action each round to do so, targets in the area remain grounded and those not yet grounded have to make a new resistance check. If you can maintain a grounding area as a free action, apply the Sustained modifier for an additional 1 point per rank cost. (Nullify Flight and Swimming Based on Air, Concentration, Cylinder Area, Effortless • 4 points per rank)"
+        "notes": "Your control over the air allows you to ground or becalm wind-powered forms of movement in an area. This includes winged Flight, sailing-based Swimming, and Flight based on conventional aerodynamics (as opposed to sheer power like anti-gravity, magnetics, and so forth). As long as you maintain your concentration, taking a standard action each round to do so, targets in the area remain grounded and those not yet grounded have to make a new resistance check. If you can maintain a grounding area as a free action, apply the Sustained modifier for an additional 1 point per rank cost. (Nullify Flight and Swimming Based on Air, Concentration, Cylinder Area, Effortless • 4 points per rank)"
       },
       {
         "id": "prof_air_powers_wind_riding",
@@ -425,7 +425,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Air, Wind",
         "extras": [],
         "flaws": [],
-        "notes": "your ascent and maintain altitude at will. If you can command the wind to carry others aloft with you, either apply the Affects Others, Ranged, and Area modifiers, or use wind lifting (see Utility Powers) to pick up and carry them along. (Flight • 2 points per rank)"
+        "notes": "You can truly ride the wind, similar to Gliding (previously) except you can create the necessary updrafts to control your ascent and maintain altitude at will. If you can command the wind to carry others aloft with you, either apply the Affects Others, Ranged, and Area modifiers, or use wind lifting (see Utility Powers) to pick up and carry them along. (Flight • 2 points per rank)"
       },
       {
         "id": "prof_air_powers_aerokinesis",
@@ -451,7 +451,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Air, Wind",
         "extras": [],
         "flaws": [],
-        "notes": "get additional air creatures or to make them more active or capable (removing the minion type from the template). Note the creature template has a power level higher than the Summon effect rank, an option discussed in the Summoning Powers section. (Summon Air Creature 6 (90-point minion) • 12 points)"
+        "notes": "You can summon or create semi-independent creatures of air that obey your commands. The air creatures you summon are not truly alive, merely animated masses of air. They can look like virtually anything, from misty humanoids to mythic creatures like thunderbirds or dragons. You can apply the various modifiers for the Summon effect to get additional air creatures or to make them more active or capable (removing the minion type from the template). Note the creature template has a power level higher than the Summon effect rank, an option discussed in the Summoning Powers section. (Summon Air Creature 6 (90-point minion) • 12 points)"
       },
       {
         "id": "prof_air_powers_air_form",
@@ -464,7 +464,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Air, Visual",
         "extras": [],
         "flaws": [],
-        "notes": "use powers like Aerokinesis to do so. Your air form may grant you other air powers, such as Suffocation or Stench (previously), either at their normal range or limited to close range, requiring you to engulf the target in your air form. (Concealment 4 (visual), Flight 1, Insubstantial 2 (gaseous) • 20 points)"
+        "notes": "You can transform from flesh and blood into a mass of mobile air. In air form you are gaseous and insubstantial, able to slip through any opening that is not airtight, and largely immune to physical harm (although energy attacks and area effects, like explosions, still affect you). You can become invisible or appear as a misty, humanoid shape resembling your normal form. You can move through the air in any direction, but lack physical strength and cannot touch or move objects on your own, although you can still use powers like Aerokinesis to do so. Your air form may grant you other air powers, such as Suffocation or Stench (previously), either at their normal range or limited to close range, requiring you to engulf the target in your air form. (Concealment 4 (visual), Flight 1, Insubstantial 2 (gaseous) • 20 points)"
       },
       {
         "id": "prof_air_powers_air_sense",
@@ -477,7 +477,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Air, Air Awareness, Ranged Touch",
         "extras": [],
         "flaws": [],
-        "notes": "You can feel the movement of air currents around you, giving you an effective picture of your surroundings without having to see and allowing you to sense any unusual disturbances of the air nearby (usually from the use of other powers with an air descriptor). (Senses 2 (Air Awareness, Ranged Touch) • 2 points 88 AIR POWERS AIR POWERS MUTANTS & MASTERMINDS POWER PROFILES MUTANTS & MASTERMINDS POWER PROFILES)"
+        "notes": "You can feel the movement of air currents around you, giving you an effective picture of your surroundings without having to see and allowing you to sense any unusual disturbances of the air nearby (usually from the use of other powers with an air descriptor). (Senses 2 (Air Awareness, Ranged Touch) • 2 points 88 AIR POWERS AIR POWERS)"
       },
       {
         "id": "prof_air_powers_freshen_air",
@@ -594,7 +594,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Armor, Technology",
         "extras": [],
         "flaws": [],
-        "notes": "ranged blasting attack. The attack may originate from the armor's gauntlets or arms, shoulder-mounted pods, or from the chest-plate or helmet, depending on the descriptors. Likewise, a \"blaster\" can be different types of energy or even physical projectiles. (Ranged Damage • 2 points per rank)"
+        "notes": "Most basic type of armor weapon: a straightforward ranged blasting attack. The attack may originate from the armor's gauntlets or arms, shoulder-mounted pods, or from the chest-plate or helmet, depending on the descriptors. Likewise, a \"blaster\" can be different types of energy or even physical projectiles. (Ranged Damage • 2 points per rank)"
       },
       {
         "id": "prof_armor_powers_capture_weapon",
@@ -607,7 +607,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Armor, Technology",
         "extras": [],
         "flaws": [],
-        "notes": "incapacitate opponents without harming them. A capture weapon may be tranquilizer darts, stun gas, a taser, net, or similar weapon. See the Dazzle, Sleep, and Snare sample powers in Chapter 6 of the Deluxe Hero's Handbook for additional examples. (Ranged Affliction (Resisted and Overcome by Fortitude; Impaired, Disabled, Incapacitated) • 2 points)"
+        "notes": "A non-damaging ranged weapon intended to disable and incapacitate opponents without harming them. A capture weapon may be tranquilizer darts, stun gas, a taser, net, or similar weapon. See the Dazzle, Sleep, and Snare sample powers in Chapter 6 of the Deluxe Hero's Handbook for additional examples. (Ranged Affliction (Resisted and Overcome by Fortitude; Impaired, Disabled, Incapacitated) • 2 points)"
       },
       {
         "id": "prof_armor_powers_homing_missile",
@@ -628,7 +628,7 @@ export const POWER_PROFILES_LIBRARY = [
           }
         ],
         "flaws": [],
-        "notes": "system, allowing it to lock onto and track its target. By default the homing missile is a heat-seeker, tracking its target by its heat emissions, but you can substitute another Sense effect worth 1 point (or spend additional points for a higher-ranked sense effect). (Ranged Damage, Homing 2 Linked to Senses 1 (Infravision) • 3 points + 2 points per rank)"
+        "notes": "You launch a micro-missile with an on-board guidance system, allowing it to lock onto and track its target. By default the homing missile is a heat-seeker, tracking its target by its heat emissions, but you can substitute another Sense effect worth 1 point (or spend additional points for a higher-ranked sense effect). (Ranged Damage, Homing 2 Linked to Senses 1 (Infravision) • 3 points + 2 points per rank)"
       },
       {
         "id": "prof_armor_powers_machine_gun",
@@ -670,7 +670,7 @@ export const POWER_PROFILES_LIBRARY = [
           }
         ],
         "flaws": [],
-        "notes": "A micro-missile might have partial ranks of Burst Area for three \"tiers\" of Damage: full Damage to the target of a successful attack check, Burst Area Damage to nearby targets in the blast radius, and half Burst Area Damage to targets in the blast radius who make a successful Dodge check. (Burst Area Ranged Damage • 3 points per rank 11 11 ARMOR POWERS ARMOR POWERS MUTANTS & MASTERMINDS POWER PROFILES MUTANTS & MASTERMINDS POWER PROFILES)"
+        "notes": "Your armor can fire explosive micro-missiles from an arm-, shoulder-, or chest-mounted launcher. Although the default effect of this weapon is Damage, see the Grenades and Explosives section of Chapter 7 of the Deluxe Hero's Handbook for some potential Alternate Effects. A micro-missile might have partial ranks of Burst Area for three \"tiers\" of Damage: full Damage to the target of a successful attack check, Burst Area Damage to nearby targets in the blast radius, and half Burst Area Damage to targets in the blast radius who make a successful Dodge check. (Burst Area Ranged Damage • 3 points per rank)"
       },
       {
         "id": "prof_armor_powers_surface_shock",
@@ -696,7 +696,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Armor, Technology",
         "extras": [],
         "flaws": [],
-        "notes": "Strength, essentially with the Limited to Lifting modifier (see Power-Lifting, Deluxe Hero's Handbook, page 175). A truly massive suit of armor may provide Permanent and Innate ranks of Growth instead of or in addition to Strength Enhancement. (Enhanced Strength • 2 points per rank)"
+        "notes": "Strength Enhancement power from Armor Powers. (Enhanced Strength • 2 points per rank)"
       },
       {
         "id": "prof_armor_powers_armor",
@@ -709,7 +709,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Armor, Technology",
         "extras": [],
         "flaws": [],
-        "notes": "The most basic armor power is its namesake: protection against external sources of damage and injury. Some powered armor is reinforced, shrugging off minor attacks altogether, represented by ranks of the Impervious modifier (see Impervious Options, following). (Protection • 1 point per rank)"
+        "notes": "Most basic armor power is its namesake: protection against external sources of damage and injury. Some powered armor is reinforced, shrugging off minor attacks altogether, represented by ranks of the Impervious modifier (see Impervious Options, following). (Protection • 1 point per rank)"
       },
       {
         "id": "prof_armor_powers_force_field",
@@ -722,7 +722,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Armor, Technology",
         "extras": [],
         "flaws": [],
-        "notes": "down under circumstances where the effect cannot be maintained. Note that a permanent force field may have the Noticeable modifier (if the field glows brightly, for example), while non-permanent fields are noticeable by default. (Protection • 1 point per rank)"
+        "notes": "Rather than armor plating or similarly protective materials, power armor may protect the wearer by generating a powerful force field. Descriptors vary from electromagnetic to magical or even cosmic. For some suits, the force field is effectively permanent in duration: as long as the armor is worn and operating, its defenses are \"up\". Others may have continuous or sustained duration force fields capable of greater mutability (usable for stunts) but also subject to being shutdown under circumstances where the effect cannot be maintained. Note that a permanent force field may have the Noticeable modifier (if the field glows brightly, for example), while non-permanent fields are noticeable by default. (Protection • 1 point per rank)"
       },
       {
         "id": "prof_armor_powers_life_support_system",
@@ -735,7 +735,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Armor, Life Support",
         "extras": [],
         "flaws": [],
-        "notes": "munity, or permit the Quirk (missing some Immunities, -1 point each) for a Life Support System that does not cover certain things, such as still requiring the armor's wearer to rest or resist diseases or poisons that manage to penetrate the armor's outer shell. (Immunity 10 (Life Support) • 10 points)"
+        "notes": "Next most common defensive power for armor after the protection it affords is some type of built-in life support or sealed system, allowing the armor's wearer to operate in virtually any hostile environment. Some power armor is customized for particular environments, such as aquatic, arctic, or deep space, with lesser ranks of Immunity. The Gamemaster may wish to require a lower rank of Immunity, or permit the Quirk (missing some Immunities, -1 point each) for a Life Support System that does not cover certain things, such as still requiring the armor's wearer to rest or resist diseases or poisons that manage to penetrate the armor's outer shell. (Immunity 10 (Life Support) • 10 points)"
       },
       {
         "id": "prof_armor_powers_mind_shield",
@@ -778,7 +778,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Armor, Sensory Affliction Effects",
         "extras": [],
         "flaws": [],
-        "notes": "overload due to outside stimuli. This allows you to largely ignore things like blinding light, deafening noise, nauseating odors, and so forth. If your armor only partially filters such things, Limit the Immunity to half effect (changing the cost to 3 points). (Immunity 5 (Sensory Affliction Effects) • 5 points per rank)"
+        "notes": "Filters and baffles in your armor, particularly in the helm or faceplate, are designed to shield your senses from overload due to outside stimuli. This allows you to largely ignore things like blinding light, deafening noise, nauseating odors, and so forth. If your armor only partially filters such things, Limit the Immunity to half effect (changing the cost to 3 points). (Immunity 5 (Sensory Affliction Effects) • 5 points per rank)"
       },
       {
         "id": "prof_armor_powers_aquatic_turbines",
@@ -817,7 +817,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Armor, Technology",
         "extras": [],
         "flaws": [],
-        "notes": "The arms and legs of your armor can telescope, extending many times their normal length, controlled remotely by you. This allows you to rise up on stilt-like legs or reach out with extended arms to grab or attack. (Elongation • 1 point per rank)"
+        "notes": "Arms and legs of your armor can telescope, extending many times their normal length, controlled remotely by you. This allows you to rise up on stilt-like legs or reach out with extended arms to grab or attack. (Elongation • 1 point per rank)"
       },
       {
         "id": "prof_armor_powers_skates",
@@ -830,7 +830,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Armor, Technology",
         "extras": [],
         "flaws": [],
-        "notes": "from the boots of your armor, allowing you to zip along the ground. Your skates may even be rocket powered, letting you move really fast! Unpowered skates should be limited to around Speed 3, while rocket-powered or magnetic skates could be up to rank 7 or 8! (Speed • 1 point per rank)"
+        "notes": "Roller skate wheels (or in-line skates) deploy on command from the boots of your armor, allowing you to zip along the ground. Your skates may even be rocket powered, letting you move really fast! Unpowered skates should be limited to around Speed 3, while rocket-powered or magnetic skates could be up to rank 7 or 8! (Speed • 1 point per rank)"
       },
       {
         "id": "prof_armor_powers_thrusters",
@@ -843,7 +843,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Armor, Technology",
         "extras": [],
         "flaws": [],
-        "notes": "The most common power armor movement effect involves rockets or other thrusters, allowing the wearer to fly. Some types of armor may have even more sophisticated anti-gravity systems or magical flight capabilities. These may have a rank of the Subtle modifier, being almost silent in use. (Flight • 2 points per rank)"
+        "notes": "Most common power armor movement effect involves rockets or other thrusters, allowing the wearer to fly. Some types of armor may have even more sophisticated anti-gravity systems or magical flight capabilities. These may have a rank of the Subtle modifier, being almost silent in use. (Flight • 2 points per rank)"
       },
       {
         "id": "prof_armor_powers_tunneling",
@@ -890,7 +890,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Armor, Technology",
         "extras": [],
         "flaws": [],
-        "notes": "range determined by its effect rank. Scrambled or encrypted communication systems apply the Subtle modifier. This system is powerful and self-contained; for the simple ability to tap into existing CB or cellular communications, add an appropriate Feature (cell phone or radio). (Radio Communication • 5 points per rank)"
+        "notes": "Your armor features a comm system, allowing you to communicate, usually via radio or cellular link, with maximum range determined by its effect rank. Scrambled or encrypted communication systems apply the Subtle modifier. This system is powerful and self-contained; for the simple ability to tap into existing CB or cellular communications, add an appropriate Feature (cell phone or radio). (Radio Communication • 5 points per rank)"
       },
       {
         "id": "prof_armor_powers_sensors",
@@ -903,7 +903,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Armor, Technology",
         "extras": [],
         "flaws": [],
-        "notes": "Power armor often comes equipped with sensor devices, feeding into displays in the armor's visor or helmet. Lowlight and Darkvision are particularly common, but virtually any Senses effect with an appropriate descriptor may be included in power armor's sensor package. (Senses • 1 point per rank 13 13 ARMOR POWERS ARMOR POWERS MUTANTS & MASTERMINDS POWER PROFILES MUTANTS & MASTERMINDS POWER PROFILES)"
+        "notes": "Power armor often comes equipped with sensor devices, feeding into displays in the armor's visor or helmet. Lowlight and Darkvision are particularly common, but virtually any Senses effect with an appropriate descriptor may be included in power armor's sensor package. (Senses • 1 point per rank)"
       }
     ]
   },
@@ -952,7 +952,7 @@ export const POWER_PROFILES_LIBRARY = [
             "description": "While Charging"
           }
         ],
-        "notes": "With a rush of movement at your opponent, you can hit with considerable force, like a charging rhino or bull. Protection or Immunity 2 (Own Slam Damage) is common with this power, as is the Improved Critical advantage. (Strength-based Damage, Limited to While Charging • 1 point per 2 ranks)"
+        "notes": "A rush of movement at your opponent, you can hit with considerable force, like a charging rhino or bull. Protection or Immunity 2 (Own Slam Damage) is common with this power, as is the Improved Critical advantage. (Strength-based Damage, Limited to While Charging • 1 point per 2 ranks)"
       },
       {
         "id": "prof_animal_powers_natural_weapons",
@@ -1033,7 +1033,7 @@ export const POWER_PROFILES_LIBRARY = [
           }
         ],
         "flaws": [],
-        "notes": "resistance check). Venom can be Linked with a Damage effect for more serious injection methods, like envenomed claws or dagger-like fangs. Vary the conditions imposed by the Affliction to suit different types of venoms: paralytics, for example, may hinder, immobilize, and paralyze. (Progressive Affliction (Resisted by Toughness, Overcome by Fortitude; Dazed, Stunned, Incapacitated) • 3 points per rank)"
+        "notes": "Animal kingdom is filled with a wide range of venomous creatures, most using fangs or stingers to inject their venom into a target (thus the use of Toughness for the initial resistance check). Venom can be Linked with a Damage effect for more serious injection methods, like envenomed claws or dagger-like fangs. Vary the conditions imposed by the Affliction to suit different types of venoms: paralytics, for example, may hinder, immobilize, and paralyze. (Progressive Affliction (Resisted by Toughness, Overcome by Fortitude; Dazed, Stunned, Incapacitated) • 3 points per rank)"
       },
       {
         "id": "prof_animal_powers_webbing",
@@ -1076,7 +1076,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Animal, Biological",
         "extras": [],
         "flaws": [],
-        "notes": "Your skin is tougher than normal, being leathery or covered with armored scales, for example. For extremely tough or armored hides, add ranks of Impervious. (Protection • 1 point per rank 16 16 ANIMAL POWERS ANIMAL POWERS MUTANTS & MASTERMINDS POWER PROFILES MUTANTS & MASTERMINDS POWER PROFILES)"
+        "notes": "Your skin is tougher than normal, being leathery or covered with armored scales, for example. For extremely tough or armored hides, add ranks of Impervious. (Protection • 1 point per rank)"
       },
       {
         "id": "prof_animal_powers_regrowth",
@@ -1171,7 +1171,7 @@ export const POWER_PROFILES_LIBRARY = [
             "isFlat": false
           }
         ],
-        "notes": "trained animal or an unusual specimen in some way, such as having greater than normal Intellect or unusual abilities. Create your companion as a character with 15 power points per rank, using the sample animals in the Deluxe Hero's Handbook and Gamemaster's Guide as templates. (Summon Animal Companion, Heroic, Self-Powered (see Summoning Powers) • 3 points per rank)"
+        "notes": "You have an animal ally or companion able to understand at least simple commands and carry them out, and likely wellinclined towards you. Your companion may be an ordinary trained animal or an unusual specimen in some way, such as having greater than normal Intellect or unusual abilities. Create your companion as a character with 15 power points per rank, using the sample animals in the Deluxe Hero's Handbook and Gamemaster's Guide as templates. (Summon Animal Companion, Heroic, Self-Powered (see Summoning Powers) • 3 points per rank)"
       },
       {
         "id": "prof_animal_powers_animal_form",
@@ -1184,7 +1184,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Animal, Animal Form",
         "extras": [],
         "flaws": [],
-        "notes": "various difficulties of function in animal form are covered by complications (see Animal Complications). If you can assume any animal form, see the Shapeshift power from Morphing Powers, with the Limit \"Only Animal Forms\". (Morph 1 (Animal Form), Metamorph • 6 points per rank)"
+        "notes": "Allowing you to, amongst other things, speak and have hands while gaining many of the animal's other traits. The various difficulties of function in animal form are covered by complications (see Animal Complications). If you can assume any animal form, see the Shapeshift power from Morphing Powers, with the Limit \"Only Animal Forms\". (Morph 1 (Animal Form), Metamorph • 6 points per rank)"
       },
       {
         "id": "prof_animal_powers_animal_mimicry",
@@ -1219,7 +1219,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Animal, Biological",
         "extras": [],
         "flaws": [],
-        "notes": "aforementioned sonar-using creatures have hearing ranges into the ultrasonic (1 rank). (Senses • 1 point per rank Generally, characters have a fixed set of animal senses, or gain the senses of a particular animal form (see Animal Form). Those able to gain any animal sense, may have a limited version of Animal Mimicry. This power can grant any 5 power points in animal senses as a sustained effect,)"
+        "notes": "Aforementioned sonar-using creatures have hearing ranges into the ultrasonic (1 rank). (Senses • 1 point per rank Generally, characters have a fixed set of animal senses, or gain the senses of a particular animal form (see Animal Form). Those able to gain any animal sense, may have a limited version of Animal Mimicry. This power can grant any 5 power points in animal senses as a sustained effect,)"
       },
       {
         "id": "prof_animal_powers_animal_summoning",
@@ -1232,7 +1232,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Animal, Animals",
         "extras": [],
         "flaws": [],
-        "notes": "General Type and may summon a few swarms (Gamemaster's Guide, page 135) rather than a full 5 ranks of Multiple Minions, the same for Animal Summoning limited to sea-life. If you summon the animals out of nowhere, having them appear instantly at your side, drop the Self-Powered flaw. (Summon Animals 3, Broad Type (Animals), Horde, Multiple Minions 5 (32 animals), SelfPowered (see Summoning Powers) • 42 points)"
+        "notes": "Adjust based on the type and amount of animals the character can summon: flocks of birds, for example, substitute General Type and may summon a few swarms (Gamemaster's Guide, page 135) rather than a full 5 ranks of Multiple Minions, the same for Animal Summoning limited to sea-life. If you summon the animals out of nowhere, having them appear instantly at your side, drop the Self-Powered flaw. (Summon Animals 3, Broad Type (Animals), Horde, Multiple Minions 5 (32 animals), SelfPowered (see Summoning Powers) • 42 points)"
       },
       {
         "id": "prof_animal_powers_chameleon_camouflage",
@@ -1267,7 +1267,7 @@ export const POWER_PROFILES_LIBRARY = [
             "description": "Available Animals"
           }
         ],
-        "notes": "mands. Your rank in the power sets the limit of the most powerful chimera you can create. Once you no longer sustain the power, the animals forming the chimera return to their normal forms (and likely to their normal habits and habitats as quickly as possible). (Summon Chimera, Broad Type (Mixed Animals), Heroic, Limited to Available Animals • 4 points per rank)"
+        "notes": "You have the unusual power to \"merge\" two or more different animals, creating a combined creature with a mix of their traits-a chimera-able to carry out your commands. Your rank in the power sets the limit of the most powerful chimera you can create. Once you no longer sustain the power, the animals forming the chimera return to their normal forms (and likely to their normal habits and habitats as quickly as possible). (Summon Chimera, Broad Type (Mixed Animals), Heroic, Limited to Available Animals • 4 points per rank)"
       },
       {
         "id": "prof_animal_powers_multiple_limbs",
@@ -1293,7 +1293,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Animal, Animals",
         "extras": [],
         "flaws": [],
-        "notes": "(you simply think your responses), apply the Subtle modifier. If others can understand animals when you are around, apply the Affects Others modifier. To communicate with animals over greater distances, use the Communication effect (or Summon, if you simply \"call\" animals to aid you). (Comprehend 2 (Animals) • 4 points)"
+        "notes": "You can communicate with animals and they can respond to you. This power does not necessarily give animals any greater degree of intelligence, so their communication may be limited to fairly simple concepts and sense-impressions. If you can \"speak\" with animals without speaking aloud (you simply think your responses), apply the Subtle modifier. If others can understand animals when you are around, apply the Affects Others modifier. To communicate with animals over greater distances, use the Communication effect (or Summon, if you simply \"call\" animals to aid you). (Comprehend 2 (Animals) • 4 points)"
       },
       {
         "id": "prof_animal_powers_animal_harmony",
@@ -1462,7 +1462,7 @@ export const POWER_PROFILES_LIBRARY = [
           }
         ],
         "flaws": [],
-        "notes": "it, eventually freezing it solid. A completely frozen target can be broken or shattered, with the damage remaining when the target thaws, making this potentially fatal to living targets. Apply the Insidious modifier if the target is unaware of the effect. (Perception Ranged Cumulative Affliction (Resisted and Overcome by Fortitude; Dazed, Stunned, Transformed), Affects Objects • 5 points per rank)"
+        "notes": "You can lower a target's temperature simply by looking at it, eventually freezing it solid. A completely frozen target can be broken or shattered, with the damage remaining when the target thaws, making this potentially fatal to living targets. Apply the Insidious modifier if the target is unaware of the effect. (Perception Ranged Cumulative Affliction (Resisted and Overcome by Fortitude; Dazed, Stunned, Transformed), Affects Objects • 5 points per rank)"
       },
       {
         "id": "prof_cold_powers_flash_freeze",
@@ -1475,7 +1475,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Cold, Ice",
         "extras": [],
         "flaws": [],
-        "notes": "flash freeze living targets as well, remove the Limited to Objects modifier, although you may also want to link a Damage or Affliction effect, since flash freezing a living being should realistically render them a nonliving object before it makes them brittle enough to shatter. (Ranged Weaken Toughness, Affects Only Objects • 2 points per rank)"
+        "notes": "You flash freeze a nonliving object, causing it to become extremely brittle and easy to break or shatter. If you can flash freeze living targets as well, remove the Limited to Objects modifier, although you may also want to link a Damage or Affliction effect, since flash freezing a living being should realistically render them a nonliving object before it makes them brittle enough to shatter. (Ranged Weaken Toughness, Affects Only Objects • 2 points per rank)"
       },
       {
         "id": "prof_cold_powers_freezing_aura",
@@ -1638,7 +1638,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Cold, Environmental Cold",
         "extras": [],
         "flaws": [],
-        "notes": "maintain, perhaps representing some conscious temperature manipulation. On the other hand, you can use sustained Immunity to Cold for power stunts, perhaps even switching it for Immunity to Heat (following) by controlling temperatures the other way. (Immunity 1 (Environmental Cold), Immunity 5 (Cold Damage), Immunity 10 (Cold Effects) • 1, 5, or 10 points)"
+        "notes": "Your powers render you immune to some or all of the effects of cold temperatures. Rather than a permanent trait, your Immunity might be sustained in duration (with no change in cost), requiring a free action each round to maintain, perhaps representing some conscious temperature manipulation. On the other hand, you can use sustained Immunity to Cold for power stunts, perhaps even switching it for Immunity to Heat (following) by controlling temperatures the other way. (Immunity 1 (Environmental Cold), Immunity 5 (Cold Damage), Immunity 10 (Cold Effects) • 1, 5, or 10 points)"
       },
       {
         "id": "prof_cold_powers_immunity_to_heat",
@@ -1651,7 +1651,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Cold, Environmental Heat",
         "extras": [],
         "flaws": [],
-        "notes": "immune to some or all of the effects of extreme heat. Like Immunity to Cold, this power might be sustained rather than permanent in duration, requiring a small amount of concentration, but opening it up to some power stunts. (Immunity 1 (Environmental Heat), Immunity 5 (Heat Damage), Immunity 10 (Heat Effects) • 1, 5, or 10 points)"
+        "notes": "Power to create or manipulate cold renders you immune to some or all of the effects of extreme heat. Like Immunity to Cold, this power might be sustained rather than permanent in duration, requiring a small amount of concentration, but opening it up to some power stunts. (Immunity 1 (Environmental Heat), Immunity 5 (Heat Damage), Immunity 10 (Heat Effects) • 1, 5, or 10 points)"
       },
       {
         "id": "prof_cold_powers_ice_armor",
@@ -1677,7 +1677,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Cold, Infravision",
         "extras": [],
         "flaws": [],
-        "notes": "ditions, masking your appearance on infrared and heat scanners. If you can mask others as well, apply the Affects Others and Ranged or Area modifiers, also a potential power stunt for cold-emitting powers like Cold Projection or a cold attack power. (Concealment 2 (Infravision) • 4 points)"
+        "notes": "You can reduce your body's heat signature to no more than that of the surrounding air, even in sub-zero conditions, masking your appearance on infrared and heat scanners. If you can mask others as well, apply the Affects Others and Ranged or Area modifiers, also a potential power stunt for cold-emitting powers like Cold Projection or a cold attack power. (Concealment 2 (Infravision) • 4 points)"
       },
       {
         "id": "prof_cold_powers_ice_slides",
@@ -1725,7 +1725,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Cold, Ice",
         "extras": [],
         "flaws": [],
-        "notes": "\"into\" a surface of ice or snow, but you emerge from another some distance away without having to pass through the space between. This cold power tends to be magical in nature, and may have other Teleport modifiers applied to it. (Teleport, Medium (ice) • 1 point per rank)"
+        "notes": "Similar to Ice Passage (previously) to appear to pass \"into\" a surface of ice or snow, but you emerge from another some distance away without having to pass through the space between. This cold power tends to be magical in nature, and may have other Teleport modifiers applied to it. (Teleport, Medium (ice) • 1 point per rank)"
       },
       {
         "id": "prof_cold_powers_ice_tunneling",
@@ -1747,7 +1747,7 @@ export const POWER_PROFILES_LIBRARY = [
             "description": "Ice and Snow"
           }
         ],
-        "notes": "You can cut passages through snow and solid ice. (Burrowing, Limited to Ice and Snow • 1 point per 2 ranks 22 22 COLD POWERS COLD POWERS MUTANTS & MASTERMINDS POWER PROFILES MUTANTS & MASTERMINDS POWER PROFILES)"
+        "notes": "You can cut passages through snow and solid ice. (Burrowing, Limited to Ice and Snow • 1 point per 2 ranks)"
       },
       {
         "id": "prof_cold_powers_ice_walking",
@@ -1830,7 +1830,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Cold, Cold",
         "extras": [],
         "flaws": [],
-        "notes": "does create an environmental hazard (Deluxe Hero's Handbook, page 237) it is more often useful for countering some effects and providing cold conditions needed for others, unless the area is large enough to affect a whole region or lasts for considerable time. (Environment (Cold) • 1 or 2 points per rank)"
+        "notes": "You create an area of intense or extreme cold. While this does create an environmental hazard (Deluxe Hero's Handbook, page 237) it is more often useful for countering some effects and providing cold conditions needed for others, unless the area is large enough to affect a whole region or lasts for considerable time. (Environment (Cold) • 1 or 2 points per rank)"
       },
       {
         "id": "prof_cold_powers_ice_creatures",
@@ -1917,7 +1917,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Cold, Infravision",
         "extras": [],
         "flaws": [],
-        "notes": "You can see gradations of temperature, perceiving into the infrared range. Amongst other things, this makes warm bodies stand out clearly against cold surrounding temperatures (and vice versa). (Senses 1 (Infravision) • 1 point. 23 23 COLD POWERS COLD POWERS MUTANTS & MASTERMINDS POWER PROFILES MUTANTS & MASTERMINDS POWER PROFILES)"
+        "notes": "You can see gradations of temperature, perceiving into the infrared range. Amongst other things, this makes warm bodies stand out clearly against cold surrounding temperatures (and vice versa). (Senses 1 (Infravision) • 1 point.)"
       }
     ]
   },
@@ -1986,7 +1986,7 @@ export const POWER_PROFILES_LIBRARY = [
             "description": "Degree"
           }
         ],
-        "notes": "Gamemasters running a cosmic series may choose to require the players' heroes to have some measure of these powers, or can choose to make them (or suitable equipment) available to the heroes at no power point cost as a part of the series itself, so players do not have to worry about spending additional points on the default powers. 26 26 COSMIC POWERS COSMIC POWERS MUTANTS & MASTERMINDS POWER PROFILES MUTANTS & MASTERMINDS POWER PROFILES (Ranged Affliction (Resisted by Dodge, Overcome by Strength; Impaired and Vulnerable, Defenseless and Immobilized), Extra Condition, Reversible, Limited Degree • 1 point + 2 points per rank)"
+        "notes": "Intelligent life forms they encounter. The simplest solution is to assume there is some sort of galactic lingua franca (\"Galactican\" or some such) used by civilized species, making the language barrier an occasional challenge. Otherwise, characters need ranks of Comprehend (languages) to overcome this problem, either via their own powers, a telepathic or linguist teammate, or \"universal translator\" equipment (perhaps built-in to the aforementioned space suits). Gamemasters running a cosmic series may choose to require the players' heroes to have some measure of these powers, or can choose to make them (or suitable equipment) available to the heroes at no power point cost as a part of the series itself, so players do not have to worry about spending additional points on the default powers. (Ranged Affliction (Resisted by Dodge, Overcome by Strength; Impaired and Vulnerable, Defenseless and Immobilized), Extra Condition, Reversible, Limited Degree • 1 point + 2 points per rank)"
       },
       {
         "id": "prof_cosmic_powers_meteor_shower",
@@ -2056,7 +2056,7 @@ export const POWER_PROFILES_LIBRARY = [
           }
         ],
         "flaws": [],
-        "notes": "from harm. For those lacking the Unearthly power (following), Cosmic Shield may include a Sustained Immunity 10 (life support) effect, providing protection against the environmental hazards of space and alien worlds as well as direct damage. (Impervious Protection, Sustained • 2 points per rank)"
+        "notes": "An aura of cosmic energy surrounds you, shielding you from harm. For those lacking the Unearthly power (following), Cosmic Shield may include a Sustained Immunity 10 (life support) effect, providing protection against the environmental hazards of space and alien worlds as well as direct damage. (Impervious Protection, Sustained • 2 points per rank)"
       },
       {
         "id": "prof_cosmic_powers_spaceworthy",
@@ -2082,7 +2082,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Cosmic, Fortitude effects",
         "extras": [],
         "flaws": [],
-        "notes": "immune to the harmful effects of environments ranging from the depths of space to the heart of a star. You also do not age and are effectively immortal, so long as you are not killed. This power includes lesser immunities like Spaceworthy (previously). (Immunity 30 (Fortitude effects) • 30 points)"
+        "notes": "You are a being of the void between worlds, beyond mere mortal frailty. You do not need to eat or sleep and are immune to the harmful effects of environments ranging from the depths of space to the heart of a star. You also do not age and are effectively immortal, so long as you are not killed. This power includes lesser immunities like Spaceworthy (previously). (Immunity 30 (Fortitude effects) • 30 points)"
       },
       {
         "id": "prof_cosmic_powers_faster_than_light",
@@ -2095,7 +2095,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Cosmic, Space Travel",
         "extras": [],
         "flaws": [],
-        "notes": "able to traverse the distance between planets, stars, even galaxies in a relatively short amount of time. This power does not include the ability to survive unprotected in space, although Immunity (life support) or the Unearthly power are common for characters who have this power. (Movement (Space Travel) • 2 points per rank up to rank 3 (6 points).)"
+        "notes": "You can fly through space faster than the speed of light, able to traverse the distance between planets, stars, even galaxies in a relatively short amount of time. This power does not include the ability to survive unprotected in space, although Immunity (life support) or the Unearthly power are common for characters who have this power. (Movement (Space Travel) • 2 points per rank up to rank 3 (6 points).)"
       },
       {
         "id": "prof_cosmic_powers_space_warp",
@@ -2116,7 +2116,7 @@ export const POWER_PROFILES_LIBRARY = [
           }
         ],
         "flaws": [],
-        "notes": "the portal at one point and emerging from the other. Like Faster Than Light (previously) Space Warp is only useful for travel over interplanetary distances; warping across the surface of a planet takes a Teleport effect, possibly with the Portal modifier as well. (Movement (Space Travel), Portal • 4 points per rank up to rank 3 (12 points).)"
+        "notes": "You can open a warp in the fabric of the cosmos, allowing you to instantly cross a distance in space: entering the portal at one point and emerging from the other. Like Faster Than Light (previously) Space Warp is only useful for travel over interplanetary distances; warping across the surface of a planet takes a Teleport effect, possibly with the Portal modifier as well. (Movement (Space Travel), Portal • 4 points per rank up to rank 3 (12 points).)"
       },
       {
         "id": "prof_cosmic_powers_adaptation",
@@ -2129,7 +2129,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Cosmic, Energy",
         "extras": [],
         "flaws": [],
-        "notes": "a bird in the sky. It is a natural environment to you. Characters with this power may also have the Favored Environment (space) advantage, or an Enhanced Advantage as part of this power, granting the same benefit. Soar the Spaceways: Movement 1 (Environmental (Space) • 2 points)"
+        "notes": "You soar through the black void of space with the ease of a bird in the sky. It is a natural environment to you. Characters with this power may also have the Favored Environment (space) advantage, or an Enhanced Advantage as part of this power, granting the same benefit. Soar the Spaceways: Movement 1 (Environmental (Space) • 2 points)"
       },
       {
         "id": "prof_cosmic_powers_cosmic_awareness",
@@ -2151,7 +2151,7 @@ export const POWER_PROFILES_LIBRARY = [
             "description": "Cosmic Events"
           }
         ],
-        "notes": "27 27 COSMIC POWERS COSMIC POWERS MUTANTS & MASTERMINDS POWER PROFILES MUTANTS & MASTERMINDS POWER PROFILES universal importance. You also have some awareness of the \"correct\" flow of events in the cosmos, warning you when something diverts destiny from its proper course. (Senses 6 (Acute Cosmic Awareness, Precognition Limited to Cosmic Events) • 4 points)"
+        "notes": "You are connected to the fabric of the cosmos on a fundamental level, allowing you to sense energies and events of universal importance. You also have some awareness of the \"correct\" flow of events in the cosmos, warning you when something diverts destiny from its proper course. (Senses 6 (Acute Cosmic Awareness, Precognition Limited to Cosmic Events) • 4 points)"
       },
       {
         "id": "prof_cosmic_powers_cosmic_communication",
@@ -2177,7 +2177,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Cosmic, Energy",
         "extras": [],
         "flaws": [],
-        "notes": "to grasp, lift, and manipulate objects from a distance without actually touching them. Typically this involves a visible beam or tendril of energy extending from you; if it is simply an invisible extension of your will, apply the Subtle modifier to the power. (Move Object • 2 points per rank)"
+        "notes": "Your control over cosmic energy allows you to use it to grasp, lift, and manipulate objects from a distance without actually touching them. Typically this involves a visible beam or tendril of energy extending from you; if it is simply an invisible extension of your will, apply the Subtle modifier to the power. (Move Object • 2 points per rank)"
       },
       {
         "id": "prof_cosmic_powers_cosmic_healing",
@@ -2203,7 +2203,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Cosmic, Cosmic powers",
         "extras": [],
         "flaws": [],
-        "notes": "against allowing a large number of ranks of this power; most heroes with broad cosmic powers are better handled with power stunts while most villains with such power are essentially Power Level X plot devices (Gamemaster's Guide, page 72). (Variable (cosmic powers) • 7 points per rank)"
+        "notes": "You wield great, but vaguely defined, \"cosmic power\" able to do virtually anything, limited solely by your will and imagination. With sufficient ranks, this power can include all of the various other powers in this section and more. Cosmic Mastery-also known as \"The Power Primal\" or \"The Power Cosmic\"-may have different Variable modifiers, particular to the action needed to change the effect, allowing you to choose different effects essentially at will (as a free action). Gamemasters are cautioned against allowing a large number of ranks of this power; most heroes with broad cosmic powers are better handled with power stunts while most villains with such power are essentially Power Level X plot devices (Gamemaster's Guide, page 72). (Variable (cosmic powers) • 7 points per rank)"
       },
       {
         "id": "prof_cosmic_powers_cosmic_order",
@@ -2216,7 +2216,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Cosmic, Energy",
         "extras": [],
         "flaws": [],
-        "notes": "particularly those which tamper with the fabric of space and time (including things like Space Warp and Faster Than Light travel). This power often includes the Area modifier as well, working on all effects in an area rather than all effects on a single target at once. (Nullify Chaos Effects, Simultaneous • 2 points per rank)"
+        "notes": "You can call upon the universal forces of order to weed out chaos and eliminate the effects of unnatural powers, particularly those which tamper with the fabric of space and time (including things like Space Warp and Faster Than Light travel). This power often includes the Area modifier as well, working on all effects in an area rather than all effects on a single target at once. (Nullify Chaos Effects, Simultaneous • 2 points per rank)"
       },
       {
         "id": "prof_cosmic_powers_cosmic_strength",
@@ -2242,7 +2242,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Cosmic, Energy",
         "extras": [],
         "flaws": [],
-        "notes": "include the movement ability necessary to follow a trail you sense, although such capabilities are commonly associated with it. Cosmic Tracking allows you to move at your full speed, even using Space Travel to fly faster than light through the void of space. (Senses 8 (Accurate, Acute, Direction Sense, Distance Sense, Extended, Tracking 2) • 8 points)"
+        "notes": "Provided you have some sort of connection (DNA sample, psychic trace, prior knowledge, etc.) you can \"lock on\" to a subject and track them across to vastness of space anywhere in the cosmos, although some phenomena in the depths of space-nebulas or supernovas, for examplemay cause you to lose the trail. This power does not include the movement ability necessary to follow a trail you sense, although such capabilities are commonly associated with it. Cosmic Tracking allows you to move at your full speed, even using Space Travel to fly faster than light through the void of space. (Senses 8 (Accurate, Acute, Direction Sense, Distance Sense, Extended, Tracking 2) • 8 points)"
       },
       {
         "id": "prof_cosmic_powers_cosmic_transmutation",
@@ -2334,7 +2334,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Darkness, Cold, force, or life-drain",
         "extras": [],
         "flaws": [],
-        "notes": "force, cold, or life-draining damage. With the Variable Descriptor modifier, your Dark Blast may be able to inflict any of these types of Damage, as you choose. Life-draining damage may be resisted by Fortitude rather than Toughness (see the Death Powers section). (Ranged Damage (cold, force, or life-drain) • 2 points per rank)"
+        "notes": "A blast or bolt of darkness strikes your target, including force, cold, or life-draining damage. With the Variable Descriptor modifier, your Dark Blast may be able to inflict any of these types of Damage, as you choose. Life-draining damage may be resisted by Fortitude rather than Toughness (see the Death Powers section). (Ranged Damage (cold, force, or life-drain) • 2 points per rank)"
       },
       {
         "id": "prof_darkness_powers_night_terrors",
@@ -2356,7 +2356,7 @@ export const POWER_PROFILES_LIBRARY = [
             "description": "fleeing or cowering in terror"
           }
         ],
-        "notes": "For a version of this power that affects those your shadow falls upon (rather than a target you can perceive), apply the Line Area modifier in place of Perception Ranged, perhaps with Reaction, if the effect occurs automatically without any conscious effort on your part. (Perception Ranged Affliction (Resisted and Overcome by Will; Entranced, Compelled, Controlled), Limited to fleeing or cowering in terror • 2 points per rank)"
+        "notes": "You invoke the primal fear associated with darkness, projecting it on your targets and filling them with terror. For a version of this power that affects those your shadow falls upon (rather than a target you can perceive), apply the Line Area modifier in place of Perception Ranged, perhaps with Reaction, if the effect occurs automatically without any conscious effort on your part. (Perception Ranged Affliction (Resisted and Overcome by Will; Entranced, Compelled, Controlled), Limited to fleeing or cowering in terror • 2 points per rank)"
       },
       {
         "id": "prof_darkness_powers_shadow_bind",
@@ -2408,7 +2408,7 @@ export const POWER_PROFILES_LIBRARY = [
             "description": "Shadow Interactions"
           }
         ],
-        "notes": "on a target by having your shadow \"touch\" theirs, rather than having to physically interact with them. This limits the effect to the distance your shadows extend and to the interactions you can physically mimic (using your shadow's hands to grab or punch, for example). (Damaging Move Object, Limited to Shadow Interactions • 2 points per rank)"
+        "notes": "You can grab, damage, or otherwise exert your Strength on a target by having your shadow \"touch\" theirs, rather than having to physically interact with them. This limits the effect to the distance your shadows extend and to the interactions you can physically mimic (using your shadow's hands to grab or punch, for example). (Damaging Move Object, Limited to Shadow Interactions • 2 points per rank)"
       },
       {
         "id": "prof_darkness_powers_shadow_shroud",
@@ -2436,7 +2436,7 @@ export const POWER_PROFILES_LIBRARY = [
           }
         ],
         "flaws": [],
-        "notes": "(and therefore vision) in the area. If you can only create the darkness in a radius around you, remove the Ranged modifier. Apply different Area modifiers for things like a lingering dark mist (Cloud Area) or a spreading \"black light beam\" (Cone Area). (Ranged Burst Area Visual Concealment 4 Attack • 16 points +4 points per +1 area distance rank)"
+        "notes": "You create an inky cloud of darkness, blocking out all light (and therefore vision) in the area. If you can only create the darkness in a radius around you, remove the Ranged modifier. Apply different Area modifiers for things like a lingering dark mist (Cloud Area) or a spreading \"black light beam\" (Cone Area). (Ranged Burst Area Visual Concealment 4 Attack • 16 points +4 points per +1 area distance rank)"
       },
       {
         "id": "prof_darkness_powers_swallowing_shadow",
@@ -2583,7 +2583,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Darkness, Permeate",
         "extras": [],
         "flaws": [],
-        "notes": "surface it falls upon, as if you were stepping only through a shadow, and not a solid barrier. This is a much more limited range effect than Shadow Walk (following); it ends once you emerge from the other side of the object your \"door\" passes through. (Movement (Permeate) • 2 points per rank)"
+        "notes": "You can use a shadow as a \"doorway\" to pass through the surface it falls upon, as if you were stepping only through a shadow, and not a solid barrier. This is a much more limited range effect than Shadow Walk (following); it ends once you emerge from the other side of the object your \"door\" passes through. (Movement (Permeate) • 2 points per rank)"
       },
       {
         "id": "prof_darkness_powers_shadow_projection",
@@ -2635,7 +2635,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Darkness, Visibility",
         "extras": [],
         "flaws": [],
-        "notes": "gloom and shadows, which may be a useful prerequisite for the use of other darkness powers, or simply an atmospheric environmental effect. At extreme ranks (sufficient to affect hundreds or even thousands of miles in radius), this power may involve creating an actual eclipse of the sun! (Environment (visibility) • 1 or 2 points per rank)"
+        "notes": "You lower the light levels around you, creating an area of gloom and shadows, which may be a useful prerequisite for the use of other darkness powers, or simply an atmospheric environmental effect. At extreme ranks (sufficient to affect hundreds or even thousands of miles in radius), this power may involve creating an actual eclipse of the sun! (Environment (visibility) • 1 or 2 points per rank)"
       },
       {
         "id": "prof_darkness_powers_healing_darkness",
@@ -2683,7 +2683,7 @@ export const POWER_PROFILES_LIBRARY = [
             "description": "Darkness and Shadows"
           }
         ],
-        "notes": "surfaces, including walls and ceilings, and ignore the physical needs of flesh-and-blood. Shadow Form may include other effects, particularly upgrading Immunity to all Fortitude effects or adding traits like Elongation or Senses (such as Darkvision, previously). (Concealment 2 (Visual, Limited to Darkness and Shadows), Immunity 10 (life support), Insubstantial 3 (shadow form), Movement 3 (Slithering, Wall-crawling 2) • 33 points)"
+        "notes": "You can transform as a free action into a living shadow, able to pass through solid barriers and ignore most physical attacks, save light-based effects. You can \"slide\" along surfaces, including walls and ceilings, and ignore the physical needs of flesh-and-blood. Shadow Form may include other effects, particularly upgrading Immunity to all Fortitude effects or adding traits like Elongation or Senses (such as Darkvision, previously). (Concealment 2 (Visual, Limited to Darkness and Shadows), Immunity 10 (life support), Insubstantial 3 (shadow form), Movement 3 (Slithering, Wall-crawling 2) • 33 points)"
       },
       {
         "id": "prof_darkness_powers_shadow_shaping",
@@ -2709,7 +2709,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Darkness, Shadows",
         "extras": [],
         "flaws": [],
-        "notes": "ulate objects like solid tentacles. Some Shadow Tendrils have the Precise modifier for performing delicate tasks, and the Area modifier allows you to extend multiple tendrils, each capable of lifting and moving your full Move Object rank of weight. (Move Object (shadows) • 2 points per rank)"
+        "notes": "You extend tendrils of shadow from your hands or a dark aura around your head or body, able to grasp and manipulate objects like solid tentacles. Some Shadow Tendrils have the Precise modifier for performing delicate tasks, and the Area modifier allows you to extend multiple tendrils, each capable of lifting and moving your full Move Object rank of weight. (Move Object (shadows) • 2 points per rank)"
       },
       {
         "id": "prof_darkness_powers_summon_shadows",
@@ -2722,7 +2722,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Darkness, Shadow",
         "extras": [],
         "flaws": [],
-        "notes": "dimension. Although no more substantial than ordinary shadows, these creatures can touch and manipulate physical objects-and damage them. Apply the Multiple Minions extra to summon more than one shadow creature at a time and the Horde modifier to summon them all at once. (Summon Shadow Creature 4 (58-point minion) • 8 points)"
+        "notes": "You can summon shadow beings, either animating ordinary shadows or calling shadow creatures from some nether dimension. Although no more substantial than ordinary shadows, these creatures can touch and manipulate physical objects-and damage them. Apply the Multiple Minions extra to summon more than one shadow creature at a time and the Horde modifier to summon them all at once. (Summon Shadow Creature 4 (58-point minion) • 8 points)"
       },
       {
         "id": "prof_darkness_powers_shades",
@@ -2817,7 +2817,7 @@ export const POWER_PROFILES_LIBRARY = [
             "description": "the Undead"
           }
         ],
-        "notes": "resistance check modifier of +0. This power is sometimes Cumulative, allowing you to make multiple attempts to strengthen your control, and may be Limited to a single command, like \"stay back!\" or \"begone!\" rather than full control of the creatures. (Hearing Perception Area Affliction (Resisted and Overcome by Will; Dazed, Compelled, Controlled), Affects Objects, Limited to the Undead • 2 points per rank)"
+        "notes": "You can exert control over undead beings in your presence, perhaps even wresting it away from whomever else controls them. Treat mindless undead as having a resistance check modifier of +0. This power is sometimes Cumulative, allowing you to make multiple attempts to strengthen your control, and may be Limited to a single command, like \"stay back!\" or \"begone!\" rather than full control of the creatures. (Hearing Perception Area Affliction (Resisted and Overcome by Will; Dazed, Compelled, Controlled), Affects Objects, Limited to the Undead • 2 points per rank)"
       },
       {
         "id": "prof_death_powers_death_curse",
@@ -2868,7 +2868,7 @@ export const POWER_PROFILES_LIBRARY = [
           }
         ],
         "flaws": [],
-        "notes": "With a chilling gaze, you fill your target with the terror of impending death, perhaps even to the point of causing a shadow of the Grim Reaper (or some other avatar of death) to cross your features. (Perception Ranged Cumulative Affliction (Resisted and Overcome by Will; Impaired, Stunned, Paralyzed), Vision Dependent • 3 points per rank)"
+        "notes": "A chilling gaze, you fill your target with the terror of impending death, perhaps even to the point of causing a shadow of the Grim Reaper (or some other avatar of death) to cross your features. (Perception Ranged Cumulative Affliction (Resisted and Overcome by Will; Impaired, Stunned, Paralyzed), Vision Dependent • 3 points per rank)"
       },
       {
         "id": "prof_death_powers_death_touch",
@@ -2924,7 +2924,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Death, Soul",
         "extras": [],
         "flaws": [],
-        "notes": "than the body. Some can project blasts of Soulfire (add the Ranged modifier) or use it for a wider range of effects. See the Fire Powers section, applying the appropriate descriptors to those powers to make them into Soulfire effects. (Damage (soul), Alternate Resistance (Will) • 1 point per rank)"
+        "notes": "You can generate and project a kind of fiery energy made up of the essence of souls, rather than having anything to do with actual fire. Infernal mystics and creatures sometimes refer to this energy as \"hellfire\" while angels and higher beings call it \"divine\" or \"holy\" fire. The basic effect of Soulfire is to \"burn\" the spirit rather than the body. Some can project blasts of Soulfire (add the Ranged modifier) or use it for a wider range of effects. See the Fire Powers section, applying the appropriate descriptors to those powers to make them into Soulfire effects. (Damage (soul), Alternate Resistance (Will) • 1 point per rank)"
       },
       {
         "id": "prof_death_powers_suppress_life",
@@ -3036,7 +3036,7 @@ export const POWER_PROFILES_LIBRARY = [
           }
         ],
         "flaws": [],
-        "notes": "others to pass through into it. Of course, there is no assurance that you will necessarily be able to find someone there or bring them back with you. Indeed, the realms of the dead are often dangerous, and ruled by beings who prefer never to let anyone leave. (Movement 2 (Dimensional 2, afterlives), Portal • 8 points)"
+        "notes": "You can open a portal into the realm of the dead (or realms, if there are more than one), allowing you and others to pass through into it. Of course, there is no assurance that you will necessarily be able to find someone there or bring them back with you. Indeed, the realms of the dead are often dangerous, and ruled by beings who prefer never to let anyone leave. (Movement 2 (Dimensional 2, afterlives), Portal • 8 points)"
       },
       {
         "id": "prof_death_powers_valkyrie_s_ride",
@@ -3058,7 +3058,7 @@ export const POWER_PROFILES_LIBRARY = [
             "description": "Dying Subjects"
           }
         ],
-        "notes": "is common for this power, allowing you to arrive at your 37 37 DEATH POWERS DEATH POWERS MUTANTS & MASTERMINDS POWER PROFILES MUTANTS & MASTERMINDS POWER PROFILES destination ready for anything (rather than being momentarily disoriented). (Teleport, Accurate (see description), Extended, Limited to Dying Subjects • 3 points per rank)"
+        "notes": "You are drawn to death, so much so that you can immediately appear at the side of anyone known to you whose condition is dying. As a side effect of this power, you immediately know when such an opportunity arises and who that person is. This is a variant of the Accurate modifier (Deluxe Hero's Handbook, page 183). The Easy modifier is common for this power, allowing you to arrive at your destination ready for anything (rather than being momentarily disoriented). (Teleport, Accurate (see description), Extended, Limited to Dying Subjects • 3 points per rank)"
       },
       {
         "id": "prof_death_powers_death_sight",
@@ -3093,7 +3093,7 @@ export const POWER_PROFILES_LIBRARY = [
             "description": "Visions of Death"
           }
         ],
-        "notes": "die soon. Whether or not their fate can be changed depends on how the GM chooses to handle precognitive effects, but generally the assumption is the victim will die unless something is done to prevent it, although you do not necessarily know how they will die or what needs to be done. (Senses 4 (Precognition), Limited to Visions of Death • 2 points)"
+        "notes": "You can see the spirit of death hovering near those who will die soon. Whether or not their fate can be changed depends on how the GM chooses to handle precognitive effects, but generally the assumption is the victim will die unless something is done to prevent it, although you do not necessarily know how they will die or what needs to be done. (Senses 4 (Precognition), Limited to Visions of Death • 2 points)"
       },
       {
         "id": "prof_death_powers_ghost_form",
@@ -3106,7 +3106,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Death, Fortitude effects",
         "extras": [],
         "flaws": [],
-        "notes": "may have other powers as well. True ghosts apply the Permanent modifier to Flight and Insubstantial and Innate to Insubstantial, increasing the net cost by 1 point. Otherwise, it is assumed you can switch in and out of your Ghost Form at will as a free action. (Flight 1, Immunity 30 (Fortitude effects), Insubstantial 4 (incorporeal), No Stamina rank (-10 points) • 41 points)"
+        "notes": "You are a ghost: an incorporeal, undead being with no physical body. You pass harmlessly through solid objects, although you may affect them if you have powers with Affects Corporeal. You're immune to mortal concerns, but do not recover on your own without aid or the use of a power. Many ghosts also have ranks of Concealment, at least sufficient to render them unseen by mortal eyes, and may have other powers as well. True ghosts apply the Permanent modifier to Flight and Insubstantial and Innate to Insubstantial, increasing the net cost by 1 point. Otherwise, it is assumed you can switch in and out of your Ghost Form at will as a free action. (Flight 1, Immunity 30 (Fortitude effects), Insubstantial 4 (incorporeal), No Stamina rank (-10 points) • 41 points)"
       },
       {
         "id": "prof_death_powers_necromancy",
@@ -3119,7 +3119,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Death, 32 total",
         "extras": [],
         "flaws": [],
-        "notes": "power level and costs; Summon Zombies costs 14 points while Summon Skeletons costs 28 points. This power may have a Limited modifier requiring the necessary corpses be already present, making it fully useful only in places like graveyards, morgues, and battlefields. (Summon Undead, Controlled, Horde, Multiple Minions (32 total) • 14 points per rank)"
+        "notes": "You can imbue corpses, even skeletal remains, with a semblance of life, turning them into undead creatures that rise up at your command. Use the zombie archetypes from the Gamemaster's Guide (page 144) or apply the zombie template (page 145) to a different archetype for things like creating zombie or skeletal dinosaurs or other creatures. Although the power as listed has a substantial cost per rank, only 1 or 2 ranks are needed to cover the undead's power level and costs; Summon Zombies costs 14 points while Summon Skeletons costs 28 points. This power may have a Limited modifier requiring the necessary corpses be already present, making it fully useful only in places like graveyards, morgues, and battlefields. (Summon Undead, Controlled, Horde, Multiple Minions (32 total) • 14 points per rank)"
       },
       {
         "id": "prof_death_powers_speak_with_the_dead",
@@ -3132,7 +3132,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Death, Postcognition",
         "extras": [],
         "flaws": [],
-        "notes": "check normally associated with a Senses effect, representing your negotiation with the summoned spirit. If you can \"channel\" the spirit, allowing it to speak or interact through you as a medium, apply the Affects Others modifier, allowing you to grant the benefits of your insights to observers. (Senses 4 (Postcognition) • 4 points)"
+        "notes": "You can summon the spirit or shade of someone who has passed in order to communicate with them, learning what they knew in life. At the Gamemaster's discretion, this may require an interaction skill check rather than the Perception check normally associated with a Senses effect, representing your negotiation with the summoned spirit. If you can \"channel\" the spirit, allowing it to speak or interact through you as a medium, apply the Affects Others modifier, allowing you to grant the benefits of your insights to observers. (Senses 4 (Postcognition) • 4 points)"
       },
       {
         "id": "prof_death_powers_undead_form",
@@ -3145,7 +3145,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Death, Fortitude effects",
         "extras": [],
         "flaws": [],
-        "notes": "tions (breathing, heartbeat, brain activity, etc.) you are still animate and aware. Although you are immune to many of the things troubling living creatures, your body also does not heal on its own without a separate power like Blood Healing (previously). (Immunity 30 (Fortitude effects), No Stamina rank (-10 points) • 20 points)"
+        "notes": "You are no longer living, but not truly dead, either. Although your body has no vital signs or autonomic functions (breathing, heartbeat, brain activity, etc.) you are still animate and aware. Although you are immune to many of the things troubling living creatures, your body also does not heal on its own without a separate power like Blood Healing (previously). (Immunity 30 (Fortitude effects), No Stamina rank (-10 points) • 20 points)"
       },
       {
         "id": "prof_death_powers_necromantic",
@@ -3249,7 +3249,7 @@ export const POWER_PROFILES_LIBRARY = [
           }
         ],
         "flaws": [],
-        "notes": "power level. This power is often Limited to banishing only outsiders, so you cannot exile someone from their native dimension. It can effectively serve to counter many dimensional summoning effects. (Perception Ranged Movement (Dimensional Travel 1) Attack (Resisted by Dodge or Will) • 4 points + 3 points per +1 to resistance DC.)"
+        "notes": "Above the base of 11 costs 3 points per rank (including the Limited to Resistance modifier) and is limited by power level. This power is often Limited to banishing only outsiders, so you cannot exile someone from their native dimension. It can effectively serve to counter many dimensional summoning effects. (Perception Ranged Movement (Dimensional Travel 1) Attack (Resisted by Dodge or Will) • 4 points + 3 points per +1 to resistance DC.)"
       },
       {
         "id": "prof_dimension_powers_dimensional_blade",
@@ -3277,7 +3277,7 @@ export const POWER_PROFILES_LIBRARY = [
           }
         ],
         "flaws": [],
-        "notes": "Removable device, called out of nothing, or even your own hand or arm, flattened down into two-dimensions. The blade is Subtle in that it is practically invisible when seen on-edge, making it easier to conceal, and occasionally useful for surprise attacks. (Penetrating Damage (cutting), Subtle • 1 point + 2 points per rank)"
+        "notes": "You can conjure a two-dimensional weapon that is almost infinitely thin, making it impossibly sharp. It might be a Removable device, called out of nothing, or even your own hand or arm, flattened down into two-dimensions. The blade is Subtle in that it is practically invisible when seen on-edge, making it easier to conceal, and occasionally useful for surprise attacks. (Penetrating Damage (cutting), Subtle • 1 point + 2 points per rank)"
       },
       {
         "id": "prof_dimension_powers_dimensional_cascade",
@@ -3298,7 +3298,7 @@ export const POWER_PROFILES_LIBRARY = [
           }
         ],
         "flaws": [],
-        "notes": "of dangerous energies to pour out and engulf your targets. You can choose any environmental effect or hazard-heat, cold, poison gas, electricity, radiation, and so forth-as the descriptor for the power's Damage. For a more focused version, swap Ranged for Cone Area. (Cone Area Damage (environmental effect), Variable Descriptor 1 (environmental effects) • 1 point + 2 points per rank)"
+        "notes": "You tear a rift in the dimensional fabric, causing a cascade of dangerous energies to pour out and engulf your targets. You can choose any environmental effect or hazard-heat, cold, poison gas, electricity, radiation, and so forth-as the descriptor for the power's Damage. For a more focused version, swap Ranged for Cone Area. (Cone Area Damage (environmental effect), Variable Descriptor 1 (environmental effects) • 1 point + 2 points per rank)"
       },
       {
         "id": "prof_dimension_powers_dimensional_adaptation",
@@ -3346,7 +3346,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Dimensional, Dimensional",
         "extras": [],
         "flaws": [],
-        "notes": "(Deluxe Hero's Handbook, page 246) so you cannot use Dimensional Shunt while taking other standard actions, but you can use this power to protect other targets from attacks, so long as they are within range. Reflect and Redirect are potential modifiers for this power. (Deflect (dimensional) • 1 point per rank)"
+        "notes": "You neutralize the effects of attacks by shunting them into another dimension. This requires the Defend action (Deluxe Hero's Handbook, page 246) so you cannot use Dimensional Shunt while taking other standard actions, but you can use this power to protect other targets from attacks, so long as they are within range. Reflect and Redirect are potential modifiers for this power. (Deflect (dimensional) • 1 point per rank)"
       },
       {
         "id": "prof_dimension_powers_dimensional_jump",
@@ -3359,7 +3359,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Dimensional, Dimensional Travel",
         "extras": [],
         "flaws": [],
-        "notes": "location in the other dimension, and if you move there and travel back to the previous dimension, you appear to have moved the proximate distance. For the ability to shift great distances between dimensions, add a Teleport effect to your power. (Movement (Dimensional Travel) • 2 points per rank up to 3 ranks (6 points).)"
+        "notes": "You move from one dimension to another simply by willing it, vanishing from your current dimension and appearing in the other. You appear at your proximate location in the other dimension, and if you move there and travel back to the previous dimension, you appear to have moved the proximate distance. For the ability to shift great distances between dimensions, add a Teleport effect to your power. (Movement (Dimensional Travel) • 2 points per rank up to 3 ranks (6 points).)"
       },
       {
         "id": "prof_dimension_powers_dimensional_portal",
@@ -3393,7 +3393,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Dimensional, Detect Dimension, Acute",
         "extras": [],
         "flaws": [],
-        "notes": "reference, allowing you to travel there again and recognize it when you do. Making the sense Analytical allows you to learn the essential differences between the physical laws and properties of the dimension from the baseline you know (usually Earth's dimension). (Senses 2 (Detect Dimension, Acute) • 2 points)"
+        "notes": "You have the ability to sense the \"vibration\" or other metaphysical qualities of the dimension you occupy, letting you both recognize it (if you know it) and learn it for future reference, allowing you to travel there again and recognize it when you do. Making the sense Analytical allows you to learn the essential differences between the physical laws and properties of the dimension from the baseline you know (usually Earth's dimension). (Senses 2 (Detect Dimension, Acute) • 2 points)"
       },
       {
         "id": "prof_dimension_powers_dimensional_grab",
@@ -3406,7 +3406,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Dimensional, Equipment",
         "extras": [],
         "flaws": [],
-        "notes": "items to avoid the damage this power-carefully usedcan do to the plot. Dimensional Grab is often associated with a Removable device, such as a gauntlet or a container (bag, pocket, or hat) from which the user can withdraw almost anything. (Enhanced Advantage (Equipment; dimensional), Variable Descriptor 2 (equipment) • 2 points +)"
+        "notes": "Although details like its grip or make could vary. Gamemaster's may wish to limit the ability to grab very specific items to avoid the damage this power-carefully usedcan do to the plot. Dimensional Grab is often associated with a Removable device, such as a gauntlet or a container (bag, pocket, or hat) from which the user can withdraw almost anything. (Enhanced Advantage (Equipment; dimensional), Variable Descriptor 2 (equipment) • 2 points +)"
       },
       {
         "id": "prof_dimension_powers_dimensional_perspective",
@@ -3432,7 +3432,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Dimensional, Quantum",
         "extras": [],
         "flaws": [],
-        "notes": "Like Dimensional Grab, this power is often a Removable device of some sort, a container you literally reach into to store and retrieve items; otherwise, your Dimensional Pocket appears like a \"hole\" in the air or may simply be items appearing and disappearing from your hands. (Feature (extradimensional storage of mass rank in material) • 1 point per rank)"
+        "notes": "Nothing else will fit into it without first removing something. Like Dimensional Grab, this power is often a Removable device of some sort, a container you literally reach into to store and retrieve items; otherwise, your Dimensional Pocket appears like a \"hole\" in the air or may simply be items appearing and disappearing from your hands. (Feature (extradimensional storage of mass rank in material) • 1 point per rank)"
       },
       {
         "id": "prof_dimension_powers_dimensional_shift",
@@ -3445,7 +3445,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Dimensional, Quantum",
         "extras": [],
         "flaws": [],
-        "notes": "current dimension, leaving only a ghostly after-image, allowing you to move about like an immaterial wraith. You may be exposed to hazards in the interstitial dimension where you have shifted your mass, and others with Dimensional Shift powers may be able to reach you there. (Insubstantial 4 • 20 points)"
+        "notes": "You shift the majority of your bodily mass out of your current dimension, leaving only a ghostly after-image, allowing you to move about like an immaterial wraith. You may be exposed to hazards in the interstitial dimension where you have shifted your mass, and others with Dimensional Shift powers may be able to reach you there. (Insubstantial 4 • 20 points)"
       },
       {
         "id": "prof_dimension_powers_dimensional_stability",
@@ -3479,7 +3479,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Dimensional, Quantum",
         "extras": [],
         "flaws": [],
-        "notes": "you. These can range from mythic and metaphysical beings to alien life forms or even parallel world duplicates, depending on the power's descriptors. See the Summoning Powers section for details and additional ideas for this power. (Summon Extradimensional Beings • 2 points per rank)"
+        "notes": "You can bring creatures from other dimensions to serve you. These can range from mythic and metaphysical beings to alien life forms or even parallel world duplicates, depending on the power's descriptors. See the Summoning Powers section for details and additional ideas for this power. (Summon Extradimensional Beings • 2 points per rank)"
       },
       {
         "id": "prof_dimension_powers_dimensional_window",
@@ -3492,7 +3492,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Dimensional, Quantum",
         "extras": [],
         "flaws": [],
-        "notes": "you to peer into it, seeing and hearing what is happening there proximate to your location. If you can extend your senses to other locales in your target dimension, add ranks in Remote Sensing to the power (possibly Limited to Other Dimensions). (Dimensional Vision and Hearing • 2 points (one other dimension), 4 points (related group of)"
+        "notes": "You open a \"window\" into another dimension, allowing you to peer into it, seeing and hearing what is happening there proximate to your location. If you can extend your senses to other locales in your target dimension, add ranks in Remote Sensing to the power (possibly Limited to Other Dimensions). (Dimensional Vision and Hearing • 2 points (one other dimension), 4 points (related group of)"
       },
       {
         "id": "prof_dimension_powers_two_dimensional_form",
@@ -3522,7 +3522,7 @@ export const POWER_PROFILES_LIBRARY = [
             "description": "Limited by body width, -1 point"
           }
         ],
-        "notes": "width of your shoulders, allowing you to slide through the cracks between door and window frames, for example. This form is often (but not always) accompanied by the Dimensional Blade offensive power, using your hands and arms as infinitely thin cutting edges. (Concealment 4 (all visual, Limited to One Side), Insubstantial 1, Quirk (Limited by body width, -1 point) • 8 points)"
+        "notes": "You flatten your body down to two dimensions, having height and width, but essentially no depth, becoming almost infinitely flat. This makes you practically invisible when seen from the side (on edge) and allows you to fit through any opening wide enough to accommodate the width of your shoulders, allowing you to slide through the cracks between door and window frames, for example. This form is often (but not always) accompanied by the Dimensional Blade offensive power, using your hands and arms as infinitely thin cutting edges. (Concealment 4 (all visual, Limited to One Side), Insubstantial 1, Quirk (Limited by body width, -1 point) • 8 points)"
       },
       {
         "id": "prof_dimension_powers_native_garb",
@@ -3609,7 +3609,7 @@ export const POWER_PROFILES_LIBRARY = [
             "description": "Degree"
           }
         ],
-        "notes": "the dream-world and unable to wake. Although the target's condition is asleep, until the transformed condition is removed, the target cannot awaken. A more gradual version of this power may have the Cumulative or Progressive modifier. (Perception Ranged Affliction (Resisted and Overcome by Will; Transformed-Asleep), Limited Degree (third only), Limited to Sleeping Targets • 1 point per rank)"
+        "notes": "You cause a sleeping target to go into a coma, trapped in the dream-world and unable to wake. Although the target's condition is asleep, until the transformed condition is removed, the target cannot awaken. A more gradual version of this power may have the Cumulative or Progressive modifier. (Perception Ranged Affliction (Resisted and Overcome by Will; Transformed-Asleep), Limited Degree (third only), Limited to Sleeping Targets • 1 point per rank)"
       },
       {
         "id": "prof_dream_powers_nightmare_blast",
@@ -3639,7 +3639,7 @@ export const POWER_PROFILES_LIBRARY = [
             "description": "Sleeping Targets"
           }
         ],
-        "notes": "mally limited to affecting a sleeping target's dreams. If you remove the Limited modifier, you can project a Nightmare Blast into the mind of any target you can perceive, waking or sleeping. This power uses the Variable Conditions extra from the Illusion Power section. (Perception Ranged Affliction (Resisted and Overcome by Will; conditions vary), Variable Conditions, Variable Descriptor 1 (nightmares), Limited to Sleeping Targets • 1 point + 4 points per rank)"
+        "notes": "Putting your target through a terrible nightmare, you are able to inflict psychic trauma so profound as to have real consequences in the waking world. The exact nature of the trauma and its effects depend on the nightmare imagery, ranging from the classic \"if you fall to your death in a dream, you die in reality\" to inducing coma (incapacitated), psychological conditioning (controlled), or even changes in personality (transformed). This power is normally limited to affecting a sleeping target's dreams. If you remove the Limited modifier, you can project a Nightmare Blast into the mind of any target you can perceive, waking or sleeping. This power uses the Variable Conditions extra from the Illusion Power section. (Perception Ranged Affliction (Resisted and Overcome by Will; conditions vary), Variable Conditions, Variable Descriptor 1 (nightmares), Limited to Sleeping Targets • 1 point + 4 points per rank)"
       },
       {
         "id": "prof_dream_powers_sleep",
@@ -3660,7 +3660,7 @@ export const POWER_PROFILES_LIBRARY = [
           }
         ],
         "flaws": [],
-        "notes": "come the asleep condition, the target can be awakened by normal means (see Sleep under Dream Descriptors). This power may be both Subtle and Insidious, meaning the target is unaware you are causing sleep; they simply feel more and more drowsy until they finally drop off. (Perception Ranged Cumulative Affliction (Resisted and Overcome by Will; Fatigued, Exhausted, Asleep) • 4 points)"
+        "notes": "You can place a target into a deep sleep, simply by looking at them. In addition to the usual resistance check to overcome the asleep condition, the target can be awakened by normal means (see Sleep under Dream Descriptors). This power may be both Subtle and Insidious, meaning the target is unaware you are causing sleep; they simply feel more and more drowsy until they finally drop off. (Perception Ranged Cumulative Affliction (Resisted and Overcome by Will; Fatigued, Exhausted, Asleep) • 4 points)"
       },
       {
         "id": "prof_dream_powers_sleep_deprivation",
@@ -3710,7 +3710,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Dream, Mental",
         "extras": [],
         "flaws": [],
-        "notes": "default but the Area modifier allows it to affect multiple subjects at once. The GM may allow an area use of this power in the dream dimension to affect a group within the designated area there, regardless of how far apart their sleeping physical forms may be. (Nullify Dream Powers, Simultaneous • 2 points per rank)"
+        "notes": "You can counteract the effects of dream powers, either allowing a subject to return to wakefulness (if something prevented them from doing so) or slip into a normal asleep condition. This power affects a single subject by default but the Area modifier allows it to affect multiple subjects at once. The GM may allow an area use of this power in the dream dimension to affect a group within the designated area there, regardless of how far apart their sleeping physical forms may be. (Nullify Dream Powers, Simultaneous • 2 points per rank)"
       },
       {
         "id": "prof_dream_powers_dream_immunity",
@@ -3749,7 +3749,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Dream, Sleep",
         "extras": [],
         "flaws": [],
-        "notes": "Immunity effect). If you are incapable of dreaming, then you also have the Dream Immunity power (previously). Note that this power does not grant immunity to physical fatigue: you still tire from exertion and need to rest, you simply do not sleep or tire from mental activity. (Immunity 1 (Sleep) • 1 point.)"
+        "notes": "You do not ever need to sleep or dream, although you may choose to do so, if you wish (as a descriptor of the Immunity effect). If you are incapable of dreaming, then you also have the Dream Immunity power (previously). Note that this power does not grant immunity to physical fatigue: you still tire from exertion and need to rest, you simply do not sleep or tire from mental activity. (Immunity 1 (Sleep) • 1 point.)"
       },
       {
         "id": "prof_dream_powers_dreamport",
@@ -3762,7 +3762,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Dream, Dreamers",
         "extras": [],
         "flaws": [],
-        "notes": "sleepers. You must be within about arm's reach of a sleeping dreamer and you emerge into the waking world about the same distance from another sleeping dreamer within range of your Teleport effect. Other Teleport modifiers, particularly Extended, are common for this power. (Teleport, Accurate, Medium (dreamers) • 2 points per rank)"
+        "notes": "You can bodily transport yourself over great distances in the waking world by traveling through the dreams of sleepers. You must be within about arm's reach of a sleeping dreamer and you emerge into the waking world about the same distance from another sleeping dreamer within range of your Teleport effect. Other Teleport modifiers, particularly Extended, are common for this power. (Teleport, Accurate, Medium (dreamers) • 2 points per rank)"
       },
       {
         "id": "prof_dream_powers_dream_projection",
@@ -3784,7 +3784,7 @@ export const POWER_PROFILES_LIBRARY = [
             "description": "Dreamers"
           }
         ],
-        "notes": "will you can exert your normal appearance. If the power is Insidious, then your dream projection fits into the dream and is taken as just another element of it, granting you a circumstance bonus to use the projection for interaction checks like Deception against the dreamer. (Communication (Mental), Limited to Dreamers • 3 points per rank)"
+        "notes": "You project a mental image of yourself into another person's dreams. You cannot perceive the content of the dream unless you also have Dream Reading (see Utility Powers) but you can communicate with the dreamer and anyone else present within the dream. You will tend to blend into the context of the dream, although with a modest effort of will you can exert your normal appearance. If the power is Insidious, then your dream projection fits into the dream and is taken as just another element of it, granting you a circumstance bonus to use the projection for interaction checks like Deception against the dreamer. (Communication (Mental), Limited to Dreamers • 3 points per rank)"
       },
       {
         "id": "prof_dream_powers_dream_travel",
@@ -3797,7 +3797,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Dream, Dimensional Travel",
         "extras": [],
         "flaws": [],
-        "notes": "to any of them with two ranks of Dimension Travel. Note that traveling bodily into a subject's dreams allows you to perceive them and communicate, but also exposes you to whatever is happening in that dream, since you are actually \"there\" rather than just perceiving or communicating. (Movement 1 (Dimensional Travel) • 2 points)"
+        "notes": "You can travel bodily into the dimension or realm of dreams. If you can bring others along with you, apply the Increased Mass extra, or the Portal modifier from Teleport to the power. See Dream Dimension under Dream Descriptors for details about what to expect at your destination. If the setting features multiple dream dimensions, you can travel to any of them with two ranks of Dimension Travel. Note that traveling bodily into a subject's dreams allows you to perceive them and communicate, but also exposes you to whatever is happening in that dream, since you are actually \"there\" rather than just perceiving or communicating. (Movement 1 (Dimensional Travel) • 2 points)"
       },
       {
         "id": "prof_dream_powers_dream_control",
@@ -3841,7 +3841,7 @@ export const POWER_PROFILES_LIBRARY = [
             "description": "while asleep"
           }
         ],
-        "notes": "otherwise it is capable of achieving real effects in that anything affecting dreamers on the mental level is reflected in the waking world, including damage and other conditions. There may even be psychosomatic or mystical physical repercussions of your powers, depending on descriptors. (Variable (dream powers, Free Action, Limited to while asleep, Limited to while in dreams) • 7 points per rank)"
+        "notes": "You are virtually omnipotent in the world of dreams, limited solely by your imagination and willpower in terms of what you can accomplish. This power is significantly limited, in that both you and anyone you interact with must be asleep and dreaming, but otherwise it is capable of achieving real effects in that anything affecting dreamers on the mental level is reflected in the waking world, including damage and other conditions. There may even be psychosomatic or mystical physical repercussions of your powers, depending on descriptors. (Variable (dream powers, Free Action, Limited to while asleep, Limited to while in dreams) • 7 points per rank)"
       },
       {
         "id": "prof_dream_powers_dream_reading",
@@ -3863,7 +3863,7 @@ export const POWER_PROFILES_LIBRARY = [
             "description": "Sleeping Subjects"
           }
         ],
-        "notes": "DC 10 + power rank) perceive you as a \"presence\" in the dream, perhaps cloaked in appropriate imagery, unless your power is Subtle. The subject gets the usual Will resistance check to prevent you from perceiving anything or from increasing the information you receive. (Mind Reading, Limited to Sleeping Subjects • 1 point per rank)"
+        "notes": "You can connect to a sleeping subject's dreams and perceive them as they occur, as if they were happening to you, but with a degree of psychological \"distance\" insulating you from their effects. You can even \"direct\" the dream to a degree to uncover particular information the subject knows, ranging from direct questioning of the subject's dreaming self, to revealing imagery, such as revisiting old memories. The subject may (with an Insight check versus DC 10 + power rank) perceive you as a \"presence\" in the dream, perhaps cloaked in appropriate imagery, unless your power is Subtle. The subject gets the usual Will resistance check to prevent you from perceiving anything or from increasing the information you receive. (Mind Reading, Limited to Sleeping Subjects • 1 point per rank)"
       },
       {
         "id": "prof_dream_powers_dream_touch",
@@ -3876,7 +3876,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Dream, Mental",
         "extras": [],
         "flaws": [],
-        "notes": "useful power, in spite of working only on sleeping minds, and Gamemasters should be careful about allowing playercontrolled characters to have and use it, since it can potentially unbalance the game and may leave other characters largely out of the activity that occurs on the dream level. (Remote Sensing (mental), Senses 4 (Accurate Ranged Detect Dreamers, mental) • 4 points + 1 point per rank)"
+        "notes": "You can \"reach out\" with your mind to \"touch\" the sleeping mind of another being known to you, sufficient for you to connect with their dreams and use other Perception Ranged dream powers on them. This is a particularly useful power, in spite of working only on sleeping minds, and Gamemasters should be careful about allowing playercontrolled characters to have and use it, since it can potentially unbalance the game and may leave other characters largely out of the activity that occurs on the dream level. (Remote Sensing (mental), Senses 4 (Accurate Ranged Detect Dreamers, mental) • 4 points + 1 point per rank)"
       },
       {
         "id": "prof_dream_powers_precognitive_dreams",
@@ -3898,7 +3898,7 @@ export const POWER_PROFILES_LIBRARY = [
             "description": "Dreaming"
           }
         ],
-        "notes": "pretation, but you always know the difference between a vision and an ordinary dream. This power is often Uncontrolled in addition to only occurring while you dream, meaning the visions come unbidden, and only when the Gamemaster chooses. (Senses 4 (Precognition), Limited to Dreaming • 2 points)"
+        "notes": "You receive visions of the future in your dreams. These may be couched in symbolic dream imagery and require interpretation, but you always know the difference between a vision and an ordinary dream. This power is often Uncontrolled in addition to only occurring while you dream, meaning the visions come unbidden, and only when the Gamemaster chooses. (Senses 4 (Precognition), Limited to Dreaming • 2 points)"
       },
       {
         "id": "prof_dream_powers_sleep_substitute",
@@ -4020,7 +4020,7 @@ export const POWER_PROFILES_LIBRARY = [
             "description": "Degree"
           }
         ],
-        "notes": "scramble to avoid falling; at the worst they plunge into the chasm, subjecting them to damage and leaving them prone. If you can close the chasm on your targets, inflicting the Damage to them again, apply the Secondary Effect modifier, increasing cost by 1 per rank. (Line Area Ranged Affliction (Resisted by Dodge; Dazed, Prone), Instant Recovery (the Dazed and Prone conditions only last for a round), Limited Degree, Linked Line Area Burrowing Attack (Limited to downward), Linked to Line Area Ranged Damage, Limited to Targets Affected by Second Degree of Affliction • 4 points per rank)"
+        "notes": "You open a deep pit or chasm in the ground beneath your targets, dropping them into it. At the least, they have to scramble to avoid falling; at the worst they plunge into the chasm, subjecting them to damage and leaving them prone. If you can close the chasm on your targets, inflicting the Damage to them again, apply the Secondary Effect modifier, increasing cost by 1 per rank. (Line Area Ranged Affliction (Resisted by Dodge; Dazed, Prone), Instant Recovery (the Dazed and Prone conditions only last for a round), Limited Degree, Linked Line Area Burrowing Attack (Limited to downward), Linked to Line Area Ranged Damage, Limited to Targets Affected by Second Degree of Affliction • 4 points per rank)"
       },
       {
         "id": "prof_earth_powers_dust_storm",
@@ -4223,7 +4223,7 @@ export const POWER_PROFILES_LIBRARY = [
           }
         ],
         "flaws": [],
-        "notes": "You transform your flesh, making it as hard as rock (or turning into actual rock). Alternately, you might simply cover your body in rocky armor formed by your powers. (Impervious Protection • 2 points per rank 53 53 EARTH POWERS EARTH POWERS MUTANTS & MASTERMINDS POWER PROFILES MUTANTS & MASTERMINDS POWER PROFILES)"
+        "notes": "You transform your flesh, making it as hard as rock (or turning into actual rock). Alternately, you might simply cover your body in rocky armor formed by your powers. (Impervious Protection • 2 points per rank)"
       },
       {
         "id": "prof_earth_powers_rooting",
@@ -4245,7 +4245,7 @@ export const POWER_PROFILES_LIBRARY = [
             "description": "While Touching the Ground"
           }
         ],
-        "notes": "if you do not wish to be. Your rank effectively adds to any resistance to being moved, typically Strength or Fortitude checks, but also resistance checks against trip attacks and other effects which would move you, like certain Afflictions. (Feature (Resistance to being moved), Limited to While Touching the Ground • 1 point per 2 ranks)"
+        "notes": "Your connection with the earth is strong enough to \"root\" you in place and prevent you from being moved if you do not wish to be. Your rank effectively adds to any resistance to being moved, typically Strength or Fortitude checks, but also resistance checks against trip attacks and other effects which would move you, like certain Afflictions. (Feature (Resistance to being moved), Limited to While Touching the Ground • 1 point per 2 ranks)"
       },
       {
         "id": "prof_earth_powers_immovable",
@@ -4311,7 +4311,7 @@ export const POWER_PROFILES_LIBRARY = [
             "description": "within 60 feet"
           }
         ],
-        "notes": "3 power points). A broad enough earth wave may have Affects Others and Area (typically Line or Shapeable). An Earth Wave can potentially cause some collateral damage by tearing up the ground and disrupting structures (see Earth Complications). (Flight, Limited to within 60 feet (distance rank 1) of the ground, Platform • 1 point per 2 ranks)"
+        "notes": "You create and ride atop a \"wave\" of earth, like a moving hill, which carries you along. Generally, an earth wave is limited to a rank no greater than 6 (120 MPH, costing 3 power points). A broad enough earth wave may have Affects Others and Area (typically Line or Shapeable). An Earth Wave can potentially cause some collateral damage by tearing up the ground and disrupting structures (see Earth Complications). (Flight, Limited to within 60 feet (distance rank 1) of the ground, Platform • 1 point per 2 ranks)"
       },
       {
         "id": "prof_earth_powers_flying_rock",
@@ -4350,7 +4350,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Earth, Mineral",
         "extras": [],
         "flaws": [],
-        "notes": "create a stable tunnel so others can follow or to allow the material to collapse and fill in behind you. If you can create tunnels at a distance, apply the Ranged modifier, but for the ability to create pits or chasms as an attack see the Chasm power (previously). (Burrowing • 1 point per rank)"
+        "notes": "You can rapidly dig through earth and stone, simply pushing it aside with your power. You can choose to create a stable tunnel so others can follow or to allow the material to collapse and fill in behind you. If you can create tunnels at a distance, apply the Ranged modifier, but for the ability to create pits or chasms as an attack see the Chasm power (previously). (Burrowing • 1 point per rank)"
       },
       {
         "id": "prof_earth_powers_earth_creatures",
@@ -4363,7 +4363,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Earth, Mineral",
         "extras": [],
         "flaws": [],
-        "notes": "can look like virtually anything, from hulking humanoids to mythic creatures like trolls. You can apply the various modifiers for the Summon effect to get additional creatures or to make them more active or capable (removing the minion type from the template). (Summon Earth Creature 4 • 60-point minion (see the following template) • 8 points + 8 points per)"
+        "notes": "You can summon or create semi-independent creatures formed out of earth and rock. The creatures you summon are not truly alive, merely animated masses of earth. They can look like virtually anything, from hulking humanoids to mythic creatures like trolls. You can apply the various modifiers for the Summon effect to get additional creatures or to make them more active or capable (removing the minion type from the template). (Summon Earth Creature 4 • 60-point minion (see the following template) • 8 points + 8 points per)"
       },
       {
         "id": "prof_earth_powers_earth_moving",
@@ -4433,7 +4433,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Earth, Mineral",
         "extras": [],
         "flaws": [],
-        "notes": "works. Your creations last as long as you maintain them, then crumble, unless you apply the Continuous modifier (allowing you to create semi-permanent earthen structures). Some versions of this power apply the Impervious modifier for creations of stone highly resistant to damage. (Create Earthworks • 2 points per rank)"
+        "notes": "You can form objects molded from earth and rock: walls, arches, bridges, columns, and so forth. Your creations have Toughness equal to your rank and must form out of the ground or some other form of earth (rocky outcropping, etc.). See the Create effect (Deluxe Hero's Handbook, page 154) for details of things you can do with your Earthworks. Your creations last as long as you maintain them, then crumble, unless you apply the Continuous modifier (allowing you to create semi-permanent earthen structures). Some versions of this power apply the Impervious modifier for creations of stone highly resistant to damage. (Create Earthworks • 2 points per rank)"
       },
       {
         "id": "prof_earth_powers_mountain_form",
@@ -4528,7 +4528,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Earth, Ranged Touch",
         "extras": [],
         "flaws": [],
-        "notes": "but not to make out any more details. This power applies the Ranged modifier to the normal sense of touch, which is already accurate and radius. Applying Acute and Analytical allow you to sense details, while Extended lets you sense over greater distances. (Senses 1 (Ranged Touch) • 1 point.)"
+        "notes": "You're sensitive to vibrations transmitted through earth and stone. So long as you are touching the ground, you can \"feel\" the locations of moving creatures also touching the ground well enough to target them with attacks, but not to make out any more details. This power applies the Ranged modifier to the normal sense of touch, which is already accurate and radius. Applying Acute and Analytical allow you to sense details, while Extended lets you sense over greater distances. (Senses 1 (Ranged Touch) • 1 point.)"
       }
     ]
   },
@@ -4554,7 +4554,7 @@ export const POWER_PROFILES_LIBRARY = [
           }
         ],
         "flaws": [],
-        "notes": "electronics do not recover without being repaired and having damaged components replaced. Apply additional ranks of the Area modifier to extend the affected area. If you can create an EMP at a distance, add the Ranged modifier. (Weaken Electronics, Affects Only Objects, Broad, Burst Area, Simultaneous • 4 points per rank)"
+        "notes": "Electricity has plenty of offensive potential, from massive lightning bolts to its more subtle effects on the muscles and nervous system or electrical devices. ELECTROMAGNETIC PULSE (EMP) You emit a powerful pulse of electromagnetic energy, overloading and damaging electronics in the area around you. Unlike a regular use of an electrical power to counter, an EMP affects all targets in the area at once. Weakened electronics do not recover without being repaired and having damaged components replaced. Apply additional ranks of the Area modifier to extend the affected area. If you can create an EMP at a distance, add the Ranged modifier. (Weaken Electronics, Affects Only Objects, Broad, Burst Area, Simultaneous • 4 points per rank)"
       },
       {
         "id": "prof_electrical_powers_lightning_bolt",
@@ -4609,7 +4609,7 @@ export const POWER_PROFILES_LIBRARY = [
           }
         ],
         "flaws": [],
-        "notes": "points per rank For \"chain lightning\"-where arcs of electricity leap from target to target before grounding out-apply the Multiattack modifier to your power. (Multiattack Ranged Damage (electrical) • 3 points per rank)"
+        "notes": "Points per rank For \"chain lightning\"-where arcs of electricity leap from target to target before grounding out-apply the Multiattack modifier to your power. (Multiattack Ranged Damage (electrical) • 3 points per rank)"
       },
       {
         "id": "prof_electrical_powers_lightning_flash",
@@ -4680,7 +4680,7 @@ export const POWER_PROFILES_LIBRARY = [
           }
         ],
         "flaws": [],
-        "notes": "shock to anyone touching you. Since the effect's Reaction is being touched, you do not have to make an attack check except to deliberately touch or hit someone else; a successful attack check to touch or hit you constitutes a successful \"attack\" by the shock field. (Reaction Cumulative Affliction (Resisted and Overcome by Fortitude; Dazed, Stunned, Incapacitated) • 5 points per rank)"
+        "notes": "You electrically charge your body, delivering a powerful shock to anyone touching you. Since the effect's Reaction is being touched, you do not have to make an attack check except to deliberately touch or hit someone else; a successful attack check to touch or hit you constitutes a successful \"attack\" by the shock field. (Reaction Cumulative Affliction (Resisted and Overcome by Fortitude; Dazed, Stunned, Incapacitated) • 5 points per rank)"
       },
       {
         "id": "prof_electrical_powers_dc_shock_field",
@@ -4701,7 +4701,7 @@ export const POWER_PROFILES_LIBRARY = [
           }
         ],
         "flaws": [],
-        "notes": "points per rank If your Shock Field uses direct current (DC) it also \"locks\" the target's muscles, preventing them from pulling away and continuing to inflict the effect until the target makes a successful resistance check, breaking contact. (Reaction Progressive Affliction (Resisted and Overcome by Fortitude; Dazed, Stunned, Incapacitated) • 6 points per rank)"
+        "notes": "Points per rank If your Shock Field uses direct current (DC) it also \"locks\" the target's muscles, preventing them from pulling away and continuing to inflict the effect until the target makes a successful resistance check, breaking contact. (Reaction Progressive Affliction (Resisted and Overcome by Fortitude; Dazed, Stunned, Incapacitated) • 6 points per rank)"
       },
       {
         "id": "prof_electrical_powers_taser",
@@ -4736,7 +4736,7 @@ export const POWER_PROFILES_LIBRARY = [
             "description": "Self"
           }
         ],
-        "notes": "energy still has its normal effect on you unless you also have a power like Electrical Immunity, which is common counterpart to this power. The Extraordinary Effort advantage is also a common trait in conjunction with this power. (Reaction Healing, Bonus Effect (Can Counter Extra Effort Fatigue), Limited to Self, Limited to Absorbed Electricity Rank, Source (Electricity) • 3 points per rank)"
+        "notes": "You absorb incoming electrical energy, channelling it into recovery from damage or fatigue. The electrical energy still has its normal effect on you unless you also have a power like Electrical Immunity, which is common counterpart to this power. The Extraordinary Effort advantage is also a common trait in conjunction with this power. (Reaction Healing, Bonus Effect (Can Counter Extra Effort Fatigue), Limited to Self, Limited to Absorbed Electricity Rank, Source (Electricity) • 3 points per rank)"
       },
       {
         "id": "prof_electrical_powers_electrical_immunity",
@@ -4749,7 +4749,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Electricity, Electrical Effects",
         "extras": [],
         "flaws": [],
-        "notes": "cable and inflict electrical damage by touch like the Shock Field power (previously). Either option is just a descriptor with no change in cost. If you can choose between both from round to round, apply 1 rank of the Variable Descriptor modifier. (Immunity 10 (Electrical Effects) • 10 points If you are merely resistant to electricity, apply the Limited to Half Effect modifier to the Immunity.)"
+        "notes": "You are largely unaffected by electricity, either perfectly insulated or able to harmlessly absorb or conduct it through you. In the first case, you are an effective insulator: anyone touching you is unaffected by the electricity, as you safely ground it out. In the second case, you are an efficient conductor: electricity does not harm you, but anyone touching you is affected by it, allowing you to, for example, grab a \"live\" source of electrical power like a cable and inflict electrical damage by touch like the Shock Field power (previously). Either option is just a descriptor with no change in cost. If you can choose between both from round to round, apply 1 rank of the Variable Descriptor modifier. (Immunity 10 (Electrical Effects) • 10 points If you are merely resistant to electricity, apply the Limited to Half Effect modifier to the Immunity.)"
       },
       {
         "id": "prof_electrical_powers_electrical_resistance",
@@ -4879,7 +4879,7 @@ export const POWER_PROFILES_LIBRARY = [
           }
         ],
         "flaws": [],
-        "notes": "equipment, simply deprive it of power, so things return to normal when the effect ends. Apply additional ranks of the Area modifier to extend the affected area. If you can cause blackouts at a distance, remove the Close Range modifier. (Nullify Electronics, Broad, Burst Area, Concentration, Simultaneous, Close Range • 5 points per rank)"
+        "notes": "You drain and shut down all electric power in an area around you, deactivating all electrical equipment. Unlike an EMP (previously) you do not damage or overload equipment, simply deprive it of power, so things return to normal when the effect ends. Apply additional ranks of the Area modifier to extend the affected area. If you can cause blackouts at a distance, remove the Close Range modifier. (Nullify Electronics, Broad, Burst Area, Concentration, Simultaneous, Close Range • 5 points per rank)"
       },
       {
         "id": "prof_electrical_powers_electrical_form",
@@ -4892,7 +4892,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Electricity, Electricity",
         "extras": [],
         "flaws": [],
-        "notes": "fected by energy. Although it looks like crackling electricity, it is harmless to touch unless you also add the Shock Field power (previously). Your electrical form may grant other powers as well, such as Electrical Absorption, Electrical Immunity, Electro-Flight, and Lightning Flight. (Insubstantial 3 (electricity) • 15 points)"
+        "notes": "You transform into a being of living electricity. Your electrical form is largely immune to physical harm but still affected by energy. Although it looks like crackling electricity, it is harmless to touch unless you also add the Shock Field power (previously). Your electrical form may grant other powers as well, such as Electrical Absorption, Electrical Immunity, Electro-Flight, and Lightning Flight. (Insubstantial 3 (electricity) • 15 points)"
       },
       {
         "id": "prof_electrical_powers_electrosense",
@@ -4905,7 +4905,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Electricity, Lightning",
         "extras": [],
         "flaws": [],
-        "notes": "and the like. Picking up the electrical activity of a human body is difficult: a -15 modifier on the Perception check. Apply Extended to sense over greater distances and Accurate to use your Electrosense to target attacks in combat. (Detect Electricity, Ranged, Acute • 3 points per rank ELECTRO-SHAPING You shape electricity into different distinct shapes, from walls and rings to \"lightning cages.\" Since the electrical Damage effect is Selective, you can choose whether a target is affected by the electricity or not (left in an open space inside a ring or cage, for example). The shape lasts for as long as you concentrate. When you stop, it dissipates harmlessly.)"
+        "notes": "You can sense electrical energy and its flow. Amongst other things, this power is useful for detecting electrical equipment operating in your vicinity and locating sources of power like buried cables, wiring inside walls, and the like. Picking up the electrical activity of a human body is difficult: a -15 modifier on the Perception check. Apply Extended to sense over greater distances and Accurate to use your Electrosense to target attacks in combat. (Detect Electricity, Ranged, Acute • 3 points per rank ELECTRO-SHAPING You shape electricity into different distinct shapes, from walls and rings to \"lightning cages.\" Since the electrical Damage effect is Selective, you can choose whether a target is affected by the electricity or not (left in an open space inside a ring or cage, for example). The shape lasts for as long as you concentrate. When you stop, it dissipates harmlessly.)"
       },
       {
         "id": "prof_electrical_powers_electro_shaping",
@@ -4926,7 +4926,7 @@ export const POWER_PROFILES_LIBRARY = [
           }
         ],
         "flaws": [],
-        "notes": "Damage effect is Selective, you can choose whether a target is affected by the electricity or not (left in an open space inside a ring or cage, for example). The shape lasts for as long as you concentrate. When you stop, it dissipates harmlessly. (Ranged Shapeable Area Electrical Damage, Concentration Duration, Selective • 5 points per rank, +1)"
+        "notes": "You shape electricity into different distinct shapes, from walls and rings to \"lightning cages.\" Since the electrical Damage effect is Selective, you can choose whether a target is affected by the electricity or not (left in an open space inside a ring or cage, for example). The shape lasts for as long as you concentrate. When you stop, it dissipates harmlessly. (Ranged Shapeable Area Electrical Damage, Concentration Duration, Selective • 5 points per rank, +1)"
       },
       {
         "id": "prof_electrical_powers_lightning_creatures",
@@ -4939,7 +4939,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Electricity, Lightning",
         "extras": [],
         "flaws": [],
-        "notes": "tually anything, from humanoids to \"storm spirits\" or animated lightning bolts. You can apply the various modifiers for the Summon effect to get additional creatures or to make them more active or capable (removing the minion type from the template, for example). (Summon Lightning Creature 6 (90point minion (see the following template)) • 12 points)"
+        "notes": "You can summon or create semi-independent creatures formed out of \"living electricity\" that obey your commands. The creatures you summon are not truly alive, merely animated masses of energy. They can look like virtually anything, from humanoids to \"storm spirits\" or animated lightning bolts. You can apply the various modifiers for the Summon effect to get additional creatures or to make them more active or capable (removing the minion type from the template, for example). (Summon Lightning Creature 6 (90point minion (see the following template)) • 12 points)"
       },
       {
         "id": "prof_electrical_powers_static_electricity",
@@ -4952,7 +4952,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Electricity, Lightning",
         "extras": [],
         "flaws": [],
-        "notes": "\"Realistic\" versions of this power should be quite limited in terms of rank (perhaps even no more than the option under Features) but four-color characters might have electrostatic powers able to move massive amounts of weight. (Move Object • 2 points per rank)"
+        "notes": "You can generate a powerful charge of static electricity, allowing you to attract, repel, and move objects around. \"Realistic\" versions of this power should be quite limited in terms of rank (perhaps even no more than the option under Features) but four-color characters might have electrostatic powers able to move massive amounts of weight. (Move Object • 2 points per rank)"
       },
       {
         "id": "prof_electrical_powers_car_battery",
@@ -5004,7 +5004,7 @@ export const POWER_PROFILES_LIBRARY = [
           }
         ],
         "flaws": [],
-        "notes": "material. The Weaken and Damage effects occur simultaneously, then both occur again on the following round, applying Damage against the Weakened Toughness. If you can project a corrosive at a distance, apply the Ranged modifier to both effects. (Weaken Toughness, Affects Objects, Secondary Effect, Linked to Damage, Secondary Effect • 5 points per rank)"
+        "notes": "You can create a powerful corrosive that eats away at any material. The Weaken and Damage effects occur simultaneously, then both occur again on the following round, applying Damage against the Weakened Toughness. If you can project a corrosive at a distance, apply the Ranged modifier to both effects. (Weaken Toughness, Affects Objects, Secondary Effect, Linked to Damage, Secondary Effect • 5 points per rank)"
       },
       {
         "id": "prof_element_powers_encase",
@@ -5047,7 +5047,7 @@ export const POWER_PROFILES_LIBRARY = [
           }
         ],
         "flaws": [],
-        "notes": "Combining different volatile chemical elements or converting tiny amount of matter into energy via fission you produce a powerful explosion. If the blast originates with or near you, then you are unaffected. If you can produce the explosion at a distance, apply the Ranged modifier. (Burst Area Damage • 2 points per rank 63 63 ELEMENT POWERS ELEMENT POWERS MUTANTS & MASTERMINDS POWER PROFILES MUTANTS & MASTERMINDS POWER PROFILES)"
+        "notes": "Combining different volatile chemical elements or converting tiny amount of matter into energy via fission you produce a powerful explosion. If the blast originates with or near you, then you are unaffected. If you can produce the explosion at a distance, apply the Ranged modifier. (Burst Area Damage • 2 points per rank)"
       },
       {
         "id": "prof_element_powers_gas_cloud",
@@ -5075,7 +5075,7 @@ export const POWER_PROFILES_LIBRARY = [
           }
         ],
         "flaws": [],
-        "notes": "vary those listed to suit particular descriptors, or to apply the Variable Conditions modifier (see the Illusion Powers section) for the ability to produce a wide range of different gas clouds. If you can create your gas cloud at a distance, apply the Ranged modifier. (Cloud Area Affliction (Resisted and Overcome by Fortitude; Fatigued, Exhausted, Incapacitated), Cumulative • 3 points per rank)"
+        "notes": "You create a cloud of choking or inert gas capable of suffocating those within it. You are unaffected by your own gas cloud, either leaving a \"hole\" in the center immediately around you, or able to otherwise negate its effects. Certain gases may inflict different conditions; feel free to vary those listed to suit particular descriptors, or to apply the Variable Conditions modifier (see the Illusion Powers section) for the ability to produce a wide range of different gas clouds. If you can create your gas cloud at a distance, apply the Ranged modifier. (Cloud Area Affliction (Resisted and Overcome by Fortitude; Fatigued, Exhausted, Incapacitated), Cumulative • 3 points per rank)"
       },
       {
         "id": "prof_element_powers_immolation",
@@ -5118,7 +5118,7 @@ export const POWER_PROFILES_LIBRARY = [
             "description": "Degree"
           }
         ],
-        "notes": "stance, typically stone, but it could just as easily be metals such as gold, iron, or lead. This version requires you to touch the target. If you can petrify at a distance, apply the Ranged modifier. If you can restore a petrified subject, add the Reversible modifier. (Affliction (Resisted and Overcome by Fortitude; Transformed), Limited Degree (third only), Progressive • 2 points per rank)"
+        "notes": "You transform a living subject into a solid, non-living substance, typically stone, but it could just as easily be metals such as gold, iron, or lead. This version requires you to touch the target. If you can petrify at a distance, apply the Ranged modifier. If you can restore a petrified subject, add the Reversible modifier. (Affliction (Resisted and Overcome by Fortitude; Transformed), Limited Degree (third only), Progressive • 2 points per rank)"
       },
       {
         "id": "prof_element_powers_petrifying_gaze",
@@ -5148,7 +5148,7 @@ export const POWER_PROFILES_LIBRARY = [
             "description": "Degree"
           }
         ],
-        "notes": "For the classic \"petrifying gaze\" like that of Medusa, add the Perception Range and Sight-Dependent modifiers, allowing you to affect any target you can see that can also see you. Targets who deliberately block their vision are protected against your power. (Perception Ranged Affliction (Resisted and Overcome by Fortitude; Transformed), Limited Degree (third only), Progressive, Sight-Dependent • 3 points per rank)"
+        "notes": "Points per rank For the classic \"petrifying gaze\" like that of Medusa, add the Perception Range and Sight-Dependent modifiers, allowing you to affect any target you can see that can also see you. Targets who deliberately block their vision are protected against your power. (Perception Ranged Affliction (Resisted and Overcome by Fortitude; Transformed), Limited Degree (third only), Progressive, Sight-Dependent • 3 points per rank)"
       },
       {
         "id": "prof_element_powers_tarpit",
@@ -5198,7 +5198,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Element, Chemical effects",
         "extras": [],
         "flaws": [],
-        "notes": "cal reactions, including the effects of acids, bases, chemical burns, and so forth. You are not immune to the sideeffects of chemical reactions, such as the force of an explosion or intense heat or cold, without taking additional ranks in Immunity. (Immunity 2 (chemical effects) • 2 points)"
+        "notes": "You are chemically \"inert\" and immune to harmful chemical reactions, including the effects of acids, bases, chemical burns, and so forth. You are not immune to the sideeffects of chemical reactions, such as the force of an explosion or intense heat or cold, without taking additional ranks in Immunity. (Immunity 2 (chemical effects) • 2 points)"
       },
       {
         "id": "prof_element_powers_destroy_projectiles",
@@ -5211,7 +5211,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Element, Projectiles",
         "extras": [],
         "flaws": [],
-        "notes": "the effect is sustained rather than permanent). If you can Destroy Projectiles over a wider area, apply the Affects Others and Area Modifiers; if you can choose who in the area receives your protection, apply the Selective modifier as well. (Immunity 10 (projectiles), Sustained • 10 points)"
+        "notes": "You can transmute incoming projectiles into harmless gases or otherwise destroy them, preventing them from having any effect on you unless they are in some way indestructible or immune to your power. You must be capable of action in order to Destroy Projectiles (that is, the effect is sustained rather than permanent). If you can Destroy Projectiles over a wider area, apply the Affects Others and Area Modifiers; if you can choose who in the area receives your protection, apply the Selective modifier as well. (Immunity 10 (projectiles), Sustained • 10 points)"
       },
       {
         "id": "prof_element_powers_diamond_hard",
@@ -5239,7 +5239,7 @@ export const POWER_PROFILES_LIBRARY = [
             "isFlat": true
           }
         ],
-        "notes": "turning into actual diamond in the process! If your Diamond Hard state is temporary, apply the Activation or Sustained modifiers. A Diamond Hard form may be accompanied by the Unliving power (following) or a degree of Enhanced Strength. (Impervious Protection, Noticeable • 1 point for rank 1, + 2 points per additional rank)"
+        "notes": "Your body is (or can become) as hard as diamond, perhaps turning into actual diamond in the process! If your Diamond Hard state is temporary, apply the Activation or Sustained modifiers. A Diamond Hard form may be accompanied by the Unliving power (following) or a degree of Enhanced Strength. (Impervious Protection, Noticeable • 1 point for rank 1, + 2 points per additional rank)"
       },
       {
         "id": "prof_element_powers_molecular_phasing",
@@ -5252,7 +5252,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Element, Chemical",
         "extras": [],
         "flaws": [],
-        "notes": "through that material as if it were not even there. If you alter the valences of other materials, you might have the Affects Others modifier, allowing you to bring others with you or even create \"phase doors\" for them to pass through without you. (Insubstantial 4 • 20 points)"
+        "notes": "By altering the molecular valences of yourself or other material, you become able to \"phase,\" passing harmlessly through that material as if it were not even there. If you alter the valences of other materials, you might have the Affects Others modifier, allowing you to bring others with you or even create \"phase doors\" for them to pass through without you. (Insubstantial 4 • 20 points)"
       },
       {
         "id": "prof_element_powers_unliving",
@@ -5265,7 +5265,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Element, Fortitude Effects",
         "extras": [],
         "flaws": [],
-        "notes": "blood, making you immune to many mortal concerns. 64 64 ELEMENT POWERS ELEMENT POWERS MUTANTS & MASTERMINDS POWER PROFILES MUTANTS & MASTERMINDS POWER PROFILES Some with this power also have no Stamina, meaning they do not recover or heal on their own. (Immunity 30 (Fortitude Effects) • 30 points)"
+        "notes": "You have a body of something other than living flesh-andblood, making you immune to many mortal concerns. Some with this power also have no Stamina, meaning they do not recover or heal on their own. (Immunity 30 (Fortitude Effects) • 30 points)"
       },
       {
         "id": "prof_element_powers_chemical_rocket",
@@ -5312,7 +5312,7 @@ export const POWER_PROFILES_LIBRARY = [
           }
         ],
         "flaws": [],
-        "notes": "sibly sound as you vanish or reappear. The following version results in a considerable release of energy when you do so, creating a powerful explosion. Essentially, you \"detonate\" at one location, disappearing in the blast, then reform some distance away. (Teleport, Burst Area Reaction Damage (explosion, upon teleporting) • 2 points)"
+        "notes": "Standard version of Quantum Breakdown results in nothing more than a harmless show of light and possibly sound as you vanish or reappear. The following version results in a considerable release of energy when you do so, creating a powerful explosion. Essentially, you \"detonate\" at one location, disappearing in the blast, then reform some distance away. (Teleport, Burst Area Reaction Damage (explosion, upon teleporting) • 2 points)"
       },
       {
         "id": "prof_element_powers_transmutative_tunneling",
@@ -5338,7 +5338,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Element, Chemical",
         "extras": [],
         "flaws": [],
-        "notes": "recognizing a particular chemical residue as acid left by a known super-criminal, for example. The default setup of the power assumes you're examining the subject at close range; if you can analyze from a greater distance, apply the Ranged effect of Senses as well. (Senses 3 (Detect Chemical Compounds, Acute, Analytical) • 3 points)"
+        "notes": "You can analyze chemical compounds, learning their structure and composition. The GM may require an appropriate Expertise skill check-such as Chemistry or Forensics-to fully understand what you have analyzed, but even just the basic information can be quite useful: recognizing a particular chemical residue as acid left by a known super-criminal, for example. The default setup of the power assumes you're examining the subject at close range; if you can analyze from a greater distance, apply the Ranged effect of Senses as well. (Senses 3 (Detect Chemical Compounds, Acute, Analytical) • 3 points)"
       },
       {
         "id": "prof_element_powers_neutralize_reaction",
@@ -5351,7 +5351,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Element, Chemical",
         "extras": [],
         "flaws": [],
-        "notes": "powers based on chemical reactions from working. Apply Nullify modifiers to expand or refine the power, such as Concentration if you can suppress chemical reactions, Precise if you can choose which reactions to stop, and Area if you can affect reactions over a wider area than a single target. (Ranged Nullify Chemical Effects, Broad, Simultaneous • 4 points per rank)"
+        "notes": "You can slow certain chemical reactions to a standstill, nullifying effects with appropriate chemical descriptors. This includes putting out fires by stopping the oxidizing reaction and neutralizing acids and explosives. It can also prevent powers based on chemical reactions from working. Apply Nullify modifiers to expand or refine the power, such as Concentration if you can suppress chemical reactions, Precise if you can choose which reactions to stop, and Area if you can affect reactions over a wider area than a single target. (Ranged Nullify Chemical Effects, Broad, Simultaneous • 4 points per rank)"
       },
       {
         "id": "prof_element_powers_creation",
@@ -5447,7 +5447,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Fire, Any material into anything else",
         "extras": [],
         "flaws": [],
-        "notes": "meaning when you stop maintaining the effect, the transformed materials revert to their original shape and substance. Apply the Continuous modifier if your transmutations are permanent unless reversed by you or some similar effect. (Transform (any material into anything else) • 5 points per rank)"
+        "notes": "Meaning when you stop maintaining the effect, the transformed materials revert to their original shape and substance. Apply the Continuous modifier if your transmutations are permanent unless reversed by you or some similar effect. (Transform (any material into anything else) • 5 points per rank)"
       },
       {
         "id": "prof_fire_powers_fireball",
@@ -5560,7 +5560,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Fire, Heat",
         "extras": [],
         "flaws": [],
-        "notes": "You strike a target with a blast, stream, or small ball of fire, causing damage. (Ranged Fire Damage • 2 points per rank 68 68 FIRE POWERS FIRE POWERS MUTANTS & MASTERMINDS POWER PROFILES MUTANTS & MASTERMINDS POWER PROFILES)"
+        "notes": "You strike a target with a blast, stream, or small ball of fire, causing damage. (Ranged Fire Damage • 2 points per rank)"
       },
       {
         "id": "prof_fire_powers_flame_aura",
@@ -5732,7 +5732,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Fire, Energy Form",
         "extras": [],
         "flaws": [],
-        "notes": "energy. Although it looks like ordinary fire, it is harmless to touch unless you also add the flame aura power (previously). Your fire form may grant other powers as well, such as immunity to cold or heat, or rocket flight (following). (Insubstantial 3 (Energy Form) • 15 points)"
+        "notes": "You transform into a being of living flame. Your fire form is largely immune to physical harm but still affected by energy. Although it looks like ordinary fire, it is harmless to touch unless you also add the flame aura power (previously). Your fire form may grant other powers as well, such as immunity to cold or heat, or rocket flight (following). (Insubstantial 3 (Energy Form) • 15 points)"
       },
       {
         "id": "prof_fire_powers_fire_shield",
@@ -5762,7 +5762,7 @@ export const POWER_PROFILES_LIBRARY = [
             "description": "Flammable Weapons"
           }
         ],
-        "notes": "unarmed attackers actually flinch because they are being damaged! Your fire shield also protects against things like cold or other fire attacks but not energy like electricity or pure kinetic force (without some flammable weapon inflicting it). (Protection, Impervious, Limited to Flammable Weapons, Sustained • 1 point per rank)"
+        "notes": "Your body emits heat and flames powerful enough to deflect or burn up some attacks before they can reach you. If you do not also have a flame aura (previously) assume unarmed attackers tend to flinch or \"pull\" their attacks because of the terrific heat, but are not themselves damaged by it. If you do have flame aura, then unarmed attackers actually flinch because they are being damaged! Your fire shield also protects against things like cold or other fire attacks but not energy like electricity or pure kinetic force (without some flammable weapon inflicting it). (Protection, Impervious, Limited to Flammable Weapons, Sustained • 1 point per rank)"
       },
       {
         "id": "prof_fire_powers_heat_absorbtion",
@@ -5783,7 +5783,7 @@ export const POWER_PROFILES_LIBRARY = [
             "isFlat": false
           }
         ],
-        "notes": "your Enhanced Trait points. The enhancement occurs au69 69 FIRE POWERS FIRE POWERS MUTANTS & MASTERMINDS POWER PROFILES MUTANTS & MASTERMINDS POWER PROFILES tomatically as a reaction, then fades by 1 power point per turn until it is gone. (Enhanced Trait (Fades, Reaction: When Absorbing Heat), Immunity 10 (Heat Effects) • 10 points +)"
+        "notes": "You absorb the energy of heat and fire attacks to fuel your own powers. You can enhance a chosen trait up to the number of points you have invested in Enhanced Trait, or the attack's rank, whichever is less, with a maximum of your Enhanced Trait points. The enhancement occurs automatically as a reaction, then fades by 1 power point per turn until it is gone. (Enhanced Trait (Fades, Reaction: When Absorbing Heat), Immunity 10 (Heat Effects) • 10 points +)"
       },
       {
         "id": "prof_fire_powers_immunity_to_cold",
@@ -5861,7 +5861,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Fire, Heat",
         "extras": [],
         "flaws": [],
-        "notes": "thing, from humanoids (often with a demonic cast) to a fiery phoenix or dragon. You can apply the various modifiers for the Summon effect to get additional fire creatures or to make them more active or capable (removing the minion type from the template). (Summon Fire Creature 8 • 120-point minion (see following template) • 16 points)"
+        "notes": "You can summon or create semi-independent creatures formed out of \"living fire\" that obey your commands. The creatures you summon are not truly alive, merely animated mass of fiery energy. They can look like virtually anything, from humanoids (often with a demonic cast) to a fiery phoenix or dragon. You can apply the various modifiers for the Summon effect to get additional fire creatures or to make them more active or capable (removing the minion type from the template). (Summon Fire Creature 8 • 120-point minion (see following template) • 16 points)"
       },
       {
         "id": "prof_fire_powers_firelight",
@@ -5895,7 +5895,7 @@ export const POWER_PROFILES_LIBRARY = [
           }
         ],
         "flaws": [],
-        "notes": "inside a ring or cage of fire, for example). The shape lasts for as long as you concentrate. When you stop, it dissipates. If you are limited to shaping existing flames rather than generating them as you shape them, apply the Limited modifier. (Ranged Shapeable Area Fire Damage, Concentration Duration, Selective • 30 cubic feet (volume rank 5), Dodge resistance check (DC 10 + rank) for half effect • 5 points per rank (+1 point per rank per +1)"
+        "notes": "You shape masses of fire into different distinct forms, from walls and rings to flaming cages. Since the Damage effect is Selective, you can choose whether a target is affected by the shape's fire or not (left in an open space inside a ring or cage of fire, for example). The shape lasts for as long as you concentrate. When you stop, it dissipates. If you are limited to shaping existing flames rather than generating them as you shape them, apply the Limited modifier. (Ranged Shapeable Area Fire Damage, Concentration Duration, Selective • 30 cubic feet (volume rank 5), Dodge resistance check (DC 10 + rank) for half effect • 5 points per rank (+1 point per rank per +1)"
       },
       {
         "id": "prof_fire_powers_infravision",
@@ -5908,7 +5908,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Fire, Infravision",
         "extras": [],
         "flaws": [],
-        "notes": "You can literally see patterns of heat and gradations in temperature around you. (Senses 1 (Infravision) • 1 point. 70 70 FIRE POWERS FIRE POWERS MUTANTS & MASTERMINDS POWER PROFILES MUTANTS & MASTERMINDS POWER PROFILES)"
+        "notes": "You can literally see patterns of heat and gradations in temperature around you. (Senses 1 (Infravision) • 1 point.)"
       },
       {
         "id": "prof_fire_powers_duration",
@@ -6000,7 +6000,7 @@ export const POWER_PROFILES_LIBRARY = [
             "description": "Existing Fire"
           }
         ],
-        "notes": "rank of your effect rank minus their damage rank, with a minimum of 0 (30 feet per round). Flames with no available surface to burn on the end of the round they are moved go out, so you can move the flames off of an objects into the air and have them dissipate. (Perception Range Shapeable Area Fire Damage, Limited to Existing Fire • 30 cubic feet (volume rank 5) • 3 points per rank (+1 point per rank for +1 volume rank).)"
+        "notes": "You can mentally control and direct flames, moving them or containing them as you wish. You can affect fire with a Damage rank up to your effect rank in an area equal to your effect's maximum area. Flames move at a speed rank of your effect rank minus their damage rank, with a minimum of 0 (30 feet per round). Flames with no available surface to burn on the end of the round they are moved go out, so you can move the flames off of an objects into the air and have them dissipate. (Perception Range Shapeable Area Fire Damage, Limited to Existing Fire • 30 cubic feet (volume rank 5) • 3 points per rank (+1 point per rank for +1 volume rank).)"
       },
       {
         "id": "prof_gravity_powers_warm",
@@ -6098,7 +6098,7 @@ export const POWER_PROFILES_LIBRARY = [
             "description": "Pulling Downwards"
           }
         ],
-        "notes": "or more degrees, the subject is bound (defenseless, immobile, and impaired). Like a grab, you can make effect checks in succeeding rounds to increase the degree of an existing hold, and further degrees of success are cumulative. (Burst Area Move Object (gravity), Limited to Pulling Downwards • 2 points per rank)"
+        "notes": "This power intensifies the pull of gravity around you while leaving you unaffected. Subjects in the field are effectively grabbed (Deluxe Hero's Handbook, page 248). If the subject's Strength resistance check against the field's rank fails by one degree, the subject is prone and restrained (immobile and vulnerable). If it fails by two or more degrees, the subject is bound (defenseless, immobile, and impaired). Like a grab, you can make effect checks in succeeding rounds to increase the degree of an existing hold, and further degrees of success are cumulative. (Burst Area Move Object (gravity), Limited to Pulling Downwards • 2 points per rank)"
       },
       {
         "id": "prof_gravity_powers_crushing_gravity_field",
@@ -6128,7 +6128,7 @@ export const POWER_PROFILES_LIBRARY = [
             "description": "Pulling Downwards"
           }
         ],
-        "notes": "ing or binding targets. For a Crushing Gravity Field, add the Damaging modifier so the increased gravity also has the effect of crushing targets beneath their increased weight, the same as inflicting Strength Damage on a grabbed target. (Burst Area Move Object (gravity), Limited to Pulling Downwards, Damaging • 3 points per rank)"
+        "notes": "By default, Gravity Field causes no harm, simply restraining or binding targets. For a Crushing Gravity Field, add the Damaging modifier so the increased gravity also has the effect of crushing targets beneath their increased weight, the same as inflicting Strength Damage on a grabbed target. (Burst Area Move Object (gravity), Limited to Pulling Downwards, Damaging • 3 points per rank)"
       },
       {
         "id": "prof_gravity_powers_null_g_field",
@@ -6158,7 +6158,7 @@ export const POWER_PROFILES_LIBRARY = [
             "description": "Lifting Upwards"
           }
         ],
-        "notes": "The reverse of the Gravity Field power (previously), in a Null-G Field, if the effect rank equals or exceeds a subject's weight rank, the subject floats, weightless, inside the field. This leaves subjects without other movement capabilities effectively immobilized. (Burst Area Move Object, Limited to Lifting Upwards • 2 points per rank)"
+        "notes": "Reverse of the Gravity Field power (previously), in a Null-G Field, if the effect rank equals or exceeds a subject's weight rank, the subject floats, weightless, inside the field. This leaves subjects without other movement capabilities effectively immobilized. (Burst Area Move Object, Limited to Lifting Upwards • 2 points per rank)"
       },
       {
         "id": "prof_gravity_powers_singularity",
@@ -6188,7 +6188,7 @@ export const POWER_PROFILES_LIBRARY = [
             "description": "Pulling Towards the Center of the Area"
           }
         ],
-        "notes": "drawn towards it and suffers Damage upon contact until destroyed, whereupon the target disappears into the singularity. It takes a standard action each round to maintain the singularity, effectively reusing the power's Damage effect each round. (Burst Area 2 Damaging Move Object, Limited to Pulling Towards the Center of the Area • 4 points per rank)"
+        "notes": "A dangerous and deadly attack, this power creates a micro-singularity-essentially a tiny black hole-which draws nearby matter into it to be torn apart and annihilated. Any target caught in the Singularity's area of effect is drawn towards it and suffers Damage upon contact until destroyed, whereupon the target disappears into the singularity. It takes a standard action each round to maintain the singularity, effectively reusing the power's Damage effect each round. (Burst Area 2 Damaging Move Object, Limited to Pulling Towards the Center of the Area • 4 points per rank)"
       },
       {
         "id": "prof_gravity_powers_upalanche",
@@ -6209,7 +6209,7 @@ export const POWER_PROFILES_LIBRARY = [
           }
         ],
         "flaws": [],
-        "notes": "your targets. The rain of debris causes damage on two 73 73 GRAVITY POWERS GRAVITY POWERS MUTANTS & MASTERMINDS POWER PROFILES MUTANTS & MASTERMINDS POWER PROFILES consecutive rounds. Add more ranks of Area to create even larger cascades of debris. (Ranged Cloud Area Damage (bludgeoning) • 3 points per rank)"
+        "notes": "Shifting the direction of gravity, you cause loose debris and objects to \"fall\" sideways or upwards to smash into your targets. The rain of debris causes damage on two consecutive rounds. Add more ranks of Area to create even larger cascades of debris. (Ranged Cloud Area Damage (bludgeoning) • 3 points per rank)"
       },
       {
         "id": "prof_gravity_powers_gravitic_containment",
@@ -6222,7 +6222,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Gravity, Force",
         "extras": [],
         "flaws": [],
-        "notes": "plosion. This power has the Reaction modifier, allowing it to immediately counter other effects, but it also makes a useful countering effect power stunt using extra effort and a hero point to instantly counter (Deluxe Hero's Handbook, page 21) with any gravity power. (Nullify Explosions, Reaction • 4 points per rank)"
+        "notes": "Reflexively creating a point of intense gravity at the heart of an explosion, you prevent the explosive force and material from achieving escape velocity, containing the blast in an area no larger than its source and negating the explosion. This power has the Reaction modifier, allowing it to immediately counter other effects, but it also makes a useful countering effect power stunt using extra effort and a hero point to instantly counter (Deluxe Hero's Handbook, page 21) with any gravity power. (Nullify Explosions, Reaction • 4 points per rank)"
       },
       {
         "id": "prof_gravity_powers_gravitic_deflection",
@@ -6235,7 +6235,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Gravity, Force",
         "extras": [],
         "flaws": [],
-        "notes": "bending energy beams and similar attacks around their targets. By default, this power protects a single target but you can apply the Area modifier to allow you to exert Gravitic Deflection over a larger area and protect multiple subjects at once. (Deflect • 1 point per rank)"
+        "notes": "Gravity waves deflect incoming attacks, increasing the weight of projectiles so they simply drop out of the air and bending energy beams and similar attacks around their targets. By default, this power protects a single target but you can apply the Area modifier to allow you to exert Gravitic Deflection over a larger area and protect multiple subjects at once. (Deflect • 1 point per rank)"
       },
       {
         "id": "prof_gravity_powers_gravitic_immunity",
@@ -6290,7 +6290,7 @@ export const POWER_PROFILES_LIBRARY = [
           }
         ],
         "flaws": [],
-        "notes": "for at least the first rank of the Subtle modifier. If you can grant others the ability to fly as well, apply the Affects Others modifier. If you merely carry others along with you using your own gravity powers, use the Gravikinesis power instead (see Utility Powers). (Flight, Subtle • 1 point + 2 points per rank)"
+        "notes": "Fine manipulation of gravity allows you to soar and swoop through the air without any other means of propulsion. Anti-Gravity flight can be extremely stealthy, qualifying for at least the first rank of the Subtle modifier. If you can grant others the ability to fly as well, apply the Affects Others modifier. If you merely carry others along with you using your own gravity powers, use the Gravikinesis power instead (see Utility Powers). (Flight, Subtle • 1 point + 2 points per rank)"
       },
       {
         "id": "prof_gravity_powers_directional_pull",
@@ -6316,7 +6316,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Gravity, Safe Fall",
         "extras": [],
         "flaws": [],
-        "notes": "With power over gravity, you can slow a fall to land as lightly and gently as a feather. (Movement 1 (Safe Fall) • 2 points)"
+        "notes": "Power over gravity, you can slow a fall to land as lightly and gently as a feather. (Movement 1 (Safe Fall) • 2 points)"
       },
       {
         "id": "prof_gravity_powers_free_fall_adaptation",
@@ -6342,7 +6342,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Gravity, Force",
         "extras": [],
         "flaws": [],
-        "notes": "Other Teleport modifiers may also apply to the power. For an interplanetary or interstellar version of Gravity Warp, add the Space Travel option of the Movement effect (Deluxe Hero's Handbook, page 172). Some Gravity Warps may be able to produce Time and Dimension Travel as well. (Teleport • 2 points per rank HIGH-GRAVITY ADAPTATION Your powers allow you to ignore the effects of higher than Earth-normal gravity. You operate normally under higher gravity conditions, as if you were still under 1G. 74 74 GRAVITY POWERS GRAVITY POWERS MUTANTS & MASTERMINDS POWER PROFILES MUTANTS & MASTERMINDS POWER PROFILES)"
+        "notes": "Using gravity to bend space, you open up a momentary warp between two distant points, allowing you to travel between them instantly. Your Gravity Warp may be a personal power, lasting just long enough to encompass you, or it could have the Portal modifier (Deluxe Hero's Handbook, page 183), allowing others to pass through it as well. Other Teleport modifiers may also apply to the power. For an interplanetary or interstellar version of Gravity Warp, add the Space Travel option of the Movement effect (Deluxe Hero's Handbook, page 172). Some Gravity Warps may be able to produce Time and Dimension Travel as well. (Teleport • 2 points per rank HIGH-GRAVITY ADAPTATION Your powers allow you to ignore the effects of higher than Earth-normal gravity. You operate normally under higher gravity conditions, as if you were still under 1G.)"
       },
       {
         "id": "prof_gravity_powers_high_gravity_adaptation",
@@ -6355,7 +6355,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Gravity, Force",
         "extras": [],
         "flaws": [],
-        "notes": "Your powers allow you to ignore the effects of higher than Earth-normal gravity. You operate normally under higher gravity conditions, as if you were still under 1G. 74 74 GRAVITY POWERS GRAVITY POWERS MUTANTS & MASTERMINDS POWER PROFILES MUTANTS & MASTERMINDS POWER PROFILES (Movement 1 (Environmental Adaptation-High-Gravity) • 2 points)"
+        "notes": "Your powers allow you to ignore the effects of higher than Earth-normal gravity. You operate normally under higher gravity conditions, as if you were still under 1G. (Movement 1 (Environmental Adaptation-High-Gravity) • 2 points)"
       },
       {
         "id": "prof_gravity_powers_low_g_leap",
@@ -6381,7 +6381,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Gravity, Force",
         "extras": [],
         "flaws": [],
-        "notes": "Note that artificial gravity is an assumed capability of space vehicles, although the GM is free to make it a feature for settings where zero gravity on space vehicles is the default (see Vehicles, pages 221-225 of the Deluxe Hero's Handbook). (Environment (negate impeded movement due to gravity) • 1 point per rank)"
+        "notes": "You can create an area of Earth-normal gravity in defiance of the prevailing gravitational pull, either reducing the effects of a high-gravity environment, or creating a normal gravity environment on a low-gravity planetoid, space station, or space vessel, negating one level of impeded movement. Note that artificial gravity is an assumed capability of space vehicles, although the GM is free to make it a feature for settings where zero gravity on space vehicles is the default (see Vehicles, pages 221-225 of the Deluxe Hero's Handbook). (Environment (negate impeded movement due to gravity) • 1 point per rank)"
       },
       {
         "id": "prof_gravity_powers_gravikinesis",
@@ -6394,7 +6394,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Gravity, Force",
         "extras": [],
         "flaws": [],
-        "notes": "want at a speed rank of (effect rank - mass rank) or hover weightlessly in midair. You can move objects with mass rank equal to or less than your power rank. See the Kinetic Powers section for more details on the Move Object effect and similar powers using it. (Move Object • 2 points per rank)"
+        "notes": "Using focused and directed gravity, you can move objects at a distance, causing them to \"fall\" in any direction you want at a speed rank of (effect rank - mass rank) or hover weightlessly in midair. You can move objects with mass rank equal to or less than your power rank. See the Kinetic Powers section for more details on the Move Object effect and similar powers using it. (Move Object • 2 points per rank)"
       },
       {
         "id": "prof_gravity_powers_gravitic_communication",
@@ -6415,7 +6415,7 @@ export const POWER_PROFILES_LIBRARY = [
           }
         ],
         "flaws": [],
-        "notes": "tors (or recipients with Gravitic Sense, following) can pick up your communication. For gravity controllers who do not have this power, it makes a potentially useful power stunt for last-ditch communications. (Communication 5, Area, Subtle 1 • 26 points)"
+        "notes": "You can modulate gravity waves or particles to carry communication signals across interplanetary distances within a solar system. You can communicate over radio frequency bands at a level where only specialized graviton detectors (or recipients with Gravitic Sense, following) can pick up your communication. For gravity controllers who do not have this power, it makes a potentially useful power stunt for last-ditch communications. (Communication 5, Area, Subtle 1 • 26 points)"
       },
       {
         "id": "prof_gravity_powers_gravitic_sense",
@@ -6428,7 +6428,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Gravity, Detect Gravity, Ranged",
         "extras": [],
         "flaws": [],
-        "notes": "the use of gravity powers and similar effects (like artificial gravity sources) with gravity descriptors. The basic power just detects such effects at a distance. It may also be Accurate for 2 more ranks, allowing it to target other effects, and Extended to detect over greater distances. (Senses (Detect Gravity, Ranged) • 2 points per rank LOW-G LIFTING By touching an object and reducing gravity's effect on it, you make it lighter and easier to move, effectively increasing your strength when it comes to lifting heavier objects. If you lighten an object for anyone to lift, apply the Affects Others modifier, allowing you to enhance the lifting capacity of others as well.)"
+        "notes": "You can sense gravitational waves and flux, detecting the use of gravity powers and similar effects (like artificial gravity sources) with gravity descriptors. The basic power just detects such effects at a distance. It may also be Accurate for 2 more ranks, allowing it to target other effects, and Extended to detect over greater distances. (Senses (Detect Gravity, Ranged) • 2 points per rank LOW-G LIFTING By touching an object and reducing gravity's effect on it, you make it lighter and easier to move, effectively increasing your strength when it comes to lifting heavier objects. If you lighten an object for anyone to lift, apply the Affects Others modifier, allowing you to enhance the lifting capacity of others as well.)"
       },
       {
         "id": "prof_gravity_powers_low_g_lifting",
@@ -6450,7 +6450,7 @@ export const POWER_PROFILES_LIBRARY = [
             "description": "Lifting"
           }
         ],
-        "notes": "you make it lighter and easier to move, effectively increasing your strength when it comes to lifting heavier objects. If you lighten an object for anyone to lift, apply the Affects Others modifier, allowing you to enhance the lifting capacity of others as well. (Enhanced Strength, Limited to Lifting • 1 point per rank)"
+        "notes": "By touching an object and reducing gravity's effect on it, you make it lighter and easier to move, effectively increasing your strength when it comes to lifting heavier objects. If you lighten an object for anyone to lift, apply the Affects Others modifier, allowing you to enhance the lifting capacity of others as well. (Enhanced Strength, Limited to Lifting • 1 point per rank)"
       }
     ]
   },
@@ -6490,7 +6490,7 @@ export const POWER_PROFILES_LIBRARY = [
           }
         ],
         "flaws": [],
-        "notes": "the target is bound in chains or a straightjacket to illusory illness, attacks by crawling insects, or wracking illusory pain, perhaps due to equally false injuries or attacks. The target's Will resistance checks to overcome the Affliction's conditions represent shaking off the illusion's effects. (Perception Ranged Affliction (Resisted and Overcome by Will), Variable Conditions, Reversible, Subtle • 2 points + 5 points per rank)"
+        "notes": "You place a convincing hallucination of an affliction into the target's mind, causing the target to react (even at a subconscious level) as if the affliction were real. The potential effects are wide-reaching, from presenting the illusion the target is bound in chains or a straightjacket to illusory illness, attacks by crawling insects, or wracking illusory pain, perhaps due to equally false injuries or attacks. The target's Will resistance checks to overcome the Affliction's conditions represent shaking off the illusion's effects. (Perception Ranged Affliction (Resisted and Overcome by Will), Variable Conditions, Reversible, Subtle • 2 points + 5 points per rank)"
       },
       {
         "id": "prof_illusion_powers_illusory_damage",
@@ -6581,7 +6581,7 @@ export const POWER_PROFILES_LIBRARY = [
             "isFlat": false
           }
         ],
-        "notes": "you, while in reality the attacker has hit the hidden cover and not you. Successfully overcoming the power's Subtle modifier with a DC 20 Perception check allows the attacker to become aware of the boundaries of the cover and work around it normally. (Enhanced Advantage (Evasion 2), Protection, Fades, Impervious, Subtle, Sustained • 3 points +1 point per rank)"
+        "notes": "Combat, you make every effort to place yourself behind cover (Deluxe Hero's Handbook, page 244) which you then conceal with an illusion. The effect makes it appear that attacks bounce off you or glance aside before hitting you, while in reality the attacker has hit the hidden cover and not you. Successfully overcoming the power's Subtle modifier with a DC 20 Perception check allows the attacker to become aware of the boundaries of the cover and work around it normally. (Enhanced Advantage (Evasion 2), Protection, Fades, Impervious, Subtle, Sustained • 3 points +1 point per rank)"
       },
       {
         "id": "prof_illusion_powers_illusory_concealment",
@@ -6616,7 +6616,7 @@ export const POWER_PROFILES_LIBRARY = [
             "description": "a Double of Yourself"
           }
         ],
-        "notes": "ponents will waste their efforts attacking it rather than the real you. Note that any character with a general Illusion effect with at least 2 ranks affecting sight and hearing can approximate this power. (Illusion 2 (Visual and Aural), Limited to a Double of Yourself • 4 points)"
+        "notes": "Range in order to control it. If you're successfully able to maintain the ruse that the double is you, frustrated opponents will waste their efforts attacking it rather than the real you. Note that any character with a general Illusion effect with at least 2 ranks affecting sight and hearing can approximate this power. (Illusion 2 (Visual and Aural), Limited to a Double of Yourself • 4 points)"
       },
       {
         "id": "prof_illusion_powers_illusory_projection",
@@ -6636,7 +6636,7 @@ export const POWER_PROFILES_LIBRARY = [
             "isFlat": true
           }
         ],
-        "notes": "you were actually present, and to channel other sensory effects through its senses. Your effect rank determines the distance you can project your illusory \"self\". The normal Insight check to detect Remote Sensing becomes a check to sense that the projection is not real instead. (Remote Sensing (Visual, Aural, and Mental), Side-Effect (physical body is defenseless and immobile, -2), Noticeable • 1 point for rank 1 + 2 points per)"
+        "notes": "You create an image of yourself similar to the Illusory Double power (previously), except you place your consciousness within the image, allowing you to perceive through it as if you were actually present, and to channel other sensory effects through its senses. Your effect rank determines the distance you can project your illusory \"self\". The normal Insight check to detect Remote Sensing becomes a check to sense that the projection is not real instead. (Remote Sensing (Visual, Aural, and Mental), Side-Effect (physical body is defenseless and immobile, -2), Noticeable • 1 point for rank 1 + 2 points per)"
       },
       {
         "id": "prof_illusion_powers_illusion",
@@ -6649,7 +6649,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Illusion, Sensory",
         "extras": [],
         "flaws": [],
-        "notes": "or balcony can cause someone who believes in the illusion to step off a ledge and into open air and fall to the ground. Likewise, cloaking a wall with an illusory image of what's behind it may cause a fast-moving opponent to crash into the barrier. (Illusion • 1-5 points per rank)"
+        "notes": "Harming themselves. Creating an illusion of a bridge or balcony can cause someone who believes in the illusion to step off a ledge and into open air and fall to the ground. Likewise, cloaking a wall with an illusory image of what's behind it may cause a fast-moving opponent to crash into the barrier. (Illusion • 1-5 points per rank)"
       },
       {
         "id": "prof_illusion_powers_illusory_disguise",
@@ -6662,7 +6662,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Illusion, Sensory",
         "extras": [],
         "flaws": [],
-        "notes": "not change any of your traits, but provides a +20 circumstance bonus to Deception checks to convince others you are what you appear to be. Your rank in Morph determines how extensive the change in appearance can be, from a narrow group of forms at rank 2 up to any appearance at rank 4. (Morph, Resistible by Will • 4 points per rank)"
+        "notes": "You can use illusions to change your appearance. This does not change any of your traits, but provides a +20 circumstance bonus to Deception checks to convince others you are what you appear to be. Your rank in Morph determines how extensive the change in appearance can be, from a narrow group of forms at rank 2 up to any appearance at rank 4. (Morph, Resistible by Will • 4 points per rank)"
       },
       {
         "id": "prof_illusion_powers_sensory",
@@ -6823,7 +6823,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Kinetic, Perfect Sense Recall",
         "extras": [],
         "flaws": [],
-        "notes": "mance, re-created just as you heard it. At the GM's discretion, Sense Memory can provide you with a circumstance modifier, increasing the Difficulty Class of noticing flaws in your illusions. (Feature 1 (Perfect Sense Recall) • 1 point.)"
+        "notes": "Mance, re-created just as you heard it. At the GM's discretion, Sense Memory can provide you with a circumstance modifier, increasing the Difficulty Class of noticing flaws in your illusions. (Feature 1 (Perfect Sense Recall) • 1 point.)"
       },
       {
         "id": "prof_kinetic_powers_true_perception",
@@ -6880,7 +6880,7 @@ export const POWER_PROFILES_LIBRARY = [
             "description": "Entrapping"
           }
         ],
-        "notes": "means the target is trapped inside the object and must break through it in order to escape. The Force Cage has Toughness equal to its rank. The Force Constructs power (see Utility Powers) can duplicate this power, as it is the same effect without the Limited flaw. (Create Force Cage, Limited to Entrapping • 1 point per rank)"
+        "notes": "You form a bubble, cage, or similar construct of force around a target, restricting their movements. If your attack check against the target's Dodge succeeds, the target makes a Dodge resistance check (DC 10 + rank). Failure means the target is trapped inside the object and must break through it in order to escape. The Force Cage has Toughness equal to its rank. The Force Constructs power (see Utility Powers) can duplicate this power, as it is the same effect without the Limited flaw. (Create Force Cage, Limited to Entrapping • 1 point per rank)"
       },
       {
         "id": "prof_kinetic_powers_friction_blindness",
@@ -6902,7 +6902,7 @@ export const POWER_PROFILES_LIBRARY = [
             "description": "Degree"
           }
         ],
-        "notes": "gether, effectively blinding the target. The target does not get a check to overcome the effect, but it ends instantly when you no longer maintain it. 84 84 KINETIC POWERS KINETIC POWERS MUTANTS & MASTERMINDS POWER PROFILES MUTANTS & MASTERMINDS POWER PROFILES (Perception Ranged Affliction (Resisted by Dodge; Unaware), Sustained, Instant Recovery, Limited Degree (Third Only), Limited to Targets with Eyelids, Limited to Vision • 1 point per rank)"
+        "notes": "This power, you cause a target's eyelids to stick together, effectively blinding the target. The target does not get a check to overcome the effect, but it ends instantly when you no longer maintain it. (Perception Ranged Affliction (Resisted by Dodge; Unaware), Sustained, Instant Recovery, Limited Degree (Third Only), Limited to Targets with Eyelids, Limited to Vision • 1 point per rank)"
       },
       {
         "id": "prof_kinetic_powers_friction_muzzle",
@@ -7075,7 +7075,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Kinetic, Being Moved",
         "extras": [],
         "flaws": [],
-        "notes": "render yourself immune to any attempt to move you against your will. Since this power as well as Frictionless (previously) are sustained, they may well exist as Alternate Effects, representing different applications of kinetic control. (Immunity 10 (Being Moved), Sustained • 10 points)"
+        "notes": "By redirecting kinetic energy and affecting friction, you render yourself immune to any attempt to move you against your will. Since this power as well as Frictionless (previously) are sustained, they may well exist as Alternate Effects, representing different applications of kinetic control. (Immunity 10 (Being Moved), Sustained • 10 points)"
       },
       {
         "id": "prof_kinetic_powers_kinetic_absorption",
@@ -7104,7 +7104,7 @@ export const POWER_PROFILES_LIBRARY = [
             "isFlat": false
           }
         ],
-        "notes": "energy to the same trait \"resets\" the Fades flaw, bringing the trait back up to its full normal value. This power is typically linked with something that blunts the actual effects of the kinetic energy absorbed, such as Kinetic Deflection, Kinetic Immunity, or Kinetic Shield. (Enhanced Trait, Fades, Reaction (When Absorbing Kinetic Energy), Limited to When Absorbing Energy • 1 point per rank)"
+        "notes": "You soak up incoming kinetic energy, transforming it into energy you can redirect and use for your own purposes. When hit with a kinetic attack, you gain a trait, from Strength or Agility to particular advantages or powers, such as Kinetic Blast. You can even take multiple traits as Alternate Effects, allowing you to choose from a set of traits each time you absorb kinetic energy. Channeling energy to the same trait \"resets\" the Fades flaw, bringing the trait back up to its full normal value. This power is typically linked with something that blunts the actual effects of the kinetic energy absorbed, such as Kinetic Deflection, Kinetic Immunity, or Kinetic Shield. (Enhanced Trait, Fades, Reaction (When Absorbing Kinetic Energy), Limited to When Absorbing Energy • 1 point per rank)"
       },
       {
         "id": "prof_kinetic_powers_kinetic_deflection",
@@ -7176,7 +7176,7 @@ export const POWER_PROFILES_LIBRARY = [
           }
         ],
         "flaws": [],
-        "notes": "protects you from incoming attacks. The standard Kinetic Shield is an effective barrier against all attacks targeting Toughness, but some Kinetic Fields are Limited to Kinetic Damage, ineffective against other types of energy, such as cold, heat, or electricity. (Impervious Protection, Sustained • 2 points per rank)"
+        "notes": "You surround your body with a tight field of energy that protects you from incoming attacks. The standard Kinetic Shield is an effective barrier against all attacks targeting Toughness, but some Kinetic Fields are Limited to Kinetic Damage, ineffective against other types of energy, such as cold, heat, or electricity. (Impervious Protection, Sustained • 2 points per rank)"
       },
       {
         "id": "prof_kinetic_powers_friction_cling",
@@ -7337,7 +7337,7 @@ export const POWER_PROFILES_LIBRARY = [
             "description": "Lifting and Moving"
           }
         ],
-        "notes": "but the energy imparted comes from your power rather than your muscles, which do not have to do any of the work. This means you can exert the effective Strength of your power without having to move, so long as you are in close contact with the subject. (Enhanced Strength, Limited to Lifting and Moving (No Damage), Feature 1 (Able to Exert Strength Without Moving) • 1 point + 1 point per rank)"
+        "notes": "You can exert force on objects simply by touching them, but the energy imparted comes from your power rather than your muscles, which do not have to do any of the work. This means you can exert the effective Strength of your power without having to move, so long as you are in close contact with the subject. (Enhanced Strength, Limited to Lifting and Moving (No Damage), Feature 1 (Able to Exert Strength Without Moving) • 1 point + 1 point per rank)"
       },
       {
         "id": "prof_kinetic_powers_damaging",
@@ -7433,7 +7433,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Life, Ranged Tactile",
         "extras": [],
         "flaws": [],
-        "notes": "location. Telekinetic characters with this power may have the Feedback flaw (Deluxe Hero's Handbook, page 200) on powers like Force Constructs or Telekinesis; they \"feel\" impacts and energy through their connection, enough to cause mental strain and psychosomatic reactions. (Senses 1 (Ranged Tactile) • 1 point.)"
+        "notes": "Your telekinetic powers have a sense of touch, allowing you to \"feel\" things at a distance with a kind of kinetic echolocation. Telekinetic characters with this power may have the Feedback flaw (Deluxe Hero's Handbook, page 200) on powers like Force Constructs or Telekinesis; they \"feel\" impacts and energy through their connection, enough to cause mental strain and psychosomatic reactions. (Senses 1 (Ranged Tactile) • 1 point.)"
       },
       {
         "id": "prof_life_powers_bio_disruption",
@@ -7454,7 +7454,7 @@ export const POWER_PROFILES_LIBRARY = [
           }
         ],
         "flaws": [],
-        "notes": "may have the Variable Conditions modifier (see Illusion Powers). If you can disrupt targets at a distance, add the Ranged or Perception Ranged modifier. With both Variable Conditions and Increased Range, Bio-Disruption can incorporate the other Affliction effects in this section. (Cumulative Affliction (Resisted and Overcome by Fortitude; Dazed, Stunned, Incapacitated) • 2 points per rank)"
+        "notes": "A touch, you can cause a significant disruption of the biological systems of a target's body. The effect is temporary, but can be quite distracting, and often painful. If the Gamemaster allows, it can even be lethal, if pushed beyond mere incapacitation (see Lethal Damage in the Gamemaster's Guide, page 193). With the broad range of potential conditions this can cause, Bio-Disruption may have the Variable Conditions modifier (see Illusion Powers). If you can disrupt targets at a distance, add the Ranged or Perception Ranged modifier. With both Variable Conditions and Increased Range, Bio-Disruption can incorporate the other Affliction effects in this section. (Cumulative Affliction (Resisted and Overcome by Fortitude; Dazed, Stunned, Incapacitated) • 2 points per rank)"
       },
       {
         "id": "prof_life_powers_bio_override",
@@ -7496,7 +7496,7 @@ export const POWER_PROFILES_LIBRARY = [
           }
         ],
         "flaws": [],
-        "notes": "adding or subtracting features. You can cripple any of the target's physical abilities: rendering limbs useless or covering sensory organs with a layer of skin, for example. Like Bio-Disruption, Bio-Sculpting is potentially lethal, if used with that intent. (Cumulative Affliction (Resisted and Overcome by Fortitude; Impaired, Disabled, Transformed) • 2 points per rank)"
+        "notes": "Like a sculptor working soft clay, you can reshape and mold a target's flesh, changing appearance or potentially adding or subtracting features. You can cripple any of the target's physical abilities: rendering limbs useless or covering sensory organs with a layer of skin, for example. Like Bio-Disruption, Bio-Sculpting is potentially lethal, if used with that intent. (Cumulative Affliction (Resisted and Overcome by Fortitude; Impaired, Disabled, Transformed) • 2 points per rank)"
       },
       {
         "id": "prof_life_powers_cellular_disruption",
@@ -7530,7 +7530,7 @@ export const POWER_PROFILES_LIBRARY = [
           }
         ],
         "flaws": [],
-        "notes": "may potentially inflict a wide range of conditions, in which case it may have the Variable Conditions modifier. The Insidious modifier is particularly dangerous, as the victim may not become aware of the pathogen's effects until it is too late to treat them. (Affliction (Resisted and Overcome by Fortitude; Impaired, Disabled, Incapacitated), Progressive • 3 points)"
+        "notes": "You can inflict a pathogen-a disease organism-on a target by touch. Like the Bio-Disruption power, this one may potentially inflict a wide range of conditions, in which case it may have the Variable Conditions modifier. The Insidious modifier is particularly dangerous, as the victim may not become aware of the pathogen's effects until it is too late to treat them. (Affliction (Resisted and Overcome by Fortitude; Impaired, Disabled, Incapacitated), Progressive • 3 points)"
       },
       {
         "id": "prof_life_powers_seizure",
@@ -7565,7 +7565,7 @@ export const POWER_PROFILES_LIBRARY = [
             "description": "effects you have experienced at least once"
           }
         ],
-        "notes": "kind of hyper-Mithratism, where once you have suffered a harmful biological effect, you instantly develop a resistance or immunity. So you might suffer the effect of a flu strain, for example, after which you become completely immune to it. (Immunity 30 (Fortitude effects), Limited to effects you have experienced at least once • 15 points)"
+        "notes": "Your body adapts to deal with harmful circumstances, a kind of hyper-Mithratism, where once you have suffered a harmful biological effect, you instantly develop a resistance or immunity. So you might suffer the effect of a flu strain, for example, after which you become completely immune to it. (Immunity 30 (Fortitude effects), Limited to effects you have experienced at least once • 15 points)"
       },
       {
         "id": "prof_life_powers_enhanced_immune_system",
@@ -7591,7 +7591,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Life, Pain effects",
         "extras": [],
         "flaws": [],
-        "notes": "descriptor do not work on you. Some with this power might have the additional complication of not being aware of pain at all, meaning they might suffer harm without the normal reflex to pull away or otherwise protect themselves. (Immunity 5 (pain effects) • 2 points)"
+        "notes": "You have voluntary control over the pain receptors and nerve endings in your body, allowing you to be aware of pain but otherwise unaffected by it. Effects with a pain descriptor do not work on you. Some with this power might have the additional complication of not being aware of pain at all, meaning they might suffer harm without the normal reflex to pull away or otherwise protect themselves. (Immunity 5 (pain effects) • 2 points)"
       },
       {
         "id": "prof_life_powers_lifeport",
@@ -7634,7 +7634,7 @@ export const POWER_PROFILES_LIBRARY = [
             "isFlat": false
           }
         ],
-        "notes": "under stress demonstrating incredible \"hysterical strength\" that could justify higher ranks. Some versions of Adrenal Control add the Side Effect flaw with an Affliction effect after the enhancement wears off (Resisted and Overcome by Fortitude; Fatigued, Exhausted, Incapacitated). (Enhanced Strength, Fades • 1 point per rank)"
+        "notes": "You have conscious control over the body's production of adrenaline, capable of enhancing strength and athletic ability temporarily. Realistically, this power should be limited to just a few ranks, but there are instances of people under stress demonstrating incredible \"hysterical strength\" that could justify higher ranks. Some versions of Adrenal Control add the Side Effect flaw with an Affliction effect after the enhancement wears off (Resisted and Overcome by Fortitude; Fatigued, Exhausted, Incapacitated). (Enhanced Strength, Fades • 1 point per rank)"
       },
       {
         "id": "prof_life_powers_biokinesis",
@@ -7656,7 +7656,7 @@ export const POWER_PROFILES_LIBRARY = [
             "description": "Biological Material"
           }
         ],
-        "notes": "nothing more than your mind, a limited form of telekinesis. So you can lift a person (or other biological creature) or move things like wood, natural fiber cloth, or similar materials, but not plastics, metals, minerals, and so forth. The GM decides any cases where the nature of a material is in doubt. (Move Object, Limited to Biological Material • 1 point per rank)"
+        "notes": "You can move biological material (living or dead) with nothing more than your mind, a limited form of telekinesis. So you can lift a person (or other biological creature) or move things like wood, natural fiber cloth, or similar materials, but not plastics, metals, minerals, and so forth. The GM decides any cases where the nature of a material is in doubt. (Move Object, Limited to Biological Material • 1 point per rank)"
       },
       {
         "id": "prof_life_powers_cure",
@@ -7700,7 +7700,7 @@ export const POWER_PROFILES_LIBRARY = [
             "description": "Energizing"
           }
         ],
-        "notes": "With a touch, you banish fatigue and fill your subject with vital energy. (Healing, Energizing, Limited to Energizing • 2 points per rank)"
+        "notes": "A touch, you banish fatigue and fill your subject with vital energy. (Healing, Energizing, Limited to Energizing • 2 points per rank)"
       },
       {
         "id": "prof_life_powers_life_sense",
@@ -7726,7 +7726,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Life, Alternate Effect: Bio-Disruption",
         "extras": [],
         "flaws": [],
-        "notes": "pounds in living targets by touching them. As an offensive effect, this power is the same as Bio-Disruption (under Offensive Powers) but it is usually coupled with an Alternate Effect capable of treating illnesses and imbalances and promoting healing. (Healing (Alternate Effect: Bio-Disruption) • 1 point + 2 points per rank)"
+        "notes": "You can produce the effects of a wide range of drug compounds in living targets by touching them. As an offensive effect, this power is the same as Bio-Disruption (under Offensive Powers) but it is usually coupled with an Alternate Effect capable of treating illnesses and imbalances and promoting healing. (Healing (Alternate Effect: Bio-Disruption) • 1 point + 2 points per rank)"
       },
       {
         "id": "prof_life_powers_psychic_diagnosis",
@@ -7739,7 +7739,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Life, Detect Health, Analytical",
         "extras": [],
         "flaws": [],
-        "notes": "to interpret what you perceive, but you are otherwise as detailed and accurate as a battery of conventional medical tests, and considerably faster. A use of Psychic Diagnosis may provide a circumstance bonus on checks to then treat the patient's conditions. (Senses 3 (Detect Health, Analytical) • 3 points SKIN-SHIFTING Your skin and outer layer of muscle is malleable and you can reshape them at will. This allows you to take on different appearances, limited only by your skeletal framework, meaning you cannot significantly change your size. If you have greater power to alter your body, see the Morphing Powers section.)"
+        "notes": "By examining a subject, you can determine the state of their physical health: the presence of injuries, organ damage, pathogens, toxins, and so forth. An Expertise check (Biology, Medicine, or related field) may be required to interpret what you perceive, but you are otherwise as detailed and accurate as a battery of conventional medical tests, and considerably faster. A use of Psychic Diagnosis may provide a circumstance bonus on checks to then treat the patient's conditions. (Senses 3 (Detect Health, Analytical) • 3 points SKIN-SHIFTING Your skin and outer layer of muscle is malleable and you can reshape them at will. This allows you to take on different appearances, limited only by your skeletal framework, meaning you cannot significantly change your size. If you have greater power to alter your body, see the Morphing Powers section.)"
       },
       {
         "id": "prof_life_powers_skin_shifting",
@@ -7783,7 +7783,7 @@ export const POWER_PROFILES_LIBRARY = [
             "description": "subject is incapacitated"
           }
         ],
-        "notes": "period of time without food, water, or air, and halting the progression of any biological processes in your body (including the progress of disease or toxins, for example). If you can place other (willing) characters into suspended animation, apply the Affects Others modifier. (Immunity 5 (aging, starvation and dehydration, suffocation, ongoing biological effects), Limited (subject is incapacitated) • 3 points)"
+        "notes": "You can place yourself into a state where your life functions are nearly suspended, allowing you to go for a long period of time without food, water, or air, and halting the progression of any biological processes in your body (including the progress of disease or toxins, for example). If you can place other (willing) characters into suspended animation, apply the Affects Others modifier. (Immunity 5 (aging, starvation and dehydration, suffocation, ongoing biological effects), Limited (subject is incapacitated) • 3 points)"
       },
       {
         "id": "prof_life_powers_total_healing",
@@ -7809,7 +7809,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Life, When hurt",
         "extras": [],
         "flaws": [],
-        "notes": "you are harmed, to treat the conditions. Someone with this power can be hurt, but recovery is almost instant. The GM may wish to require an additional Limited flaw, defining some type of attack or condition the Total Healing will not treat. (Healing, Reaction (when hurt), Energizing, Persistent, Restorative, Resurrection, Self-Only • 1 point + 7)"
+        "notes": "Applying the Reaction and Self Only modifiers so that your Healing effect activates up to once per round, whenever you are harmed, to treat the conditions. Someone with this power can be hurt, but recovery is almost instant. The GM may wish to require an additional Limited flaw, defining some type of attack or condition the Total Healing will not treat. (Healing, Reaction (when hurt), Energizing, Persistent, Restorative, Resurrection, Self-Only • 1 point + 7)"
       },
       {
         "id": "prof_life_powers_life_force",
@@ -7931,7 +7931,7 @@ export const POWER_PROFILES_LIBRARY = [
             "description": "Vision"
           }
         ],
-        "notes": "With a Blinding Aura, you continuously emit light bright enough to blind anyone looking directly at you. If you can maintain the Blinding Aura as a free action while doing other things, apply the Reaction modifier (increasing cost to 5 points per rank). (Perception Area Cumulative Affliction (Resisted by Dodge, Overcome by Fortitude; Visually Impaired, Visually Disabled, Visually Unaware), Limited to Vision, Sustained Duration • 4 points per rank)"
+        "notes": "A Blinding Aura, you continuously emit light bright enough to blind anyone looking directly at you. If you can maintain the Blinding Aura as a free action while doing other things, apply the Reaction modifier (increasing cost to 5 points per rank). (Perception Area Cumulative Affliction (Resisted by Dodge, Overcome by Fortitude; Visually Impaired, Visually Disabled, Visually Unaware), Limited to Vision, Sustained Duration • 4 points per rank)"
       },
       {
         "id": "prof_light_powers_blinding_field",
@@ -7959,7 +7959,7 @@ export const POWER_PROFILES_LIBRARY = [
           }
         ],
         "flaws": [],
-        "notes": "anyone in or looking at the area unable to see anything but pure, white light. A lesser effect can be achieved with an Environment effect which imposes a visibility modifier due to a bright (but not completely blinding) light. (Burst Area Visual Concealment 4 Attack (all visual senses) • 12 points + 4 points per +1 area distance rank)"
+        "notes": "A Blinding Field fills an entire area with light bright enough to overwhelm all other visual input, rendering anyone in or looking at the area unable to see anything but pure, white light. A lesser effect can be achieved with an Environment effect which imposes a visibility modifier due to a bright (but not completely blinding) light. (Burst Area Visual Concealment 4 Attack (all visual senses) • 12 points + 4 points per +1 area distance rank)"
       },
       {
         "id": "prof_light_powers_dazzling_burst",
@@ -8009,7 +8009,7 @@ export const POWER_PROFILES_LIBRARY = [
             "description": "Degree"
           }
         ],
-        "notes": "and obedient to your commands. For a strobe affecting multiple targets, replace Perception Ranged and SightDependent with Perception Area. Add Selective if you can choose which targets you affect and Insidious if targets are unaware they are being influenced. (Perception Ranged Affliction (Resisted and Overcome by Will; Entranced, Compelled), Limited Degree, Sight-Dependent • 1 point per rank)"
+        "notes": "A pattern of flashing light and color, you place targets into a trance where they are open to suggestion and obedient to your commands. For a strobe affecting multiple targets, replace Perception Ranged and SightDependent with Perception Area. Add Selective if you can choose which targets you affect and Insidious if targets are unaware they are being influenced. (Perception Ranged Affliction (Resisted and Overcome by Will; Entranced, Compelled), Limited Degree, Sight-Dependent • 1 point per rank)"
       },
       {
         "id": "prof_light_powers_laser_beam",
@@ -8064,7 +8064,7 @@ export const POWER_PROFILES_LIBRARY = [
           }
         ],
         "flaws": [],
-        "notes": "you, allowing you to hit multiple targets in the area, but hard on your allies. If you can control who gets hit within the burst, apply the Selective modifier as well. Added ranks of Area apply much like Extended Range for Laser Beam. (Burst Area Damage (Laser) • 2 points per rank 94 94 LIGHT POWERS LIGHT POWERS MUTANTS & MASTERMINDS POWER PROFILES MUTANTS & MASTERMINDS POWER PROFILES Shifting the frequency of your beam out of the visible spectrum to create an X-ray or gamma-ray laser (\"graser\") projects an Invisible Laser Beam targets won't even see coming.)"
+        "notes": "A Laser Burst fires off beams in all directions around you, allowing you to hit multiple targets in the area, but hard on your allies. If you can control who gets hit within the burst, apply the Selective modifier as well. Added ranks of Area apply much like Extended Range for Laser Beam. (Burst Area Damage (Laser) • 2 points per rank Shifting the frequency of your beam out of the visible spectrum to create an X-ray or gamma-ray laser (\"graser\") projects an Invisible Laser Beam targets won't even see coming.)"
       },
       {
         "id": "prof_light_powers_invisible_laser_beam",
@@ -8085,7 +8085,7 @@ export const POWER_PROFILES_LIBRARY = [
           }
         ],
         "flaws": [],
-        "notes": "94 94 LIGHT POWERS LIGHT POWERS MUTANTS & MASTERMINDS POWER PROFILES MUTANTS & MASTERMINDS POWER PROFILES Shifting the frequency of your beam out of the visible spectrum to create an X-ray or gamma-ray laser (\"graser\") projects an Invisible Laser Beam targets won't even see coming. (Ranged Damage (Laser), Subtle • 1 point + 2 points per rank)"
+        "notes": "Shifting the frequency of your beam out of the visible spectrum to create an X-ray or gamma-ray laser (\"graser\") projects an Invisible Laser Beam targets won't even see coming. (Ranged Damage (Laser), Subtle • 1 point + 2 points per rank)"
       },
       {
         "id": "prof_light_powers_targeting_laser",
@@ -8098,7 +8098,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Light, Radiant",
         "extras": [],
         "flaws": [],
-        "notes": "point + 2 points per rank You may also be able to project a low-level Targeting Laser to \"paint\" your target and provide a sighting path for your beam, like a modern laser-sight. (Add Accurate to any Laser power • 1 point per rank (+2 attack bonus per rank).)"
+        "notes": "Point + 2 points per rank You may also be able to project a low-level Targeting Laser to \"paint\" your target and provide a sighting path for your beam, like a modern laser-sight. (Add Accurate to any Laser power • 1 point per rank (+2 attack bonus per rank).)"
       },
       {
         "id": "prof_light_powers_laser_weapon",
@@ -8111,7 +8111,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Light, Laser",
         "extras": [],
         "flaws": [],
-        "notes": "Weapons table on page 217 of the Deluxe Hero's Handbook for some ideas. Energy-damage laser weapons may have the Penetrating modifier, while laser weapons made of \"solid light\" may be Strength-based Damage instead. (Damage (Laser) • 1 point per rank)"
+        "notes": "You focus light into the shape of a melee weapon (like a sword, although it can just as easily be a hammer or other type of weapon). Some laser weapons may have properties like their actual counterparts; see the Melee Weapons table on page 217 of the Deluxe Hero's Handbook for some ideas. Energy-damage laser weapons may have the Penetrating modifier, while laser weapons made of \"solid light\" may be Strength-based Damage instead. (Damage (Laser) • 1 point per rank)"
       },
       {
         "id": "prof_light_powers_immunity_to_light",
@@ -8153,7 +8153,7 @@ export const POWER_PROFILES_LIBRARY = [
             "isFlat": false
           }
         ],
-        "notes": "fade at a rate of 1 rank per round until gone or you absorb light energy again. Traits enhanced with this power are still subject to power level limits. This power often has Immunity to Light in conjunction with it, making you immune to the effects you absorb. (Enhanced Trait, Fades, Limited to the lesser of effect rank or absorbed energy rank • As base trait -2 per rank)"
+        "notes": "You can absorb energy from light and channel it to enhance your light-based powers. You gain ranks in the Enhanced Trait equal to the absorbed effect, then they fade at a rate of 1 rank per round until gone or you absorb light energy again. Traits enhanced with this power are still subject to power level limits. This power often has Immunity to Light in conjunction with it, making you immune to the effects you absorb. (Enhanced Trait, Fades, Limited to the lesser of effect rank or absorbed energy rank • As base trait -2 per rank)"
       },
       {
         "id": "prof_light_powers_light_form",
@@ -8166,7 +8166,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Light, Energy Form - Light",
         "extras": [],
         "flaws": [],
-        "notes": "to conceal your presence, particularly in dark surroundings). This power is often accompanied by other powers like Lightflight, Lightspeed, or Blinding Aura to reflect the additional capabilities of a Light Form. (Insubstantial 3 (Energy Form - Light) • 15 points)"
+        "notes": "You transform from a physical being into a form made of coherent light, able to pass harmlessly through transparent objects and shedding a bright enough glow to softly illuminate the area around you (but making it difficult to conceal your presence, particularly in dark surroundings). This power is often accompanied by other powers like Lightflight, Lightspeed, or Blinding Aura to reflect the additional capabilities of a Light Form. (Insubstantial 3 (Energy Form - Light) • 15 points)"
       },
       {
         "id": "prof_light_powers_photonic_shield",
@@ -8313,7 +8313,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Light, Visual, Laser",
         "extras": [],
         "flaws": [],
-        "notes": "missions as a form of communication. This power tends to be restricted to rank 3 (Long Range), unless working with a satellite network able to \"bounce\" signals around the curvature of the Earth, and is limited to the speed of light, so cannot achieve rank 5 (Unlimited) distance. (Communication (Visual, Laser) • 4 points per rank)"
+        "notes": "You can project and receive pulsed, encoded laser transmissions as a form of communication. This power tends to be restricted to rank 3 (Long Range), unless working with a satellite network able to \"bounce\" signals around the curvature of the Earth, and is limited to the speed of light, so cannot achieve rank 5 (Unlimited) distance. (Communication (Visual, Laser) • 4 points per rank)"
       },
       {
         "id": "prof_light_powers_laser_hearing",
@@ -8339,7 +8339,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Light, Radiant",
         "extras": [],
         "flaws": [],
-        "notes": "cent or opaque and generally glow softly. Apply other Create modifiers to the power to customize it as desired (see pages 154-155 of the Deluxe Hero's Handbook). For animate constructs, use the Summon effect instead (and see the Summoning Powers section). (Create • 2 points per rank)"
+        "notes": "You can create \"hard light\" constructs that function like physical objects. Light constructs are either translucent or opaque and generally glow softly. Apply other Create modifiers to the power to customize it as desired (see pages 154-155 of the Deluxe Hero's Handbook). For animate constructs, use the Summon effect instead (and see the Summoning Powers section). (Create • 2 points per rank)"
       },
       {
         "id": "prof_light_powers_solar_sustenance",
@@ -8378,7 +8378,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Light, Radiant",
         "extras": [],
         "flaws": [],
-        "notes": "to the naked eye or all wavelengths of light. If you can also bend light to make other people and things invisible, apply the Affects Others modifier. If you can do so against their will, apply the Attack modifier. In either case, add the Ranged modifier if you can make subjects invisible at a distance. (Visual Concealment 2 • 4 points, 4 ranks (8 points) for all visual senses. Rather than warping visible light, you might bend just infrared (IR) light around you, allowing you to pass through IR sensor or scanning beams without breaking them, rendering you essentially \"invisible\" to them.)"
+        "notes": "By bending and warping light, you can become invisible to the naked eye or all wavelengths of light. If you can also bend light to make other people and things invisible, apply the Affects Others modifier. If you can do so against their will, apply the Attack modifier. In either case, add the Ranged modifier if you can make subjects invisible at a distance. (Visual Concealment 2 • 4 points, 4 ranks (8 points) for all visual senses. Rather than warping visible light, you might bend just infrared (IR) light around you, allowing you to pass through IR sensor or scanning beams without breaking them, rendering you essentially \"invisible\" to them.)"
       },
       {
         "id": "prof_light_powers_infrared_invisibility",
@@ -8391,7 +8391,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Light, Radiant",
         "extras": [],
         "flaws": [],
-        "notes": "for all visual senses. Rather than warping visible light, you might bend just infrared (IR) light around you, allowing you to pass through IR sensor or scanning beams without breaking them, rendering you essentially \"invisible\" to them. (Infravision Concealment 2 • 4 points)"
+        "notes": "All visual senses. Rather than warping visible light, you might bend just infrared (IR) light around you, allowing you to pass through IR sensor or scanning beams without breaking them, rendering you essentially \"invisible\" to them. (Infravision Concealment 2 • 4 points)"
       }
     ]
   },
@@ -8417,7 +8417,7 @@ export const POWER_PROFILES_LIBRARY = [
           }
         ],
         "flaws": [],
-        "notes": "injuries rather than harmful accidents: the target might suffer a serious muscle pull, sprain, or even a broken bone or organ failure (in severe cases). This, however, has no effect on unliving targets with Immunity to Fortitude Effects. (Perception Ranged Damage, Indirect 4, Subtle 2, Variable Descriptor 1 (Accidents) • 7 points +3 points per rank)"
+        "notes": "An alternate version of Catastrophe applies the Alternate Resistance (Fortitude) modifier, producing \"accidental\" injuries rather than harmful accidents: the target might suffer a serious muscle pull, sprain, or even a broken bone or organ failure (in severe cases). This, however, has no effect on unliving targets with Immunity to Fortitude Effects. (Perception Ranged Damage, Indirect 4, Subtle 2, Variable Descriptor 1 (Accidents) • 7 points +3 points per rank)"
       },
       {
         "id": "prof_luck_powers_find_weakness",
@@ -8462,7 +8462,7 @@ export const POWER_PROFILES_LIBRARY = [
             "description": "Limited to Lower of Attack or Extra's Rank, -1 point"
           }
         ],
-        "notes": "defenses. If you can provide this benefit to others-making their attacks \"lucky\" enough to hit the target's weak spotsapply the Affects Others and Perception Ranged modifiers, increasing cost to 3 points per rank. (Enhanced Extra (Penetrating), Variable Descriptor (Attacks), Quirk (Limited to Lower of Attack or Extra's Rank, -1 point) • 1 point per rank)"
+        "notes": "You have a remarkable ability to find a target's \"weak spots\", allowing you to overcome otherwise impervious defenses. If you can provide this benefit to others-making their attacks \"lucky\" enough to hit the target's weak spotsapply the Affects Others and Perception Ranged modifiers, increasing cost to 3 points per rank. (Enhanced Extra (Penetrating), Variable Descriptor (Attacks), Quirk (Limited to Lower of Attack or Extra's Rank, -1 point) • 1 point per rank)"
       },
       {
         "id": "prof_luck_powers_jinx",
@@ -8492,7 +8492,7 @@ export const POWER_PROFILES_LIBRARY = [
             "description": "Degree"
           }
         ],
-        "notes": "plishing tasks. One degree of effect halves the target's active defenses and imposes a -2 penalty on checks, while two degrees reduces active defenses to 0 and imposes a -5 penalty. The effect is such that the target is not even aware of the Jinx until things begin going awry. (Perception Ranged Affliction (Resisted and Overcome by Will; Impaired and Vulnerable, Defenseless and Disabled), Extra Condition, Indirect 4, Insidious, Subtle 2, Limited Degree • 7 points + 3 points per rank)"
+        "notes": "You \"curse\" a target with bad luck and difficulty in accomplishing tasks. One degree of effect halves the target's active defenses and imposes a -2 penalty on checks, while two degrees reduces active defenses to 0 and imposes a -5 penalty. The effect is such that the target is not even aware of the Jinx until things begin going awry. (Perception Ranged Affliction (Resisted and Overcome by Will; Impaired and Vulnerable, Defenseless and Disabled), Extra Condition, Indirect 4, Insidious, Subtle 2, Limited Degree • 7 points + 3 points per rank)"
       },
       {
         "id": "prof_luck_powers_lucky_shot",
@@ -8530,7 +8530,7 @@ export const POWER_PROFILES_LIBRARY = [
             "description": "Limited to Lower of Attack or Extra's Rank, -1 point"
           }
         ],
-        "notes": "Attack since it bypasses the need for an attack check, although the GM may allow you to make extremely precise \"trick shots\" with it. Also note that, in spite of the name, you can use Lucky Shot with close attacks (unless it is additionally Limited to preclude them, a -1 flaw). (Enhanced Extra (Perception Range), Variable Descriptor (Attacks), Quirk (Limited to Lower of Attack or Extra's Rank, -1 point) • 1 point per rank)"
+        "notes": "You can pull off an otherwise \"impossible\" shot. Your rank in this power determines the maximum effect of the attack: use the lower of the two, if they differ. So if you have 5 ranks of Lucky Shot, but use a light pistol (Damage 3), the attack still only does Damage 3. On the other hand, if you're using a Damage 9 blaster, you're limited to a Damage 5 Lucky Shot. Note that this effect precludes maneuvers like Power Attack since it bypasses the need for an attack check, although the GM may allow you to make extremely precise \"trick shots\" with it. Also note that, in spite of the name, you can use Lucky Shot with close attacks (unless it is additionally Limited to preclude them, a -1 flaw). (Enhanced Extra (Perception Range), Variable Descriptor (Attacks), Quirk (Limited to Lower of Attack or Extra's Rank, -1 point) • 1 point per rank)"
       },
       {
         "id": "prof_luck_powers_poltergeist",
@@ -8567,7 +8567,7 @@ export const POWER_PROFILES_LIBRARY = [
             "description": "Targeting Move Object"
           }
         ],
-        "notes": "By default, Poltergeist requires a moment's concentration (a standard action) but if you apply the Reaction modifier (increasing cost by 3 points per rank), the effects can occur at any time in reaction to your needs without an action on your part, freeing you to act on your own apart from your \"helper\". (Perception Ranged Move Object, Indirect 4, Precise, Subtle 2; Senses 10 (Radius Vision Counters and Penetrates All Concealment, Limited to Targeting Move Object) • 12 points +3 points per rank)"
+        "notes": "A use of edit scene (Deluxe Hero's Handbook, page 20) may provide you with additional scenery or things to manipulate. By default, Poltergeist requires a moment's concentration (a standard action) but if you apply the Reaction modifier (increasing cost by 3 points per rank), the effects can occur at any time in reaction to your needs without an action on your part, freeing you to act on your own apart from your \"helper\". (Perception Ranged Move Object, Indirect 4, Precise, Subtle 2; Senses 10 (Radius Vision Counters and Penetrates All Concealment, Limited to Targeting Move Object) • 12 points +3 points per rank)"
       },
       {
         "id": "prof_luck_powers_breakfall",
@@ -8606,7 +8606,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Luck, Effects Countered by Coincidence",
         "extras": [],
         "flaws": [],
-        "notes": "provide an explanation of a \"lucky break,\" roll an opposed check of your rank in this power against the effect's rank. If you win, circumstances prevent the effect. If you lose, the effect works on your normally, although you're still entitled to any defenses or resistance checks. (Reaction Nullify (Effects Countered by Coincidence), Broad, Effortless, Simultaneous, Close Range • 6 points per rank)"
+        "notes": "Circumstances seem to conspire to keep you safe from the effects of attackers' powers: a water main suddenly bursts, blocking a fire blast with a sheet of water; a gust of wind knocks aside an attacker's aim; a weapon jams or shorts out; perhaps you even slip or trip at an opportune moment, and so forth. When you are attacked by any power effect where you can provide an explanation of a \"lucky break,\" roll an opposed check of your rank in this power against the effect's rank. If you win, circumstances prevent the effect. If you lose, the effect works on your normally, although you're still entitled to any defenses or resistance checks. (Reaction Nullify (Effects Countered by Coincidence), Broad, Effortless, Simultaneous, Close Range • 6 points per rank)"
       },
       {
         "id": "prof_luck_powers_lucky_dodge",
@@ -8641,7 +8641,7 @@ export const POWER_PROFILES_LIBRARY = [
             "description": "Circumstances of Plausible Survival"
           }
         ],
-        "notes": "comic book supervillains, the GM may wish to treat all important NPCs in the game as if they had at least one rank of it, and may even allow the 1 rank version as a heroic feat, available by spending a hero point (Deluxe Hero's Handbook, page 20). (Immortality, Limited to Circumstances of Plausible Survival • 1 point per rank)"
+        "notes": "Advantage) allows a character to return from death two weeks later. Lucky Escape is such a common ability for comic book supervillains, the GM may wish to treat all important NPCs in the game as if they had at least one rank of it, and may even allow the 1 rank version as a heroic feat, available by spending a hero point (Deluxe Hero's Handbook, page 20). (Immortality, Limited to Circumstances of Plausible Survival • 1 point per rank)"
       },
       {
         "id": "prof_luck_powers_ease_of_movement",
@@ -8667,7 +8667,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Luck, Edit Scene to appear in it",
         "extras": [],
         "flaws": [],
-        "notes": "further edit the scene. It is up to you and the GM to agree upon a plausible explanation for how you \"happen\" to show up where and when you do. This ability is separate from the Luck advantage, but the GM may wish to limit its rank to the series power level in a similar fashion. (Feature (Edit Scene to appear in it) • 1 point per rank)"
+        "notes": "You have an uncanny knack for showing up in the right place at the right time, whether it is an opportunity to \"run into\" someone you need to speak to or a last-minute save for a friend in need. You can do this a number of times per adventure equal to your rank. Like a number of luck powers, this one relies on some management by the Gamemaster, who decides when it comes into play, although you can offer suggestions and perhaps modify circumstances with a hero point used to further edit the scene. It is up to you and the GM to agree upon a plausible explanation for how you \"happen\" to show up where and when you do. This ability is separate from the Luck advantage, but the GM may wish to limit its rank to the series power level in a similar fashion. (Feature (Edit Scene to appear in it) • 1 point per rank)"
       },
       {
         "id": "prof_luck_powers_escape_notice",
@@ -8680,7 +8680,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Luck, All Senses",
         "extras": [],
         "flaws": [],
-        "notes": "ible,\" no one seems to notice you until you do something to draw attention to yourself (such as making an attack or effect check). Otherwise, circumstances conspire so the people are looking the other way, distractions crop up at just the right moment, and so forth, allowing you to escape notice. (Concealment 10 (All Senses), Passive • 10 points)"
+        "notes": "You bend probability such that, while you are not truly \"invisible,\" no one seems to notice you until you do something to draw attention to yourself (such as making an attack or effect check). Otherwise, circumstances conspire so the people are looking the other way, distractions crop up at just the right moment, and so forth, allowing you to escape notice. (Concealment 10 (All Senses), Passive • 10 points)"
       },
       {
         "id": "prof_luck_powers_lucky",
@@ -8693,7 +8693,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Luck, Luck",
         "extras": [],
         "flaws": [],
-        "notes": "vantage, Lucky is limited to half the series power level and stacks with Luck (with the total rank being limited to half the series PL). If the Expanded Luck option (previously) is in use, then this power can provide any of the various types of Luck, up to the given power level limits. (Enhanced Advantage (Luck) • 1 point per rank)"
+        "notes": "You're exceptionally fortunate, due to some supernatural blessing or an unconscious ability to bend probabilities in your favor. Your luck is finite, however, and can \"run out\" if you rely too heavily upon it. As with the regular Luck advantage, Lucky is limited to half the series power level and stacks with Luck (with the total rank being limited to half the series PL). If the Expanded Luck option (previously) is in use, then this power can provide any of the various types of Luck, up to the given power level limits. (Enhanced Advantage (Luck) • 1 point per rank)"
       },
       {
         "id": "prof_luck_powers_reality_control",
@@ -8706,7 +8706,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Luck, Probability Effects",
         "extras": [],
         "flaws": [],
-        "notes": "forces seek to exploit you... or eliminate you as a potential threat. Gamemasters should see the sidebar on page 186 of the Deluxe Hero's Handbook for some advice on allowing and managing Variable effects in the game. (Variable (Probability Effects), Free Action • 9 points per rank)"
+        "notes": "Your influence over probability is so profound you can cause nearly anything to happen, so long as there's the slightest possibility, limited solely by your focus and concentration (and, in game terms, your available power points). Your power potential is so great you may encounter various complications related to it, as outside forces seek to exploit you... or eliminate you as a potential threat. Gamemasters should see the sidebar on page 186 of the Deluxe Hero's Handbook for some advice on allowing and managing Variable effects in the game. (Variable (Probability Effects), Free Action • 9 points per rank)"
       },
       {
         "id": "prof_luck_powers_sense_of_luck",
@@ -8719,7 +8719,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Luck, Luck Awareness",
         "extras": [],
         "flaws": [],
-        "notes": "tors associated with them. At the Gamemaster's discretion, this power can add Counters Concealment (2 ranks) in order to detect even completely Subtle luck effects like some of the offensive luck powers in this section. (Senses 1 (Luck Awareness) • 1 point.)"
+        "notes": "You can sense when luck powers are used in your presence (or to affect things in your presence) unless those powers are completely Subtle (2 ranks). This includes uses of the Luck Control effect with a \"luck\" or related descriptor, but not routine spending of hero points or creation of complications by the GM, unless they have luck descriptors associated with them. At the Gamemaster's discretion, this power can add Counters Concealment (2 ranks) in order to detect even completely Subtle luck effects like some of the offensive luck powers in this section. (Senses 1 (Luck Awareness) • 1 point.)"
       },
       {
         "id": "prof_luck_powers_visions_of_fortune",
@@ -8741,7 +8741,7 @@ export const POWER_PROFILES_LIBRARY = [
             "description": "Luck Trends"
           }
         ],
-        "notes": "neutral). A Perception check may be required for more detailed information, and the GM may also grant you spontaneous visions or impressions from time to time. This power is also a good means for receiving inspiration (Deluxe Hero's Handbook, page 21). (Senses 4 (Precognition), Limited to Luck Trends • 2 points)"
+        "notes": "You can sense a subject's future in terms of good and bad luck and probable outcomes: the GM tells you if the subject's luck is trending good or bad (or remaining largely neutral). A Perception check may be required for more detailed information, and the GM may also grant you spontaneous visions or impressions from time to time. This power is also a good means for receiving inspiration (Deluxe Hero's Handbook, page 21). (Senses 4 (Precognition), Limited to Luck Trends • 2 points)"
       },
       {
         "id": "prof_luck_powers_dice_versus_determinism",
@@ -8811,7 +8811,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Magic, Magic",
         "extras": [],
         "flaws": [],
-        "notes": "arts learns, simple enchantments and manifestations of the magical power permeating the cosmos. The following should be in most magicians' repertoires: Mystic Bolt is a raw blast of arcane power, manifested as a glowing light and striking with considerable force. (Ranged Damage (magic) • 2 points per rank Mystic Passage allows the caster to step from one point)"
+        "notes": "There are some standard spells every novice in the mystic arts learns, simple enchantments and manifestations of the magical power permeating the cosmos. The following should be in most magicians' repertoires: Mystic Bolt is a raw blast of arcane power, manifested as a glowing light and striking with considerable force. (Ranged Damage (magic) • 2 points per rank Mystic Passage allows the caster to step from one point)"
       },
       {
         "id": "prof_magic_powers_mystic_passage",
@@ -8876,7 +8876,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Magic, Mystical",
         "extras": [],
         "flaws": [],
-        "notes": "perhaps even an office held by one of them. Abbridon is also one of the three entities making up the mystic trinity of the Modrossus, along with Heshem and Lamal. Abjurations of Abbridon counteract darkness, bindings, and malevolent summoned creatures. (Nullify Binding, Darkness, and Evil Summon effects, Simultaneous • 2 points per rank)"
+        "notes": "Ed Abbridon may be a multifaceted entity or collective class of higher angelic beings, perhaps even an office held by one of them. Abbridon is also one of the three entities making up the mystic trinity of the Modrossus, along with Heshem and Lamal. Abjurations of Abbridon counteract darkness, bindings, and malevolent summoned creatures. (Nullify Binding, Darkness, and Evil Summon effects, Simultaneous • 2 points per rank)"
       },
       {
         "id": "prof_magic_powers_aegis_of_abbridon",
@@ -8918,7 +8918,7 @@ export const POWER_PROFILES_LIBRARY = [
           }
         ],
         "flaws": [],
-        "notes": "points per rank All-Revealing Light of Abbridon banishes all concealing, obscuring, or illusory effects. (Burst Area Nullify Concealing or Illusory Effects, Simultaneous, Close Range • 2 points per rank)"
+        "notes": "Points per rank All-Revealing Light of Abbridon banishes all concealing, obscuring, or illusory effects. (Burst Area Nullify Concealing or Illusory Effects, Simultaneous, Close Range • 2 points per rank)"
       },
       {
         "id": "prof_magic_powers_all_seening_eyes_of_abbridon",
@@ -8966,7 +8966,7 @@ export const POWER_PROFILES_LIBRARY = [
             "description": "Extended Searches"
           }
         ],
-        "notes": "lantis's fall, but he departed for worlds beyond before the island-continent sank beneath the waves. Ahgrazul's Compass is a pathfinding spell, able to guide the caster to a desired destination. (Remote Sensing (Visual), Simultaneous, Limited to Extended Searches (see Search, Deluxe Hero's Handbook, page 123) • 2 points per rank)"
+        "notes": "(ah-GRAH-zool) Archmage of Atlantis, The Explorer Ahgrazul was a mighty archmage in ancient Atlantis, best known as a seer and diviner. He first explored the Cosmic Coil and blazed paths for the mystics who would follow him. Legend says Ahgrazul foretold Atlantis's fall, but he departed for worlds beyond before the island-continent sank beneath the waves. Ahgrazul's Compass is a pathfinding spell, able to guide the caster to a desired destination. (Remote Sensing (Visual), Simultaneous, Limited to Extended Searches (see Search, Deluxe Hero's Handbook, page 123) • 2 points per rank)"
       },
       {
         "id": "prof_magic_powers_airts_of_ahgrazul",
@@ -9001,7 +9001,7 @@ export const POWER_PROFILES_LIBRARY = [
             "description": "Second Chance"
           }
         ],
-        "notes": "MUTANTS & MASTERMINDS POWER PROFILES MUTANTS & MASTERMINDS POWER PROFILES a full-round action), the magician can thereafter spend a hero point to \"undo\" a single event, treating that event as a precognitive warning or vision rather than something that \"actually\" happened. (Enhanced Advantage 1 (Second Chance), Senses 4 (Precognition, Limited to Second Chance) • 3 points)"
+        "notes": "Auspicious Augury of Ahgrazul is a potent ritual involving omens of the future. It offers an effect similar to an enhanced Second Chance: after the spell is cast (taking a full-round action), the magician can thereafter spend a hero point to \"undo\" a single event, treating that event as a precognitive warning or vision rather than something that \"actually\" happened. (Enhanced Advantage 1 (Second Chance), Senses 4 (Precognition, Limited to Second Chance) • 3 points)"
       },
       {
         "id": "prof_magic_powers_baleful_bindings_of_bal_hemoth",
@@ -9031,7 +9031,7 @@ export const POWER_PROFILES_LIBRARY = [
             "description": "Degree"
           }
         ],
-        "notes": "against the Serpent People of Lemuria and their inheritors. Baleful Bindings of Bal'Hemoth are dark metallic chains that appear around the target of the spell. The Bindings are able to trap astral forms and spirits as well. (Ranged Affliction (Resisted by Dodge, Overcome by Will; Hindered and Vulnerable, Defenseless and Immobilized), Affects Insubstantial 2, Extra Condition, Limited Degree • 2 points + 2 points per rank)"
+        "notes": "Were overthrown through generations of slave rebellions against the Serpent People of Lemuria and their inheritors. Baleful Bindings of Bal'Hemoth are dark metallic chains that appear around the target of the spell. The Bindings are able to trap astral forms and spirits as well. (Ranged Affliction (Resisted by Dodge, Overcome by Will; Hindered and Vulnerable, Defenseless and Immobilized), Affects Insubstantial 2, Extra Condition, Limited Degree • 2 points + 2 points per rank)"
       },
       {
         "id": "prof_magic_powers_beast_of_bal_hemoth",
@@ -9123,7 +9123,7 @@ export const POWER_PROFILES_LIBRARY = [
             "description": "Degree"
           }
         ],
-        "notes": "what is unnatural. Ghorummaz's Dictum is a powerful abjuration of the unnatural that hedges out unnatural creatures (including those from other planes) in a 30-foot radius around the caster. (Burst Area Progressive Affliction (Entranced, Compelled), Limited Degree, Limited to Unnatural Creatures, Limited to Holding at Bay • 1 point)"
+        "notes": "(go-ROO-maz) The Dragon Within the Earth, Lord of Storms, The Earth-Binder Ghorummaz is a primal, elemental force, often depicted as a serpentine dragon of stone and fire, spitting molten magma. It is strongly connected with \"dragon lines\" of force within the Earth and with the elements. Ghorummaz is Lord of Earthquakes and Storms, and a binder of what is unnatural. Ghorummaz's Dictum is a powerful abjuration of the unnatural that hedges out unnatural creatures (including those from other planes) in a 30-foot radius around the caster. (Burst Area Progressive Affliction (Entranced, Compelled), Limited Degree, Limited to Unnatural Creatures, Limited to Holding at Bay • 1 point)"
       },
       {
         "id": "prof_magic_powers_grasp_of_ghorummaz",
@@ -9145,7 +9145,7 @@ export const POWER_PROFILES_LIBRARY = [
             "description": "Degree"
           }
         ],
-        "notes": "per rank Grasp of Ghorummaz creates a clawed hand of stone, bursting up from the earth to seize and hold a target. (Ranged Affliction (Resisted by Dodge, Overcome by Damage; Hindered and Vulnerable, Defenseless and Immobilized), Extra Condition, Limited Degree, Affects Incorporeal 2, Indirect 1 • 3 points +2 points per rank)"
+        "notes": "Per rank Grasp of Ghorummaz creates a clawed hand of stone, bursting up from the earth to seize and hold a target. (Ranged Affliction (Resisted by Dodge, Overcome by Damage; Hindered and Vulnerable, Defenseless and Immobilized), Extra Condition, Limited Degree, Affects Incorporeal 2, Indirect 1 • 3 points +2 points per rank)"
       },
       {
         "id": "prof_magic_powers_gale_of_ghorummaz",
@@ -9171,7 +9171,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Magic, Lightning",
         "extras": [],
         "flaws": [],
-        "notes": "(for which the magician will not gain a hero point, since it was effectively \"cashed in\" for the spell itself ). Likewise, the GM can use entreaties and characters' relationships with the various Powers of Magic as a source of future complications in the game, as magicians encounter omens, unusual \"luck,\" and the like. 106 106 MAGIC POWERS MAGIC POWERS MUTANTS & MASTERMINDS POWER PROFILES MUTANTS & MASTERMINDS POWER PROFILES (Ranged Damage (lightning), Indirect 2 • 2 points +2 points per rank)"
+        "notes": "An additional use for the various spells described in this section is as a catalog of magical power stunts. Although each character has a set of \"rote\" or \"mastered\" spells-established Alternate Effects of a Magic array-any magician can attempt to improvise an entreaty to any of the various arcane powers. Indeed, many of the spells used by comic book magicians are one-time things: if they require preparation and ceremony, they're rituals (Magical Rituals, Deluxe Hero's Handbook, page 212), but if they're done on the spur of the moment, then they're best considered Magic power stunts. In keeping with the theme of magic carrying a price, the GM may, from time to time, choose to waive the fatigue caused by the extra effort of an improvised spell, instead imposing a future complication from calling upon that particular entity (for which the magician will not gain a hero point, since it was effectively \"cashed in\" for the spell itself ). Likewise, the GM can use entreaties and characters' relationships with the various Powers of Magic as a source of future complications in the game, as magicians encounter omens, unusual \"luck,\" and the like. (Ranged Damage (lightning), Indirect 2 • 2 points +2 points per rank)"
       },
       {
         "id": "prof_magic_powers_thunderous_tread",
@@ -9214,7 +9214,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Magic, Mystical",
         "extras": [],
         "flaws": [],
-        "notes": "into the darkness. Heshem is one of the Three Powers of the Modrossus. Hand of Heshem (sometimes known as Heshem's Shadowy Hand) creates a shadowy ectoplasmic extension to the magician's grasp. (Move Object • 2 points per rank Heshem's Holy Hearth summons a golden light or an actual mystic flame whose light wards off creatures of evil and darkness.)"
+        "notes": "Glowing eyes. Although stern and fierce, she can be a power for good, bringing light into the darkness. Heshem is one of the Three Powers of the Modrossus. Hand of Heshem (sometimes known as Heshem's Shadowy Hand) creates a shadowy ectoplasmic extension to the magician's grasp. (Move Object • 2 points per rank Heshem's Holy Hearth summons a golden light or an actual mystic flame whose light wards off creatures of evil and darkness.)"
       },
       {
         "id": "prof_magic_powers_holy_hearth",
@@ -9355,7 +9355,7 @@ export const POWER_PROFILES_LIBRARY = [
           }
         ],
         "flaws": [],
-        "notes": "Great Mind that will not be tamed or subject to order. It is insanity incarnate. Magicians calling on the power of the Howling Dream skirt the edges of madness themselves. The Crying Road is a path into the realm of dreams and nightmares. (Movement 1 (Dimensional 1, Dream Dimension), Portal • 4 points)"
+        "notes": "Awareness from which all thought and imagination first arose. It is that portion of the Great Mind that will not be tamed or subject to order. It is insanity incarnate. Magicians calling on the power of the Howling Dream skirt the edges of madness themselves. The Crying Road is a path into the realm of dreams and nightmares. (Movement 1 (Dimensional 1, Dream Dimension), Portal • 4 points)"
       },
       {
         "id": "prof_magic_powers_curse_of_howling_madness",
@@ -9419,7 +9419,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Magic, Mystical",
         "extras": [],
         "flaws": [],
-        "notes": "points + 4 points per rank Dream Denizens conjures up creatures out of nightmare, no two exactly alike. (Summon Dream Denizen, Active, Broad, Mental Link • 1 point + 5 points per rank)"
+        "notes": "Points + 4 points per rank Dream Denizens conjures up creatures out of nightmare, no two exactly alike. (Summon Dream Denizen, Active, Broad, Mental Link • 1 point + 5 points per rank)"
       },
       {
         "id": "prof_magic_powers_cloak_of_idolon",
@@ -9432,7 +9432,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Magic, Magical",
         "extras": [],
         "flaws": [],
-        "notes": "MUTANTS & MASTERMINDS POWER PROFILES MUTANTS & MASTERMINDS POWER PROFILES Cloak of Idolon renders the \"wearer\" difficult to locate and detect using magical means. It's a known weapon in the arsenal of mage-killers, and sometimes used by magicians on the run to evade detection and capture. (Concealment 2 (Magical), Sustained • 4 points Illusions of Idolon creates convincing hallucinations in the minds of the subjects, causing them to perceive whatever the caster wishes.)"
+        "notes": "Assuming any appearance, for Idolon is a power of illusion and trickery. Mages call upon it for aid in concealment and crafting cunning images. Cloak of Idolon renders the \"wearer\" difficult to locate and detect using magical means. It's a known weapon in the arsenal of mage-killers, and sometimes used by magicians on the run to evade detection and capture. (Concealment 2 (Magical), Sustained • 4 points Illusions of Idolon creates convincing hallucinations in the minds of the subjects, causing them to perceive whatever the caster wishes.)"
       },
       {
         "id": "prof_magic_powers_illusions_of_idolon",
@@ -9494,7 +9494,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Magic, Mystical",
         "extras": [],
         "flaws": [],
-        "notes": "ers and spies that they were. The Eight Eyes of Ios are a glowing ring of unblinking golden orbs that float around the mage's head when summoned. They grant the ability to see in all directions through any concealment or illusion. (Senses 13 (Radius Vision, Vision Counters Illusion, Vision Counters and Penentrates All Concealment) • 13 points)"
+        "notes": "Was known for her devotion to seeking truth and her opposition to the ancient Cult of Idolon, infamous deceivers and spies that they were. The Eight Eyes of Ios are a glowing ring of unblinking golden orbs that float around the mage's head when summoned. They grant the ability to see in all directions through any concealment or illusion. (Senses 13 (Radius Vision, Vision Counters Illusion, Vision Counters and Penentrates All Concealment) • 13 points)"
       },
       {
         "id": "prof_magic_powers_enchantment_of_ios",
@@ -9507,7 +9507,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Magic, Fascinate",
         "extras": [],
         "flaws": [],
-        "notes": "The Enchantment of Ios allows the magician to capture and hold a subject's gaze, and attention, for as long as the caster continues to engage the subject using an interaction skill of choice. (Enhanced Advantage 1 (Fascinate) • 1 point.)"
+        "notes": "Enchantment of Ios allows the magician to capture and hold a subject's gaze, and attention, for as long as the caster continues to engage the subject using an interaction skill of choice. (Enhanced Advantage 1 (Fascinate) • 1 point.)"
       },
       {
         "id": "prof_magic_powers_everwatchful_eye_of_ios",
@@ -9520,7 +9520,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Magic, Uncanny Dodge",
         "extras": [],
         "flaws": [],
-        "notes": "The Everwatchful Eye of Ios literally grants the magician \"eyes in the back of the head\" (one unseen magical eye, technically). (Enhanced Advantage 1 (Uncanny Dodge), Senses 3 (Danger Sense, Radius Vision) • 4 points)"
+        "notes": "Everwatchful Eye of Ios literally grants the magician \"eyes in the back of the head\" (one unseen magical eye, technically). (Enhanced Advantage 1 (Uncanny Dodge), Senses 3 (Danger Sense, Radius Vision) • 4 points)"
       },
       {
         "id": "prof_magic_powers_call_of_kar_kradas",
@@ -9533,7 +9533,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Magic, Mystical",
         "extras": [],
         "flaws": [],
-        "notes": "Cults have worshipped Kar'Kradas throughout time, and some have sought to free him from his imprisonment, even though doing so would mean the unraveling of the Cosmic Coil and the end of all existence as we know it. Call of Kar'Kradas is a powerful demon-summoning spell. (Summon Demon, Active, Broad, Controlled • 5 points per rank)"
+        "notes": "Glimpse. Magicians call on the Whisperer for powers of darkness, deception, and transcending time and space. Cults have worshipped Kar'Kradas throughout time, and some have sought to free him from his imprisonment, even though doing so would mean the unraveling of the Cosmic Coil and the end of all existence as we know it. Call of Kar'Kradas is a powerful demon-summoning spell. (Summon Demon, Active, Broad, Controlled • 5 points per rank)"
       },
       {
         "id": "prof_magic_powers_chains_of_kar_kradas",
@@ -9596,7 +9596,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Magic, Mystical",
         "extras": [],
         "flaws": [],
-        "notes": "ers. They have the game stats of lions (M&M Gamemaster's Guide, page 135), with the addition of Concealment 4 (Visual, Limited to shadows), Insubstantial 4, and Senses 3 (Acute Magical Awareness, Magical Tracking), raising total points to 75. (Summon Dark Hound 5 (75-point minion), Controlled, Heroic, Mental Link • 26 points + 10)"
+        "notes": "Hounds of Kar'Kradas is a summoning spell, calling forth one or more \"dark hounds,\" relentless hunters and trackers. They have the game stats of lions (M&M Gamemaster's Guide, page 135), with the addition of Concealment 4 (Visual, Limited to shadows), Insubstantial 4, and Senses 3 (Acute Magical Awareness, Magical Tracking), raising total points to 75. (Summon Dark Hound 5 (75-point minion), Controlled, Heroic, Mental Link • 26 points + 10)"
       },
       {
         "id": "prof_magic_powers_umbral_kraken_of_kar_kradas",
@@ -9609,7 +9609,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Magic, Mystical",
         "extras": [],
         "flaws": [],
-        "notes": "Umbral Kraken of Kar'Kradas is another summoning spell, calling up a massive tentacled creature of darkness from the depths. It's the equivalent of giant squid (M&M Gamemaster's Guide, page 135) with Insubstantial 4, and Burrowing rather than Swimming, if summoned on land. (Summon Umbral Kraken (75point minion), Active, Controlled, Heroic • 30 points)"
+        "notes": "Points per doubling of the number of hounds Umbral Kraken of Kar'Kradas is another summoning spell, calling up a massive tentacled creature of darkness from the depths. It's the equivalent of giant squid (M&M Gamemaster's Guide, page 135) with Insubstantial 4, and Burrowing rather than Swimming, if summoned on land. (Summon Umbral Kraken (75point minion), Active, Controlled, Heroic • 30 points)"
       },
       {
         "id": "prof_magic_powers_lamal_s_labyrinth",
@@ -9622,7 +9622,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Magic, Mystical",
         "extras": [],
         "flaws": [],
-        "notes": "is often a guide and patron of magicians seeking to use their powers wisely for the greater good. Lamal is one of the Three Powers of the Modrossus. Lamal's Labyrinth mystically traps a subject in psychic \"maze\" leaving them stupified and vulnerable. (Perception Ranged Affliction (Resisted and Overcome by Will; Entranced and Vulnerable, Defenseless and Immobile, Incapacitated), Extra Condition • 4 points per rank)"
+        "notes": "Know Lamal as \"the Wise\" and the \"Great Balance,\" a giver of laws, guidance, and wise judgment. For this reason, he is often a guide and patron of magicians seeking to use their powers wisely for the greater good. Lamal is one of the Three Powers of the Modrossus. Lamal's Labyrinth mystically traps a subject in psychic \"maze\" leaving them stupified and vulnerable. (Perception Ranged Affliction (Resisted and Overcome by Will; Entranced and Vulnerable, Defenseless and Immobile, Incapacitated), Extra Condition • 4 points per rank)"
       },
       {
         "id": "prof_magic_powers_lamal_s_mighty_hands",
@@ -9723,7 +9723,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Magic, 32 undead",
         "extras": [],
         "flaws": [],
-        "notes": "seeking power over life and death. Malevolent Minion of Malador reanimates corpses as undead minions, either zombies or skeletons, under the caster's control. See the Gamemaster's Guide, page 144, for undead traits. (Summon Undead, Controlled, Horde, Multiple Minions (32 undead) • 14 points per rank)"
+        "notes": "Within the Temple of Sirrion. Malador's name is still invoked by magicians seeking power over life and death. Malevolent Minion of Malador reanimates corpses as undead minions, either zombies or skeletons, under the caster's control. See the Gamemaster's Guide, page 144, for undead traits. (Summon Undead, Controlled, Horde, Multiple Minions (32 undead) • 14 points per rank)"
       },
       {
         "id": "prof_magic_powers_miasma_of_malador",
@@ -9801,7 +9801,7 @@ export const POWER_PROFILES_LIBRARY = [
           }
         ],
         "flaws": [],
-        "notes": "per rank Mists of Malador are dark grey, swirling clouds, quite similar to the Miasma of Malador and often mistaken for it, but merely obscuring the area they cover. (Ranged Burst Area Concealment 4 Attack (Visual) • 16 points + 4 points per +1 area rank)"
+        "notes": "Per rank Mists of Malador are dark grey, swirling clouds, quite similar to the Miasma of Malador and often mistaken for it, but merely obscuring the area they cover. (Ranged Burst Area Concealment 4 Attack (Visual) • 16 points + 4 points per +1 area rank)"
       },
       {
         "id": "prof_magic_powers_mists_of_the_modrossus",
@@ -9845,7 +9845,7 @@ export const POWER_PROFILES_LIBRARY = [
             "description": "Blanking Recent Memories"
           }
         ],
-        "notes": "109 109 MAGIC POWERS MAGIC POWERS MUTANTS & MASTERMINDS POWER PROFILES MUTANTS & MASTERMINDS POWER PROFILES Mists of the Modrossus are sweet-smelling vapors able to blank out the memories of the uninitiated who witness those things they are not meant to know. (Burst Area Affliction (Resisted and Overcome by Will; Entranced, Compelled, Transformed), Progressive, Selective, Limited to Blanking Recent Memories • 4 points per rank)"
+        "notes": "Mists of the Modrossus are sweet-smelling vapors able to blank out the memories of the uninitiated who witness those things they are not meant to know. (Burst Area Affliction (Resisted and Overcome by Will; Entranced, Compelled, Transformed), Progressive, Selective, Limited to Blanking Recent Memories • 4 points per rank)"
       },
       {
         "id": "prof_magic_powers_sign_of_the_modrossus",
@@ -9910,7 +9910,7 @@ export const POWER_PROFILES_LIBRARY = [
           }
         ],
         "flaws": [],
-        "notes": "ribly painful to dimensional intruders, driving them back whence they came. Obscuring Orb of Obroros mystically \"blinds\" the sight and psychic senses of those the mage chooses within its radius. (Ranged Burst Area Concealment Attack 6 (Visual and Mental), Selective • 30 points + 6 points)"
+        "notes": "Obroros on its eternal vigil, and the Spire remains silent on such matters. Its cries are terribly painful to dimensional intruders, driving them back whence they came. Obscuring Orb of Obroros mystically \"blinds\" the sight and psychic senses of those the mage chooses within its radius. (Ranged Burst Area Concealment Attack 6 (Visual and Mental), Selective • 30 points + 6 points)"
       },
       {
         "id": "prof_magic_powers_occult_exorcism",
@@ -9923,7 +9923,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Magic, Mystical",
         "extras": [],
         "flaws": [],
-        "notes": "per +1 area rank Occult Exorcism of Obroros is a powerful ban against outside mystic influences on the mind. (Nullify Mind-Influencing Effects, Simultaneous • 2 points per rank)"
+        "notes": "Per +1 area rank Occult Exorcism of Obroros is a powerful ban against outside mystic influences on the mind. (Nullify Mind-Influencing Effects, Simultaneous • 2 points per rank)"
       },
       {
         "id": "prof_magic_powers_omens_of_obroros",
@@ -9957,7 +9957,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Magic, Visual",
         "extras": [],
         "flaws": [],
-        "notes": "Phoros,\" shapes flickering light to create visual Illusions, the simplest being the appearance of floating orbs of light similar to the Phoros themselves. Unlike many magically made illusions, the images are formed of light, so they're visible to all, not hallucinations in the targets' minds. (Illusion (Visual) • 2 points per rank)"
+        "notes": "Phantasms of Phoros, also known as the \"Fata of the Phoros,\" shapes flickering light to create visual Illusions, the simplest being the appearance of floating orbs of light similar to the Phoros themselves. Unlike many magically made illusions, the images are formed of light, so they're visible to all, not hallucinations in the targets' minds. (Illusion (Visual) • 2 points per rank)"
       },
       {
         "id": "prof_magic_powers_scourge_of_shatachna",
@@ -9978,7 +9978,7 @@ export const POWER_PROFILES_LIBRARY = [
           }
         ],
         "flaws": [],
-        "notes": "attendants. Scourge of Shatachna conjures a many-tailed whip that inflicts burning pain with each strike. 110 110 MAGIC POWERS MAGIC POWERS MUTANTS & MASTERMINDS POWER PROFILES MUTANTS & MASTERMINDS POWER PROFILES (Cumulative Affliction (Resisted and Overcome by Will; Dazed and Impaired, Defenseless and Stunned , Incapacitated), Extra Condition, Reach 4 • 4 points)"
+        "notes": "(sha-TAK-na) The Iron Queen, The Lady of Pain, Mistress of Curses The Iron Queen and Mistress of the Seven Hells, Shatachna is an ancient demon associated with pain and suffering. Those seeking power and dominion call her upon to inflict pain on others, and she has claimed the souls of more than a few would-be \"magisters\" as her personal slaves and attendants. Scourge of Shatachna conjures a many-tailed whip that inflicts burning pain with each strike. (Cumulative Affliction (Resisted and Overcome by Will; Dazed and Impaired, Defenseless and Stunned , Incapacitated), Extra Condition, Reach 4 • 4 points)"
       },
       {
         "id": "prof_magic_powers_scythe_of_shatachna",
@@ -10012,7 +10012,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Magic, Mystical",
         "extras": [],
         "flaws": [],
-        "notes": "Servants of Shatachna is a demon-summoning spell. It's also a commonly enacted ritual for cults worshipping Shatachna, calling on one of her many demonic slaves for aid. Different versions may have additional Summon modifiers applied to them. (Summon Demon, Broad Type • 4 points per rank)"
+        "notes": "+ 2 points per rank Servants of Shatachna is a demon-summoning spell. It's also a commonly enacted ritual for cults worshipping Shatachna, calling on one of her many demonic slaves for aid. Different versions may have additional Summon modifiers applied to them. (Summon Demon, Broad Type • 4 points per rank)"
       },
       {
         "id": "prof_magic_powers_shadows_of_shatachna",
@@ -10040,7 +10040,7 @@ export const POWER_PROFILES_LIBRARY = [
           }
         ],
         "flaws": [],
-        "notes": "Shadows of Shatachna are more than mere darkness; they are hungry shadows from the depths of a dark netherworld, a darkness that feeds fear like oxygen feeds a fire. Victims often run into obstacles in the darkness in their blind efforts to escape from the dreadful terrors they feel lurking there. (Ranged Burst Area Progressive Affliction (Resisted and Overcome by Will; Dazed and Impaired, Defenseless and Disabled, Paralyzed and Unaware), Extra Condition • 4 points per rank)"
+        "notes": "Points per rank Shadows of Shatachna are more than mere darkness; they are hungry shadows from the depths of a dark netherworld, a darkness that feeds fear like oxygen feeds a fire. Victims often run into obstacles in the darkness in their blind efforts to escape from the dreadful terrors they feel lurking there. (Ranged Burst Area Progressive Affliction (Resisted and Overcome by Will; Dazed and Impaired, Defenseless and Disabled, Paralyzed and Unaware), Extra Condition • 4 points per rank)"
       },
       {
         "id": "prof_magic_powers_seal_of_silence",
@@ -10098,7 +10098,7 @@ export const POWER_PROFILES_LIBRARY = [
           }
         ],
         "flaws": [],
-        "notes": "Scarlet Shades of Sirrion summons \"vermillion darkness,\" a deep, red-tinted mist, blanketing a given area and blocking all sight. Some versions of the spell add other senses to the effect, particularly mental or mystical senses, making the Scarlet Shades even more difficult to penetrate. (Ranged Cloud Area Concealment Attack (Visual) 4 • 12 points + 4 points per +1 area rank)"
+        "notes": "Spells of summoning, protection, and binding, amongst others. Scarlet Shades of Sirrion summons \"vermillion darkness,\" a deep, red-tinted mist, blanketing a given area and blocking all sight. Some versions of the spell add other senses to the effect, particularly mental or mystical senses, making the Scarlet Shades even more difficult to penetrate. (Ranged Cloud Area Concealment Attack (Visual) 4 • 12 points + 4 points per +1 area rank)"
       },
       {
         "id": "prof_magic_powers_shining_shackles_of_sirrion",
@@ -10120,7 +10120,7 @@ export const POWER_PROFILES_LIBRARY = [
             "description": "Degree"
           }
         ],
-        "notes": "The Shining Shackles of Sirrion, also known as the Scarlet Shackles or Bonds of Sirrion, are glowing red metal chains or crimson bands of energy that trap their target. (Ranged Affliction (Resisted by Dodge, Overcome by Will; Hindered and Impaired, Disabled and Immobile), Extra Condition, Limited Degree • 2 points per rank)"
+        "notes": "Shining Shackles of Sirrion, also known as the Scarlet Shackles or Bonds of Sirrion, are glowing red metal chains or crimson bands of energy that trap their target. (Ranged Affliction (Resisted by Dodge, Overcome by Will; Hindered and Impaired, Disabled and Immobile), Extra Condition, Limited Degree • 2 points per rank)"
       },
       {
         "id": "prof_magic_powers_shining_shield_of_sirrion",
@@ -10195,7 +10195,7 @@ export const POWER_PROFILES_LIBRARY = [
           }
         ],
         "flaws": [],
-        "notes": "Maw of Vhoka is a ghostly toothed maw, appearing out of nowhere to savagely bite at a target chosen by the caster, then vanishing. If the Maw fails to strike, it tries again, up to three times before vanishing. Some versions of the spell are Penetrating, as well. (Ranged Damage (bite), Homing 3 • 3 points +2 points per rank)"
+        "notes": "Lord of the Yellow Sign, Rune of Madness The entity known as the Unspeakable One has been worshipped by mad cults since the days of Lemuria and the Serpent Empire. Its true name is known only to a few, for it is said to speak it invites its attention and, therefore, madness. The Unspeakable One is a force of priMaw of Vhoka is a ghostly toothed maw, appearing out of nowhere to savagely bite at a target chosen by the caster, then vanishing. If the Maw fails to strike, it tries again, up to three times before vanishing. Some versions of the spell are Penetrating, as well. (Ranged Damage (bite), Homing 3 • 3 points +2 points per rank)"
       },
       {
         "id": "prof_magic_powers_vile_venom",
@@ -10216,7 +10216,7 @@ export const POWER_PROFILES_LIBRARY = [
           }
         ],
         "flaws": [],
-        "notes": "points per rank Vile Venom of Vhoka is a deadly toxin that saps a victim's strength and can eventually kill them. At below Strength -5, the victim is paralyzed and begins losing Stamina instead. Below Stamina -5, the victim dies. (Weaken Strength, Progressive, Variable Descriptor (Weakens Stamina after Strength reaches 0) • 1 point + 3 points per rank)"
+        "notes": "Points per rank Vile Venom of Vhoka is a deadly toxin that saps a victim's strength and can eventually kill them. At below Strength -5, the victim is paralyzed and begins losing Stamina instead. Below Stamina -5, the victim dies. (Weaken Strength, Progressive, Variable Descriptor (Weakens Stamina after Strength reaches 0) • 1 point + 3 points per rank)"
       },
       {
         "id": "prof_magic_powers_ward_of_weyan",
@@ -10253,7 +10253,7 @@ export const POWER_PROFILES_LIBRARY = [
             "description": "Creatures of Chaos"
           }
         ],
-        "notes": "however, Weyan is less concerned with matters of justice, and magicians wield his power for their own purposes. Ward of Weyan (not to be confused with the Wheel of Warding, the Third Wheel of Weyan) is a dictum of law, warding off all creatures of chaos and disorder. (Burst Area Progressive Affliction (Resisted and Overcome by Will; Entranced, Compelled, Controlled), Limited to Creatures of Chaos, Limited to Forcing Targets Away from Area • 2 points per rank)"
+        "notes": "Perfecting things, or for the tremendous power contained in the wheels he makes and puts into motion. Unlike, Lamal, however, Weyan is less concerned with matters of justice, and magicians wield his power for their own purposes. Ward of Weyan (not to be confused with the Wheel of Warding, the Third Wheel of Weyan) is a dictum of law, warding off all creatures of chaos and disorder. (Burst Area Progressive Affliction (Resisted and Overcome by Will; Entranced, Compelled, Controlled), Limited to Creatures of Chaos, Limited to Forcing Targets Away from Area • 2 points per rank)"
       },
       {
         "id": "prof_magic_powers_chant_of_chaos",
@@ -10274,7 +10274,7 @@ export const POWER_PROFILES_LIBRARY = [
           }
         ],
         "flaws": [],
-        "notes": "own purposes, but they constantly risk falling deeper into a psychic abyss from which there is no return. Chant of Chaos is a rising and falling chant in an alien tongue, the very sound of which is maddening. Continuing the chant gives the spell its cumulative effect. (Cumulative Hearing Area Affliction (Resisted and Overcome by Will; Entranced, Compelled, Transformed) • 3 points per rank)"
+        "notes": "Madness to all. A few with a slightly stronger grip on their sanity seek to use the Unspeakable One's power for their own purposes, but they constantly risk falling deeper into a psychic abyss from which there is no return. Chant of Chaos is a rising and falling chant in an alien tongue, the very sound of which is maddening. Continuing the chant gives the spell its cumulative effect. (Cumulative Hearing Area Affliction (Resisted and Overcome by Will; Entranced, Compelled, Transformed) • 3 points per rank)"
       },
       {
         "id": "prof_magic_powers_unspeakable_summoning",
@@ -10315,7 +10315,7 @@ export const POWER_PROFILES_LIBRARY = [
           }
         ],
         "flaws": [],
-        "notes": "The Yellow Sign is the most infamous rite of the Unspeakable One, a sigil able to induce madness in those who see it. (Perception Area Progressive Affliction (Resisted and Overcome by Will; Entranced, Compelled, Transformed) • 4 points per rank)"
+        "notes": "Yellow Sign is the most infamous rite of the Unspeakable One, a sigil able to induce madness in those who see it. (Perception Area Progressive Affliction (Resisted and Overcome by Will; Entranced, Compelled, Transformed) • 4 points per rank)"
       },
       {
         "id": "prof_magic_powers_dance_of_vhoka",
@@ -10328,7 +10328,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Magic, Mystical",
         "extras": [],
         "flaws": [],
-        "notes": "1, and skill in wielding itself equal to the power level minus the weapon's effect rank. Take the weapon's cost in power points or equipment points, add the cost of its attack ranks (power level - effect rank) + 2 points for Flight to get its minion cost. (Summon Animated Weapon, Active, Controlled, General Type, Ranged • 6 points per rank)"
+        "notes": "Normal damage capabilities, the base traits of a construct (including Immunity to Fortitude and Will effects), Flight 1, and skill in wielding itself equal to the power level minus the weapon's effect rank. Take the weapon's cost in power points or equipment points, add the cost of its attack ranks (power level - effect rank) + 2 points for Flight to get its minion cost. (Summon Animated Weapon, Active, Controlled, General Type, Ranged • 6 points per rank)"
       },
       {
         "id": "prof_magic_powers_wondrous_working_of_weyan",
@@ -10349,7 +10349,7 @@ export const POWER_PROFILES_LIBRARY = [
           }
         ],
         "flaws": [],
-        "notes": "112 112 MAGIC POWERS MAGIC POWERS MUTANTS & MASTERMINDS POWER PROFILES MUTANTS & MASTERMINDS POWER PROFILES the spell fails to work, the caster suffers psychic backlash, making a Will resistance check against a Damage effect equal to the rank of the highest affected magic trait. (Burst Area Weaken Magic, Affects Objects, Broad, Concentration, Simultaneous, Side Effect (psychic backlash, see description) • 5 points per rank)"
+        "notes": "Spell fails to work, the caster suffers psychic backlash, making a Will resistance check against a Damage effect equal to the rank of the highest affected magic trait. (Burst Area Weaken Magic, Affects Objects, Broad, Concentration, Simultaneous, Side Effect (psychic backlash, see description) • 5 points per rank)"
       },
       {
         "id": "prof_magic_powers_curse_of_yig",
@@ -10362,7 +10362,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Magic, Mystical",
         "extras": [],
         "flaws": [],
-        "notes": "venom, and similar such things. Curse of Yig brings the wrath of the reptile kingdom down upon the victim. It summons forth children of the Father of Serpents, typically poisonous vipers (Gamemaster's Guide, page 135). (Summon Snakes 3 (37-point minions), Multiple Minions 4 (16 snakes) • 18 points + 6 points per additional)"
+        "notes": "Serpentine characteristics and call on him for magic dealing with serpents, venom, and similar such things. Curse of Yig brings the wrath of the reptile kingdom down upon the victim. It summons forth children of the Father of Serpents, typically poisonous vipers (Gamemaster's Guide, page 135). (Summon Snakes 3 (37-point minions), Multiple Minions 4 (16 snakes) • 18 points + 6 points per additional)"
       },
       {
         "id": "prof_magic_powers_fangs_of_yig",
@@ -10383,7 +10383,7 @@ export const POWER_PROFILES_LIBRARY = [
           }
         ],
         "flaws": [],
-        "notes": "doubling of minions. Fangs of Yig give the magician a poisonous touch. A single use may be enough to render an ordinary human completely paralyzed. (Affliction (Resisted and Overcome by Fortitude; Dazed, Disabled, Paralyzed), Progressive • 3 points per rank)"
+        "notes": "Doubling of minions. Fangs of Yig give the magician a poisonous touch. A single use may be enough to render an ordinary human completely paralyzed. (Affliction (Resisted and Overcome by Fortitude; Dazed, Disabled, Paralyzed), Progressive • 3 points per rank)"
       },
       {
         "id": "prof_magic_powers_yig_s_inexorable_transformation",
@@ -10426,7 +10426,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Magic, Visual",
         "extras": [],
         "flaws": [],
-        "notes": "opens a circular \"window\" through which the magician can scry. The Wheel of Watching only provides visions of distant places; it does not transmit sound or other sensory impressions. Some verions of the spell add the Dimensional modifier as well. (Remote Sensing (Visual) • 2 points per rank The Third Wheel of Weyan, or the Wheel of Warding, can deflect and reflect attacks.)"
+        "notes": "Second Wheel of Weyan, or the Wheel of Watching, opens a circular \"window\" through which the magician can scry. The Wheel of Watching only provides visions of distant places; it does not transmit sound or other sensory impressions. Some verions of the spell add the Dimensional modifier as well. (Remote Sensing (Visual) • 2 points per rank The Third Wheel of Weyan, or the Wheel of Warding, can deflect and reflect attacks.)"
       },
       {
         "id": "prof_magic_powers_third_wheel_of_weyan",
@@ -10439,7 +10439,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Magic, Mystical",
         "extras": [],
         "flaws": [],
-        "notes": "per rank The Third Wheel of Weyan, or the Wheel of Warding, can deflect and reflect attacks. (Deflect, Reflect • 2 points per rank The Fourth Wheel of Weyan, or the Wheel of the Winds, can create powerful wind gusts at the caster's command.)"
+        "notes": "Per rank The Third Wheel of Weyan, or the Wheel of Warding, can deflect and reflect attacks. (Deflect, Reflect • 2 points per rank The Fourth Wheel of Weyan, or the Wheel of the Winds, can create powerful wind gusts at the caster's command.)"
       },
       {
         "id": "prof_magic_powers_fourth_wheel_of_weyan",
@@ -10461,7 +10461,7 @@ export const POWER_PROFILES_LIBRARY = [
             "description": "Pushing"
           }
         ],
-        "notes": "The Fourth Wheel of Weyan, or the Wheel of the Winds, can create powerful wind gusts at the caster's command. (Perception Ranged Move Object, Limited to Pushing • 2 points per rank)"
+        "notes": "Fourth Wheel of Weyan, or the Wheel of the Winds, can create powerful wind gusts at the caster's command. (Perception Ranged Move Object, Limited to Pushing • 2 points per rank)"
       },
       {
         "id": "prof_magic_powers_fifth_wheel_of_weyan",
@@ -10498,7 +10498,7 @@ export const POWER_PROFILES_LIBRARY = [
             "description": "Degree"
           }
         ],
-        "notes": "The Fifth Wheel of Weyan, or the Wheel of Waiting, can actually stop time in a limited area. An advanced version of the spell adds Selective to the effect. (Burst Area Affliction (Incapacitated), Affects Objects, Progressive, Sustained, Instant Recovery, Limited Degree • 3 points per rank)"
+        "notes": "Fifth Wheel of Weyan, or the Wheel of Waiting, can actually stop time in a limited area. An advanced version of the spell adds Selective to the effect. (Burst Area Affliction (Incapacitated), Affects Objects, Progressive, Sustained, Instant Recovery, Limited Degree • 3 points per rank)"
       },
       {
         "id": "prof_magic_powers_sixth_wheel_of_weyan",
@@ -10511,7 +10511,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Magic, Air and auditory",
         "extras": [],
         "flaws": [],
-        "notes": "The Sixth Wheel of Weyan, or the Wheel of Whispers, carries the magician's words over great distances. (Communication (air and auditory) • 4 points per rank)"
+        "notes": "Sixth Wheel of Weyan, or the Wheel of Whispers, carries the magician's words over great distances. (Communication (air and auditory) • 4 points per rank)"
       },
       {
         "id": "prof_magic_powers_seventh_wheel_of_weyan",
@@ -10532,7 +10532,7 @@ export const POWER_PROFILES_LIBRARY = [
           }
         ],
         "flaws": [],
-        "notes": "The Seventh Wheel of Weyan, or the Wheel of Worlds, opens wheel-shaped gateways between dimensions. (Movement 2 (Dimensional 2 - Mystic Dimensions), Portal • 8 points)"
+        "notes": "Seventh Wheel of Weyan, or the Wheel of Worlds, opens wheel-shaped gateways between dimensions. (Movement 2 (Dimensional 2 - Mystic Dimensions), Portal • 8 points)"
       }
     ]
   },
@@ -10602,7 +10602,7 @@ export const POWER_PROFILES_LIBRARY = [
             "description": "Flinging Targets Away"
           }
         ],
-        "notes": "against your effect rank + 10; success means no effect, but failure flings the target a distance rank of effect rank minus the target's mass rank. Apply the Burst Area and Close Range modifiers and all targets within 30 feet of you are flung away. (Move Object, Limited to Flinging Targets Away • 1 point per rank)"
+        "notes": "A matched magnetic charge flings a target away from you. Targets can make a Strength resistance check against your effect rank + 10; success means no effect, but failure flings the target a distance rank of effect rank minus the target's mass rank. Apply the Burst Area and Close Range modifiers and all targets within 30 feet of you are flung away. (Move Object, Limited to Flinging Targets Away • 1 point per rank)"
       },
       {
         "id": "prof_magnetic_powers_magnetic_seizure",
@@ -10688,7 +10688,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Magnetic, Magnetic effects",
         "extras": [],
         "flaws": [],
-        "notes": "Control over magnetism renders you immune to its effects, including those that normally do affect targets of your type (such as Magnetic Seizure or Magnetic Blast). (Immunity 5 (magnetic effects) • 5 points 116 116 MAGNETIC POWERS MAGNETIC POWERS MUTANTS & MASTERMINDS POWER PROFILES MUTANTS & MASTERMINDS POWER PROFILES)"
+        "notes": "Control over magnetism renders you immune to its effects, including those that normally do affect targets of your type (such as Magnetic Seizure or Magnetic Blast). (Immunity 5 (magnetic effects) • 5 points)"
       },
       {
         "id": "prof_magnetic_powers_magnetic_shield",
@@ -10701,7 +10701,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Magnetic, Metal",
         "extras": [],
         "flaws": [],
-        "notes": "cost of the Impervious modifier to 1 point per 2 ranks). A variant of this power temporarily assembles armor by shaping and molding metal around the character's body, holding it in place (and perhaps reinforcing it) with a powerful magnetic field. (Protection, Sustained • 1 point per rank)"
+        "notes": "A shield of magnetic force surrounds your body, protecting you from harm. Like other forms of Protection, this power may be Impervious, perhaps even Impervious with the Limit Only Against Magnetic Attacks (reducing the cost of the Impervious modifier to 1 point per 2 ranks). A variant of this power temporarily assembles armor by shaping and molding metal around the character's body, holding it in place (and perhaps reinforcing it) with a powerful magnetic field. (Protection, Sustained • 1 point per rank)"
       },
       {
         "id": "prof_magnetic_powers_magnetic_cling",
@@ -10744,7 +10744,7 @@ export const POWER_PROFILES_LIBRARY = [
           }
         ],
         "flaws": [],
-        "notes": "adventures outside of a city environment are particularly common (at least half the time). Another variant of this power involves levitating a metallic object upon which the character stands, applying the Platform modifier to the effect. (Flight, Subtle • 1 point + 2 points per rank)"
+        "notes": "Concentrations of ferrous metals; for most series, this should be considered a Power Loss complication, unless adventures outside of a city environment are particularly common (at least half the time). Another variant of this power involves levitating a metallic object upon which the character stands, applying the Platform modifier to the effect. (Flight, Subtle • 1 point + 2 points per rank)"
       },
       {
         "id": "prof_magnetic_powers_magnetic_levitation",
@@ -10770,7 +10770,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Magnetic, Metal",
         "extras": [],
         "flaws": [],
-        "notes": "port within a sufficiently strong planetary magnetic field, you may earn a Power Loss complication in circumstances where you cannot (such as in the depths of space or in an alien dimension). Earth's magnetic field is too ubiquitous to qualify for the Medium modifier of Teleport. (Teleport • 2 points per rank)"
+        "notes": "You convert your body mass into a magnetic field and \"transmit\" it along the magnetic lines of force surrounding the Earth to reform elsewhere. Since you can only magnoport within a sufficiently strong planetary magnetic field, you may earn a Power Loss complication in circumstances where you cannot (such as in the depths of space or in an alien dimension). Earth's magnetic field is too ubiquitous to qualify for the Medium modifier of Teleport. (Teleport • 2 points per rank)"
       },
       {
         "id": "prof_magnetic_powers_degauss",
@@ -10783,7 +10783,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Magnetic, Metal",
         "extras": [],
         "flaws": [],
-        "notes": "re-magnetized. Magnetic powers are temporarily nullified, but can recover. Degaussing also destroys magnetic storage media, such as audio and video tape or some types of magnetic computer disk drives, wiping out the stored information and leaving them blank. (Nullify Magnetism, Simultaneous • 2 points per rank A common variant of this power is a Degauss Burst or Ray, affecting all targets in a radius or a cone-shaped area. If the burst or cone originates from you, apply the Close Ranged flaw, keeping cost at 2 points per rank.)"
+        "notes": "You suspend or remove magnetism from a subject. Just as objects do not recover from losses in Toughness (Deluxe Hero's Handbook, page 244) the GM may rule that some magnets, once degaussed, remain so unless they are re-magnetized. Magnetic powers are temporarily nullified, but can recover. Degaussing also destroys magnetic storage media, such as audio and video tape or some types of magnetic computer disk drives, wiping out the stored information and leaving them blank. (Nullify Magnetism, Simultaneous • 2 points per rank A common variant of this power is a Degauss Burst or Ray, affecting all targets in a radius or a cone-shaped area. If the burst or cone originates from you, apply the Close Ranged flaw, keeping cost at 2 points per rank.)"
       },
       {
         "id": "prof_magnetic_powers_degauss_burst",
@@ -10826,7 +10826,7 @@ export const POWER_PROFILES_LIBRARY = [
             "description": "Ferrous Metals"
           }
         ],
-        "notes": "erting your rank in Damage against the object's Toughness. A common power stunt for ferrokinetics is an Alternate Effect that drops the Limited to Ferrous Materials modifier to work on living targets by using the trace amounts of iron found in blood hemoglobin. (Perception Ranged Move Object, Limited to Ferrous Metals • 2 points per rank)"
+        "notes": "This is the most common magnetic power: you can use magnetic fields to lift and move ferrous objects at a distance without touching them. As mentioned under Magnetic Descriptors, this power is often Subtle (magnetic fields being invisible to normal vision). Ferrokinesis normally only allows you to lift objects and move them around (or \"throw\" them). The Damaging modifier also allows you to use magnetic force to crush them, exerting your rank in Damage against the object's Toughness. A common power stunt for ferrokinetics is an Alternate Effect that drops the Limited to Ferrous Materials modifier to work on living targets by using the trace amounts of iron found in blood hemoglobin. (Perception Ranged Move Object, Limited to Ferrous Metals • 2 points per rank)"
       },
       {
         "id": "prof_magnetic_powers_magnetize",
@@ -10856,7 +10856,7 @@ export const POWER_PROFILES_LIBRARY = [
             "description": "Ferrous Metals"
           }
         ],
-        "notes": "attract each other and any nearby magnetic materials. The rank of the effect determines the Strength of the magnetic pull in terms of moving objects. This can stick objects in place or bury them underneath a pile of metallic debris. (Burst Area Move Object, Limited to Ferrous Metals, One Direction (Attract or Repel) • 1 point per rank)"
+        "notes": "By creating a powerful magnetic field, you magnetize all of the ferrometallic objects in an area, causing them to attract each other and any nearby magnetic materials. The rank of the effect determines the Strength of the magnetic pull in terms of moving objects. This can stick objects in place or bury them underneath a pile of metallic debris. (Burst Area Move Object, Limited to Ferrous Metals, One Direction (Attract or Repel) • 1 point per rank)"
       },
       {
         "id": "prof_magnetic_powers_magnetic_encoding",
@@ -10878,7 +10878,7 @@ export const POWER_PROFILES_LIBRARY = [
             "description": "Encoding Information"
           }
         ],
-        "notes": "(recorder or computer, for example). This allows you to do things like \"dictate\" text into computer files or produce audio-visual recordings of things you see and hear. Once created, this information exists on the medium like any other and can be manipulated, edited, or erased normally. (Comprehend 2 (Machines), Limited to Encoding Information • 2 points)"
+        "notes": "Very precise control over magnetic fields, you can encode information onto magnetic media like audio or video tape or computer disks as if using an encoding device (recorder or computer, for example). This allows you to do things like \"dictate\" text into computer files or produce audio-visual recordings of things you see and hear. Once created, this information exists on the medium like any other and can be manipulated, edited, or erased normally. (Comprehend 2 (Machines), Limited to Encoding Information • 2 points)"
       },
       {
         "id": "prof_magnetic_powers_magnetic_form",
@@ -10900,7 +10900,7 @@ export const POWER_PROFILES_LIBRARY = [
             "description": "Ferrous Metals"
           }
         ],
-        "notes": "the material world. This form often includes magnetic sensory powers (Magnetic Radar, Sense, or Scan) but does not require them. It essentially includes 1 rank each of Ferrokinesis and Magnetic Flight and you can add additional ranks normally. (Concealment 4 (All Visual), Flight 1, Immunity 10 (Life Support), Insubstantial 4 (Incorporeal), Move Object 1 (Limited to Ferrous Metals) • 41 points)"
+        "notes": "You transform from flesh and blood into a being of pure magnetism, an intelligent and mobile magnetic field in the shape of a person, essentially. You are invisible to normal vision-although powers like Magnetic Sense can detect you-and able to pass through most solid objects, unless they are specifically shielded against magnetism. You can still \"touch\" and manipulate ferrous metals using your magnetic field, but cannot otherwise interact with the material world. This form often includes magnetic sensory powers (Magnetic Radar, Sense, or Scan) but does not require them. It essentially includes 1 rank each of Ferrokinesis and Magnetic Flight and you can add additional ranks normally. (Concealment 4 (All Visual), Flight 1, Immunity 10 (Life Support), Insubstantial 4 (Incorporeal), Move Object 1 (Limited to Ferrous Metals) • 41 points)"
       },
       {
         "id": "prof_magnetic_powers_magnetic_interference",
@@ -10963,7 +10963,7 @@ export const POWER_PROFILES_LIBRARY = [
             "description": "Reading Information"
           }
         ],
-        "notes": "even encoded magnetic strips on credit cards) as if you possessed an appropriate reader or player. If you have both this power and Magnetic Encoding (previously), you have both halves of the full Comprehend Machines effect, essentially removing the Limited flaw. (Comprehend 2 (Machines), Limited to Reading Information • 2 points)"
+        "notes": "You can \"read\" encoded magnetic information from various media (audio and video tape, computer disks, even encoded magnetic strips on credit cards) as if you possessed an appropriate reader or player. If you have both this power and Magnetic Encoding (previously), you have both halves of the full Comprehend Machines effect, essentially removing the Limited flaw. (Comprehend 2 (Machines), Limited to Reading Information • 2 points)"
       },
       {
         "id": "prof_magnetic_powers_magnetic_sense",
@@ -11002,7 +11002,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Magnetic, Metal",
         "extras": [],
         "flaws": [],
-        "notes": "shaped, such as Shape Metal 2 plus an hour's work (time rank 9) - 6, for a total mass rank of 5, or 1,600 lbs. of metal. This is a descriptor-based bending of the normal guideline of having Transform affect all of an object or none of it. (Transform (ferrous metal from one shape to another), Continuous • 3 points per rank)"
+        "notes": "Precise magnetic fields allow you to bend and reshape metal, sculpting it however you wish as if you had very precise tools. Reshaped metal remains in its new form unless reshaped by another effect. You can sculpt up to your rank -6 mass rank of metal at one time, so reshaping a larger mass of metal can take longer; add the time rank you work to the effect rank and subtract 6 to determine total mass rank of metal shaped, such as Shape Metal 2 plus an hour's work (time rank 9) - 6, for a total mass rank of 5, or 1,600 lbs. of metal. This is a descriptor-based bending of the normal guideline of having Transform affect all of an object or none of it. (Transform (ferrous metal from one shape to another), Continuous • 3 points per rank)"
       },
       {
         "id": "prof_magnetic_powers_magnetic",
@@ -11180,7 +11180,7 @@ export const POWER_PROFILES_LIBRARY = [
             "description": "Your Attacks"
           }
         ],
-        "notes": "tage due to the drop in the target's active defenses until the target manages to cover the opening by realizing (through defensive fighting skill) what you are doing. A variant form of this power may impose different conditions, such as Impaired and Disabled. (Perception Ranged Affliction (Resisted and Overcome by Will; Vulnerable, Defenseless), Conditions Limited to Your Attacks, Limited Degree, Insidious, Subtle • 2 points +1 point per rank)"
+        "notes": "By observing and analyzing a foe's fighting style and technique, you can find weaknesses you can exploit to your advantage. If the target fails to resist, you gain an advantage due to the drop in the target's active defenses until the target manages to cover the opening by realizing (through defensive fighting skill) what you are doing. A variant form of this power may impose different conditions, such as Impaired and Disabled. (Perception Ranged Affliction (Resisted and Overcome by Will; Vulnerable, Defenseless), Conditions Limited to Your Attacks, Limited Degree, Insidious, Subtle • 2 points +1 point per rank)"
       },
       {
         "id": "prof_martial_powers_breaking_blow",
@@ -11216,7 +11216,7 @@ export const POWER_PROFILES_LIBRARY = [
             "isFlat": true
           }
         ],
-        "notes": "With a moment of focused concentration, you can strike \"through\" an object with tremendous force, allowing you to smash wood, or even stone and steel, with your bare hands. You may combine this with a Power Attack maneuver for additional effect. (Strength-based Damage, Penetrating, Limited to Objects, Activation (move action, -1 point) • 1)"
+        "notes": "A moment of focused concentration, you can strike \"through\" an object with tremendous force, allowing you to smash wood, or even stone and steel, with your bare hands. You may combine this with a Power Attack maneuver for additional effect. (Strength-based Damage, Penetrating, Limited to Objects, Activation (move action, -1 point) • 1)"
       },
       {
         "id": "prof_martial_powers_chi_strike",
@@ -11257,7 +11257,7 @@ export const POWER_PROFILES_LIBRARY = [
           }
         ],
         "flaws": [],
-        "notes": "touch\" attack, allowing you to introduce \"poison chi\" into a target's system that eventually destroys them from within. Progression beyond incapacitated takes the character's condition to dying. Some forms of Dim Mak are also Insidious and Subtle. (Affliction (Resisted and Overcome by Fortitude; Fatigued and Impaired, Disabled and Exhausted, Incapacitated), Extra Condition, Progressive, Reversible • 1 point + 4 points per rank)"
+        "notes": "You have mastered the legendary dim mak, or \"death touch\" attack, allowing you to introduce \"poison chi\" into a target's system that eventually destroys them from within. Progression beyond incapacitated takes the character's condition to dying. Some forms of Dim Mak are also Insidious and Subtle. (Affliction (Resisted and Overcome by Fortitude; Fatigued and Impaired, Disabled and Exhausted, Incapacitated), Extra Condition, Progressive, Reversible • 1 point + 4 points per rank)"
       },
       {
         "id": "prof_martial_powers_ear_boxing",
@@ -11444,7 +11444,7 @@ export const POWER_PROFILES_LIBRARY = [
             "description": "one move action"
           }
         ],
-        "notes": "action, after which you must move to a horizontal surface or fall. With an Acrobatics check, you can run up a wall, then kick off and flip over and behind a pursuer to catch them by surprise. Treat this like a use of Agile Feint (Deluxe Hero's Handbook, page 131). (Movement 2 (Wall-crawling), Limited to one move action, Limited to while moving • 1 point.)"
+        "notes": "You can run short distances up or along vertical surfaces like walls. You can only do so while moving (you cannot stand still on a vertical surface) and only for one move action, after which you must move to a horizontal surface or fall. With an Acrobatics check, you can run up a wall, then kick off and flip over and behind a pursuer to catch them by surprise. Treat this like a use of Agile Feint (Deluxe Hero's Handbook, page 131). (Movement 2 (Wall-crawling), Limited to one move action, Limited to while moving • 1 point.)"
       },
       {
         "id": "prof_martial_powers_wire_fu",
@@ -11483,7 +11483,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Martial, Chi",
         "extras": [],
         "flaws": [],
-        "notes": "tient's energies to treat and cure various maladies. Healing modifiers like Energizing, Persistent, and Restorative are common for this power. A Quirk involving the treatment taking at least 10 minutes (making it usable only outside of action time) is also common, worth -2 points. (Healing (chi) • 2 points per rank)"
+        "notes": "Manipulating trigger points and meridians and using your own internal energy allows you to balance an align a patient's energies to treat and cure various maladies. Healing modifiers like Energizing, Persistent, and Restorative are common for this power. A Quirk involving the treatment taking at least 10 minutes (making it usable only outside of action time) is also common, worth -2 points. (Healing (chi) • 2 points per rank)"
       },
       {
         "id": "prof_martial_powers_chi_focus",
@@ -11496,7 +11496,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Martial, Chi",
         "extras": [],
         "flaws": [],
-        "notes": "techniques, you can enhance your abilities in different ways. Common chi focus traits include Strength, Stamina, Agility, and Awareness, along with Fortitude and Will. If you can enhance different traits, but not all at once, make the additional ones Alternate Effects of the first. (Enhanced Trait, Sustained • 1 point per rank)"
+        "notes": "By focusing your internal energy through meditation techniques, you can enhance your abilities in different ways. Common chi focus traits include Strength, Stamina, Agility, and Awareness, along with Fortitude and Will. If you can enhance different traits, but not all at once, make the additional ones Alternate Effects of the first. (Enhanced Trait, Sustained • 1 point per rank)"
       },
       {
         "id": "prof_martial_powers_chi_reading",
@@ -11509,7 +11509,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Martial, Detect Chi, Acute, Analytical",
         "extras": [],
         "flaws": [],
-        "notes": "for diagnosing blockages and other maladies involving a subject's chi. Note that the base power is not ranged, requiring you to examine the subject close up (although you are not required to touch). To read chi from a greater distance, apply an additional rank of Senses for Ranged. (Senses 3 (Detect Chi, Acute, Analytical) • 3 points)"
+        "notes": "You can \"read\" or scan the internal energies of another creature, feeling their degree of health and balance from those energies. Among other things, Chi Reading is useful for diagnosing blockages and other maladies involving a subject's chi. Note that the base power is not ranged, requiring you to examine the subject close up (although you are not required to touch). To read chi from a greater distance, apply an additional rank of Senses for Ranged. (Senses 3 (Detect Chi, Acute, Analytical) • 3 points)"
       },
       {
         "id": "prof_martial_powers_second_wind",
@@ -11629,7 +11629,7 @@ export const POWER_PROFILES_LIBRARY = [
           }
         ],
         "flaws": [],
-        "notes": "the GM might allow slightly different effects, particularly in the application of the impaired and disabled modifiers and at the third degree where, instead of being incapacitated, the target might behave as controlled, acting strongly on that emotion (such as anger or love). (Perception Ranged Cumulative Affliction (Impaired, Disabled, Incapacitated), Resisted and Overcome by Will, Subtle, Variable Descriptor (Emotions) • 2 points + 4)"
+        "notes": "You can manipulate the emotions of others, distracting or incapacitating them with anger, sadness, or even peace or joy. The specific emotions are largely descriptors, but the GM might allow slightly different effects, particularly in the application of the impaired and disabled modifiers and at the third degree where, instead of being incapacitated, the target might behave as controlled, acting strongly on that emotion (such as anger or love). (Perception Ranged Cumulative Affliction (Impaired, Disabled, Incapacitated), Resisted and Overcome by Will, Subtle, Variable Descriptor (Emotions) • 2 points + 4)"
       },
       {
         "id": "prof_mental_powers_hallucination",
@@ -11659,7 +11659,7 @@ export const POWER_PROFILES_LIBRARY = [
             "description": "One Subject"
           }
         ],
-        "notes": "incredibly realistic hallucinations. Since the illusions exist solely in your target's mind, you can choose who can and cannot perceive them. This power affects all of a subject's senses by default, but may be limited to just some senses, lowering the cost per rank. (Illusion (All Senses), Selective, Limited to One Subject, Resistible by Will • 4 points per rank)"
+        "notes": "You seize control of your target's perceptions, creating incredibly realistic hallucinations. Since the illusions exist solely in your target's mind, you can choose who can and cannot perceive them. This power affects all of a subject's senses by default, but may be limited to just some senses, lowering the cost per rank. (Illusion (All Senses), Selective, Limited to One Subject, Resistible by Will • 4 points per rank)"
       },
       {
         "id": "prof_mental_powers_mental_blast",
@@ -11708,7 +11708,7 @@ export const POWER_PROFILES_LIBRARY = [
           }
         ],
         "flaws": [],
-        "notes": "128 128 MENTAL POWERS MENTAL POWERS MUTANTS & MASTERMINDS POWER PROFILES MUTANTS & MASTERMINDS POWER PROFILES falling victim to outside control. For \"implanted commands\" or \"post-hypnotic suggestions\" apply the Triggered modifier (possibly as an Alternate Effect or power stunt). (Perception Ranged Cumulative Affliction (Dazed, Compelled, Controlled), Resisted and Overcome by Will, Subtle • 1 point + 4 points per rank)"
+        "notes": "Next scene, and only \"restarting the clock\" on overcoming them once things shift into action time again. In some cases, the GM may wish to award players hero points for this as a complication. falling victim to outside control. For \"implanted commands\" or \"post-hypnotic suggestions\" apply the Triggered modifier (possibly as an Alternate Effect or power stunt). (Perception Ranged Cumulative Affliction (Dazed, Compelled, Controlled), Resisted and Overcome by Will, Subtle • 1 point + 4 points per rank)"
       },
       {
         "id": "prof_mental_powers_mind_switch",
@@ -11773,7 +11773,7 @@ export const POWER_PROFILES_LIBRARY = [
           }
         ],
         "flaws": [],
-        "notes": "you-although you can no longer control an incapacitated subject. Mental attacks affect your mind rather than the subject's. Possession limited to having to touch the subject has a -2 modifier, while requiring eye contact is a -1 modifier. (Perception Ranged Cumulative Affliction (Dazed,Compelled, Controlled), Resisted and Overcome by Will,Extra: merge with subject, Subtle • 1 point + 5 points per rank)"
+        "notes": "Similar to Mind Control, except your physical body disappears, merging with the subject, while your mind controls their body. Physical harm to the subject has no effect on you-although you can no longer control an incapacitated subject. Mental attacks affect your mind rather than the subject's. Possession limited to having to touch the subject has a -2 modifier, while requiring eye contact is a -1 modifier. (Perception Ranged Cumulative Affliction (Dazed,Compelled, Controlled), Resisted and Overcome by Will,Extra: merge with subject, Subtle • 1 point + 5 points per rank)"
       },
       {
         "id": "prof_mental_powers_psychic_vampirism",
@@ -11810,7 +11810,7 @@ export const POWER_PROFILES_LIBRARY = [
             "description": "Energizing Only"
           }
         ],
-        "notes": "If the series features lethal damage, then draining targets past incapacitated leaves them dying. Psychic Vampirism able to heal Damage conditions as well as fatigue has a +1 modifier (removing the Limit on Healing). Psychic Vampirism requiring you touch the target has a -2 modifier. (Perception Ranged Cumulative Affliction (Fatigued, Exhausted, Incapacitated), Resisted and Overcome by Will, Subtle, Linked to Healing, Subtle, Limited (Energizing Only), Limited (Self Only) • 2 points + 4 points)"
+        "notes": "You mentally drain the target's vitality to replenish your own. Some Psychic Vampirism is also Insidious; the target does not feel or notice its effects until incapacitated by it. If the series features lethal damage, then draining targets past incapacitated leaves them dying. Psychic Vampirism able to heal Damage conditions as well as fatigue has a +1 modifier (removing the Limit on Healing). Psychic Vampirism requiring you touch the target has a -2 modifier. (Perception Ranged Cumulative Affliction (Fatigued, Exhausted, Incapacitated), Resisted and Overcome by Will, Subtle, Linked to Healing, Subtle, Limited (Energizing Only), Limited (Self Only) • 2 points + 4 points)"
       },
       {
         "id": "prof_mental_powers_psychic_weapon",
@@ -11823,7 +11823,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Mental, Will",
         "extras": [],
         "flaws": [],
-        "notes": "energy. It attacks the target's mind or spirit rather than body, ignoring physical protection, but also having no effect on physical objects. Use your close combat modifier to attack with your Psychic Weapon against a difficulty based on your target's Parry defense. (Damage, Alternate Resistance (Will) • 2 points per rank)"
+        "notes": "You form a close combat weapon out of visible psychic energy. It attacks the target's mind or spirit rather than body, ignoring physical protection, but also having no effect on physical objects. Use your close combat modifier to attack with your Psychic Weapon against a difficulty based on your target's Parry defense. (Damage, Alternate Resistance (Will) • 2 points per rank)"
       },
       {
         "id": "prof_mental_powers_mental_invisibility",
@@ -11875,7 +11875,7 @@ export const POWER_PROFILES_LIBRARY = [
             "description": "Mental Powers"
           }
         ],
-        "notes": "from outside influences. Because it is sustained, you can perform power stunts with your mind shield, including setting a Mind Trap (following) or \"extending\" your shield, an Alternate Effect applying Area and Affects Others, granting a lesser Will bonus to others over an area. (Enhanced Defense (Will), Impervious, Limited to Mental Powers, Sustained • 1 point per rank)"
+        "notes": "You possess a mental \"shield\" protecting your mind from outside influences. Because it is sustained, you can perform power stunts with your mind shield, including setting a Mind Trap (following) or \"extending\" your shield, an Alternate Effect applying Area and Affects Others, granting a lesser Will bonus to others over an area. (Enhanced Defense (Will), Impervious, Limited to Mental Powers, Sustained • 1 point per rank)"
       },
       {
         "id": "prof_mental_powers_mind_trap",
@@ -11905,7 +11905,7 @@ export const POWER_PROFILES_LIBRARY = [
             "description": "the source of the mental power"
           }
         ],
-        "notes": "used on you willingly (where you choose to forego your resistance check) do not trigger the Mind Trap. Some Mind Traps react with attacks other than Mental Blast, substitute the appropriate offensive mental power for the Damage effect in the Mind Trap power. (Perception Ranged Damage, Alternate Resistance (Will), Reaction (When you make a Will resistance check against a mental power), Subtle, Limited to the source of the mental power • 1 point + 6 points per rank)"
+        "notes": "Anyone intruding in your mind is in for a nasty shock! You instinctively lash out with a Mental Blast against anyone contacting your mind against your will. Because the power's reaction is making a Will check, mental powers used on you willingly (where you choose to forego your resistance check) do not trigger the Mind Trap. Some Mind Traps react with attacks other than Mental Blast, substitute the appropriate offensive mental power for the Damage effect in the Mind Trap power. (Perception Ranged Damage, Alternate Resistance (Will), Reaction (When you make a Will resistance check against a mental power), Subtle, Limited to the source of the mental power • 1 point + 6 points per rank)"
       },
       {
         "id": "prof_mental_powers_predictive_defense",
@@ -11927,7 +11927,7 @@ export const POWER_PROFILES_LIBRARY = [
             "description": "not against opponents Immune to Mental Powers, -2 points"
           }
         ],
-        "notes": "your active defenses. The value of the Quirk is based on opponents immune to mental powers being relatively rare. If they're particularly common, the Quirk may qualify as a Limit. If they're less common, treat it as an occasional Power Loss complication. (Enhanced Defenses (Dodge and Parry), Quirk (not against opponents Immune to Mental Powers, -2 points) • 2 points for the first 2 ranks, +2 points per)"
+        "notes": "You can telepathically \"read\" opponents sufficiently to anticipate and avoid their attacks, giving you a bonus to your active defenses. The value of the Quirk is based on opponents immune to mental powers being relatively rare. If they're particularly common, the Quirk may qualify as a Limit. If they're less common, treat it as an occasional Power Loss complication. (Enhanced Defenses (Dodge and Parry), Quirk (not against opponents Immune to Mental Powers, -2 points) • 2 points for the first 2 ranks, +2 points per)"
       },
       {
         "id": "prof_mental_powers_astral_projection",
@@ -11940,7 +11940,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Mental, Visual, Aural, and Mental",
         "extras": [],
         "flaws": [],
-        "notes": "the Dimensional modifier to it (Deluxe Hero's Handbook, page 192) based on the number of dimensions. You can use perception ranged effects while in your astral form and be affected by visual, aural, and mental sensory effects. (Remote Sensing (Visual, Aural, and Mental), Side-Effect (physical body is defenseless and immobile, -2) • 2 points per rank)"
+        "notes": "You can separate your astral body-a vessel of your mind and spirit-from your physical body. Your astral form is largely undetectable: subjects you observe may sense a \"presence\" with an Insight check (DC 10 + your effect rank). It is unimpeded by physical barriers and can move anywhere within your range in an instant as a move action. Rank 21 is sufficient for your astral form to go anywhere on Earth. If your astral form can also visit other dimensions, apply the Dimensional modifier to it (Deluxe Hero's Handbook, page 192) based on the number of dimensions. You can use perception ranged effects while in your astral form and be affected by visual, aural, and mental sensory effects. (Remote Sensing (Visual, Aural, and Mental), Side-Effect (physical body is defenseless and immobile, -2) • 2 points per rank)"
       },
       {
         "id": "prof_mental_powers_aura_reading",
@@ -11953,7 +11953,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Mental, Psionic",
         "extras": [],
         "flaws": [],
-        "notes": "emotional state and physical health. More capable aura readers may have Acute or Analytical effects to gain much more detail. At the GM's discretion, successfully reading a subject's aura grants a circumstance modifier for interaction skills checks, particularly Insight. (Senses 3 (Detect Emotional and Physical State, Ranged), visual and mental • 4 points)"
+        "notes": "You can perceive the psychic auras of other minds, visible as faint haloes of colored light around their physical forms. A subject's aura gives you a general idea as to their emotional state and physical health. More capable aura readers may have Acute or Analytical effects to gain much more detail. At the GM's discretion, successfully reading a subject's aura grants a circumstance modifier for interaction skills checks, particularly Insight. (Senses 3 (Detect Emotional and Physical State, Ranged), visual and mental • 4 points)"
       },
       {
         "id": "prof_mental_powers_clairvoyance",
@@ -12005,7 +12005,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Mental, Detect Emotion, Acute, Ranged",
         "extras": [],
         "flaws": [],
-        "notes": "well, giving them even more information. In situations where subject attempt to conceal their true feelings, the GM may call for an opposed Insight check, giving the empath a circumstance bonus for a successful initial Insight check. (Senses 3 (Detect Emotion, Acute, Ranged) • 3 points per rank)"
+        "notes": "You can sense the emotions (but not thoughts) of other minds. Use the Insight skill in place of Perception with this sensory effect. As with Aura Reading, a successful use of Empathy may grant you a circumstance bonus on other interaction skill checks, including other uses of Insight. More capable empaths may have the Analytical effect as well, giving them even more information. In situations where subject attempt to conceal their true feelings, the GM may call for an opposed Insight check, giving the empath a circumstance bonus for a successful initial Insight check. (Senses 3 (Detect Emotion, Acute, Ranged) • 3 points per rank)"
       },
       {
         "id": "prof_mental_powers_knowledge_transplant",
@@ -12035,7 +12035,7 @@ export const POWER_PROFILES_LIBRARY = [
             "description": "Intellect skills"
           }
         ],
-        "notes": "else. The \"borrowed\" skill lasts as long as you maintain the mental connection. Two ranks is sufficient to grant up to 20 ranks in any one skill, or temporarily \"teach\" a whole team a new language, for example. This power makes a useful power stunt for telepath as well. (Variable (Enhanced Skills and Languages), Affects Others, Free Action, Limited to Intellect skills, Limited to subject's skill rank, Perception Range, SenseDependent (mental contact with subjects) • 9 points per rank)"
+        "notes": "You can \"borrow\" a skill from someone else's mind, temporarily using it as your own or granting it to someone else. The \"borrowed\" skill lasts as long as you maintain the mental connection. Two ranks is sufficient to grant up to 20 ranks in any one skill, or temporarily \"teach\" a whole team a new language, for example. This power makes a useful power stunt for telepath as well. (Variable (Enhanced Skills and Languages), Affects Others, Free Action, Limited to Intellect skills, Limited to subject's skill rank, Perception Range, SenseDependent (mental contact with subjects) • 9 points per rank)"
       },
       {
         "id": "prof_mental_powers_mental_communication",
@@ -12048,7 +12048,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Mental, Mental",
         "extras": [],
         "flaws": [],
-        "notes": "Since Communication is a free action to use and maintain, you can set up a Mental Communication \"network\" with multiple minds in a single round, so long as they are all within your range, functioning as a \"mental switchboard\" for group telepathic communication. (Communication (Mental) • 4 points per rank)"
+        "notes": "You can communicate directly, mind-to-mind, with anyone in your range. The \"receiver\" for your communication is having a mind (see Mental Descriptors). Mindless subjects and those Immune to Mental Powers cannot receive your communication. Unlike Mind Reading (following) Mental Communication is language-dependent; you must share a language in common with your subject in order to communicate unless you also have a power like Telepathic Translation. Since Communication is a free action to use and maintain, you can set up a Mental Communication \"network\" with multiple minds in a single round, so long as they are all within your range, functioning as a \"mental switchboard\" for group telepathic communication. (Communication (Mental) • 4 points per rank)"
       },
       {
         "id": "prof_mental_powers_mental_awareness",
@@ -12061,7 +12061,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Mental, Awareness, Mental",
         "extras": [],
         "flaws": [],
-        "notes": "You are aware of mental sensory effects used in your presence, so long as they are not Subtle. Those lacking mental awareness do not notice mental sensory effects unless they are the subject. Apply other Senses effects to extend the capabilities of your Mental Awareness. (Senses 1 (Awareness, Mental) • 1 point 130 130 MENTAL POWERS MENTAL POWERS MUTANTS & MASTERMINDS POWER PROFILES MUTANTS & MASTERMINDS POWER PROFILES)"
+        "notes": "You are aware of mental sensory effects used in your presence, so long as they are not Subtle. Those lacking mental awareness do not notice mental sensory effects unless they are the subject. Apply other Senses effects to extend the capabilities of your Mental Awareness. (Senses 1 (Awareness, Mental) • 1 point)"
       },
       {
         "id": "prof_mental_powers_minds",
@@ -12105,7 +12105,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Meta, Power",
         "extras": [],
         "flaws": [],
-        "notes": "viduals and, with the Accurate modifier, you can target perception ranged effects at minds you detect. Your Perception checks for Mental Detection still have the normal -1 per 10 feet between you and the subject, unless the sense is also Extended. (Senses 5 (Detect Minds, Ranged, Acute, Accurate) • 5 points)"
+        "notes": "You can detect the presence of other minds, whether you can perceive them with your physical senses or not. With the Acute modifier you can distinguish and identify individuals and, with the Accurate modifier, you can target perception ranged effects at minds you detect. Your Perception checks for Mental Detection still have the normal -1 per 10 feet between you and the subject, unless the sense is also Extended. (Senses 5 (Detect Minds, Ranged, Acute, Accurate) • 5 points)"
       },
       {
         "id": "prof_meta_powers_mind_reading",
@@ -12190,7 +12190,7 @@ export const POWER_PROFILES_LIBRARY = [
             "description": "Choice of Powers"
           }
         ],
-        "notes": "or in response to a foe's actions. Some characters may have a Power Loss complication associated with their Nemesis power: if they face more than one opponent at a time, their Nemesis power does not work at all! (Variable (Powers Suited to an Opponent), Move Action, Limited Choice of Powers • 7 points per rank)"
+        "notes": "Nemesis is an adaptive power, granting you whatever traits you need to overcome a particular opponent. When you designate an opponent as the power's catalyst and exercise a moment's concentration, your Nemesis power re-allocates, granting you traits designed to target that opponent's weaknesses and protect you from their strengths. Apply the Free Action or Reaction modifiers to allow you to re-allocate your Nemesis power more quickly or in response to a foe's actions. Some characters may have a Power Loss complication associated with their Nemesis power: if they face more than one opponent at a time, their Nemesis power does not work at all! (Variable (Powers Suited to an Opponent), Move Action, Limited Choice of Powers • 7 points per rank)"
       },
       {
         "id": "prof_meta_powers_power_control",
@@ -12220,7 +12220,7 @@ export const POWER_PROFILES_LIBRARY = [
             "description": "Degree"
           }
         ],
-        "notes": "example, you can turn on a target's laser eye-beams, but not control where the target is looking. On the other hand, you can control a target's indirect or perception-ranged powers to affect anything in their normal range (unless the target chooses to block off the power's targeting senses). (Perception Ranged Cumulative Affliction (Resisted and Overcome by Will; Controlled), Limited Degree (third only), Limited to Controlling Target's Powers • 2 points per rank)"
+        "notes": "You can exert control over a subject's powers, essentially causing them to work at your command. You can turn a power on or off or change how it is being used within the power's normal parameters. You do not control the subject's body, however, so targets retain their normal actions and your ability to target certain powers may be limited. For example, you can turn on a target's laser eye-beams, but not control where the target is looking. On the other hand, you can control a target's indirect or perception-ranged powers to affect anything in their normal range (unless the target chooses to block off the power's targeting senses). (Perception Ranged Cumulative Affliction (Resisted and Overcome by Will; Controlled), Limited Degree (third only), Limited to Controlling Target's Powers • 2 points per rank)"
       },
       {
         "id": "prof_meta_powers_power_nullification",
@@ -12233,7 +12233,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Meta, Power",
         "extras": [],
         "flaws": [],
-        "notes": "power of a particular descriptor (see Nullify, Deluxe Hero's Handbook, page 173). You can apply the Broad extra to allow for broader power descriptors, and the Simultaneous extra for the power to nullify all effects of its descriptor at once. (Nullify • 1 point per rank For a Nullification Field, apply the Area, Concentration, and Simultaneous modifiers. You create an area in which all power effects of a particular descriptor are nullified so 133 133 META POWERS META POWERS MUTANTS & MASTERMINDS POWER PROFILES MUTANTS & MASTERMINDS POWER PROFILES long as you concentrate. Apply the Sustained modifier if maintaining the Nullification Field is a free action for you, and Broad if it affects a broad descriptor like mutant or technological powers. Note that you can create a Nullification Field anywhere within normal range; if you are limited to creating the field in a radius around yourself, apply the Close Range flaw.)"
+        "notes": "You shut down a target's powers, rendering them unusable until the target overcomes your Power Nullification effect. By default, Power Nullification affects any one power of a particular descriptor (see Nullify, Deluxe Hero's Handbook, page 173). You can apply the Broad extra to allow for broader power descriptors, and the Simultaneous extra for the power to nullify all effects of its descriptor at once. (Nullify • 1 point per rank For a Nullification Field, apply the Area, Concentration, and Simultaneous modifiers. You create an area in which all power effects of a particular descriptor are nullified so long as you concentrate. Apply the Sustained modifier if maintaining the Nullification Field is a free action for you, and Broad if it affects a broad descriptor like mutant or technological powers. Note that you can create a Nullification Field anywhere within normal range; if you are limited to creating the field in a radius around yourself, apply the Close Range flaw.)"
       },
       {
         "id": "prof_meta_powers_nullification_field",
@@ -12254,7 +12254,7 @@ export const POWER_PROFILES_LIBRARY = [
           }
         ],
         "flaws": [],
-        "notes": "and Broad if it affects a broad descriptor like mutant or technological powers. Note that you can create a Nullification Field anywhere within normal range; if you are limited to creating the field in a radius around yourself, apply the Close Range flaw. (Burst Area Nullify, Concentration, Simultaneous • 4 points per rank)"
+        "notes": "Long as you concentrate. Apply the Sustained modifier if maintaining the Nullification Field is a free action for you, and Broad if it affects a broad descriptor like mutant or technological powers. Note that you can create a Nullification Field anywhere within normal range; if you are limited to creating the field in a radius around yourself, apply the Close Range flaw. (Burst Area Nullify, Concentration, Simultaneous • 4 points per rank)"
       },
       {
         "id": "prof_meta_powers_power_theft",
@@ -12291,7 +12291,7 @@ export const POWER_PROFILES_LIBRARY = [
             "isFlat": false
           }
         ],
-        "notes": "recovers the weakened power ranks. Certain complications may be associated with Power Theft, particularly taking on some of the target's own complications, either psychological or physical. See MetaComplications for details. (Cumulative Affliction (Resisted and Overcome by Will; Powers Impaired, Powers Disabled, TransformedPowerless); Variable (Powers Lost to Affliction), Free Action, Fades (as target recovers), Limited to Affliction Targets • 9 points per rank)"
+        "notes": "You \"steal\" a target's powers and gain the ability to use those powers yourself on a temporary basis. The standard form of Power Theft requires you to touch the target. You gain powers in direct proportion to the amount the target's powers are weakened, then lose them as the target recovers the weakened power ranks. Certain complications may be associated with Power Theft, particularly taking on some of the target's own complications, either psychological or physical. See MetaComplications for details. (Cumulative Affliction (Resisted and Overcome by Will; Powers Impaired, Powers Disabled, TransformedPowerless); Variable (Powers Lost to Affliction), Free Action, Fades (as target recovers), Limited to Affliction Targets • 9 points per rank)"
       },
       {
         "id": "prof_meta_powers_adaptation",
@@ -12313,7 +12313,7 @@ export const POWER_PROFILES_LIBRARY = [
             "description": "Choice of Powers"
           }
         ],
-        "notes": "you since it is an opponent rather than an environment. If you have the combined abilities of Adaptation and Nemesis, just remove the No Offensive Powers Limit from this power, increasing cost to 9 points per rank and allowing you to adapt to both foes and environments. (Variable (Powers Suited to a Challenge), Reaction, Limited Choice of Powers, Limited (No Offensive Powers) • 8 points per rank)"
+        "notes": "Pressure and Senses (Darkvision). However, when you encounter a great white shark, your adaptation does not assist you since it is an opponent rather than an environment. If you have the combined abilities of Adaptation and Nemesis, just remove the No Offensive Powers Limit from this power, increasing cost to 9 points per rank and allowing you to adapt to both foes and environments. (Variable (Powers Suited to a Challenge), Reaction, Limited Choice of Powers, Limited (No Offensive Powers) • 8 points per rank)"
       },
       {
         "id": "prof_meta_powers_adaptive_immunity",
@@ -12335,7 +12335,7 @@ export const POWER_PROFILES_LIBRARY = [
             "description": "effects you have experienced at least once"
           }
         ],
-        "notes": "you have become immune; the GM may require a \"reset\" to your power from time to time, effectively wiping out the list and starting over, as a Power Loss complication. This degree of Immunity may also be limited to GM-controlled characters, at the Gamemaster's discretion. (Immunity 140 (Fortitude, Toughness, and Will Effects), Limited to effects you have experienced at least once • 70 points)"
+        "notes": "You cannot be defeated the same way twice: once you have suffered a particular effect or hazard, you adapt, becoming immune to it. This power is fairly specific, so if you adapt to one character's energy blast Damage, it does not necessarily make you immune to all energy blasts, unless they are Damage with the same descriptors. As in all cases involving effect descriptors, the GM adjudicates the exact applications. Keep track of the various effects to which you have become immune; the GM may require a \"reset\" to your power from time to time, effectively wiping out the list and starting over, as a Power Loss complication. This degree of Immunity may also be limited to GM-controlled characters, at the Gamemaster's discretion. (Immunity 140 (Fortitude, Toughness, and Will Effects), Limited to effects you have experienced at least once • 70 points)"
       },
       {
         "id": "prof_meta_powers_power_defense",
@@ -12357,7 +12357,7 @@ export const POWER_PROFILES_LIBRARY = [
             "description": "Self"
           }
         ],
-        "notes": "resistance check against the effect (if any). Power Defense normally applies to any effect of a particular broad descriptor. The GM may require an additional +1 extra if it protects you from all power effects, regardless of descriptor. (Nullify, Broad, Reaction, Close Range, Limited to Self • 3 points per rank)"
+        "notes": "You have an automatic resistance to powers used on or against you. When targeted by an effect covered by your Power Defense, first make an opposed check of your power rank against the attacking effect's rank. If you win, the attacking effect is countered and does not affect you. If you lose the opposed check, you still get your normal resistance check against the effect (if any). Power Defense normally applies to any effect of a particular broad descriptor. The GM may require an additional +1 extra if it protects you from all power effects, regardless of descriptor. (Nullify, Broad, Reaction, Close Range, Limited to Self • 3 points per rank)"
       },
       {
         "id": "prof_meta_powers_power_immunity",
@@ -12370,7 +12370,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Meta, Power",
         "extras": [],
         "flaws": [],
-        "notes": "they simply have no effect when used on or against you. The cost of Power Immunity is based on how common the power effect or descriptor is, as designated by the GM based on the series. See Immunity on page 165 of the Deluxe Hero's Handbook for examples. (Immunity 2, 5, 10, or 20 • 1 point per rank 134 134 META POWERS META POWERS MUTANTS & MASTERMINDS POWER PROFILES MUTANTS & MASTERMINDS POWER PROFILES)"
+        "notes": "You are immune to certain power effects or descriptorsthey simply have no effect when used on or against you. The cost of Power Immunity is based on how common the power effect or descriptor is, as designated by the GM based on the series. See Immunity on page 165 of the Deluxe Hero's Handbook for examples. (Immunity 2, 5, 10, or 20 • 1 point per rank)"
       },
       {
         "id": "prof_meta_powers_power_seeker",
@@ -12392,7 +12392,7 @@ export const POWER_PROFILES_LIBRARY = [
             "description": "the Nearest Power Source"
           }
         ],
-        "notes": "their other meta-powers, while other Power-Seekers hunt or track particular types of foes, from demons to aliens. A Power-Seeker may even have an Uncontrolled version of this power, \"jumping\" to a particular power source automatically, with no control over when it happens. (Teleport, Accurate, Extended, Limited to the Nearest Power Source • 3 points per rank)"
+        "notes": "You have the ability to \"lock on\" to the nearest source of particular powers within your range and instantly transport yourself to that location. Some use Power-Seeker as predators, finding catalysts for their other meta-powers, while other Power-Seekers hunt or track particular types of foes, from demons to aliens. A Power-Seeker may even have an Uncontrolled version of this power, \"jumping\" to a particular power source automatically, with no control over when it happens. (Teleport, Accurate, Extended, Limited to the Nearest Power Source • 3 points per rank)"
       },
       {
         "id": "prof_meta_powers_power_detection",
@@ -12435,7 +12435,7 @@ export const POWER_PROFILES_LIBRARY = [
             "description": "Others"
           }
         ],
-        "notes": "you must touch the subject you wish to enhance and take a standard action to use your power. Apply the Ranged or Perception Ranged modifiers if you can enhance subjects at a greater distance, and the Move Action or Free Action modifiers if you can do so faster. (Variable (Enhanced Power Ranks and Modifiers), Affects Others, Limited to Others • 7 points per rank)"
+        "notes": "You can enhance the powers of others. You essentially have a pool of power points you can allocate to increase effect ranks, add extras, and so forth. In the default version, you must touch the subject you wish to enhance and take a standard action to use your power. Apply the Ranged or Perception Ranged modifiers if you can enhance subjects at a greater distance, and the Move Action or Free Action modifiers if you can do so faster. (Variable (Enhanced Power Ranks and Modifiers), Affects Others, Limited to Others • 7 points per rank)"
       },
       {
         "id": "prof_meta_powers_power_mimicry",
@@ -12457,7 +12457,7 @@ export const POWER_PROFILES_LIBRARY = [
             "description": "Catalysts in Perception Range"
           }
         ],
-        "notes": "points or their power costs, whichever is less. The powers last while you sustain the Variable effect. Apply the Move Action or Free Action modifiers to allow you to re-allocate your Power Mimicry points more quickly, although you can still only do so once per round. (Variable (Powers Possessed by Catalyst), Limited to Catalysts in Perception Range • 6 points per rank)"
+        "notes": "You can duplicate the powers of your catalyst, giving yourself the ability to use the same powers with the same effects, modifiers, and ranks. Take a standard action to select a catalyst character you can perceive (or sense with an ability like Power Detection) and re-allocate your Variable points to mimic their powers, up to your available points or their power costs, whichever is less. The powers last while you sustain the Variable effect. Apply the Move Action or Free Action modifiers to allow you to re-allocate your Power Mimicry points more quickly, although you can still only do so once per round. (Variable (Powers Possessed by Catalyst), Limited to Catalysts in Perception Range • 6 points per rank)"
       },
       {
         "id": "prof_meta_powers_meta",
@@ -12592,7 +12592,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Morphing, Serial Form Traits",
         "extras": [],
         "flaws": [],
-        "notes": "form's appearance, unless you have Morph as a separate effect (again, see the Morphing Powers section). Serial Super Forms is typically Continuous, meaning the form you assume is stable unless your power is countered or you choose to change back. (Variable (Serial Form Traits), Continuous • 8 points per rank)"
+        "notes": "Time needed to assume a different form. Typically, you should assign points to a rank of Morph for your new form's appearance, unless you have Morph as a separate effect (again, see the Morphing Powers section). Serial Super Forms is typically Continuous, meaning the form you assume is stable unless your power is countered or you choose to change back. (Variable (Serial Form Traits), Continuous • 8 points per rank)"
       },
       {
         "id": "prof_morphing_powers_skill_download",
@@ -12605,7 +12605,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Morphing, Skills and Advantages",
         "extras": [],
         "flaws": [],
-        "notes": "effect is the time needed to swap out existing traits for others; apply the Move Action or Free Action modifiers in order to do it quicker. For a similar power affecting others, see Knowledge Transplant in the Mental Powers section. (Variable (Skills and Advantages) • 7 points per rank)"
+        "notes": "You have the ability to \"download\" different skills into your mind, gaining temporary ranks in a skill which you can \"swap out\". This may be a literal skill download, placing a digital \"model\" of the skill into your brain (or a connected computer), or it can represent access to the Akashic Records, race memory, or some \"universal knowledge field\". The action required for your Variable effect is the time needed to swap out existing traits for others; apply the Move Action or Free Action modifiers in order to do it quicker. For a similar power affecting others, see Knowledge Transplant in the Mental Powers section. (Variable (Skills and Advantages) • 7 points per rank)"
       },
       {
         "id": "prof_morphing_powers_skill_mimicry",
@@ -12627,7 +12627,7 @@ export const POWER_PROFILES_LIBRARY = [
             "description": "Traits Seen in Action"
           }
         ],
-        "notes": "icked skills are based on your own physical ability ranks, which may make you somewhat less proficient than your catalyst, but never more; if your ability rank is higher, you gain fewer skill ranks, bringing you even with your catalyst's total skill bonus. (Variable (Physical Skills and Advantages), Free Action, Limited to Traits Seen in Action, Limited to Catalyst's Total Bonus • 7 points per rank)"
+        "notes": "You can duplicate the physical skills of others simply by seeing them performed once. For example, after watching a high-wire aerialist, you could perform the same type of acrobatics, and after observing a master martial artist, you could fight in their style at their level of skill. Your mimicked skills are based on your own physical ability ranks, which may make you somewhat less proficient than your catalyst, but never more; if your ability rank is higher, you gain fewer skill ranks, bringing you even with your catalyst's total skill bonus. (Variable (Physical Skills and Advantages), Free Action, Limited to Traits Seen in Action, Limited to Catalyst's Total Bonus • 7 points per rank)"
       },
       {
         "id": "prof_morphing_powers_baneful_transformation",
@@ -12648,7 +12648,7 @@ export const POWER_PROFILES_LIBRARY = [
           }
         ],
         "flaws": [],
-        "notes": "subject is fully transformed. If you can choose a range of baneful transformations, apply the Variable Descriptor modifier; +1 point for any related group of forms like animals or inanimate materials, +2 points for any baneful form suiting your power's other descriptors. (Ranged Cumulative Affliction (Resisted and Overcome by Will; Hindered, Stunned, Transformed) • 3 points per rank)"
+        "notes": "You transform a target of your choice into some harmless or helpless form, such as turning them to stone or a tiny animal. Certain transformations may call for different lower degree conditions, while others have Limited Degree (Third Only), having no effect unless or until the subject is fully transformed. If you can choose a range of baneful transformations, apply the Variable Descriptor modifier; +1 point for any related group of forms like animals or inanimate materials, +2 points for any baneful form suiting your power's other descriptors. (Ranged Cumulative Affliction (Resisted and Overcome by Will; Hindered, Stunned, Transformed) • 3 points per rank)"
       },
       {
         "id": "prof_morphing_powers_natural_weapons",
@@ -12696,7 +12696,7 @@ export const POWER_PROFILES_LIBRARY = [
             "description": "Throwing"
           }
         ],
-        "notes": "138 138 MORPHING POWERS MORPHING POWERS MUTANTS & MASTERMINDS POWER PROFILES MUTANTS & MASTERMINDS POWER PROFILES target. Add your power's rank to your Strength to fling the object and for determining its effective damage, but not lifting rank. (Enhanced Strength, Limited to Throwing • 1 point per rank)"
+        "notes": "Using your elastic arm or body, you can create a slingshot to propel an object (or even a teammate) at a target. Add your power's rank to your Strength to fling the object and for determining its effective damage, but not lifting rank. (Enhanced Strength, Limited to Throwing • 1 point per rank)"
       },
       {
         "id": "prof_morphing_powers_bounceback_attack",
@@ -12709,7 +12709,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Morphing, Metamorphic",
         "extras": [],
         "flaws": [],
-        "notes": "With a moment's concentration, you can cause a physical attack to rebound off your malleable form to hit the attacker. (Deflect, Reflect, Close Range • 1 point per rank)"
+        "notes": "A moment's concentration, you can cause a physical attack to rebound off your malleable form to hit the attacker. (Deflect, Reflect, Close Range • 1 point per rank)"
       },
       {
         "id": "prof_morphing_powers_metamorphic_healing",
@@ -12731,7 +12731,7 @@ export const POWER_PROFILES_LIBRARY = [
             "description": "Self"
           }
         ],
-        "notes": "With a moment's concentration, you can shift your body to repair damage done to it. (Healing, Limited to Self • 1 point per rank Some may have largely unconscious metamorphic healing abilities, which work of their own volition, but more slowly than healing damage all at once.)"
+        "notes": "A moment's concentration, you can shift your body to repair damage done to it. (Healing, Limited to Self • 1 point per rank Some may have largely unconscious metamorphic healing abilities, which work of their own volition, but more slowly than healing damage all at once.)"
       },
       {
         "id": "prof_morphing_powers_metamorphic_regeneration",
@@ -12744,7 +12744,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Morphing, Metamorphic",
         "extras": [],
         "flaws": [],
-        "notes": "per rank Some may have largely unconscious metamorphic healing abilities, which work of their own volition, but more slowly than healing damage all at once. (Regeneration • 1 point per rank)"
+        "notes": "Per rank Some may have largely unconscious metamorphic healing abilities, which work of their own volition, but more slowly than healing damage all at once. (Regeneration • 1 point per rank)"
       },
       {
         "id": "prof_morphing_powers_flat_form",
@@ -12818,7 +12818,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Morphing, Metamorphic",
         "extras": [],
         "flaws": [],
-        "notes": "parachute, allowing you to glide from a height, possibly carrying your Strength rank in weight slung beneath you. If you're solely limited to a parachute-like form (falling almost straight down, with little control over your direction), change Flight to the Movement 1 (Safe Fall) effect. (Flight, Gliding • 1 point per rank)"
+        "notes": "You stretch and flatten out to become a living glider or parachute, allowing you to glide from a height, possibly carrying your Strength rank in weight slung beneath you. If you're solely limited to a parachute-like form (falling almost straight down, with little control over your direction), change Flight to the Movement 1 (Safe Fall) effect. (Flight, Gliding • 1 point per rank)"
       },
       {
         "id": "prof_morphing_powers_living_trampoline",
@@ -12839,7 +12839,7 @@ export const POWER_PROFILES_LIBRARY = [
           }
         ],
         "flaws": [],
-        "notes": "break someone's fall. Note that Insubstantial 1 includes a version of this ability, allowing you to subtract your Toughness from the target's falling damage, with you and the target resisting the remaining damage rank (if any). This version eliminates any chance of damage. (Movement 1 (Safe Fall), Affects Others • 3 points)"
+        "notes": "You morph and stretch into a living trampoline, able to break someone's fall. Note that Insubstantial 1 includes a version of this ability, allowing you to subtract your Toughness from the target's falling damage, with you and the target resisting the remaining damage rank (if any). This version eliminates any chance of damage. (Movement 1 (Safe Fall), Affects Others • 3 points)"
       },
       {
         "id": "prof_morphing_powers_stretching_stride",
@@ -12878,7 +12878,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Morphing, Metamorphic",
         "extras": [],
         "flaws": [],
-        "notes": "You transform to gain wings (possibly modifying your arms), allowing you to fly. (Flight, Wings • 1 point per rank 139 139 MORPHING POWERS MORPHING POWERS MUTANTS & MASTERMINDS POWER PROFILES MUTANTS & MASTERMINDS POWER PROFILES)"
+        "notes": "You transform to gain wings (possibly modifying your arms), allowing you to fly. (Flight, Wings • 1 point per rank)"
       },
       {
         "id": "prof_morphing_powers_extended_eyes",
@@ -12891,7 +12891,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Morphing, Visual",
         "extras": [],
         "flaws": [],
-        "notes": "over obstacles while the rest of you remains hidden. This power is rarely more than 2-3 ranks, enough range to extend well over 100 feet. You may also be able to extend your ears in a similar fashion (adding 1 point per rank to the cost). (Remote Sensing (Visual) • 2 points per rank)"
+        "notes": "You extend your eyes out to peer around corners or over obstacles while the rest of you remains hidden. This power is rarely more than 2-3 ranks, enough range to extend well over 100 feet. You may also be able to extend your ears in a similar fashion (adding 1 point per rank to the cost). (Remote Sensing (Visual) • 2 points per rank)"
       },
       {
         "id": "prof_morphing_powers_fingertip_lockpick",
@@ -12917,7 +12917,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Morphing, Up to eight minions",
         "extras": [],
         "flaws": [],
-        "notes": "summoning of minions, while the need for bystanders to transform is largely balanced by the potential complications this poses for the heroes. If you wish, apply a Limit modifier to the power to reflect its need for \"raw materials\". (Summon, Controlled, Horde, Multiple Minions 3 (up to eight minions) • 10 points per rank)"
+        "notes": "You transform bystanders into minions to serve you. This is almost universally a villainous power, given how it usurps the targets' free will and places them in danger. Given that, the transformation of bystanders is a descriptor for the Summon effect rather than focusing on the transformation itself. The key effect of the power is the summoning of minions, while the need for bystanders to transform is largely balanced by the potential complications this poses for the heroes. If you wish, apply a Limit modifier to the power to reflect its need for \"raw materials\". (Summon, Controlled, Horde, Multiple Minions 3 (up to eight minions) • 10 points per rank)"
       },
       {
         "id": "prof_morphing_powers_shapeshift",
@@ -12930,7 +12930,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Morphing, Metamorphic",
         "extras": [],
         "flaws": [],
-        "notes": "the character only changes form outside of action time, typically between scenes. This might reflect a kind of \"form change\" involving reconfiguring components of a machine, for example, or a similar \"refit\" that has to take place in a workshop or lab. (Variable (assumed forms, allocate 5 power points per rank) • 7 points per rank)"
+        "notes": "Options. This is generally a 1-point Quirk. Slow: The opposite of the Action extra, this flaw means the character only changes form outside of action time, typically between scenes. This might reflect a kind of \"form change\" involving reconfiguring components of a machine, for example, or a similar \"refit\" that has to take place in a workshop or lab. (Variable (assumed forms, allocate 5 power points per rank) • 7 points per rank)"
       },
       {
         "id": "prof_morphing_powers_form",
@@ -13047,7 +13047,7 @@ export const POWER_PROFILES_LIBRARY = [
           }
         ],
         "flaws": [],
-        "notes": "option (see the Illusion Powers section) Phytotoxins can cause hallucinations as one of their conditions. This power requires touching the target by default, if you can poison a target at a distance, apply the Ranged modifier. (Affliction (Resisted and Overcome by Fortitude; Impaired, Disabled, Paralyzed), Secondary Effect • 2 points)"
+        "notes": "You can produce or mimic the effects of plant-based poison. Different phytotoxins may cause different conditions; if you have the power to produce a wide range of toxins, you may have different Alternate Effects, or apply the Variable Conditions modifier (see the Illusion Powers section). For a deadly toxin, substitute Weaken Stamina for the Affliction effect. If you use the Illusions as Affliction option (see the Illusion Powers section) Phytotoxins can cause hallucinations as one of their conditions. This power requires touching the target by default, if you can poison a target at a distance, apply the Ranged modifier. (Affliction (Resisted and Overcome by Fortitude; Impaired, Disabled, Paralyzed), Secondary Effect • 2 points)"
       },
       {
         "id": "prof_plant_powers_pollen_cloud",
@@ -13068,7 +13068,7 @@ export const POWER_PROFILES_LIBRARY = [
           }
         ],
         "flaws": [],
-        "notes": "you produce a pollen cloud in all directions around you. If you can create a cloud at a distance (hurling a pod that bursts open on target, for example) apply the Ranged modifier. If you cause plants near or around the targets to emit the cloud, apply the Ranged and Indirect modifiers. (Cloud Area Affliction (Resisted and Overcome by Fortitude; Fatigued, Exhausted, Incapacitated) • 2 points)"
+        "notes": "You release a cloud of plant-based pollen or spores, creating a biological reaction in your targets. As with Phytotoxin (previously) different combinations of pollens or spores can cause different conditions. A strong pollen cloud may have the Cumulative or even Progressive modifiers. By default, you produce a pollen cloud in all directions around you. If you can create a cloud at a distance (hurling a pod that bursts open on target, for example) apply the Ranged modifier. If you cause plants near or around the targets to emit the cloud, apply the Ranged and Indirect modifiers. (Cloud Area Affliction (Resisted and Overcome by Fortitude; Fatigued, Exhausted, Incapacitated) • 2 points)"
       },
       {
         "id": "prof_plant_powers_sap_snare",
@@ -13098,7 +13098,7 @@ export const POWER_PROFILES_LIBRARY = [
             "description": "Degree"
           }
         ],
-        "notes": "trap multiple targets, apply the Burst Area modifier to the power, increasing cost by 1 per rank. If you cause plants near or around the target to emit the snare, apply the Indirect modifier. A sticky Sap Snare may also be Contagious, trapping anyone else touching the victim. (Ranged Cumulative Affliction (Resisted by Dodge, Overcome by Damage; Hindered and Vulnerable, Defenseless and Immobilized), Extra Condition, Limited Degree • 3 points per rank)"
+        "notes": "You hurl a blob of sticky, fast-hardening sap at your target, binding them up and sticking them to any surface they are touching. If you create a Sap Snare big enough to trap multiple targets, apply the Burst Area modifier to the power, increasing cost by 1 per rank. If you cause plants near or around the target to emit the snare, apply the Indirect modifier. A sticky Sap Snare may also be Contagious, trapping anyone else touching the victim. (Ranged Cumulative Affliction (Resisted by Dodge, Overcome by Damage; Hindered and Vulnerable, Defenseless and Immobilized), Extra Condition, Limited Degree • 3 points per rank)"
       },
       {
         "id": "prof_plant_powers_tanglevines",
@@ -13128,7 +13128,7 @@ export const POWER_PROFILES_LIBRARY = [
             "description": "Degree"
           }
         ],
-        "notes": "tion to spring up from the ground, wrap around targets and hold them in place. A more precise version of this power applies the Selective modifier, allowing you to only entangle the targets you wish, excluding allies from the effect. (Ranged Burst Area Affliction (Resisted by Dodge, Overcome by Damage; Hindered and Vulnerable, Defenseless and Immobilized), Extra Condition, Indirect 3, Limited Degree • 3 points + 3 points per rank)"
+        "notes": "You cause masses of animated vines and similar vegetation to spring up from the ground, wrap around targets and hold them in place. A more precise version of this power applies the Selective modifier, allowing you to only entangle the targets you wish, excluding allies from the effect. (Ranged Burst Area Affliction (Resisted by Dodge, Overcome by Damage; Hindered and Vulnerable, Defenseless and Immobilized), Extra Condition, Indirect 3, Limited Degree • 3 points + 3 points per rank)"
       },
       {
         "id": "prof_plant_powers_thornskin",
@@ -13162,7 +13162,7 @@ export const POWER_PROFILES_LIBRARY = [
           }
         ],
         "flaws": [],
-        "notes": "ously) tipping the thorns with a plant-based poison they introduce into the targets. In this case, the Phytotoxin Affliction must also have the Ranged and Multiattack modifiers. If you cause plants near or around the targets to grow and fling thorns, apply the Indirect modifier. (Ranged Damage (piercing), Multiattack • 3 points per rank)"
+        "notes": "You can fling volleys of sharp thorns at targets. Throwing Thorns may be Linked with a power like Phytotoxin (previously) tipping the thorns with a plant-based poison they introduce into the targets. In this case, the Phytotoxin Affliction must also have the Ranged and Multiattack modifiers. If you cause plants near or around the targets to grow and fling thorns, apply the Indirect modifier. (Ranged Damage (piercing), Multiattack • 3 points per rank)"
       },
       {
         "id": "prof_plant_powers_photosynthesis",
@@ -13188,7 +13188,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Plant, Flora",
         "extras": [],
         "flaws": [],
-        "notes": "do so far faster. Extreme levels of Regrowth may incorporate ranks of Immortality, allowing you to regrow your entire body from nothing more than a single fragment, seed, or shoot. The Source modifier may be appropriate, requiring normal plant growth conditions. (Regeneration • 1 point per rank)"
+        "notes": "Like a plant, you can regenerate and regrow, except you do so far faster. Extreme levels of Regrowth may incorporate ranks of Immortality, allowing you to regrow your entire body from nothing more than a single fragment, seed, or shoot. The Source modifier may be appropriate, requiring normal plant growth conditions. (Regeneration • 1 point per rank)"
       },
       {
         "id": "prof_plant_powers_woodskin",
@@ -13317,7 +13317,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Plant, Flora",
         "extras": [],
         "flaws": [],
-        "notes": "Plant controllers often apply the Multiple Minions and Horde modifiers to this power, allowing them to animate entire groups of plants at once. While animated plants are typically minions, this power might have the Heroic modifier, removing the minion template from the animated plants. (Summon Animated Plant, Controlled, General Type • 4 points per rank)"
+        "notes": "You can grant plants mobility and limited awareness, allowing them to carry out your commands. Your power may also grow them to considerable size. Animated plants can grab and hold targets, flail with limbs, vines, or branches, or become shambling soldiers, in the case of animated trees. Plant controllers often apply the Multiple Minions and Horde modifiers to this power, allowing them to animate entire groups of plants at once. While animated plants are typically minions, this power might have the Heroic modifier, removing the minion template from the animated plants. (Summon Animated Plant, Controlled, General Type • 4 points per rank)"
       },
       {
         "id": "prof_plant_powers_green_memory",
@@ -13352,7 +13352,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Plant, Visual, auditory, tactile",
         "extras": [],
         "flaws": [],
-        "notes": "ally present, using your own sensory abilities (rather than being limited to the plants' senses). The Feedback flaw is a common one for this power, applying whenever the plants you are using as your medium are attacked or damaged. (Remote Sensing (visual, auditory, tactile), Medium (Plants) • 3 points per rank)"
+        "notes": "You can mentally link with plant-life, allowing you to perceive what is near those plants as if you were actually present, using your own sensory abilities (rather than being limited to the plants' senses). The Feedback flaw is a common one for this power, applying whenever the plants you are using as your medium are attacked or damaged. (Remote Sensing (visual, auditory, tactile), Medium (Plants) • 3 points per rank)"
       },
       {
         "id": "prof_plant_powers_plant_form",
@@ -13372,7 +13372,7 @@ export const POWER_PROFILES_LIBRARY = [
             "isFlat": true
           }
         ],
-        "notes": "(herbicides). Note that this power includes the benefits of Photosynthesis and Woodskin (under Defensive Powers). If your plant form is not your permanent state of being, make its powers sustained or include an Activation modifier (Deluxe Hero's Handbook, page 197). (Immunity 3 (Sleep, Starvation, Suffocation), Protection, Noticeable • 2 points +1 point per rank)"
+        "notes": "You combine humanoid and plant traits: retaining normal capabilities of movement, speech, and senses while having a plant's resistance to many animal needs and concerns. Some of Plant Form's benefits are definitely tradeoffs: you become immune to human diseases and toxins, for example, but vulnerable to plant diseases and toxins (herbicides). Note that this power includes the benefits of Photosynthesis and Woodskin (under Defensive Powers). If your plant form is not your permanent state of being, make its powers sustained or include an Activation modifier (Deluxe Hero's Handbook, page 197). (Immunity 3 (Sleep, Starvation, Suffocation), Protection, Noticeable • 2 points +1 point per rank)"
       },
       {
         "id": "prof_plant_powers_plant_growth",
@@ -13385,7 +13385,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Plant, Flora",
         "extras": [],
         "flaws": [],
-        "notes": "cover as well. The Movable modifier is common for this power, allowing you to continue to move the plants you create after they have grown and providing the benefits of Move Object at your rank, using the plant-life as a medium. (Create Plants, Permanent • 2 points per rank)"
+        "notes": "Under the influence of your power, plants grow from seeds or shoots to fully mature in seconds. Even massive trees can appear virtually out of nowhere. You can use this power to create an instantaneous hedge or barricade, or living pillars or bridges, shaping and directing the plants as they grow. New areas of foliage can provide concealment while larger plants like tree trunks can offer cover as well. The Movable modifier is common for this power, allowing you to continue to move the plants you create after they have grown and providing the benefits of Move Object at your rank, using the plant-life as a medium. (Create Plants, Permanent • 2 points per rank)"
       },
       {
         "id": "prof_plant_powers_speak_with_plants",
@@ -13398,7 +13398,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Plant, Plants",
         "extras": [],
         "flaws": [],
-        "notes": "fairly little of interest to say and a different sense of time compared to animals, but can relate conditions and events which occurred around them, although not in the same detail as the visions provided by Green Memory (previously). (Comprehend 2 (Plants) • 4 points)"
+        "notes": "You can communicate with ordinary plants as well as intelligent plant creatures. Non-intelligent plants have fairly little of interest to say and a different sense of time compared to animals, but can relate conditions and events which occurred around them, although not in the same detail as the visions provided by Green Memory (previously). (Comprehend 2 (Plants) • 4 points)"
       },
       {
         "id": "prof_plant_powers_warp_wood",
@@ -13411,7 +13411,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Plant, Flora",
         "extras": [],
         "flaws": [],
-        "notes": "wood, molding it into new forms. For +1 point per rank you also have the power to enliven dead wood, causing it to rapidly put forth new roots, branches, leaves, and even flowers, seeds, or fruit. The newly restored plant only live for as long as conditions allow. (Transform (wooden objects into different shapes) • 2 points per rank)"
+        "notes": "Your power over plants allows you to reshape even dead wood, molding it into new forms. For +1 point per rank you also have the power to enliven dead wood, causing it to rapidly put forth new roots, branches, leaves, and even flowers, seeds, or fruit. The newly restored plant only live for as long as conditions allow. (Transform (wooden objects into different shapes) • 2 points per rank)"
       },
       {
         "id": "prof_plant_powers_plant",
@@ -13472,7 +13472,7 @@ export const POWER_PROFILES_LIBRARY = [
             "description": "Vision"
           }
         ],
-        "notes": "target point, able to blind all nearby, or remove the Ranged modifier to create a blinding burst in all directions around you. A variant form of Blinding Radiance swaps Perception (Visual) Area for Ranged for the same cost. (Ranged Cumulative Affliction (Resisted by Dodge, Overcome by Fortitude; Impaired, Disabled, Unaware), Limited to Vision • 2 points per rank)"
+        "notes": "You emit a bright beam of visible light able to temporarily blind a target. With the Burst Area modifier, this power can also create a blinding burst of light at the target point, able to blind all nearby, or remove the Ranged modifier to create a blinding burst in all directions around you. A variant form of Blinding Radiance swaps Perception (Visual) Area for Ranged for the same cost. (Ranged Cumulative Affliction (Resisted by Dodge, Overcome by Fortitude; Impaired, Disabled, Unaware), Limited to Vision • 2 points per rank)"
       },
       {
         "id": "prof_radiation_powers_melting_heat",
@@ -13506,7 +13506,7 @@ export const POWER_PROFILES_LIBRARY = [
           }
         ],
         "flaws": [],
-        "notes": "The transformed condition is limited to not increasing the target's point total, but can otherwise change any traits. Some versions of this power are further limited by the types of transformations or mutations they can cause. (Progressive Ranged Affliction (Resisted and Overcome by Fortitude; Dazed, Stunned, Transformed) • 4 points per rank)"
+        "notes": "Bombarding a target with different radiation wavelengths, you induce rapid and massive cellular mutations. The transformed condition is limited to not increasing the target's point total, but can otherwise change any traits. Some versions of this power are further limited by the types of transformations or mutations they can cause. (Progressive Ranged Affliction (Resisted and Overcome by Fortitude; Dazed, Stunned, Transformed) • 4 points per rank)"
       },
       {
         "id": "prof_radiation_powers_radiation_blast",
@@ -13519,7 +13519,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Radiation, Radiation",
         "extras": [],
         "flaws": [],
-        "notes": "A radiation blast is normally visible as a brightly colored energy, but more realistic radiation blasts are Subtle and invisible to the naked eye. Given their ability to pass through all but the heaviest shielding, radiation blasts may be Penetrating or even Indirect. (Ranged Damage (radiation) • 2 points per rank)"
+        "notes": "You project a damaging beam of radiation at your target. A radiation blast is normally visible as a brightly colored energy, but more realistic radiation blasts are Subtle and invisible to the naked eye. Given their ability to pass through all but the heaviest shielding, radiation blasts may be Penetrating or even Indirect. (Ranged Damage (radiation) • 2 points per rank)"
       },
       {
         "id": "prof_radiation_powers_radiation_burst",
@@ -13561,7 +13561,7 @@ export const POWER_PROFILES_LIBRARY = [
           }
         ],
         "flaws": [],
-        "notes": "sity of the dosage. However, it is also potentially fatal, with dying the condition beyond incapacitated, if the sickness progresses that far. 149 149 RADIATION POWERS RADIATION POWERS MUTANTS & MASTERMINDS POWER PROFILES MUTANTS & MASTERMINDS POWER PROFILES MUTANTS & MASTERMINDS POWER PROFILES MUTANTS & MASTERMINDS POWER PROFILES (Progressive Ranged Affliction (Resisted and Overcome by Fortitude; Impaired, Disabled, Incapacitated) • 4 points per rank)"
+        "notes": "A bombardment of radiation induces cellular damage and severe illness in a living target, as compromised systems try to fight off and recover from the internal damage. More realistic radiation sickness is slow, affecting the victim only once per hour or day, depending on the intensity of the dosage. However, it is also potentially fatal, with dying the condition beyond incapacitated, if the sickness progresses that far. (Progressive Ranged Affliction (Resisted and Overcome by Fortitude; Impaired, Disabled, Incapacitated) • 4 points per rank)"
       },
       {
         "id": "prof_radiation_powers_radioactive_aura",
@@ -13574,7 +13574,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Radiation, Being touched, radiation",
         "extras": [],
         "flaws": [],
-        "notes": "able to inflict damage on anything you touch (or that touches you). Apply the Precise modifier, if you are able to control what areas of your body your aura covers, such as being able to uncover your hands to handle objects without irradiating them. (Reaction Damage (being touched, radiation) • 4 points per rank)"
+        "notes": "You surround yourself with a glowing aura of radiation able to inflict damage on anything you touch (or that touches you). Apply the Precise modifier, if you are able to control what areas of your body your aura covers, such as being able to uncover your hands to handle objects without irradiating them. (Reaction Damage (being touched, radiation) • 4 points per rank)"
       },
       {
         "id": "prof_radiation_powers_deflection_field",
@@ -13625,7 +13625,7 @@ export const POWER_PROFILES_LIBRARY = [
             "description": "Kinetic Attacks"
           }
         ],
-        "notes": "tential from a target, deflecting a projectile out of the air. In addition to the deflection benefit, with a ready action (or a hero point) this power can be used to counter kinetic effects (see Countering, Deluxe Hero's Handbook, pages 147-148). (Deflect, Limited to Kinetic Attacks • 1 point per 2 ranks)"
+        "notes": "A burst of focused radiation strips the kinetic energy potential from a target, deflecting a projectile out of the air. In addition to the deflection benefit, with a ready action (or a hero point) this power can be used to counter kinetic effects (see Countering, Deluxe Hero's Handbook, pages 147-148). (Deflect, Limited to Kinetic Attacks • 1 point per 2 ranks)"
       },
       {
         "id": "prof_radiation_powers_radiation_absorption",
@@ -13659,7 +13659,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Radiation, Nuclear",
         "extras": [],
         "flaws": [],
-        "notes": "of immunity varies from the effects of environmental or background radiation (1 rank) to a specific type of radiation (such as gamma rays, 2 ranks), a specific effect with a radiation descriptor (such as Affliction or Damage, 5 ranks), or all radiation effects (10 ranks). (Immunity 1, 2, 5, or 10 • 1, 2, 5, or 10 points)"
+        "notes": "You are immune to certain forms of radiation. The degree of immunity varies from the effects of environmental or background radiation (1 rank) to a specific type of radiation (such as gamma rays, 2 ranks), a specific effect with a radiation descriptor (such as Affliction or Damage, 5 ranks), or all radiation effects (10 ranks). (Immunity 1, 2, 5, or 10 • 1, 2, 5, or 10 points)"
       },
       {
         "id": "prof_radiation_powers_radiation_shield",
@@ -13687,7 +13687,7 @@ export const POWER_PROFILES_LIBRARY = [
           }
         ],
         "flaws": [],
-        "notes": "You can create similar, more powerful, versions of higher ranks of Radiation Immunity by applying Affects Others, Burst Area, and Sustained to those effects, essentially tripling their cost. So a Radiation Shield providing complete immunity to all radiation effects costs 30 points. (Immunity 1 (background radiation), Affects Others, Burst Area, Sustained • 3 points)"
+        "notes": "You can absorb or deflect radiation in an area around you, setting up a \"safe zone\" where those inside are protected against harmful irradiation due to the environment. You can create similar, more powerful, versions of higher ranks of Radiation Immunity by applying Affects Others, Burst Area, and Sustained to those effects, essentially tripling their cost. So a Radiation Shield providing complete immunity to all radiation effects costs 30 points. (Immunity 1 (background radiation), Affects Others, Burst Area, Sustained • 3 points)"
       },
       {
         "id": "prof_radiation_powers_air_wave",
@@ -13769,7 +13769,7 @@ export const POWER_PROFILES_LIBRARY = [
           }
         ],
         "flaws": [],
-        "notes": "The effect is similar to the heat option of the Environment effect except it produces no actual heat and the effect is Subtle, since the radiation is invisible to all but senses able to detect it. Cost per rank determines the intensity of the exposure (frequency of Fortitude resistance checks). (Subtle Environment (radiation, equivalent to heat) • 1 point + 1 or 2 points per rank)"
+        "notes": "You can create a high enough level of radiation in the environment around you to render it toxic to living creatures after a relatively short amount of exposure. High ranks of Irradiate can blanket an entire city or even continent in deadly radiation! The effect is similar to the heat option of the Environment effect except it produces no actual heat and the effect is Subtle, since the radiation is invisible to all but senses able to detect it. Cost per rank determines the intensity of the exposure (frequency of Fortitude resistance checks). (Subtle Environment (radiation, equivalent to heat) • 1 point + 1 or 2 points per rank)"
       },
       {
         "id": "prof_radiation_powers_radar",
@@ -13808,7 +13808,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Radiation, Life Support",
         "extras": [],
         "flaws": [],
-        "notes": "ent radioactive energy, able to pass through unshielded solid objects, largely immune to physical harm and needs. This power often grants other radiation-based powers, particularly Radioactive Aura and Irradiate, allowing you to emit damaging energy while in Radiation Form. (Immunity 10 (Life Support), Insubstantial 3 (radiation) • 25 points)"
+        "notes": "You transform from flesh and blood into a being of coherent radioactive energy, able to pass through unshielded solid objects, largely immune to physical harm and needs. This power often grants other radiation-based powers, particularly Radioactive Aura and Irradiate, allowing you to emit damaging energy while in Radiation Form. (Immunity 10 (Life Support), Insubstantial 3 (radiation) • 25 points)"
       },
       {
         "id": "prof_radiation_powers_scrub_radiation",
@@ -13829,7 +13829,7 @@ export const POWER_PROFILES_LIBRARY = [
           }
         ],
         "flaws": [],
-        "notes": "radioactive elements or otherwise absorbing or neutralizing it, rendering the area clean and safe for living things. If you can only scrub radiation from the area immediately around you, apply the Close Range flaw to the power, reducing its cost by 1 per rank. (Nullify Radiation, Burst Area, Simultaneous • 3 points per rank)"
+        "notes": "Your power over radiation allows you to \"scrub\" it from the environment, causing rapid nuclear decay to break down radioactive elements or otherwise absorbing or neutralizing it, rendering the area clean and safe for living things. If you can only scrub radiation from the area immediately around you, apply the Close Range flaw to the power, reducing its cost by 1 per rank. (Nullify Radiation, Burst Area, Simultaneous • 3 points per rank)"
       },
       {
         "id": "prof_radiation_powers_sense_radiation",
@@ -13842,7 +13842,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Radiation, Detect Radiation, Ranged",
         "extras": [],
         "flaws": [],
-        "notes": "Analytical, allowing you to pick up on the type of radiation and its intensity (acute) or its exact wavelength, half-life, nuclear decay rate, and so forth (analytical). As with other senses, the GM may require an appropriate Expertise check to interpret the data you perceive. (Senses 2 (Detect Radiation, Ranged) • 2 points)"
+        "notes": "You can sense even ordinarily invisible radiation like a living Geiger counter, detecting intense sources of radiation or irradiated areas nearby. This sense may be Acute or Analytical, allowing you to pick up on the type of radiation and its intensity (acute) or its exact wavelength, half-life, nuclear decay rate, and so forth (analytical). As with other senses, the GM may require an appropriate Expertise check to interpret the data you perceive. (Senses 2 (Detect Radiation, Ranged) • 2 points)"
       },
       {
         "id": "prof_radiation_powers_static_field",
@@ -13883,7 +13883,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Radiation, Nuclear",
         "extras": [],
         "flaws": [],
-        "notes": "magnetic spectrum, you can \"see\" through solid objects by perceiving X-rays and other radiation passing through them. Radiation shielding or heavy layers of dense matter (such as lead) prevent radiation from passing through, so you cannot see through them. (Senses 4 (Vision Penetrates Concealment, except for lead and radiation shielding) • 4 points)"
+        "notes": "Able to perceive into the higher portions of the electromagnetic spectrum, you can \"see\" through solid objects by perceiving X-rays and other radiation passing through them. Radiation shielding or heavy layers of dense matter (such as lead) prevent radiation from passing through, so you cannot see through them. (Senses 4 (Vision Penetrates Concealment, except for lead and radiation shielding) • 4 points)"
       },
       {
         "id": "prof_radiation_powers_radiation",
@@ -13931,7 +13931,7 @@ export const POWER_PROFILES_LIBRARY = [
             "description": "One Sense"
           }
         ],
-        "notes": "Perception Area is always centered on you, remove the Ranged modifier as well. For a general Sensory Impairment power, remove the Limited flaw so the Affliction affects all of the target's senses. (Ranged Cumulative Affliction (Resisted by Dodge, Overcome by Fortitude; Senses Impaired, Senses Disabled, Unaware), Limited to One Sense • 2 points per rank)"
+        "notes": "You unleash a blast or beam able to overwhelm a particular sense, such as a blinding beam of light or a deafening blast of focused sound. Dazzle affects a single target by default. Apply the Perception Area modifier for an attack affecting any target able to perceive it, such as a flash-bomb or sonic wave. If the Perception Area is always centered on you, remove the Ranged modifier as well. For a general Sensory Impairment power, remove the Limited flaw so the Affliction affects all of the target's senses. (Ranged Cumulative Affliction (Resisted by Dodge, Overcome by Fortitude; Senses Impaired, Senses Disabled, Unaware), Limited to One Sense • 2 points per rank)"
       },
       {
         "id": "prof_sensory_powers_obscure",
@@ -13959,7 +13959,7 @@ export const POWER_PROFILES_LIBRARY = [
           }
         ],
         "flaws": [],
-        "notes": "the distance the power covers (increasing the area's distance rank by one per modifier rank). Gamemasters can assume an Area Concealment Attack does not offer a resistance check, since successful resistance means everyone else gains concealment! (Ranged Burst Area Concealment Attack • 4 points per rank, +1 point per rank per +1 area distance rank)"
+        "notes": "Additional ranks extend the power to cover additional senses, while additional ranks of the Area modifier extend the distance the power covers (increasing the area's distance rank by one per modifier rank). Gamemasters can assume an Area Concealment Attack does not offer a resistance check, since successful resistance means everyone else gains concealment! (Ranged Burst Area Concealment Attack • 4 points per rank, +1 point per rank per +1 area distance rank)"
       },
       {
         "id": "prof_sensory_powers_sensory_overload",
@@ -13993,7 +13993,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Sensory, Danger Sense",
         "extras": [],
         "flaws": [],
-        "notes": "avoid the worst effects of an ambush, surprise, or trap. Although this power is often just the Danger Sense effect by itself, it may also include additional effects like Enhanced Advantage (Uncanny Dodge) or Precognition Limited to momentary visions of impending danger. (Senses 1 (Danger Sense) • 1 point.)"
+        "notes": "You have a superhuman sense for when danger is about to strike, giving you the moment's warning you need to avoid the worst effects of an ambush, surprise, or trap. Although this power is often just the Danger Sense effect by itself, it may also include additional effects like Enhanced Advantage (Uncanny Dodge) or Precognition Limited to momentary visions of impending danger. (Senses 1 (Danger Sense) • 1 point.)"
       },
       {
         "id": "prof_sensory_powers_defensive_awareness",
@@ -14019,7 +14019,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Sensory, Normal sight",
         "extras": [],
         "flaws": [],
-        "notes": "detect you. Anything you are wearing or carrying becomes invisible along with you. If you can make others invisible by touch, apply the Affects Others modifier (plus the Ranged modifier, if you can do so at a distance). (Concealment 2 (normal sight) • 4 points)"
+        "notes": "While invisible. For an additional 2 ranks, your power conceals you from all visual senses, but other senses may still detect you. Anything you are wearing or carrying becomes invisible along with you. If you can make others invisible by touch, apply the Affects Others modifier (plus the Ranged modifier, if you can do so at a distance). (Concealment 2 (normal sight) • 4 points)"
       },
       {
         "id": "prof_sensory_powers_sensory_shield",
@@ -14054,7 +14054,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Sensory, Auditory",
         "extras": [],
         "flaws": [],
-        "notes": "need to make Stealth checks if others are able to sense you in some way other than hearing. If you can extend your Silence effect to others by touch, add the Affects Others modifier. If you can also do so at a distance, add the Ranged modifier. (Concealment 1 (Auditory) • 2 points)"
+        "notes": "You can become completely silent, making no noise when you move and emitting no sound from your heartbeat, breathing, and so forth. Similarly, nothing you wear or carry emits any sound. Things not on your person may do so, however-knocking something to the floor still makes noise. You're still detectable by ultrasonics and echolocation; with an additional rank, you're concealed from those as well. You have full concealment from auditory senses and only need to make Stealth checks if others are able to sense you in some way other than hearing. If you can extend your Silence effect to others by touch, add the Affects Others modifier. If you can also do so at a distance, add the Ranged modifier. (Concealment 1 (Auditory) • 2 points)"
       },
       {
         "id": "prof_sensory_powers_pathfinder",
@@ -14067,7 +14067,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Sensory, Perception",
         "extras": [],
         "flaws": [],
-        "notes": "it. Choose a particular sense type for this power when you acquire it. Your ability to follow a path is limited by your movement type; if you come to a point where you are no longer capable of following it-such as the trail going off into empty air or deep space-then you know it. (Senses 8 (Detect Path, Accurate, Acute, Direction Sense, Distance Sense, Ranged, Tracking 2) • 9 points)"
+        "notes": "2 miles, while Obscure 20 has a radius of 2,000 miles! concealed from your sense, you lose the ability to follow it. Choose a particular sense type for this power when you acquire it. Your ability to follow a path is limited by your movement type; if you come to a point where you are no longer capable of following it-such as the trail going off into empty air or deep space-then you know it. (Senses 8 (Detect Path, Accurate, Acute, Direction Sense, Distance Sense, Ranged, Tracking 2) • 9 points)"
       },
       {
         "id": "prof_sensory_powers_tracking_teleport",
@@ -14080,7 +14080,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Sensory, Teleport Awareness, Tracking",
         "extras": [],
         "flaws": [],
-        "notes": "If the Perception check fails, you do not go anywhere. Additionally, you can make a Perception check (DC 10, +1 per 10 feet between you and the teleport point) to sense someone teleporting in or out nearby, even if you cannot otherwise sense them. (Senses 2 (Teleport Awareness, Tracking) • 2 points)"
+        "notes": "You can \"follow\" another teleporter, provided your Teleport range is at least equal to theirs (if it is not, you automatically fail to track them). Make a Perception check, DC 10 +1 per round since the target teleported, +1 per 10 feet between you and the departure point (no modifier if you are standing on the same spot). If you succeed, you can teleport to the same place the target did (or the nearest open space, if something presently occupies that space). If the Perception check fails, you do not go anywhere. Additionally, you can make a Perception check (DC 10, +1 per 10 feet between you and the teleport point) to sense someone teleporting in or out nearby, even if you cannot otherwise sense them. (Senses 2 (Teleport Awareness, Tracking) • 2 points)"
       },
       {
         "id": "prof_sensory_powers_aura_reading",
@@ -14093,7 +14093,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Sensory, Perception",
         "extras": [],
         "flaws": [],
-        "notes": "Aura Reading: You can \"read\" the invisible psychic auras around all creatures, showing their mood, physical condition, and any outside psychic influences. Aura Reading is a mental sense, although the information (the aura) is perceived visually. (Senses 5 (Detect Mood, Ranged; Detect Physical Condition, Ranged; Psychic Awareness) • 5 points)"
+        "notes": "You possess an additional sense beyond the normal human sensory abilities. Aura Reading: You can \"read\" the invisible psychic auras around all creatures, showing their mood, physical condition, and any outside psychic influences. Aura Reading is a mental sense, although the information (the aura) is perceived visually. (Senses 5 (Detect Mood, Ranged; Detect Physical Condition, Ranged; Psychic Awareness) • 5 points)"
       },
       {
         "id": "prof_sensory_powers_cosmic_awareness",
@@ -14106,7 +14106,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Sensory, Directed inspiration",
         "extras": [],
         "flaws": [],
-        "notes": "tion and get an answer (essentially a specialized use of the inspiration aspect of spending hero points). Each additional Feature rank provides an additional question per adventure. This power is also a good justification for other powers where the character \"just knows\" things. (Feature 1 (directed inspiration), Senses 1 (Cosmic Awareness) • 2 points)"
+        "notes": "GM's discretion). Additionally, once per adventure you can ask \"the Universe\" (the Gamemaster) a direct question and get an answer (essentially a specialized use of the inspiration aspect of spending hero points). Each additional Feature rank provides an additional question per adventure. This power is also a good justification for other powers where the character \"just knows\" things. (Feature 1 (directed inspiration), Senses 1 (Cosmic Awareness) • 2 points)"
       },
       {
         "id": "prof_sensory_powers_lie_detector",
@@ -14180,7 +14180,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Sensory, Vision Penetrates Concealment",
         "extras": [],
         "flaws": [],
-        "notes": "weren't there. A subject with no concealment relative to you cannot use Stealth to hide from you. X-Ray Vision may be Limited to particular substances (natural earth, for example) or have a Quirk of being unable to penetrate a particular substance (like lead) worth -1 point. (Senses 4 (Vision Penetrates Concealment) • 4 points)"
+        "notes": "X-Ray Vision: You can see through solid objects as if they weren't there. A subject with no concealment relative to you cannot use Stealth to hide from you. X-Ray Vision may be Limited to particular substances (natural earth, for example) or have a Quirk of being unable to penetrate a particular substance (like lead) worth -1 point. (Senses 4 (Vision Penetrates Concealment) • 4 points)"
       },
       {
         "id": "prof_sensory_powers_enhanced_senses",
@@ -14206,7 +14206,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Sensory, Senses",
         "extras": [],
         "flaws": [],
-        "notes": "the acute nature of vision while \"seeing\" scents) and shift effects targeting one sense to the new sense; an Affliction that would normally leave you blind (visually unaware) leaves you deafened (aurally unaware instead) instead when your vision is shifted to hearing. (Variable Descriptor 2 (Senses) • 2 points 156 156 SENSORY POWERS SENSORY POWERS MUTANTS & MASTERMINDS POWER PROFILES MUTANTS & MASTERMINDS POWER PROFILES)"
+        "notes": "You can switch the \"input\" of your senses, perceiving information from one with another, such as \"seeing\" sound as colorful patterns, \"hearing\" scents as different tones, or even \"smelling\" or \"tasting\" colors, to name a few. Switching sensory inputs is a free action and a sustained effect. The primary benefit (apart from recreation) is the ability to interpret sensory input through a different sense. You can use bonuses associated with the new sense (such as the acute nature of vision while \"seeing\" scents) and shift effects targeting one sense to the new sense; an Affliction that would normally leave you blind (visually unaware) leaves you deafened (aurally unaware instead) instead when your vision is shifted to hearing. (Variable Descriptor 2 (Senses) • 2 points)"
       },
       {
         "id": "prof_sensory_powers_sensory",
@@ -14272,7 +14272,7 @@ export const POWER_PROFILES_LIBRARY = [
             "description": "size rank difference between you and your target"
           }
         ],
-        "notes": "underneath your target. Take as many ranks as you expect to change size ranks; if you have Shrinking 16, you can have up to 4 ranks of Growth Momentum damage (at which point you reach your normal size rank and cannot grow any further). The additional damage is still limited by power level. (Strength-based Damage, Limited to size rank difference between you and your target • 1 point)"
+        "notes": "You use the momentum of your increase in size to inflict additional damage with a close attack, literally growing up underneath your target. Take as many ranks as you expect to change size ranks; if you have Shrinking 16, you can have up to 4 ranks of Growth Momentum damage (at which point you reach your normal size rank and cannot grow any further). The additional damage is still limited by power level. (Strength-based Damage, Limited to size rank difference between you and your target • 1 point)"
       },
       {
         "id": "prof_size_powers_internal_attack",
@@ -14316,7 +14316,7 @@ export const POWER_PROFILES_LIBRARY = [
             "description": "Must use the Atomic modifier on Shrinking, -1 point"
           }
         ],
-        "notes": "your target from within, bypassing external defenses. You may vary the conditions imposed by the Affliction to suit the type of attack, perhaps having an array of different Afflictions or applying the Variable Condition modifier from the Illusion Powers section. (Cumulative Affliction (Resisted and Overcome by Fortitude; Dazed, Stunned, Incapacitated), Affects Corporeal, Subtle, Quirk (Must use the Atomic modifier on Shrinking, -1 point) • 3 points per rank)"
+        "notes": "By shrinking down to microscopic size, you can attack your target from within, bypassing external defenses. You may vary the conditions imposed by the Affliction to suit the type of attack, perhaps having an array of different Afflictions or applying the Variable Condition modifier from the Illusion Powers section. (Cumulative Affliction (Resisted and Overcome by Fortitude; Dazed, Stunned, Incapacitated), Affects Corporeal, Subtle, Quirk (Must use the Atomic modifier on Shrinking, -1 point) • 3 points per rank)"
       },
       {
         "id": "prof_size_powers_phase_attack",
@@ -14438,7 +14438,7 @@ export const POWER_PROFILES_LIBRARY = [
           }
         ],
         "flaws": [],
-        "notes": "At increased size, your skin and muscle become more dense and resistant to injury. 160 160 SIZE POWERS SIZE POWERS MUTANTS & MASTERMINDS POWER PROFILES MUTANTS & MASTERMINDS POWER PROFILES (Impervious modifier on Toughness • 1 point per rank)"
+        "notes": "At increased size, your skin and muscle become more dense and resistant to injury. (Impervious modifier on Toughness • 1 point per rank)"
       },
       {
         "id": "prof_size_powers_shrinking_dodge",
@@ -14507,7 +14507,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Size, Dimensional Travel 1, microverse",
         "extras": [],
         "flaws": [],
-        "notes": "and into an alternate \"micro-universe\". You reverse the process in order to return to the physical universe in the same spot you left. In addition to this power, you may also have an Alternate Effect, making your Shrinking into equal power points of Growth while you are in the microverse. (Movement 1 (Dimensional Travel 1, microverse) • 2 points)"
+        "notes": "You can shrink down past the atomic level to the point where you shift out of the physical universe altogether and into an alternate \"micro-universe\". You reverse the process in order to return to the physical universe in the same spot you left. In addition to this power, you may also have an Alternate Effect, making your Shrinking into equal power points of Growth while you are in the microverse. (Movement 1 (Dimensional Travel 1, microverse) • 2 points)"
       },
       {
         "id": "prof_size_powers_density_increase",
@@ -14520,7 +14520,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Size, +0 modifier",
         "extras": [],
         "flaws": [],
-        "notes": "creases: -1 to speed per 4 ranks. Gamemasters should enforce the significant limitations of the character's increased mass; a character with 10 ranks of Density Increase weighs 100 tons! Few, if any, conventional structures will support the character's weight. (Growth, Does Not Change Size (+0 modifier) • 2 points per rank)"
+        "notes": "Rather than increasing your size, you increase only your mass, becoming more dense, and therefore stronger and tougher, without changing size. This removes the following modifiers from Growth: active defenses (Dodge and Parry), Intimidation checks, and size rank. Only Strength, Stamina, and mass ranks increase. Speed rank actually decreases: -1 to speed per 4 ranks. Gamemasters should enforce the significant limitations of the character's increased mass; a character with 10 ranks of Density Increase weighs 100 tons! Few, if any, conventional structures will support the character's weight. (Growth, Does Not Change Size (+0 modifier) • 2 points per rank)"
       },
       {
         "id": "prof_size_powers_mass_compaction",
@@ -14542,7 +14542,7 @@ export const POWER_PROFILES_LIBRARY = [
             "description": "active Shrinking rank"
           }
         ],
-        "notes": "pacting your body mass, making your smaller size effectively stronger and tougher. You must have Shrinking with the Normal Strength modifier to take this power. Typically, due to power level limits, the character should hit the limits at minimum size, being well below them while normal-sized. (Enhanced Strength and Toughness, Limited to active Shrinking rank • 2 points per rank)"
+        "notes": "Smaller you become, the more dense you become, compacting your body mass, making your smaller size effectively stronger and tougher. You must have Shrinking with the Normal Strength modifier to take this power. Typically, due to power level limits, the character should hit the limits at minimum size, being well below them while normal-sized. (Enhanced Strength and Toughness, Limited to active Shrinking rank • 2 points per rank)"
       },
       {
         "id": "prof_size_powers_mass_dispersal",
@@ -14564,7 +14564,7 @@ export const POWER_PROFILES_LIBRARY = [
             "description": "Increasing Size Only"
           }
         ],
-        "notes": "The larger you get, the less dense you become, spreading your body mass out until you become a giant cloud. In your dispersed form you may have additional powers based on the forms found in the Air Powers and Water Powers sections. (Insubstantial Linked to Growth, Limited to Increasing Size Only (-2) • 5 points per Insubstantial rank + 1)"
+        "notes": "Larger you get, the less dense you become, spreading your body mass out until you become a giant cloud. In your dispersed form you may have additional powers based on the forms found in the Air Powers and Water Powers sections. (Insubstantial Linked to Growth, Limited to Increasing Size Only (-2) • 5 points per Insubstantial rank + 1)"
       },
       {
         "id": "prof_size_powers_microvision",
@@ -14590,7 +14590,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Size, Mass",
         "extras": [],
         "flaws": [],
-        "notes": "You pay normally for any equipment or devices that you carry, although this power is an excellent explanation for an \"I just happen to have...\" power stunt for a new item of equipment (see On-Hand Equipment, Deluxe Hero's Handbook, page 213). (Feature (reduce mass of carried items by rank) • 1 point per rank)"
+        "notes": "You can shrink various items in order to more easily keep them on your person (in pockets or pouches, for example). Your Feature rank is the total mass rank in material you can carry with no effort whatsoever. You can withdraw and restore an item to its normal (fully-functional) size as a free action. With sufficient ranks (7 or more), you could even store an entire vehicle in your pocket! You pay normally for any equipment or devices that you carry, although this power is an excellent explanation for an \"I just happen to have...\" power stunt for a new item of equipment (see On-Hand Equipment, Deluxe Hero's Handbook, page 213). (Feature (reduce mass of carried items by rank) • 1 point per rank)"
       },
       {
         "id": "prof_size_powers_size",
@@ -14732,7 +14732,7 @@ export const POWER_PROFILES_LIBRARY = [
           }
         ],
         "flaws": [],
-        "notes": "sonics. Once the sound stops, however, the targets quickly recover. Apply the Insidious modifier for a subliminal mindaltering sound and the Subtle modifier for an ultrasonic signal beyond the normal hearing range. If the effect lasts beyond the initial sound, remove the Instant Recovery flaw. (Cumulative Hearing Area Affliction (Resisted and Overcome by Will; Entranced, Compelled, Controlled), Concentration Duration, Instant Recovery • 3 points per rank)"
+        "notes": "You emit sound able to influence the minds of all able to hear it, ranging from an enchanting song to mind-altering hypersonics. Once the sound stops, however, the targets quickly recover. Apply the Insidious modifier for a subliminal mindaltering sound and the Subtle modifier for an ultrasonic signal beyond the normal hearing range. If the effect lasts beyond the initial sound, remove the Instant Recovery flaw. (Cumulative Hearing Area Affliction (Resisted and Overcome by Will; Entranced, Compelled, Controlled), Concentration Duration, Instant Recovery • 3 points per rank)"
       },
       {
         "id": "prof_sonic_powers_shatter",
@@ -14758,7 +14758,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Sonic, Sonic",
         "extras": [],
         "flaws": [],
-        "notes": "power is a Burst Area or Auditory Area extra in place of the Ranged extra (for a blast originating from you) or along with it, for a sonic blast that spreads from a target point. The Cone Area modifier in place of Ranged can represent a sonic blast that spreads out from its point of origin. (Ranged Damage (sonic) • 2 points per rank 167 167 SONIC POWERS SONIC POWERS MUTANTS & MASTERMINDS POWER PROFILES MUTANTS & MASTERMINDS POWER PROFILES)"
+        "notes": "A focused blast of sound can smash solid objects and do considerable damage to foes. A common modifier on this power is a Burst Area or Auditory Area extra in place of the Ranged extra (for a blast originating from you) or along with it, for a sonic blast that spreads from a target point. The Cone Area modifier in place of Ranged can represent a sonic blast that spreads out from its point of origin. (Ranged Damage (sonic) • 2 points per rank)"
       },
       {
         "id": "prof_sonic_powers_vertigo",
@@ -14779,7 +14779,7 @@ export const POWER_PROFILES_LIBRARY = [
           }
         ],
         "flaws": [],
-        "notes": "dizziness and disorientation. A Burst or Cloud Area version (replacing the Ranged modifier) is good for a close radius effect, while an Auditory Area version (replacing both Ranged and Hearing-Dependent) increases cost to 4 points per rank, but affects a wider area. (Ranged Progressive Affliction (Resisted and Overcome by Will; Dazed, Stunned, Incapacitated), HearingDependent • 3 points per rank)"
+        "notes": "Your emit sound waves that upset the inner ear, causing dizziness and disorientation. A Burst or Cloud Area version (replacing the Ranged modifier) is good for a close radius effect, while an Auditory Area version (replacing both Ranged and Hearing-Dependent) increases cost to 4 points per rank, but affects a wider area. (Ranged Progressive Affliction (Resisted and Overcome by Will; Dazed, Stunned, Incapacitated), HearingDependent • 3 points per rank)"
       },
       {
         "id": "prof_sonic_powers_protected_hearing",
@@ -14915,7 +14915,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Sonic, Sound",
         "extras": [],
         "flaws": [],
-        "notes": "a medium, and reform at a distant point, moving almost instantly across up to distance rank 7 (about half a mile). Further than that should take longer than a move action, given the speed of sound, so the GM may wish to limit this power to a maximum rank of 7. (Teleport, Medium (sound) • 1 point per rank)"
+        "notes": "You can transform momentarily into sound, pass through a medium, and reform at a distant point, moving almost instantly across up to distance rank 7 (about half a mile). Further than that should take longer than a move action, given the speed of sound, so the GM may wish to limit this power to a maximum rank of 7. (Teleport, Medium (sound) • 1 point per rank)"
       },
       {
         "id": "prof_sonic_powers_enhanced_hearing",
@@ -14949,7 +14949,7 @@ export const POWER_PROFILES_LIBRARY = [
           }
         ],
         "flaws": [],
-        "notes": "silence all sound in the area. For that, Link the Silence power (previously) to this one. Apply the Sustained modifier to maintain this power as a free action. If you can only create a white sound field around yourself, apply the Close flaw. (Burst Area Nullify Sonic Effects, Concentration, Simultaneous • 4 points per rank)"
+        "notes": "A counter-wave or suppression field nullifies sonic effects in the targeted area. As a default, this power only nullifies sonic powers manipulating sounds or creating sound over a certain threshold; it does not, for example, silence all sound in the area. For that, Link the Silence power (previously) to this one. Apply the Sustained modifier to maintain this power as a free action. If you can only create a white sound field around yourself, apply the Close flaw. (Burst Area Nullify Sonic Effects, Concentration, Simultaneous • 4 points per rank)"
       },
       {
         "id": "prof_sonic_powers_silence",
@@ -14977,7 +14977,7 @@ export const POWER_PROFILES_LIBRARY = [
           }
         ],
         "flaws": [],
-        "notes": "sarily nullify sonic powers in the area-see Countering 168 168 SONIC POWERS SONIC POWERS MUTANTS & MASTERMINDS POWER PROFILES MUTANTS & MASTERMINDS POWER PROFILES under Sonic Descriptors and White Sound, later in this section, for details. (Burst Area Auditory Concealment Attack • 6 points + 2 points per +1 distance rank to area.)"
+        "notes": "A counter-wave or suppression field blocks out sound in an area, leaving it completely silent. This does not necessarily nullify sonic powers in the area-see Countering under Sonic Descriptors and White Sound, later in this section, for details. (Burst Area Auditory Concealment Attack • 6 points + 2 points per +1 distance rank to area.)"
       },
       {
         "id": "prof_sonic_powers_solid_sound",
@@ -15042,7 +15042,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Sonic, Aural",
         "extras": [],
         "flaws": [],
-        "notes": "of a real object, you can change the perception of a real sound, causing sirens to sound like music (or vice versa) or spoken words to say something completely different. The difficulty for a Perception check to detect your manipulation is the same: DC 10 + rank. (Illusion (Aural) • 1 point per rank)"
+        "notes": "You can re-create different sounds, with the difficulty of determining they are not the original based on your rank (Perception check, DC 10 + rank). Additionally, you can manipulate existing sounds. In the same way a visual illusion might change the appearance of a real object, you can change the perception of a real sound, causing sirens to sound like music (or vice versa) or spoken words to say something completely different. The difficulty for a Perception check to detect your manipulation is the same: DC 10 + rank. (Illusion (Aural) • 1 point per rank)"
       },
       {
         "id": "prof_sonic_powers_sound_analysis",
@@ -15055,7 +15055,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Sonic, Analytical Hearing",
         "extras": [],
         "flaws": [],
-        "notes": "origin, match voice-prints and other sound waves, and possibly pull clues from background noises on recordings or auditory broadcasts. If you have additional hearing capabilities (like Ultra-Hearing), you can take an additional rank to apply this power to them as well. (Senses 1 (Analytical Hearing) • 1 point)"
+        "notes": "Like a sophisticated analysis program, you can break down any sound you hear, analyzing its component elements. Amongst other things, you can determine a sound's likely origin, match voice-prints and other sound waves, and possibly pull clues from background noises on recordings or auditory broadcasts. If you have additional hearing capabilities (like Ultra-Hearing), you can take an additional rank to apply this power to them as well. (Senses 1 (Analytical Hearing) • 1 point)"
       },
       {
         "id": "prof_sonic_powers_sound_creatures",
@@ -15068,7 +15068,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Sonic, Sound",
         "extras": [],
         "flaws": [],
-        "notes": "virtually any form or appearance, from featureless humanoids to strange monsters. For close combat creatures, substitute sonic Damage or Affects Corporeal Strength for the Sonic Blast power and the appropriate Close Combat skill for the Ranged Combat skill. (Summon Sound Creature 5, Controlled • 15 points + 10 points per doubling of number of creatures + 5)"
+        "notes": "You create or summon creatures made of \"living sound\" that obey your commands. These creatures can take on virtually any form or appearance, from featureless humanoids to strange monsters. For close combat creatures, substitute sonic Damage or Affects Corporeal Strength for the Sonic Blast power and the appropriate Close Combat skill for the Ranged Combat skill. (Summon Sound Creature 5, Controlled • 15 points + 10 points per doubling of number of creatures + 5)"
       },
       {
         "id": "prof_sonic_powers_ultrasonic_hearing",
@@ -15230,7 +15230,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Speed, Velocity",
         "extras": [],
         "flaws": [],
-        "notes": "range. A speedster with this power and the Move-by Action advantage might also create a sonic boom by zipping past a target at high speed, perhaps even adding the Burst Area modifier to the power. (Affliction (Resisted and Overcome by Fortitude; Dazed, Stunned, Incapacitated) • 1 point per rank)"
+        "notes": "A deceptively simple attack: you snap your fingers at super-sonic speed, creating a micro sonic boom able to momentarily stun or even incapacitate a target at close range. A speedster with this power and the Move-by Action advantage might also create a sonic boom by zipping past a target at high speed, perhaps even adding the Burst Area modifier to the power. (Affliction (Resisted and Overcome by Fortitude; Dazed, Stunned, Incapacitated) • 1 point per rank)"
       },
       {
         "id": "prof_speed_powers_super_sonic_punch",
@@ -15347,7 +15347,7 @@ export const POWER_PROFILES_LIBRARY = [
             "description": "Projectiles"
           }
         ],
-        "notes": "the attacker at the same speed. The power's range allows you to intercept attacks on others within your range. If you can throw the attack at any target, rather than just back at the attacker, apply the Redirect modifier, increasing cost by 1 point per rank. (Deflect, Reflect, Limited to Projectiles • 1 point per rank)"
+        "notes": "When you defend, you can react fast enough to catch an incoming projectile-even a bullet-and hurl it back at the attacker at the same speed. The power's range allows you to intercept attacks on others within your range. If you can throw the attack at any target, rather than just back at the attacker, apply the Redirect modifier, increasing cost by 1 point per rank. (Deflect, Reflect, Limited to Projectiles • 1 point per rank)"
       },
       {
         "id": "prof_speed_powers_untouchable",
@@ -15377,7 +15377,7 @@ export const POWER_PROFILES_LIBRARY = [
             "description": "not against surprise attacks or sufficiently large area effects"
           }
         ],
-        "notes": "attacks which catch you by surprise, or which cannot be avoided by Dodge or Parry, have a chance of affecting you. A sufficiently large area effect might do so as well, if your Speed is insufficient to move you entirely out of the targeted area (unlikely except for large area effects). (Immunity 80 (Dodge and Parry based attacks), Concentration, Limited (not against surprise attacks or sufficiently large area effects); Reaction (when targeted by an attack) on Speed 1 • 30 points + 3 points per additional)"
+        "notes": "You react so fast that when you go on the defensive (taking your standard action each round to \"concentrate\"), you are practically untouchable: when you perceive an attack, you can instantly move somewhere else. Only attacks which catch you by surprise, or which cannot be avoided by Dodge or Parry, have a chance of affecting you. A sufficiently large area effect might do so as well, if your Speed is insufficient to move you entirely out of the targeted area (unlikely except for large area effects). (Immunity 80 (Dodge and Parry based attacks), Concentration, Limited (not against surprise attacks or sufficiently large area effects); Reaction (when targeted by an attack) on Speed 1 • 30 points + 3 points per additional)"
       },
       {
         "id": "prof_speed_powers_vibrational_phasing",
@@ -15390,7 +15390,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Speed, Incorporeal",
         "extras": [],
         "flaws": [],
-        "notes": "ordinary matter, passing through it like a phantom. This is especially useful for speedsters able to run at speeds where a collision with a solid object would be devastating, and it allows you to take straight paths through obstacles rather than having to go around them. (Insubstantial 4 (Incorporeal) • 20 points If you are only able to vibrate to pass through obstacles while moving at high speeds, rather than becoming incorporeal at will to avoid attacks and such, use the following (less expensive) version:)"
+        "notes": "By vibrating your molecules you can shift out of phase with ordinary matter, passing through it like a phantom. This is especially useful for speedsters able to run at speeds where a collision with a solid object would be devastating, and it allows you to take straight paths through obstacles rather than having to go around them. (Insubstantial 4 (Incorporeal) • 20 points If you are only able to vibrate to pass through obstacles while moving at high speeds, rather than becoming incorporeal at will to avoid attacks and such, use the following (less expensive) version:)"
       },
       {
         "id": "prof_speed_powers_air_brakes",
@@ -15444,7 +15444,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Speed, Velocity",
         "extras": [],
         "flaws": [],
-        "notes": "bratory frequency, you can phase shift out of this dimension altogether and into others. Many speedsters encounter this effect as a complication of their powers rather than an ability they control although they may develop it as a regular power stunt in order to get back home. (Movement 2 (Dimensional Travel, parallel universes) • 4 points)"
+        "notes": "Combining high speeds and changes in your molecular vibratory frequency, you can phase shift out of this dimension altogether and into others. Many speedsters encounter this effect as a complication of their powers rather than an ability they control although they may develop it as a regular power stunt in order to get back home. (Movement 2 (Dimensional Travel, parallel universes) • 4 points)"
       },
       {
         "id": "prof_speed_powers_run_on_water",
@@ -15523,7 +15523,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Speed, Velocity",
         "extras": [],
         "flaws": [],
-        "notes": "in order to accomplish tasks (other than moving from place to place) faster, see the Fast Action power. The combination of the two lets you do things like search an entire building: moving at great speed and also opening, closing, and looking through hiding places quickly. (Speed • 1 point per rank Some speedsters have high flight speed rather than ground speed, substituting Flight for Speed.)"
+        "notes": "One of the primary speed powers, you have considerable running speed. At low ranks, you're as fast as a swift land animal (like a horse or cheetah), while at high ranks, you are faster than even the fastest aircraft! Note that this power is strictly linear movement speed, in order to accomplish tasks (other than moving from place to place) faster, see the Fast Action power. The combination of the two lets you do things like search an entire building: moving at great speed and also opening, closing, and looking through hiding places quickly. (Speed • 1 point per rank Some speedsters have high flight speed rather than ground speed, substituting Flight for Speed.)"
       },
       {
         "id": "prof_speed_powers_flight_speed",
@@ -15583,7 +15583,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Speed, Time Travel",
         "extras": [],
         "flaws": [],
-        "notes": "speedsters often discover this power by accident after being pushed to their limits in other circumstances, having to duplicate it as a power stunt in order to return to their own time (after having an adventure or two in other time periods). (Movement 3 (Time Travel) • 6 points)"
+        "notes": "A combination of tremendous speed (although it may not need to be more than 88 miles per hour...) and vibrational control allows you to break the \"time barrier\" and travel through time. Like Dimensional Vibration (previously) speedsters often discover this power by accident after being pushed to their limits in other circumstances, having to duplicate it as a power stunt in order to return to their own time (after having an adventure or two in other time periods). (Movement 3 (Time Travel) • 6 points)"
       },
       {
         "id": "prof_speed_powers_cyclone",
@@ -15613,7 +15613,7 @@ export const POWER_PROFILES_LIBRARY = [
             "description": "fine movement and powerful winds"
           }
         ],
-        "notes": "capable of moving things, but no good for delicate work or much more than moving something someplace and then setting it down with a final gust. The winds kicked up by the cyclone may also stir up dust and small loose objects. (Burst Area Move Object, Concentration, Side-Effect (limited fine movement and powerful winds) • 1 point per rank)"
+        "notes": "Stirring the air at super-speed, you kick up a powerful cyclone capable of picking up and moving objects where you direct them. The effect is relatively crude, capable of moving things, but no good for delicate work or much more than moving something someplace and then setting it down with a final gust. The winds kicked up by the cyclone may also stir up dust and small loose objects. (Burst Area Move Object, Concentration, Side-Effect (limited fine movement and powerful winds) • 1 point per rank)"
       },
       {
         "id": "prof_speed_powers_fast_action",
@@ -15626,7 +15626,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Speed, Velocity",
         "extras": [],
         "flaws": [],
-        "notes": "tance. The same with searching through every volume in a vast library. On the other hand, you can read a book amazingly fast, or attempt all the possible code combinations in a lock, or assemble (or disassemble) a machine, and so forth. (Quickness • 1 point per rank 174 174 SPEED POWERS SPEED POWERS MUTANTS & MASTERMINDS POWER PROFILES MUTANTS & MASTERMINDS POWER PROFILES)"
+        "notes": "City with just enough ranks of Quickness to cover the time, unless you also have the Speed to cover the distance. The same with searching through every volume in a vast library. On the other hand, you can read a book amazingly fast, or attempt all the possible code combinations in a lock, or assemble (or disassemble) a machine, and so forth. (Quickness • 1 point per rank)"
       },
       {
         "id": "prof_speed_powers_lightspeed",
@@ -15727,7 +15727,7 @@ export const POWER_PROFILES_LIBRARY = [
             "description": "requires objects to throw, -1 point"
           }
         ],
-        "notes": "enough velocity that they hit like bullets. The listed power is for flinging one or two projectiles at a single target, if you can use a handful of them, and spread them out over multiple targets, add the Multiattack modifier, increasing cost by +1 per rank. (Ranged Damage (ballistic), Quirk (requires objects to throw, -1 point) • 1 point for rank 1, +2 points per)"
+        "notes": "You can fling small, hard objects like pebbles or coins with enough velocity that they hit like bullets. The listed power is for flinging one or two projectiles at a single target, if you can use a handful of them, and spread them out over multiple targets, add the Multiattack modifier, increasing cost by +1 per rank. (Ranged Damage (ballistic), Quirk (requires objects to throw, -1 point) • 1 point for rank 1, +2 points per)"
       },
       {
         "id": "prof_strength_powers_cracking_the_whip",
@@ -15799,7 +15799,7 @@ export const POWER_PROFILES_LIBRARY = [
           }
         ],
         "flaws": [],
-        "notes": "finger is enough to do damage. Even a foe engaged in fighting you is hard-pressed to notice this casual gesture as a threat. The casualness of it can make an effective surprise attack, as well as a potential circumstance bonus to Intimidation checks against those who see it in action! (Subtle 1 on Strength Damage • 1 point.)"
+        "notes": "So great is your strength that the merest flick of your finger is enough to do damage. Even a foe engaged in fighting you is hard-pressed to notice this casual gesture as a threat. The casualness of it can make an effective surprise attack, as well as a potential circumstance bonus to Intimidation checks against those who see it in action! (Subtle 1 on Strength Damage • 1 point.)"
       },
       {
         "id": "prof_strength_powers_massive_knockback",
@@ -15851,7 +15851,7 @@ export const POWER_PROFILES_LIBRARY = [
             "description": "Degree"
           }
         ],
-        "notes": "With a stomp or strike to the ground, you create powerful shock waves that ripple out, knocking everyone within a 30 foot radius of you off their feet. (Burst Area Affliction (Resisted by Dodge, Overcome by Fortitude; Dazed and Vulnerable, Stunned and Prone), Extra Condition, Limited Degree, Limited to targets on the ground • 1 point per rank, +1 point per rank)"
+        "notes": "A stomp or strike to the ground, you create powerful shock waves that ripple out, knocking everyone within a 30 foot radius of you off their feet. (Burst Area Affliction (Resisted by Dodge, Overcome by Fortitude; Dazed and Vulnerable, Stunned and Prone), Extra Condition, Limited Degree, Limited to targets on the ground • 1 point per rank, +1 point per rank)"
       },
       {
         "id": "prof_strength_powers_sleeper_hold",
@@ -15880,7 +15880,7 @@ export const POWER_PROFILES_LIBRARY = [
             "isFlat": false
           }
         ],
-        "notes": "rendering a grabbed opponent unconscious. This is a more effective form of the Chokehold advantage, since it has its own resistance rank rather than starting at DC 10 and escalating like normal suffocation. If the target escapes from your grab, the effect ends. (Affliction (Resisted and Overcome by Fortitude; Dazed, Stunned, Incapacitated), Progressive, Grab-Based • 2 points per rank)"
+        "notes": "You can apply your strength to pressure points, quickly rendering a grabbed opponent unconscious. This is a more effective form of the Chokehold advantage, since it has its own resistance rank rather than starting at DC 10 and escalating like normal suffocation. If the target escapes from your grab, the effect ends. (Affliction (Resisted and Overcome by Fortitude; Dazed, Stunned, Incapacitated), Progressive, Grab-Based • 2 points per rank)"
       },
       {
         "id": "prof_strength_powers_thunderclap",
@@ -15910,7 +15910,7 @@ export const POWER_PROFILES_LIBRARY = [
             "description": "Degree"
           }
         ],
-        "notes": "wave capable of stunning everyone in a 30 foot radius around you. If the Thunderclap is loud enough to potentially deafen targets in the area, apply an additional Extra Condition for Impaired and Disabled hearing. (Burst Area Affliction (Resisted by Fortitude, Overcome by Fortitude; Dazed and Vulnerable, Defenseless and Stunned), Extra Condition, Limited Degree • 2 points)"
+        "notes": "Just clapping your hands together can create a loud shock wave capable of stunning everyone in a 30 foot radius around you. If the Thunderclap is loud enough to potentially deafen targets in the area, apply an additional Extra Condition for Impaired and Disabled hearing. (Burst Area Affliction (Resisted by Fortitude, Overcome by Fortitude; Dazed and Vulnerable, Defenseless and Stunned), Extra Condition, Limited Degree • 2 points)"
       },
       {
         "id": "prof_strength_powers_bracing",
@@ -15988,7 +15988,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Strength, Physical",
         "extras": [],
         "flaws": [],
-        "notes": "ous, allowing you to completely ignore lesser attacks. If its effects are obvious (having a rocky hide or armored scaled, for example), apply the Noticeable modifier. Otherwise, you look just like anyone else-until somebody hits you. (Protection • 1 point per rank)"
+        "notes": "You are incredibly tough. Whether it is thick slabs of dense muscle and bone like rock, armor plating, a leathery hide, or some mysterious force permeating your entire being, you shrug off damage that would seriously hurt most people. Super-Toughness is often Impervious, allowing you to completely ignore lesser attacks. If its effects are obvious (having a rocky hide or armored scaled, for example), apply the Noticeable modifier. Otherwise, you look just like anyone else-until somebody hits you. (Protection • 1 point per rank)"
       },
       {
         "id": "prof_strength_powers_tug_of_war",
@@ -16001,7 +16001,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Strength, When grabbed",
         "extras": [],
         "flaws": [],
-        "notes": "bing you right into a punch, head-butt, or other strike, making wrestling you a much more difficult proposition. This includes yanking ranged grabbers using an effect with a descriptor that allows you to exert force on them, such as a tether or similar connection. (Reaction on Strength Damage (when grabbed) • 3 points per rank)"
+        "notes": "You are strong enough to simply flex an opponent grabbing you right into a punch, head-butt, or other strike, making wrestling you a much more difficult proposition. This includes yanking ranged grabbers using an effect with a descriptor that allows you to exert force on them, such as a tether or similar connection. (Reaction on Strength Damage (when grabbed) • 3 points per rank)"
       },
       {
         "id": "prof_strength_powers_makeshift_handholds",
@@ -16023,7 +16023,7 @@ export const POWER_PROFILES_LIBRARY = [
             "description": "surfaces with material Toughness less than Strength modifier"
           }
         ],
-        "notes": "157) less than your Strength modifier, you do not need to make Athletics skill checks to climb. One rank lets you climb at your ground speed minus 1 rank; two ranks lets you climb at your full ground speed, plus you are not vulnerable while climbing. (Movement 1 (Wall-crawling), Limited to surfaces with material Toughness less than Strength modifier • 1 point per rank)"
+        "notes": "You can dig your hands and feet into hard surfaces in order to climb them more easily. When climbing any surface with a material Toughness (Deluxe Hero's Handbook, page 157) less than your Strength modifier, you do not need to make Athletics skill checks to climb. One rank lets you climb at your ground speed minus 1 rank; two ranks lets you climb at your full ground speed, plus you are not vulnerable while climbing. (Movement 1 (Wall-crawling), Limited to surfaces with material Toughness less than Strength modifier • 1 point per rank)"
       },
       {
         "id": "prof_strength_powers_super_leaping",
@@ -16100,7 +16100,7 @@ export const POWER_PROFILES_LIBRARY = [
             "isFlat": false
           }
         ],
-        "notes": "concentration to activate, and then fades away at a rate of 1 rank per round. Your boosted Strength must remain within the limits of the series power level, so some characters have normal Strength below the limit or apply the Inaccurate modifier to compensate. (Enhanced Strength, Fades • 1 point per rank Other types of Strength Boost are circumstantial, such as the following examples:)"
+        "notes": "You can temporarily increase your Strength rank, going from normal to superhuman strength or from superhuman to truly godlike. The default Strength Boost simply requires a moment's concentration to activate, and then fades away at a rate of 1 rank per round. Your boosted Strength must remain within the limits of the series power level, so some characters have normal Strength below the limit or apply the Inaccurate modifier to compensate. (Enhanced Strength, Fades • 1 point per rank Other types of Strength Boost are circumstantial, such as the following examples:)"
       },
       {
         "id": "prof_strength_powers_strength",
@@ -16199,7 +16199,7 @@ export const POWER_PROFILES_LIBRARY = [
             "isFlat": false
           }
         ],
-        "notes": "may be electricity, heat, kinetic, or any other suitable source. Note that the power does not grant any resistance to the energy source; apply the appropriate Immunity effect for that. See energy-based sections like Electrical Powers and Kinetic Powers for examples. (Enhanced Strength, Fades, Limited to the lesser of effect rank or absorbed energy rank • 1 point per 2 ranks)"
+        "notes": "May be electricity, heat, kinetic, or any other suitable source. Note that the power does not grant any resistance to the energy source; apply the appropriate Immunity effect for that. See energy-based sections like Electrical Powers and Kinetic Powers for examples. (Enhanced Strength, Fades, Limited to the lesser of effect rank or absorbed energy rank • 1 point per 2 ranks)"
       },
       {
         "id": "prof_summoning_powers_raging_strength",
@@ -16221,7 +16221,7 @@ export const POWER_PROFILES_LIBRARY = [
             "description": "while angry"
           }
         ],
-        "notes": "Temper complication, following); at your emotional \"baseline\" you cannot access your Enhanced Strength. Raging Strength may also be accompanied by Side Effects like becoming vulnerable (heedless of your own defense) while raging. (Enhanced Strength, Limited to while angry • 1 point per rank)"
+        "notes": "Madder you get, the stronger you get. Your higher Strength rank is Limited to when you are angry (see the Temper complication, following); at your emotional \"baseline\" you cannot access your Enhanced Strength. Raging Strength may also be accompanied by Side Effects like becoming vulnerable (heedless of your own defense) while raging. (Enhanced Strength, Limited to while angry • 1 point per rank)"
       },
       {
         "id": "prof_summoning_powers_animation",
@@ -16243,7 +16243,7 @@ export const POWER_PROFILES_LIBRARY = [
             "description": "Available Objects"
           }
         ],
-        "notes": "The object gains movement according to its form: statues can get up and walk, for example, rugs can crawl, balls roll, cars drive, etc. Some animators are additionally Limited to a particular type of objects, such as pictures, statues, machines, stonework, and so forth. (Perception Range Summon Animated Object, Limited to Available Objects • 3 points per rank)"
+        "notes": "You can imbue objects in your line of sight with animation and a semblance of life, making them constructs under your control (see Constructs, Deluxe Hero's Handbook, page 231). Create the object as a construct with (Summon rank × 15) total power points. Constructs-like other agents-are subject to the series power level limits. The object gains movement according to its form: statues can get up and walk, for example, rugs can crawl, balls roll, cars drive, etc. Some animators are additionally Limited to a particular type of objects, such as pictures, statues, machines, stonework, and so forth. (Perception Range Summon Animated Object, Limited to Available Objects • 3 points per rank)"
       },
       {
         "id": "prof_summoning_powers_constructs",
@@ -16256,7 +16256,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Summoning, Minion",
         "extras": [],
         "flaws": [],
-        "notes": "typically some type of energy: light, sound, shadows, and so forth. Constructs under your control act as you direct (with the standard Summon parameters of a move action to issue orders and agents taking only a single action per turn, unless modified). (Ranged Summon Construct, Broad Type, Controlled • 5 points per rank)"
+        "notes": "You create mobile constructs out of a particular medium, typically some type of energy: light, sound, shadows, and so forth. Constructs under your control act as you direct (with the standard Summon parameters of a move action to issue orders and agents taking only a single action per turn, unless modified). (Ranged Summon Construct, Broad Type, Controlled • 5 points per rank)"
       },
       {
         "id": "prof_summoning_powers_duplication",
@@ -16269,7 +16269,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Summoning, Minion",
         "extras": [],
         "flaws": [],
-        "notes": "Apply the Multiple Minions extra if you can summon more than one duplicate, and the Horde extra if you can summon them all at once. Given the power's cost, duplicators tend to be less superhuman-built on fewer power points-the more duplicates they can summon. (Summon Duplicate, Heroic • 4 points per rank)"
+        "notes": "Tered. You can also make your duplicate disappear at will by turning off your power. Apply the Multiple Minions extra if you can summon more than one duplicate, and the Horde extra if you can summon them all at once. Given the power's cost, duplicators tend to be less superhuman-built on fewer power points-the more duplicates they can summon. (Summon Duplicate, Heroic • 4 points per rank)"
       },
       {
         "id": "prof_summoning_powers_necromancy",
@@ -16282,7 +16282,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Summoning, 32 total",
         "extras": [],
         "flaws": [],
-        "notes": "other creatures. Although the power as listed has a substantial cost per rank, only 1 or 2 ranks are needed to cover the undead's power level and costs; Summon Zombies costs 14 points while Summon Skeletons costs 28 points. (Summon Undead, Controlled, Horde, Multiple Minions (32 total) • 14 points per rank)"
+        "notes": "You can imbue corpses, even skeletal remains, with a semblance of life, turning them into undead creatures that rise up at your command. Use the zombie archetypes from the Gamemaster's Guide (page 144) or apply the zombie template (page 145) to a different archetype for things like creating zombie or skeletal dinosaurs or other creatures. Although the power as listed has a substantial cost per rank, only 1 or 2 ranks are needed to cover the undead's power level and costs; Summon Zombies costs 14 points while Summon Skeletons costs 28 points. (Summon Undead, Controlled, Horde, Multiple Minions (32 total) • 14 points per rank)"
       },
       {
         "id": "prof_summoning_powers_swarm",
@@ -16295,7 +16295,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Summoning, Active, Controlled",
         "extras": [],
         "flaws": [],
-        "notes": "swarms may have ranks of Growth and the Area modifier on their Swarm Attack to represent their greater overall size. Applying the Multiple Minions modifier allows you to summon multiple swarms able to split up and act independently of each other. (Summon Swarm (Active, Controlled) • 4 points per rank SWARM PL8 • MR3 STR - STA 2 AGL 0 DEX 0 FGT 0 INT - AWE 0 PRE 0)"
+        "notes": "Is immune to direct physical attacks like punches and slashes, but still affected by area or energy attacks. Larger swarms may have ranks of Growth and the Area modifier on their Swarm Attack to represent their greater overall size. Applying the Multiple Minions modifier allows you to summon multiple swarms able to split up and act independently of each other. (Summon Swarm (Active, Controlled) • 4 points per rank SWARM PL8 • MR3 STR - STA 2 AGL 0 DEX 0 FGT 0 INT - AWE 0 PRE 0)"
       },
       {
         "id": "prof_summoning_powers_decoys",
@@ -16317,7 +16317,7 @@ export const POWER_PROFILES_LIBRARY = [
             "description": "Decoy Images"
           }
         ],
-        "notes": "but do provide useful cover, allowing you to lose yourself amongst them. You gain the defensive benefits of total concealment (a -5 circumstance penalty to attacks against you, and opponents must guess your location) although none of the other benefits. (Concealment 4 (All Visual Senses), Limited to Decoy Images • 4 points)"
+        "notes": "You summon up a mass of seemingly identical duplicates, but they are not real and cannot physically interact, but do provide useful cover, allowing you to lose yourself amongst them. You gain the defensive benefits of total concealment (a -5 circumstance penalty to attacks against you, and opponents must guess your location) although none of the other benefits. (Concealment 4 (All Visual Senses), Limited to Decoy Images • 4 points)"
       },
       {
         "id": "prof_summoning_powers_sacrifice",
@@ -16330,7 +16330,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Summoning, Minion",
         "extras": [],
         "flaws": [],
-        "notes": "minions instead by spending a hero point. If a Gamemaster character uses this power, award the affected player a hero point instead. Gamemasters may wish to prohibit minions from having the Interpose advantage, requiring this power instead. (Add Sacrifice modifier to Summon • 1 point.)"
+        "notes": "You can shift a successful attack on you to one of your minions instead by spending a hero point. If a Gamemaster character uses this power, award the affected player a hero point instead. Gamemasters may wish to prohibit minions from having the Interpose advantage, requiring this power instead. (Add Sacrifice modifier to Summon • 1 point.)"
       },
       {
         "id": "prof_summoning_powers_castling",
@@ -16352,7 +16352,7 @@ export const POWER_PROFILES_LIBRARY = [
             "description": "Switching Places With Duplicate"
           }
         ],
-        "notes": "Duplication, previously) instantly. You appear in the duplicate's place and it appears in yours, so long as you are within the Teleport effect's range of each other. If you apply the Subtle modifier, those around you may not even be able to tell you have switched places! (Teleport, Accurate (wherever duplicate is), Easy, Extended, Limited to Switching Places With Duplicate (-2), Medium (Duplicate) • 2 points per rank)"
+        "notes": "You can \"swap\" places with one of your duplicates (see Duplication, previously) instantly. You appear in the duplicate's place and it appears in yours, so long as you are within the Teleport effect's range of each other. If you apply the Subtle modifier, those around you may not even be able to tell you have switched places! (Teleport, Accurate (wherever duplicate is), Easy, Extended, Limited to Switching Places With Duplicate (-2), Medium (Duplicate) • 2 points per rank)"
       },
       {
         "id": "prof_summoning_powers_duplicate_ladder",
@@ -16365,7 +16365,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Summoning, Minion",
         "extras": [],
         "flaws": [],
-        "notes": "of the effect, although this power is most often connected with Duplication (previously). A version of it might work with other Summon effects as well. This is also an effective power stunt for duplicators who occasionally find a need for it and can expend the extra effort (and/or the hero point). (Leaping • 1 point per rank)"
+        "notes": "You summon a \"chain\" of duplicates to cover a distance, then re-absorb them at the destination point, essentially allowing you to \"leap\" across a span like an instant, living bridge. The number of duplicates is largely irrelevant, a descriptor of the effect, although this power is most often connected with Duplication (previously). A version of it might work with other Summon effects as well. This is also an effective power stunt for duplicators who occasionally find a need for it and can expend the extra effort (and/or the hero point). (Leaping • 1 point per rank)"
       },
       {
         "id": "prof_summoning_powers_summon_steed",
@@ -16378,7 +16378,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Summoning, Minion",
         "extras": [],
         "flaws": [],
-        "notes": "type (Gamemaster's Guide, page 134) with 6 additional power points of traits-most likely effects such as Flight or Movement. More unusual steeds should be created as full characters to determine the Summon rank needed for them. (Summon Steed 1, Continuous • 3 points)"
+        "notes": "You summon a steed with traits equal to the horse archetype (Gamemaster's Guide, page 134) with 6 additional power points of traits-most likely effects such as Flight or Movement. More unusual steeds should be created as full characters to determine the Summon rank needed for them. (Summon Steed 1, Continuous • 3 points)"
       },
       {
         "id": "prof_summoning_powers_power",
@@ -16391,7 +16391,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Summoning, Minion",
         "extras": [],
         "flaws": [],
-        "notes": "do so. If the vehicle is capable of driving itself, apply the Responsive modifier of Summon; it essentially removes the move action required to pilot. If the vehicle is remotecontrolled and must come to you, rather than simply appearing, apply the Self-Powered modifier. (Summon Vehicle, Controlled • 3 points per rank)"
+        "notes": "You conjure up a vehicle to transport you (and possibly others). Create it according to the usual vehicle rules (Deluxe Hero's Handbook, page 221) based on (rank × 15 points). Cost-wise, this is similar to the Equipment advantage (which costs 1 point per 5 points of the vehicle's cost) but sustained rather than continuous and with different descriptors. You may pilot the vehicle yourself or have someone else do so. If the vehicle is capable of driving itself, apply the Responsive modifier of Summon; it essentially removes the move action required to pilot. If the vehicle is remotecontrolled and must come to you, rather than simply appearing, apply the Self-Powered modifier. (Summon Vehicle, Controlled • 3 points per rank)"
       },
       {
         "id": "prof_summoning_powers_anatomic_split",
@@ -16404,7 +16404,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Summoning, Lose use of the separated part",
         "extras": [],
         "flaws": [],
-        "notes": "eight splits, with each part as a relatively low-cost \"agent\" (having only a portion of your capabilities) requiring only 1 or perhaps 2 ranks. If your separated parts have more significant capabilities, increase the Summon rank to account for the added cost. (Summon Body Part, Controlled, Mental Link, Multiple Minions 3, Side-Effect (Lose use of the separated part) • 1 point + 8 points per rank)"
+        "notes": "You can split off different parts of your body without harm, allowing them to act semi-independently. Their movement abilities tend to be limited to crawling or shuffling, but a separated eye can still see and a separated ear can still hear, and so forth. The power format assumes the ability to make up to eight splits, with each part as a relatively low-cost \"agent\" (having only a portion of your capabilities) requiring only 1 or perhaps 2 ranks. If your separated parts have more significant capabilities, increase the Summon rank to account for the added cost. (Summon Body Part, Controlled, Mental Link, Multiple Minions 3, Side-Effect (Lose use of the separated part) • 1 point + 8 points per rank)"
       },
       {
         "id": "prof_summoning_powers_combine",
@@ -16433,7 +16433,7 @@ export const POWER_PROFILES_LIBRARY = [
             "isFlat": false
           }
         ],
-        "notes": "the combined form, as appropriate for the series. This power best suits when a group of characters summons an even more powerful combined agent; for instances where a character has two or more \"normal\" components, consider an Identity complication and Activation modifier instead. (Summon Combined Form, Heroic, Feedback, Limited (requires all components be present), Limited (components vanish while combined form is present) • 1 point per rank)"
+        "notes": "Obey any series power level limits, although the GM is free to set different limits for the component characters and the combined form, as appropriate for the series. This power best suits when a group of characters summons an even more powerful combined agent; for instances where a character has two or more \"normal\" components, consider an Identity complication and Activation modifier instead. (Summon Combined Form, Heroic, Feedback, Limited (requires all components be present), Limited (components vanish while combined form is present) • 1 point per rank)"
       },
       {
         "id": "prof_summoning_powers_dimensional",
@@ -16525,7 +16525,7 @@ export const POWER_PROFILES_LIBRARY = [
             "description": "Available Subjects"
           }
         ],
-        "notes": "ment. For villains, Empowerment is more of a plot device and may be treated as such without worrying about the construction or point allocations of this power. (Summon Empowered Version, General Type, Limited to Available Subjects • 2 points per rank)"
+        "notes": "Ment. For villains, Empowerment is more of a plot device and may be treated as such without worrying about the construction or point allocations of this power. (Summon Empowered Version, General Type, Limited to Available Subjects • 2 points per rank)"
       },
       {
         "id": "prof_talent_powers_fearsome_presence",
@@ -16553,7 +16553,7 @@ export const POWER_PROFILES_LIBRARY = [
           }
         ],
         "flaws": [],
-        "notes": "Fearsome Presence is also an effective model for other interaction talents with extraordinary influence over people, such as a Befuddling Lie based on a Deception check and inflicting the Entranced, Stunned, and Unaware conditions, for example. (Perception (Visual) Area Affliction (Resisted and Overcome by Will; Impaired, Disabled, Paralyzed), Selective, Subtle, Intimidation Check Required (DC 11) • 3 points per rank)"
+        "notes": "Your very presence can strike terror into the hearts of your foes, allowing you to win some battles without having to do anything more than show up! Fearsome Presence is also an effective model for other interaction talents with extraordinary influence over people, such as a Befuddling Lie based on a Deception check and inflicting the Entranced, Stunned, and Unaware conditions, for example. (Perception (Visual) Area Affliction (Resisted and Overcome by Will; Impaired, Disabled, Paralyzed), Selective, Subtle, Intimidation Check Required (DC 11) • 3 points per rank)"
       },
       {
         "id": "prof_talent_powers_flurry",
@@ -16581,7 +16581,7 @@ export const POWER_PROFILES_LIBRARY = [
           }
         ],
         "flaws": [],
-        "notes": "lower. Therefore with 3 ranks in Flurry, you can Multiattack with a light pistol (Damage 3) even though it is normally not capable of Multiattack fire. If you only flurry with a subset of attacks-such as guns or melee weaponsreduce the Variable Descriptor modifier to 1 rank. (Multiattack, Variable Descriptor 2 (any attack effect you wield, only up to the attack's rank) • 2 points +1 point per rank)"
+        "notes": "You can launch a virtual whirlwind of attacks against your foes, applying the Multiattack modifier to your attack, up to the rank of the modifier or the attack, whichever is lower. Therefore with 3 ranks in Flurry, you can Multiattack with a light pistol (Damage 3) even though it is normally not capable of Multiattack fire. If you only flurry with a subset of attacks-such as guns or melee weaponsreduce the Variable Descriptor modifier to 1 rank. (Multiattack, Variable Descriptor 2 (any attack effect you wield, only up to the attack's rank) • 2 points +1 point per rank)"
       },
       {
         "id": "prof_talent_powers_hurt_anything",
@@ -16615,7 +16615,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Talent, Dazed, Stunned, Incapacitated",
         "extras": [],
         "flaws": [],
-        "notes": "can even acquire multiple versions of this attack, representing different types of strikes or nerve manipulation, with different conditions imposed by the Affliction. True mastery of Pressure Points might apply the Variable Condition modifier to the Affliction (see the Illusion Powers section). (Affliction (Dazed, Stunned, Incapacitated), Resisted and Overcome by Fortitude • 1 point per rank)"
+        "notes": "You're trained in how to precisely apply pressure to certain points of the body to cause disorientation, pain, and even unconsciousness. Generally, this ability is acquired as an Alternate Effect of your Strength Damage at a rank equal to your Strength rank (also making it a useful power stunt). You can even acquire multiple versions of this attack, representing different types of strikes or nerve manipulation, with different conditions imposed by the Affliction. True mastery of Pressure Points might apply the Variable Condition modifier to the Affliction (see the Illusion Powers section). (Affliction (Dazed, Stunned, Incapacitated), Resisted and Overcome by Fortitude • 1 point per rank)"
       },
       {
         "id": "prof_talent_powers_striking_power",
@@ -16671,7 +16671,7 @@ export const POWER_PROFILES_LIBRARY = [
           }
         ],
         "flaws": [],
-        "notes": "do not target you in the ways you are trained to avoid, so things like area and perception ranged attacks still affect you normally. You must also be able to defend yourself: If you are vulnerable or defenseless, your Perfect Defense does not work, either. (Immunity 40 (attacks targeting Dodge or Parry), Concentration Duration • 20 points (40 for both))"
+        "notes": "Your mastery of combat technique is so great that when you choose to go on the defensive, you are virtually untouchable. You either parry and slip around close attacks, or nimbly dodge and evade ranged attacks. Doing so takes virtually all your concentration, however; you're limited to move and free actions while using your Perfect Defense, and it does not protect you from attacks that do not target you in the ways you are trained to avoid, so things like area and perception ranged attacks still affect you normally. You must also be able to defend yourself: If you are vulnerable or defenseless, your Perfect Defense does not work, either. (Immunity 40 (attacks targeting Dodge or Parry), Concentration Duration • 20 points (40 for both))"
       },
       {
         "id": "prof_talent_powers_tough",
@@ -16719,7 +16719,7 @@ export const POWER_PROFILES_LIBRARY = [
             "description": "Moving in Urban Environments"
           }
         ],
-        "notes": "in an urban environment, you can vault and climb quickly, and you suffer no effect from slips or falls, so long as you are near a hand hold or other means of catching yourself. Circumstance penalties for your environment may still apply, but movement penalties do not. (Movement 5 (Environmental Adaptation (Urban), Safe Fall, Sure-Footed 2, Wall-Crawling 1), Limited to Moving in Urban Environments (4 ranks) • 6 points)"
+        "notes": "You're a master of parkour, or \"free-running,\" a style of moving quickly through crowded urban environments. Essentially, you suffer no movement penalties of any kind in an urban environment, you can vault and climb quickly, and you suffer no effect from slips or falls, so long as you are near a hand hold or other means of catching yourself. Circumstance penalties for your environment may still apply, but movement penalties do not. (Movement 5 (Environmental Adaptation (Urban), Safe Fall, Sure-Footed 2, Wall-Crawling 1), Limited to Moving in Urban Environments (4 ranks) • 6 points)"
       },
       {
         "id": "prof_talent_powers_perfect_balance",
@@ -16754,7 +16754,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Talent, Wall-crawling 1",
         "extras": [],
         "flaws": [],
-        "notes": "(Deluxe Hero's Handbook, page 116) but you move twice as fast (speed -1 rather than speed -2). With 2 ranks of Movement, you climb very quickly (at your normal ground speed). Without the flaw, you also climb unerringly: you never fall or fail to make a climb. (Movement 1 (Wall-crawling 1), Athletics Check Required (DC 11) • 1 point.)"
+        "notes": "You can climb quickly and easily, like a trained \"human fly\". With the Check Required modifier, you still suffer the normal results of failing an Athletics check while climbing (Deluxe Hero's Handbook, page 116) but you move twice as fast (speed -1 rather than speed -2). With 2 ranks of Movement, you climb very quickly (at your normal ground speed). Without the flaw, you also climb unerringly: you never fall or fail to make a climb. (Movement 1 (Wall-crawling 1), Athletics Check Required (DC 11) • 1 point.)"
       },
       {
         "id": "prof_talent_powers_speed_swimming",
@@ -16806,7 +16806,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Talent, Analytical Auditory",
         "extras": [],
         "flaws": [],
-        "notes": "with this talent have additional acute senses. You can, for example, easily distinguish between different wine vintages by taste with Refined Palate, pick out specific notes with Perfect Pitch, or recognize a specific brand of perfume with Sensitive Smell. (Senses 1 (Analytical Auditory) • 1 point.)"
+        "notes": "You have a degree of sensory refinement most people do not. While vision and hearing are normally acute, those with this talent have additional acute senses. You can, for example, easily distinguish between different wine vintages by taste with Refined Palate, pick out specific notes with Perfect Pitch, or recognize a specific brand of perfume with Sensitive Smell. (Senses 1 (Analytical Auditory) • 1 point.)"
       },
       {
         "id": "prof_talent_powers_refined_palate",
@@ -16832,7 +16832,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Talent, Acute Olfactory",
         "extras": [],
         "flaws": [],
-        "notes": "Sensitive Smell power from Talent Powers. (Senses 1 (Acute Olfactory) • 1 point. 188 188 TALENT POWERS TALENT POWERS MUTANTS & MASTERMINDS POWER PROFILES MUTANTS & MASTERMINDS POWER PROFILES)"
+        "notes": "Sensitive Smell power from Talent Powers. (Senses 1 (Acute Olfactory) • 1 point.)"
       },
       {
         "id": "prof_talent_powers_ambidexterous",
@@ -16871,7 +16871,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Talent, Postcognition",
         "extras": [],
         "flaws": [],
-        "notes": "someone's collar, you can reconstruct entire past events with amazing accuracy just by examining the available evidence. You can substitute an Investigation check for the Perception check normally required for Postcognition if your examination of the evidence is successful. (Senses 4 (Postcognition), Investigation Check Required (DC 12) • 2 points)"
+        "notes": "Whether it is a few scuffs in the dirt or some stray hairs on someone's collar, you can reconstruct entire past events with amazing accuracy just by examining the available evidence. You can substitute an Investigation check for the Perception check normally required for Postcognition if your examination of the evidence is successful. (Senses 4 (Postcognition), Investigation Check Required (DC 12) • 2 points)"
       },
       {
         "id": "prof_talent_powers_daredevil",
@@ -16932,7 +16932,7 @@ export const POWER_PROFILES_LIBRARY = [
             "description": "Escaping"
           }
         ],
-        "notes": "straitjackets and other bindings, and to escape most cages and the like, it may be ineffective against some traps (at the GM's discretion), and is often coupled with ranks in the Sleight of Hand skill and possibly the Ultimate Effort (Sleight of Hand) advantage. (Insubstantial 1, Limited to Escaping • 4 points)"
+        "notes": "You can escape from virtually any bonds or containment, so long as you are capable of taking action. While this talent allows you to easily slip free of ropes, handcuffs, straitjackets and other bindings, and to escape most cages and the like, it may be ineffective against some traps (at the GM's discretion), and is often coupled with ranks in the Sleight of Hand skill and possibly the Ultimate Effort (Sleight of Hand) advantage. (Insubstantial 1, Limited to Escaping • 4 points)"
       },
       {
         "id": "prof_talent_powers_master_linguist",
@@ -17011,7 +17011,7 @@ export const POWER_PROFILES_LIBRARY = [
             "description": "Reading"
           }
         ],
-        "notes": "This talent is like Number Cruncher (previously) except it applies to reading text rather than performing calculations. Each power point invested subtracts 3 from the time value required to read a document. (Quickness, Limited to Reading • 1 point per 3 ranks 189 189 TALENT POWERS TALENT POWERS MUTANTS & MASTERMINDS POWER PROFILES MUTANTS & MASTERMINDS POWER PROFILES)"
+        "notes": "This talent is like Number Cruncher (previously) except it applies to reading text rather than performing calculations. Each power point invested subtracts 3 from the time value required to read a document. (Quickness, Limited to Reading • 1 point per 3 ranks)"
       }
     ]
   },
@@ -17037,7 +17037,7 @@ export const POWER_PROFILES_LIBRARY = [
             "isFlat": false
           }
         ],
-        "notes": "effects reasonable for the descriptor (see Tech Descriptors). So you can transform a car or even a pile of mechanical junk into a robot, for example. If lacking this capability, the GM may allow an additional Limit on the power. (Summon Animated Object, Controlled, General Type (Machines), Self-Powered (see Summoning Powers section) • 3 points per rank)"
+        "notes": "This power assumes the ability to modify the animated machines, reconfiguring them to provide any traits or effects reasonable for the descriptor (see Tech Descriptors). So you can transform a car or even a pile of mechanical junk into a robot, for example. If lacking this capability, the GM may allow an additional Limit on the power. (Summon Animated Object, Controlled, General Type (Machines), Self-Powered (see Summoning Powers section) • 3 points per rank)"
       },
       {
         "id": "prof_tech_powers_control_technology",
@@ -17067,7 +17067,7 @@ export const POWER_PROFILES_LIBRARY = [
             "description": "third degree only"
           }
         ],
-        "notes": "use of a power like Animate Machines (previously). At the GM's discretion, the Technology skill may be used to overcome this power's Affliction rather than a Will resistance check, representing someone jury-rigging or resetting the device to prevent you from controlling it. (Perception Ranged Cumulative Affliction (Controlled; Resisted by Fortitude, Overcome by skill or Fortitude), Limited to third degree only, Affects Objects Only, Limited to Technology • 2 point per rank)"
+        "notes": "You can exert control over the technological devices and equipment of other characters. Your power does not control the character's actions, but affects the technology instead. This allows you to cause a weapon to fire, or suit of power armor to act on its own, contrary to its wearer's wishes. The device cannot do anything it is not normally capable of doing, such as aim itself, without the use of a power like Animate Machines (previously). At the GM's discretion, the Technology skill may be used to overcome this power's Affliction rather than a Will resistance check, representing someone jury-rigging or resetting the device to prevent you from controlling it. (Perception Ranged Cumulative Affliction (Controlled; Resisted by Fortitude, Overcome by skill or Fortitude), Limited to third degree only, Affects Objects Only, Limited to Technology • 2 point per rank)"
       },
       {
         "id": "prof_tech_powers_deactivate_technology",
@@ -17088,7 +17088,7 @@ export const POWER_PROFILES_LIBRARY = [
           }
         ],
         "flaws": [],
-        "notes": "the area are affected and which are not, apply the Selective modifier. Otherwise, you deactivate all technology effects in the targeted area. If you can deactivate technology around a point at a distance, rather than in a radius around you, apply the Ranged modifier. (Nullify Technology, Burst Area (30foot radius), Broad (Technological), Simultaneous • 4 points)"
+        "notes": "You deactivate technology in an area. Shutting down a specific machine may simply be a matter of using a tech power as a countering effect (see Countering, previously). This power is wider-reaching, affecting all technology in a particular area. If you can choose which targets in the area are affected and which are not, apply the Selective modifier. Otherwise, you deactivate all technology effects in the targeted area. If you can deactivate technology around a point at a distance, rather than in a radius around you, apply the Ranged modifier. (Nullify Technology, Burst Area (30foot radius), Broad (Technological), Simultaneous • 4 points)"
       },
       {
         "id": "prof_tech_powers_disassemble",
@@ -17114,7 +17114,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Tech, Fortitude effects",
         "extras": [],
         "flaws": [],
-        "notes": "You are a machine, or at least you have the body of one, rendering you immune to many of the mundane concerns of living creatures. This power assumes you are self-repairing to some degree (allowing you to recover from damage normally). (Immunity 30 (Fortitude effects) • 30 points A machine character might be a true construct (Deluxe Hero's Handbook, page 231) having no Stamina rank and no ability to recover from damage other than being re193 193 TECH POWERS TECH POWERS MUTANTS & MASTERMINDS POWER PROFILES MUTANTS & MASTERMINDS POWER PROFILES paired in addition to the immunity provided by a machine body. A mobile construct must also buy Intellect and Presence ranks up from nonexistence (starting at rank -5) rather than having them at rank 0.)"
+        "notes": "You are a machine, or at least you have the body of one, rendering you immune to many of the mundane concerns of living creatures. This power assumes you are self-repairing to some degree (allowing you to recover from damage normally). (Immunity 30 (Fortitude effects) • 30 points A machine character might be a true construct (Deluxe Hero's Handbook, page 231) having no Stamina rank and no ability to recover from damage other than being repaired in addition to the immunity provided by a machine body. A mobile construct must also buy Intellect and Presence ranks up from nonexistence (starting at rank -5) rather than having them at rank 0.)"
       },
       {
         "id": "prof_tech_powers_construct_body",
@@ -17127,7 +17127,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Tech, Device",
         "extras": [],
         "flaws": [],
-        "notes": "MUTANTS & MASTERMINDS POWER PROFILES MUTANTS & MASTERMINDS POWER PROFILES paired in addition to the immunity provided by a machine body. A mobile construct must also buy Intellect and Presence ranks up from nonexistence (starting at rank -5) rather than having them at rank 0. (Construct • 0 points In either case, your mind is still essentially the same as an ordinary person's, although it may or may not be an actual, biological, brain. Characters with digital (computerized) minds may wish to have the Computer Mind and Machine Mind powers as well.)"
+        "notes": "A machine character might be a true construct (Deluxe Hero's Handbook, page 231) having no Stamina rank and no ability to recover from damage other than being repaired in addition to the immunity provided by a machine body. A mobile construct must also buy Intellect and Presence ranks up from nonexistence (starting at rank -5) rather than having them at rank 0. (Construct • 0 points In either case, your mind is still essentially the same as an ordinary person's, although it may or may not be an actual, biological, brain. Characters with digital (computerized) minds may wish to have the Computer Mind and Machine Mind powers as well.)"
       },
       {
         "id": "prof_tech_powers_machine_mind",
@@ -17140,7 +17140,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Tech, Mental powers",
         "extras": [],
         "flaws": [],
-        "notes": "apply the Limited to Half Effect modifier if you are partially susceptible. You may be affected, on the other hand, by powers which work specifically on computers. The GM may consider this a form of Power Loss for your Immunity and award you hero points for the complication when it occurs. (Immunity 10 (mental powers) • 10 points Some Machine Minds may have additional Immunities, such interaction skills or even all Will effects.)"
+        "notes": "Rather than a biological brain, you have a digital \"mind,\" most likely a computer of some sort. Your lack of a mind gives you full immunity to powers that affect minds, or apply the Limited to Half Effect modifier if you are partially susceptible. You may be affected, on the other hand, by powers which work specifically on computers. The GM may consider this a form of Power Loss for your Immunity and award you hero points for the complication when it occurs. (Immunity 10 (mental powers) • 10 points Some Machine Minds may have additional Immunities, such interaction skills or even all Will effects.)"
       },
       {
         "id": "prof_tech_powers_cyberspace",
@@ -17153,7 +17153,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Tech, Dimensional Travel, Cyberspace",
         "extras": [],
         "flaws": [],
-        "notes": "in the setting and, if so, how you interact with it, but generally your mental abilities and skills like Technology have the greatest impact. Apply the Limited modifier if only your mind travels into cyberspace, leaving your body behind. (Movement 1 (Dimensional Travel, Cyberspace) • 2 points)"
+        "notes": "You can transfer your consciousness (and perhaps even your body) into a virtual \"world\" that exists \"inside\" a computer or computer network, allowing you to interact with that world as if it were real and physical: data and software manifests as objects and other beings and interactions with them affects the computer systems. The GM decides if some form of cyberspace even exists in the setting and, if so, how you interact with it, but generally your mental abilities and skills like Technology have the greatest impact. Apply the Limited modifier if only your mind travels into cyberspace, leaving your body behind. (Movement 1 (Dimensional Travel, Cyberspace) • 2 points)"
       },
       {
         "id": "prof_tech_powers_network_jump",
@@ -17188,7 +17188,7 @@ export const POWER_PROFILES_LIBRARY = [
             "description": "Requires available technology or machine parts (-1 point)"
           }
         ],
-        "notes": "is a regular device rather than something you create as needed, replace the Quirk with the Removable modifier. Otherwise, you can assemble your Transport Platform out of any available tech. This power often complements the broader Assemble power (following). (Flight, Platform, Quirk: Requires available technology or machine parts (-1 point) • 1 point for 2 ranks + 1 point per)"
+        "notes": "You can turn nearby technology or parts into a platform able to carry you aloft. It may be self-propelled (with anything from rockets to anti-gravity) or levitated by your own animating power, a kind of \"technokinesis\". If the platform is a regular device rather than something you create as needed, replace the Quirk with the Removable modifier. Otherwise, you can assemble your Transport Platform out of any available tech. This power often complements the broader Assemble power (following). (Flight, Platform, Quirk: Requires available technology or machine parts (-1 point) • 1 point for 2 ranks + 1 point per)"
       },
       {
         "id": "prof_tech_powers_assemble",
@@ -17201,7 +17201,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Tech, Parts into finished machine",
         "extras": [],
         "flaws": [],
-        "notes": "book, page 211) possibly one created by a Tech Savant (see the Tech Savant power). If allowed, the GM may wish to treat multiple inventions in the same scene as extra effort, requiring fatigue or hero points, in order to balance the speed with which the character can create them. (Ranged Continuous Transform (parts into finished machine) • 4 points per rank)"
+        "notes": "You can assemble technology instantly out of collections of parts, causing the disparate parts to fly together of their own accord, even modifying them to suit the needs of the particular machine, as if working them with tools. If the GM allows, Assemble can reduce the time required for the construction check of an invention (Deluxe Hero's Handbook, page 211) possibly one created by a Tech Savant (see the Tech Savant power). If allowed, the GM may wish to treat multiple inventions in the same scene as extra effort, requiring fatigue or hero points, in order to balance the speed with which the character can create them. (Ranged Continuous Transform (parts into finished machine) • 4 points per rank)"
       },
       {
         "id": "prof_tech_powers_computer_mind",
@@ -17223,7 +17223,7 @@ export const POWER_PROFILES_LIBRARY = [
             "description": "Mental Tasks"
           }
         ],
-        "notes": "and able to think faster than an ordinary human, and may even be a computer! Note this differs from the Machine Mind power (previously) in that it does not provide any particular resistance to mental powers, although the two powers are often found together. (Enhanced Advantages (Eidetic Memory) plus Quickness, Limited to Mental Tasks • 1 point + 1 point)"
+        "notes": "Your mind functions like a computer, with perfect recall and able to think faster than an ordinary human, and may even be a computer! Note this differs from the Machine Mind power (previously) in that it does not provide any particular resistance to mental powers, although the two powers are often found together. (Enhanced Advantages (Eidetic Memory) plus Quickness, Limited to Mental Tasks • 1 point + 1 point)"
       },
       {
         "id": "prof_tech_powers_interface",
@@ -17236,7 +17236,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Tech, Device",
         "extras": [],
         "flaws": [],
-        "notes": "have a socket or interface plug yourself, or simply be able to touch the target. If you can also use Interface at a distance, add the Communication (Radio) effect, essentially turning you into a wireless network able to communicate with computers within your range. (Comprehend Machines 2 • 4 points)"
+        "notes": "You can mentally interface with computers and computer networks, operating them as if you were a connected computer yourself. You still use the Technology skill to make checks to program or otherwise interact with the computers, although characters often have Tech Savant (following) to go along with this power; and instinctive knowledge of how machines work. By default, Interface operates by touch: either an input/ output port, network hub, or similar device. You might have a socket or interface plug yourself, or simply be able to touch the target. If you can also use Interface at a distance, add the Communication (Radio) effect, essentially turning you into a wireless network able to communicate with computers within your range. (Comprehend Machines 2 • 4 points)"
       },
       {
         "id": "prof_tech_powers_manipulate_technology",
@@ -17266,7 +17266,7 @@ export const POWER_PROFILES_LIBRARY = [
             "description": "Operating Machines"
           }
         ],
-        "notes": "or \"muscle\" power needed to move a mechanism, so it cannot, for example, manipulate technology that has no power source. If the power has no obvious effect apart from the target technology operating on its own, apply the Subtle modifier as well. (Perception Ranged Move Object 1, Precise, Limited to Operating Machines • 3 points)"
+        "notes": "You cannot move a gate which has no mechanism. This power also cannot supply power other than the kinetic or \"muscle\" power needed to move a mechanism, so it cannot, for example, manipulate technology that has no power source. If the power has no obvious effect apart from the target technology operating on its own, apply the Subtle modifier as well. (Perception Ranged Move Object 1, Precise, Limited to Operating Machines • 3 points)"
       },
       {
         "id": "prof_tech_powers_sensor_masking",
@@ -17288,7 +17288,7 @@ export const POWER_PROFILES_LIBRARY = [
             "description": "Technology"
           }
         ],
-        "notes": "ence, a human guard can still perceive you (provided he is present to do so and not monitoring the area remotely via technology). Some characters may even have Permanent Concealment; machines cannot detect them even if they want them to! (Concealment 10 (All Senses), Limited to Technology • 10 points)"
+        "notes": "You can \"blind\" electronic sensors and computer-connected devices to your presence, giving you total concealment from them. This has no effect on minds, just technology, so while a security monitor will not pick up your presence, a human guard can still perceive you (provided he is present to do so and not monitoring the area remotely via technology). Some characters may even have Permanent Concealment; machines cannot detect them even if they want them to! (Concealment 10 (All Senses), Limited to Technology • 10 points)"
       },
       {
         "id": "prof_tech_powers_sensor_network",
@@ -17310,7 +17310,7 @@ export const POWER_PROFILES_LIBRARY = [
             "description": "Technological Sensors"
           }
         ],
-        "notes": "like within range of your power is generally rare enough to not increase its cost per rank to account for them. If a player wants to have an unusual sensor \"happen\" to be present, this is a good application of the Edit Scene use of hero points (Deluxe Hero's Handbook, page 20). (Remote Sensing (Visual and Auditory), Limited to Technological Sensors • 2 points per rank)"
+        "notes": "Have the Interface power (previously). The availability of things like chemical sensors or brain scanners or the like within range of your power is generally rare enough to not increase its cost per rank to account for them. If a player wants to have an unusual sensor \"happen\" to be present, this is a good application of the Edit Scene use of hero points (Deluxe Hero's Handbook, page 20). (Remote Sensing (Visual and Auditory), Limited to Technological Sensors • 2 points per rank)"
       },
       {
         "id": "prof_tech_powers_technomorph",
@@ -17323,7 +17323,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Tech, Tech Powers",
         "extras": [],
         "flaws": [],
-        "notes": "forms, or simply able to alter your molecular structure in different ways to mimic machines and technology. Your potential powers could include any of those given in this section, as well as other powers with the technology descriptor found in other sections. (Variable (Tech Powers), Continuous Duration, Move Action • 9 points per rank)"
+        "notes": "You might be made up of nanotechnology, microscopic machines able to reorganize themselves into different forms, or simply able to alter your molecular structure in different ways to mimic machines and technology. Your potential powers could include any of those given in this section, as well as other powers with the technology descriptor found in other sections. (Variable (Tech Powers), Continuous Duration, Move Action • 9 points per rank)"
       },
       {
         "id": "prof_tech_powers_tech_savant",
@@ -17349,7 +17349,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Tech, Inventor",
         "extras": [],
         "flaws": [],
-        "notes": "devices. Especially brilliant Tech Geniuses might have the Computer Mind power (speeding up the time of the design check for inventing) or ranks of Quickness added to Tech Genius, Limited to Design Checks (and therefore costing 1 power point per 3 Quickness ranks). (Enhanced Advantage (Inventor) • 1 point.)"
+        "notes": "Take otherwise ordinary technological components and cobble them together into amazing-albeit temporarydevices. Especially brilliant Tech Geniuses might have the Computer Mind power (speeding up the time of the design check for inventing) or ranks of Quickness added to Tech Genius, Limited to Design Checks (and therefore costing 1 power point per 3 Quickness ranks). (Enhanced Advantage (Inventor) • 1 point.)"
       },
       {
         "id": "prof_tech_powers_concentration",
@@ -17518,7 +17518,7 @@ export const POWER_PROFILES_LIBRARY = [
           }
         ],
         "flaws": [],
-        "notes": "under Teleport Tricks if you teleport a target up into the air or teleport an object to drop onto a target. If you can apport at a distance (making a ranged attack check), apply the Ranged modifier. If you can apport a target simply by seeing it, apply the Perception Ranged modifier. (Teleport Attack • 2 points per rank)"
+        "notes": "Also known as Projecting Teleport, you can teleport targets other than yourself. You must touch the target with a successful close attack check. Unwilling targets get a Dodge resistance check to avoid being teleported, DC 10 + your effect rank. Objects do not get a resistance check, so long as they are within your weight limit. See Dropping Things under Teleport Tricks if you teleport a target up into the air or teleport an object to drop onto a target. If you can apport at a distance (making a ranged attack check), apply the Ranged modifier. If you can apport a target simply by seeing it, apply the Perception Ranged modifier. (Teleport Attack • 2 points per rank)"
       },
       {
         "id": "prof_teleport_powers_apportive_attack",
@@ -17531,7 +17531,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Teleport, Spatial",
         "extras": [],
         "flaws": [],
-        "notes": "and injury and bypassing your target's external defenses. A similar power involves teleporting parts of the target away, tearing them apart with your power, rather than teleporting weapons into them. The effect is the same, but the descriptors differ. (Perception Ranged Damage, Resisted by Fortitude • 4 points per rank)"
+        "notes": "You teleport projectiles into your target, causing damage and injury and bypassing your target's external defenses. A similar power involves teleporting parts of the target away, tearing them apart with your power, rather than teleporting weapons into them. The effect is the same, but the descriptors differ. (Perception Ranged Damage, Resisted by Fortitude • 4 points per rank)"
       },
       {
         "id": "prof_teleport_powers_portal_blast",
@@ -17544,7 +17544,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Teleport, Environmental Effects",
         "extras": [],
         "flaws": [],
-        "notes": "The Variable Descriptor modifier allows you to project any Damage effect with an environmental descriptor: cold, fire, lighting, water, and so forth. If you can place the portal (the origin point of the attack) somewhere other than directly in front of you, apply the Indirect modifier as well. (Ranged Damage, Variable Descriptor 1 (Environmental Effects) • 1 point + 2 points per rank)"
+        "notes": "You open a small portal to project a stream of matter or energy from another location, aiming it at your target. The Variable Descriptor modifier allows you to project any Damage effect with an environmental descriptor: cold, fire, lighting, water, and so forth. If you can place the portal (the origin point of the attack) somewhere other than directly in front of you, apply the Indirect modifier as well. (Ranged Damage, Variable Descriptor 1 (Environmental Effects) • 1 point + 2 points per rank)"
       },
       {
         "id": "prof_teleport_powers_portal_punch",
@@ -17557,7 +17557,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Teleport, Spatial",
         "extras": [],
         "flaws": [],
-        "notes": "of your normal reach. The normal rank limit for the power 199 199 TELEPORT POWERS TELEPORT POWERS MUTANTS & MASTERMINDS POWER PROFILES MUTANTS & MASTERMINDS POWER PROFILES is equal to your Strength rank. Indirect is a common modifier for this power. (Ranged Damage • 2 points per rank)"
+        "notes": "You open a small portal in front of your fist, allowing you to \"telegraph\" a punch across a distance and hit a target out of your normal reach. The normal rank limit for the power is equal to your Strength rank. Indirect is a common modifier for this power. (Ranged Damage • 2 points per rank)"
       },
       {
         "id": "prof_teleport_powers_teleport_sickness",
@@ -17621,7 +17621,7 @@ export const POWER_PROFILES_LIBRARY = [
           }
         ],
         "flaws": [],
-        "notes": "allowing you to avoid any attack you can detect so long as your teleport distance takes you out of the affected area. Surprise attacks can still catch you off-guard, including those so Subtle you cannot detect them. This power tends to be low ranked, just enough to clear most areas. (Reaction Teleport (Imminent Attack) • 5 points per rank)"
+        "notes": "You teleport reflexively in response to imminent danger, allowing you to avoid any attack you can detect so long as your teleport distance takes you out of the affected area. Surprise attacks can still catch you off-guard, including those so Subtle you cannot detect them. This power tends to be low ranked, just enough to clear most areas. (Reaction Teleport (Imminent Attack) • 5 points per rank)"
       },
       {
         "id": "prof_teleport_powers_immunity_to_teleport",
@@ -17690,7 +17690,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Teleport, Space Travel",
         "extras": [],
         "flaws": [],
-        "notes": "or star system to another! As mentioned on page 173 of the Deluxe Hero's Handbook, this type of movement is largely plot-based and should be limited to covering interplanetary distances, not going from place to place on a single planet. (Movement (Space Travel) • 2 points per rank)"
+        "notes": "You can teleport over very long distances, from one planet or star system to another! As mentioned on page 173 of the Deluxe Hero's Handbook, this type of movement is largely plot-based and should be limited to covering interplanetary distances, not going from place to place on a single planet. (Movement (Space Travel) • 2 points per rank)"
       },
       {
         "id": "prof_teleport_powers_portal_platform",
@@ -17716,7 +17716,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Teleport, Spatial",
         "extras": [],
         "flaws": [],
-        "notes": "(Deluxe Hero's Handbook, page 183) for details. The descriptors associated with your Teleport are up to you, but unless it is Subtle, it must have some noticeable effect: flash of light, bang or popping noise, puff of smoke, or the like. (Teleport • 2 points per rank)"
+        "notes": "Basic teleport power: you can move instantly from one place to another, without crossing the distance in between, as a move action. You can \"double teleport\" as two move actions on your turn (materializing briefly in between), or make an extended teleport if you have the Extended modifier. See the Teleport effect description (Deluxe Hero's Handbook, page 183) for details. The descriptors associated with your Teleport are up to you, but unless it is Subtle, it must have some noticeable effect: flash of light, bang or popping noise, puff of smoke, or the like. (Teleport • 2 points per rank)"
       },
       {
         "id": "prof_teleport_powers_affects_others",
@@ -17898,7 +17898,7 @@ export const POWER_PROFILES_LIBRARY = [
           }
         ],
         "flaws": [],
-        "notes": "Teleportal as a free action. If you can move your Teleportal, using it to \"engulf\" someone or something so they are transported through it, take an Alternate Effect version of it with the Attack extra and make a successful ranged attack check to use it. (Teleport, Portal • 4 points per rank +1 point per rank per +1 distance rank to portal size.)"
+        "notes": "So long as you take a standard action each round to maintain it. Apply the Increased Duration extra to maintain a Teleportal as a free action. If you can move your Teleportal, using it to \"engulf\" someone or something so they are transported through it, take an Alternate Effect version of it with the Attack extra and make a successful ranged attack check to use it. (Teleport, Portal • 4 points per rank +1 point per rank per +1 distance rank to portal size.)"
       },
       {
         "id": "prof_time_powers_nullify_teleport",
@@ -17968,7 +17968,7 @@ export const POWER_PROFILES_LIBRARY = [
             "description": "Teleporters"
           }
         ],
-        "notes": "teleporter. For example, Spatial Beacon 5 reduces the teleporting distance rank between you and any teleporter by 5, allowing someone with Teleport 5 who is 4 miles (distance rank 10) away from you to teleport to your side. Spatial Beacon can counter a Nullify Teleport power and vice versa. (Enhanced Teleport, Affects Others Only, Limited to Teleporters • 1 point per rank)"
+        "notes": "Opposite of a null teleport field (previously), you create a \"weak point\" in the fabric of space, allowing teleporters to \"home in\" on it from a greater distance. You subtract your effect rank from the distance rank between you and any teleporter. For example, Spatial Beacon 5 reduces the teleporting distance rank between you and any teleporter by 5, allowing someone with Teleport 5 who is 4 miles (distance rank 10) away from you to teleport to your side. Spatial Beacon can counter a Nullify Teleport power and vice versa. (Enhanced Teleport, Affects Others Only, Limited to Teleporters • 1 point per rank)"
       },
       {
         "id": "prof_time_powers_teleport_awareness",
@@ -18002,7 +18002,7 @@ export const POWER_PROFILES_LIBRARY = [
           }
         ],
         "flaws": [],
-        "notes": "By default, this power only works on living beings you can touch. If you do not need to touch the target, apply Ranged or Perception Ranged. If you can also rapidly age objects, to the point of causing them to break down and decay, apply the Affects Objects modifier as well. (Cumulative Affliction (aging; Resisted and Overcome by Fortitude; Impaired, Disabled, Transformed) • 2 points per rank)"
+        "notes": "Target's aging both forwards or backwards, apply 1 rank of the Variable Descriptor modifier. By default, this power only works on living beings you can touch. If you do not need to touch the target, apply Ranged or Perception Ranged. If you can also rapidly age objects, to the point of causing them to break down and decay, apply the Affects Objects modifier as well. (Cumulative Affliction (aging; Resisted and Overcome by Fortitude; Impaired, Disabled, Transformed) • 2 points per rank)"
       },
       {
         "id": "prof_time_powers_temporal_ambush",
@@ -18015,7 +18015,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Time, Objects and hazards of opportunity",
         "extras": [],
         "flaws": [],
-        "notes": "for example, or a projectile to hit them. When you restart time again, from the target's perspective, the attack appears out of nowhere. This power is often used in conjunction with Temporal Shift, Temporal Movement, and Time Stop, which also rely on stopping time. (Percpetion Ranged Damage (objects and hazards of opportunity), Indirect 4, Variable Descriptor 1 • 5 points +3 points per rank)"
+        "notes": "By stopping (or vastly slowing) time, you can \"set up\" a target for an attack: placing an object to drop onto them, for example, or a projectile to hit them. When you restart time again, from the target's perspective, the attack appears out of nowhere. This power is often used in conjunction with Temporal Shift, Temporal Movement, and Time Stop, which also rely on stopping time. (Percpetion Ranged Damage (objects and hazards of opportunity), Indirect 4, Variable Descriptor 1 • 5 points +3 points per rank)"
       },
       {
         "id": "prof_time_powers_time_freeze",
@@ -18036,7 +18036,7 @@ export const POWER_PROFILES_LIBRARY = [
           }
         ],
         "flaws": [],
-        "notes": "tive of the outside world. You must touch the target by 203 203 TIME POWERS TIME POWERS MUTANTS & MASTERMINDS POWER PROFILES MUTANTS & MASTERMINDS POWER PROFILES default. If you can use this power at a distance, apply the Ranged or Perception Ranged modifiers. (Cumulative Affliction (time freeze; Resisted and Overcome by Will; Dazed, Stunned, Incapacitated) • 2 points)"
+        "notes": "You trap a target in a \"bubble\" of stopped (or vastly slowed) time, essentially freezing them from the perspective of the outside world. You must touch the target by default. If you can use this power at a distance, apply the Ranged or Perception Ranged modifiers. (Cumulative Affliction (time freeze; Resisted and Overcome by Will; Dazed, Stunned, Incapacitated) • 2 points)"
       },
       {
         "id": "prof_time_powers_temporal_phase",
@@ -18049,7 +18049,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Time, Temporal",
         "extras": [],
         "flaws": [],
-        "notes": "through solid objects, and you are immune to harm. Some forms of Temporal Phase also render you undetectable to anyone existing in normal time. In this case, add Concealment 10 to the power, giving you total concealment from all but specific exotic senses like Time Sense. (Insubstantial 4 • 20 points)"
+        "notes": "Shifting just a moment \"out of phase\" with ordinary time, you become an immaterial phantom image, able to pass through solid objects, and you are immune to harm. Some forms of Temporal Phase also render you undetectable to anyone existing in normal time. In this case, add Concealment 10 to the power, giving you total concealment from all but specific exotic senses like Time Sense. (Insubstantial 4 • 20 points)"
       },
       {
         "id": "prof_time_powers_temporal_sidestep",
@@ -18079,7 +18079,7 @@ export const POWER_PROFILES_LIBRARY = [
             "description": "not against surprise attacks"
           }
         ],
-        "notes": "making it appear that you have moved faster than the eye can follow, or simply teleported from place to place. Temporal Sidestep requires some conscious effort on your part (to know when to stop time and move), so it is useless against attacks you can't perceive or that catch you by surprise. (Immunity 80 (Dodge and Parry based attacks), Concentration, Limited (not against surprise attacks); Reaction Teleport 1 (when attacked) • 32 points + 5)"
+        "notes": "You can evade attacks by stopping time, moving out of the path of the \"frozen\" attack, and re-starting time again, making it appear that you have moved faster than the eye can follow, or simply teleported from place to place. Temporal Sidestep requires some conscious effort on your part (to know when to stop time and move), so it is useless against attacks you can't perceive or that catch you by surprise. (Immunity 80 (Dodge and Parry based attacks), Concentration, Limited (not against surprise attacks); Reaction Teleport 1 (when attacked) • 32 points + 5)"
       },
       {
         "id": "prof_time_powers_timeless",
@@ -18092,7 +18092,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Time, Temporal effects",
         "extras": [],
         "flaws": [],
-        "notes": "depending on how time travel works in the setting. More extreme forms of this power include the benefits of Accelerated Healing and even Immortality, giving you a natural tendency to revert back to your \"fixed\" state when your condition is changed by damage or injury. (Immunity 5 (temporal effects) • 5 points)"
+        "notes": "You are a \"fixed\" point in time, completely unaffected by its passage or any other temporal effects. This power includes immunity to aging from the normal passage of time. It may also include the benefits of the Chronal Bulwark and Chronal Memory Features (see Features), depending on how time travel works in the setting. More extreme forms of this power include the benefits of Accelerated Healing and even Immortality, giving you a natural tendency to revert back to your \"fixed\" state when your condition is changed by damage or injury. (Immunity 5 (temporal effects) • 5 points)"
       },
       {
         "id": "prof_time_powers_temporal_shift",
@@ -18114,7 +18114,7 @@ export const POWER_PROFILES_LIBRARY = [
             "description": "places you can reach physically"
           }
         ],
-        "notes": "you have \"jumped\" from one location to another without crossing the space in between, even though you actually did so \"outside\" of ordinary time. The power's rank isn't technically the distance you can go, it's the time you have to move while time is stopped for everyone else. (Accurate Teleport, Limited to places you can reach physically • 2 points per rank)"
+        "notes": "By stopping time, moving to a different spot, then restarting the flow of time again, you make it appear as if you have \"jumped\" from one location to another without crossing the space in between, even though you actually did so \"outside\" of ordinary time. The power's rank isn't technically the distance you can go, it's the time you have to move while time is stopped for everyone else. (Accurate Teleport, Limited to places you can reach physically • 2 points per rank)"
       },
       {
         "id": "prof_time_powers_manipulative_temporal_shift",
@@ -18144,7 +18144,7 @@ export const POWER_PROFILES_LIBRARY = [
             "description": "things you can physically move"
           }
         ],
-        "notes": "This allows you to, for example, snatch something out of someone's hand (or off a table, etc.), making it \"disappear\" from their perspective, or to move a frozen person from one spot to another, making them \"jump\" from place to place like you do. (Perception Range Teleport Attack (Resisted by (Choose a Defense when purchased)), Limited to things you can physically move • 4 points per rank)"
+        "notes": "You when you shift \"outside\" of time, in which case, apply the Perception Range and Attack modifiers to this power. This allows you to, for example, snatch something out of someone's hand (or off a table, etc.), making it \"disappear\" from their perspective, or to move a frozen person from one spot to another, making them \"jump\" from place to place like you do. (Perception Range Teleport Attack (Resisted by (Choose a Defense when purchased)), Limited to things you can physically move • 4 points per rank)"
       },
       {
         "id": "prof_time_powers_manipulative_area_temporal_shift",
@@ -18181,7 +18181,7 @@ export const POWER_PROFILES_LIBRARY = [
             "description": "things you can physically move"
           }
         ],
-        "notes": "range\" anything in an entire area, setting a whole range of events in motion for when time resumes its normal flow. With the Area modifier, you can shift around any subject. From their perspective, everything \"jumps\" to different locations instantly. (Perception Range Burst Area Teleport Attack (Resisted by (Choose a Defense when purchased)), Limited to things you can physically move • 5 points per rank)"
+        "notes": "Ultimate version of this power allows you to \"rearrange\" anything in an entire area, setting a whole range of events in motion for when time resumes its normal flow. With the Area modifier, you can shift around any subject. From their perspective, everything \"jumps\" to different locations instantly. (Perception Range Burst Area Teleport Attack (Resisted by (Choose a Defense when purchased)), Limited to things you can physically move • 5 points per rank)"
       },
       {
         "id": "prof_time_powers_time_portal",
@@ -18215,7 +18215,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Time, Time Travel",
         "extras": [],
         "flaws": [],
-        "notes": "when you time travel. The Time Portal and Time Travel powers are frequently provided by either vehicles (time machines or time-travel capsules) or headquarters (installations with a time portal of some sort), providing a useful way to regulate them. (Movement (Time Travel) • 2 points per rank up to rank 3 (6 points).)"
+        "notes": "You can transport yourself (and anything you are wearing or carrying) to a different point in time. The exact effects of time travel depend on the nature of the setting; see the Temporal Tampering section. Apply the Increased Mass extra if you can carry along additional cargo or passengers when you time travel. The Time Portal and Time Travel powers are frequently provided by either vehicles (time machines or time-travel capsules) or headquarters (installations with a time portal of some sort), providing a useful way to regulate them. (Movement (Time Travel) • 2 points per rank up to rank 3 (6 points).)"
       },
       {
         "id": "prof_time_powers_accelerated_healing",
@@ -18254,7 +18254,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Time, Precognition",
         "extras": [],
         "flaws": [],
-        "notes": "In game terms, this power is a Feature added to Precognition; you gain knowledge of the future by living through it, and can use that knowledge to \"re-do\" certain events, trying to cause them to come out differently. You can do this once per game session per rank in Feature. (Senses 4 (Precognition), Feature 1 (retcon events) • 5 points +1 point per additional Feature rank)"
+        "notes": "You cause time to \"jump\" backwards, essentially replaying the recent past in a way that allows events to occur differently for a different outcome. For example, after a victim is struck by an oncoming car, you might replay the moment the victim steps off the sidewalk, allowing you the opportunity to intervene and save them. In game terms, this power is a Feature added to Precognition; you gain knowledge of the future by living through it, and can use that knowledge to \"re-do\" certain events, trying to cause them to come out differently. You can do this once per game session per rank in Feature. (Senses 4 (Precognition), Feature 1 (retcon events) • 5 points +1 point per additional Feature rank)"
       },
       {
         "id": "prof_time_powers_see_the_future",
@@ -18267,7 +18267,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Time, Precognition",
         "extras": [],
         "flaws": [],
-        "notes": "of possible futures, depending on how temporal tampering is handled in the series. Gamemasters should see the Adventure Elements section of the Gamemaster's Guide for additional suggestions on handling potentially plotbreaking powers like precognition. (Senses 4 (Precognition) • 4 points)"
+        "notes": "You have visions of the future. They are most likely visions of possible futures, depending on how temporal tampering is handled in the series. Gamemasters should see the Adventure Elements section of the Gamemaster's Guide for additional suggestions on handling potentially plotbreaking powers like precognition. (Senses 4 (Precognition) • 4 points)"
       },
       {
         "id": "prof_time_powers_temporal_duplication",
@@ -18280,7 +18280,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Time, Temporal",
         "extras": [],
         "flaws": [],
-        "notes": "duplicates to differ slightly from you allows for differences in game traits. If you can summon a duplicate from the future (or a timeline with more advanced knowledge) the GM may choose to treat this as an Inspiration use of hero points (Deluxe Hero's Handbook, page 21). (Summon Duplicate, Heroic • 4 points per rank)"
+        "notes": "Close connection between temporal duplicates may call for the Feedback flaw on the power. The potential for duplicates to differ slightly from you allows for differences in game traits. If you can summon a duplicate from the future (or a timeline with more advanced knowledge) the GM may choose to treat this as an Inspiration use of hero points (Deluxe Hero's Handbook, page 21). (Summon Duplicate, Heroic • 4 points per rank)"
       },
       {
         "id": "prof_time_powers_temporal_summoning",
@@ -18293,7 +18293,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Time, Beings from history",
         "extras": [],
         "flaws": [],
-        "notes": "Deluxe Hero's Handbook to customize the power, including summoning Heroic beings or a Horde of Multiple Minions. Villains with this power may have access to vast armies of temporal minions as a plot device, which is not really worth pricing out as a power. (Summon, Broad Type (beings from history) • 4 points per rank)"
+        "notes": "You summon assistance from elsewhere in the timestream. This power can range from the ability to call up soldiers from different points in history, summoning dinosaurs and other creatures of bygone ages, or even calling upon beings from the distant future (cyborgs, aliens, or superadvanced forms of life). The basic power summons a single being as a minion, apply the Summon modifiers from the Deluxe Hero's Handbook to customize the power, including summoning Heroic beings or a Horde of Multiple Minions. Villains with this power may have access to vast armies of temporal minions as a plot device, which is not really worth pricing out as a power. (Summon, Broad Type (beings from history) • 4 points per rank)"
       },
       {
         "id": "prof_time_powers_time_sense",
@@ -18344,7 +18344,7 @@ export const POWER_PROFILES_LIBRARY = [
             "description": "Limited to routine actions while active (-4 points)"
           }
         ],
-        "notes": "Your effect rank determines how much subjective time you get; with rank 9, for example, you have an hour \"outside\" of time to do things, then time returns to its normal flow. The Subtle modifier means no one notices you \"move\" when time is stopped. (Quickness (Subtle 2), Speed (Subtle 2), Quirk: Limited to routine actions while active (-4 points) • 2 points per rank)"
+        "notes": "You can put time on \"pause\", freezing the entire world and allowing you to move and look around at the tableau at your leisure. You cannot affect anything while time is stopped (for that, see Temporal Ambush). Still, this power allows you considerable opportunity for scouting and surveillance, such as stopping time, walking into a place and having a good look around before walking out and restarting time again. Your effect rank determines how much subjective time you get; with rank 9, for example, you have an hour \"outside\" of time to do things, then time returns to its normal flow. The Subtle modifier means no one notices you \"move\" when time is stopped. (Quickness (Subtle 2), Speed (Subtle 2), Quirk: Limited to routine actions while active (-4 points) • 2 points per rank)"
       },
       {
         "id": "prof_time_powers_chronal_memory",
@@ -18440,7 +18440,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Water, Postcognition",
         "extras": [],
         "flaws": [],
-        "notes": "changed what occurred. As with See the Future, the GM may wish to take this power into consideration when creating suitable challenges for the heroes. (Senses 4 (Postcognition) • 4 points)"
+        "notes": "Changed what occurred. As with See the Future, the GM may wish to take this power into consideration when creating suitable challenges for the heroes. (Senses 4 (Postcognition) • 4 points)"
       },
       {
         "id": "prof_water_powers_blinding_splash",
@@ -18542,7 +18542,7 @@ export const POWER_PROFILES_LIBRARY = [
             "description": "Along Shoreline"
           }
         ],
-        "notes": "a massive tidal wave that engulfs a shoreline area. Half of the increased ranks of Line Area increase the length (along the shoreline) while half increase its width (distance inland). Much higher ranks of Area may be more of a plot device or villainous plot than a common power for a hero. (Ranged Damage, Line Area 7 (250 feet long, 60 feet inland), Limited to Along Shoreline, Limited to Originating from Bodies of Water • 7 points per rank)"
+        "notes": "You command the unleashed fury of the sea in the form of a massive tidal wave that engulfs a shoreline area. Half of the increased ranks of Line Area increase the length (along the shoreline) while half increase its width (distance inland). Much higher ranks of Area may be more of a plot device or villainous plot than a common power for a hero. (Ranged Damage, Line Area 7 (250 feet long, 60 feet inland), Limited to Along Shoreline, Limited to Originating from Bodies of Water • 7 points per rank)"
       },
       {
         "id": "prof_water_powers_water_blast",
@@ -18605,7 +18605,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Water, Aquatic",
         "extras": [],
         "flaws": [],
-        "notes": "ed\" water, as solid and sharp as a conventional weapon, perhaps more so. If you can form different types of weapons, apply the Variable Descriptor modifier, good for a rank of Improved Critical, Reach, or a similar 1-point modifier based on weapon form and type. (Strength-based Damage • 1 point per rank)"
+        "notes": "You form a melee weapon out of \"hard\" or \"concentrated\" water, as solid and sharp as a conventional weapon, perhaps more so. If you can form different types of weapons, apply the Variable Descriptor modifier, good for a rank of Improved Critical, Reach, or a similar 1-point modifier based on weapon form and type. (Strength-based Damage • 1 point per rank)"
       },
       {
         "id": "prof_water_powers_aquatic_regeneration",
@@ -18640,7 +18640,7 @@ export const POWER_PROFILES_LIBRARY = [
             "description": "Half Effect"
           }
         ],
-        "notes": "Your watery powers make you resistant to the effects of fire. 208 208 WATER POWERS WATER POWERS MUTANTS & MASTERMINDS POWER PROFILES MUTANTS & MASTERMINDS POWER PROFILES (Immunity 10 (Fire Effects), Limited to Half Effect • 5 points)"
+        "notes": "Your watery powers make you resistant to the effects of fire. (Immunity 10 (Fire Effects), Limited to Half Effect • 5 points)"
       },
       {
         "id": "prof_water_powers_mist",
@@ -18766,7 +18766,7 @@ export const POWER_PROFILES_LIBRARY = [
             "description": "Leaping From Water"
           }
         ],
-        "notes": "leaping dolphin. Rather than a standalone power, this one is commonly an Alternate Effect of another movement power like Swimming (see the following). At higher ranks, this power goes beyond mere leaping to riding a powerful waterspout or geyser capable of carrying you for miles! (Leaping, Limited to Leaping From Water • 1 point per 2 ranks)"
+        "notes": "You can vault from the water high into the air like a leaping dolphin. Rather than a standalone power, this one is commonly an Alternate Effect of another movement power like Swimming (see the following). At higher ranks, this power goes beyond mere leaping to riding a powerful waterspout or geyser capable of carrying you for miles! (Leaping, Limited to Leaping From Water • 1 point per 2 ranks)"
       },
       {
         "id": "prof_water_powers_swimming",
@@ -18818,7 +18818,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Water, Cold, Drowning, Pressure",
         "extras": [],
         "flaws": [],
-        "notes": "water and ignore the cold and extreme pressures of the ocean depths. Your vision is adapted to the dimmer light of the depths and you are not impeded moving underwater, although you still move at normal swimming speeds unless you also have the Swimming power (previously). (Immunity 3 (Cold, Drowning, Pressure), Movement 1 (Environmental Adaptation: Aquatic), Senses 1 (Low-light Vision) • 6 points)"
+        "notes": "You're adapted to survive underwater: you can breathe water and ignore the cold and extreme pressures of the ocean depths. Your vision is adapted to the dimmer light of the depths and you are not impeded moving underwater, although you still move at normal swimming speeds unless you also have the Swimming power (previously). (Immunity 3 (Cold, Drowning, Pressure), Movement 1 (Environmental Adaptation: Aquatic), Senses 1 (Low-light Vision) • 6 points)"
       },
       {
         "id": "prof_water_powers_environment",
@@ -18831,7 +18831,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Water, Aquatic",
         "extras": [],
         "flaws": [],
-        "notes": "In addition to being adapted to the aquatic environment, some characters actually favor it. Beyond the advantages they have over most air-breathers they have an additional edge on their \"home surf\". Aquatic Advantage: Add Enhanced Advantage (Favored (Aquatic) to the previous power • 1 point.)"
+        "notes": "Addition to being adapted to the aquatic environment, some characters actually favor it. Beyond the advantages they have over most air-breathers they have an additional edge on their \"home surf\". Aquatic Advantage: Add Enhanced Advantage (Favored (Aquatic) to the previous power • 1 point.)"
       },
       {
         "id": "prof_water_powers_dousing",
@@ -18844,7 +18844,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Water, Aquatic",
         "extras": [],
         "flaws": [],
-        "notes": "to their senses. These and other \"water-soluble\" effects, as defined by the GM, can be countered by a targeted dousing all at once. If you can douse a whole area, apply the Area modifier to the effect as well. This is similar to a regular use of countering, but more wide-reaching. (Nullify Water-Soluble Effects, Broad, Simultaneous • 3 points per rank)"
+        "notes": "There's nothing like a splash of cold water to douse a fire, short out an electrical system, or even shock people back to their senses. These and other \"water-soluble\" effects, as defined by the GM, can be countered by a targeted dousing all at once. If you can douse a whole area, apply the Area modifier to the effect as well. This is similar to a regular use of countering, but more wide-reaching. (Nullify Water-Soluble Effects, Broad, Simultaneous • 3 points per rank)"
       },
       {
         "id": "prof_water_powers_hydrokinesis",
@@ -18895,7 +18895,7 @@ export const POWER_PROFILES_LIBRARY = [
             "isFlat": false
           }
         ],
-        "notes": "aquatic swarms (see the Summoning Powers section). You can use the crocodile, dolphin, shark, squid, and whale archetypes for some of the creatures you can summon (see pages 134-136 of the M&M Gamemaster's Guide). (Summon Marine Life, Horde, Mental Link, Multiple Minions, Variable General Type (Marine Life), Limited to in or near water, Self-Powered (see the Summoning Powers section) • 1 point + 4 points per rank,)"
+        "notes": "You have power over marine life and can summon aquatic creatures to aid you and obey your commands. The creatures must travel to you using their own movement. Schools of small sea creatures may be considered aquatic swarms (see the Summoning Powers section). You can use the crocodile, dolphin, shark, squid, and whale archetypes for some of the creatures you can summon (see pages 134-136 of the M&M Gamemaster's Guide). (Summon Marine Life, Horde, Mental Link, Multiple Minions, Variable General Type (Marine Life), Limited to in or near water, Self-Powered (see the Summoning Powers section) • 1 point + 4 points per rank,)"
       },
       {
         "id": "prof_water_powers_marine_telepathy",
@@ -18917,7 +18917,7 @@ export const POWER_PROFILES_LIBRARY = [
             "description": "Marine Life"
           }
         ],
-        "notes": "You do not control them (see Marine Mastery, previously) but can use interaction skills with them and may be able to convince them to do favors for you. You can also ask them for information, convince them not to attack, and so forth. (Comprehend 2 (Animals), Limited to Marine Life • 2 points)"
+        "notes": "You can communicate with the creatures of the deep. You do not control them (see Marine Mastery, previously) but can use interaction skills with them and may be able to convince them to do favors for you. You can also ask them for information, convince them not to attack, and so forth. (Comprehend 2 (Animals), Limited to Marine Life • 2 points)"
       },
       {
         "id": "prof_water_powers_water_creatures",
@@ -18930,7 +18930,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Water, Aquatic",
         "extras": [],
         "flaws": [],
-        "notes": "from humanoids to mythic creatures like mermaids or sea serpents. You can apply the various modifiers for the Summon effect to get additional water creatures or to make them more active or capable (removing the minion type from the template). (Summon Water Creature 8 • 120-point minion (see following template) • 16 points)"
+        "notes": "You can summon or create semi-independent creatures formed out of water that obey your commands. The creatures you summon are not truly alive, merely animated masses of water. They can look like virtually anything, from humanoids to mythic creatures like mermaids or sea serpents. You can apply the various modifiers for the Summon effect to get additional water creatures or to make them more active or capable (removing the minion type from the template). (Summon Water Creature 8 • 120-point minion (see following template) • 16 points)"
       },
       {
         "id": "prof_water_powers_water_form",
@@ -18958,7 +18958,7 @@ export const POWER_PROFILES_LIBRARY = [
             "isFlat": true
           }
         ],
-        "notes": "and-blood concerns in water form, virtually invisible when you are merged with a larger body of water, and able to move easily through the water. You may also have other powers, such as Aqua-Port, Hydrokinesis, or various offensive water powers while you are in water form. (Concealment 4 (Visual, Limited to Underwater), Immunity 30 (Fortitude Effects), Insubstantial 2, Swimming 2 (2 MPH), Activation (Move Action, -1 point) • 45 points +1)"
+        "notes": "Your Strength in order to solidify your form enough to exert some degree of force. You're immune to most fleshand-blood concerns in water form, virtually invisible when you are merged with a larger body of water, and able to move easily through the water. You may also have other powers, such as Aqua-Port, Hydrokinesis, or various offensive water powers while you are in water form. (Concealment 4 (Visual, Limited to Underwater), Immunity 30 (Fortitude Effects), Insubstantial 2, Swimming 2 (2 MPH), Activation (Move Action, -1 point) • 45 points +1)"
       },
       {
         "id": "prof_water_powers_amass_water",
@@ -18980,7 +18980,7 @@ export const POWER_PROFILES_LIBRARY = [
             "description": "While in Water Form and in a large body of water"
           }
         ],
-        "notes": "point per additional Swimming rank for underwater movement. Some water forms have the ability to absorb additional mass from a surrounding body of water, incorporating it and growing to gigantic size. If so, add the following to the Water Form power: (Growth, Limited to While in Water Form and in a large body of water • 1 point per rank)"
+        "notes": "Point per additional Swimming rank for underwater movement. Some water forms have the ability to absorb additional mass from a surrounding body of water, incorporating it and growing to gigantic size. If so, add the following to the Water Form power: (Growth, Limited to While in Water Form and in a large body of water • 1 point per rank)"
       },
       {
         "id": "prof_water_powers_water_scrying",
@@ -18993,7 +18993,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Water, Visual and Auditory",
         "extras": [],
         "flaws": [],
-        "notes": "and hear as if you were looking through a watery window into that location. Some mystic water scryers add mental senses to the effect as well, allowing them to target certain mental sensory powers through their scrying window (see the Mental Powers section for some ideas). (Remote Sensing (Visual and Auditory), Medium (Water) • 2 points per rank)"
+        "notes": "You can use the reflective surface of a body of water, from an ocean to a puddle or even the contents of a cup as a medium for visions of distant places, allowing you to see and hear as if you were looking through a watery window into that location. Some mystic water scryers add mental senses to the effect as well, allowing them to target certain mental sensory powers through their scrying window (see the Mental Powers section for some ideas). (Remote Sensing (Visual and Auditory), Medium (Water) • 2 points per rank)"
       }
     ]
   },
@@ -19100,7 +19100,7 @@ export const POWER_PROFILES_LIBRARY = [
           }
         ],
         "flaws": [],
-        "notes": "dehydration, heatstroke, or even early stage frostbite by raising or lowering the temperature and humidity. Victims often begin suffering effects before they realize what is happening. Apply the Area modifier to affect multiple targets in an area all at once. (Ranged Affliction (Resisted and Overcome by Fortitude; Fatigued, Exhausted, Incapacitated), Subtle • 1 point + 2 points per rank)"
+        "notes": "You alter the atmosphere around your target to cause dehydration, heatstroke, or even early stage frostbite by raising or lowering the temperature and humidity. Victims often begin suffering effects before they realize what is happening. Apply the Area modifier to affect multiple targets in an area all at once. (Ranged Affliction (Resisted and Overcome by Fortitude; Fatigued, Exhausted, Incapacitated), Subtle • 1 point + 2 points per rank)"
       },
       {
         "id": "prof_weather_powers_hailstorm",
@@ -19134,7 +19134,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Weather, Electrical",
         "extras": [],
         "flaws": [],
-        "notes": "You hurl a bolt of lightning from your person-hands, eyes, etc.-to strike your target with the fury of a storm. If you call down lightning from above instead, apply 2 ranks of the Indirect modifier as well (Deluxe Hero's Handbook, page 193). (Ranged Damage (electrical) • 2 points per rank 213 213 WEATHER POWERS WEATHER POWERS MUTANTS & MASTERMINDS POWER PROFILES MUTANTS & MASTERMINDS POWER PROFILES)"
+        "notes": "You hurl a bolt of lightning from your person-hands, eyes, etc.-to strike your target with the fury of a storm. If you call down lightning from above instead, apply 2 ranks of the Indirect modifier as well (Deluxe Hero's Handbook, page 193). (Ranged Damage (electrical) • 2 points per rank)"
       },
       {
         "id": "prof_weather_powers_thunderclap",
@@ -19164,7 +19164,7 @@ export const POWER_PROFILES_LIBRARY = [
             "description": "Hearing"
           }
         ],
-        "notes": "often Linked with a Lightning Bolt attack, simultaneously damaging and deafening a target, perhaps even connected with a Blinding Arc as well, expanding the effect of the Affliction (simply removing the Limited to Vision flaw from Blinding Arc's Affliction effect). (Cumulative Ranged Affliction (Resisted by Dodge, Overcome by Fortitude; Impaired, Disabled, Unaware), Limited to Hearing • 2 points per rank)"
+        "notes": "A thunderous boom deafens your target. Thunderclap is often Linked with a Lightning Bolt attack, simultaneously damaging and deafening a target, perhaps even connected with a Blinding Arc as well, expanding the effect of the Affliction (simply removing the Limited to Vision flaw from Blinding Arc's Affliction effect). (Cumulative Ranged Affliction (Resisted by Dodge, Overcome by Fortitude; Impaired, Disabled, Unaware), Limited to Hearing • 2 points per rank)"
       },
       {
         "id": "prof_weather_powers_wind_blast",
@@ -19194,7 +19194,7 @@ export const POWER_PROFILES_LIBRARY = [
             "description": "Pushing Away"
           }
         ],
-        "notes": "sistance check against your power's Strength (half that if they succeed on their initial Dodge check against the area effect), success allows them to hold their ground while failure means they are thrown a distance value equal to your Move Object rank minus their weight rank. (Cone Area Move Object, Close Range, Limited to Pushing Away • 1 point per rank)"
+        "notes": "A powerful blast of wind sends targets scattering like fallen leaves. The effective Strength of the Wind Blast equals its Move Object rank. Targets make a Strength resistance check against your power's Strength (half that if they succeed on their initial Dodge check against the area effect), success allows them to hold their ground while failure means they are thrown a distance value equal to your Move Object rank minus their weight rank. (Cone Area Move Object, Close Range, Limited to Pushing Away • 1 point per rank)"
       },
       {
         "id": "prof_weather_powers_fog",
@@ -19220,7 +19220,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Weather, Earthly Weather",
         "extras": [],
         "flaws": [],
-        "notes": "weather; you're never hot or cold or affected by exposure or other (Earth-like) weather conditions. Some weathercontrollers may have lesser degrees of Immunity to singular environmental conditions like cold or heat, rather than weather in general. (Immunity 2 (Earthly Weather) • 2 points Some have a greater degree of immunity, extending to all effects with the \"weather\" descriptor, including Afflictions or Damage. This includes attacks like lightning, provided they have the \"weather\" descriptor; immunity to all electricity requires additional ranks as a separate common descriptor.)"
+        "notes": "Your powers protect you from the harmful effects of weather; you're never hot or cold or affected by exposure or other (Earth-like) weather conditions. Some weathercontrollers may have lesser degrees of Immunity to singular environmental conditions like cold or heat, rather than weather in general. (Immunity 2 (Earthly Weather) • 2 points Some have a greater degree of immunity, extending to all effects with the \"weather\" descriptor, including Afflictions or Damage. This includes attacks like lightning, provided they have the \"weather\" descriptor; immunity to all electricity requires additional ranks as a separate common descriptor.)"
       },
       {
         "id": "prof_weather_powers_whirlwind",
@@ -19313,7 +19313,7 @@ export const POWER_PROFILES_LIBRARY = [
         "descriptor": "Weather, Storm",
         "extras": [],
         "flaws": [],
-        "notes": "on Earth, rarely more than rank 6 (120 miles per hour). Weather controllers with Wind Lifting (following) may use it to carry others aloft on the winds with them, flying at their normal speed so long as the weight value they carry is within their effect limits. (Flight • 2 points per rank)"
+        "notes": "You can harness the power of the winds to soar through the air as fast as they can carry you. Wind-Riding tends to be limited to the speed of rank of hurricane-force winds on Earth, rarely more than rank 6 (120 miles per hour). Weather controllers with Wind Lifting (following) may use it to carry others aloft on the winds with them, flying at their normal speed so long as the weight value they carry is within their effect limits. (Flight • 2 points per rank)"
       },
       {
         "id": "prof_weather_powers_weather_control",
@@ -19334,7 +19334,7 @@ export const POWER_PROFILES_LIBRARY = [
           }
         ],
         "flaws": [],
-        "notes": "example, eliminate intense cold and impeded movement (due to ice and snow) in your area, transforming it from the depths of winter to a temperate, Spring-like day. Normal weather conditions reassert themselves once you stop maintaining the effect. (Environment (3 points of effect), Selective • 4 points per rank)"
+        "notes": "Up to your effect rank in weather conditions in your area as well, creating calm, clear weather. So you could, for example, eliminate intense cold and impeded movement (due to ice and snow) in your area, transforming it from the depths of winter to a temperate, Spring-like day. Normal weather conditions reassert themselves once you stop maintaining the effect. (Environment (3 points of effect), Selective • 4 points per rank)"
       },
       {
         "id": "prof_weather_powers_weather_prediction",
@@ -19384,7 +19384,7 @@ export const POWER_PROFILES_LIBRARY = [
           }
         ],
         "flaws": [],
-        "notes": "forth. Each individual object in the affected area cannot exceed your effective lifting Strength, although their combined weight value may do so. So, for example, if your effect rank is 4, each object you move cannot exceed 800 lbs., but you can move as many as fit into your area of effect. (Burst Area Move Object, Selective • 4 points per rank)"
+        "notes": "You focus powerful gusts of air or even mini-tornadoes to lift and move objects around, push things over, and so forth. Each individual object in the affected area cannot exceed your effective lifting Strength, although their combined weight value may do so. So, for example, if your effect rank is 4, each object you move cannot exceed 800 lbs., but you can move as many as fit into your area of effect. (Burst Area Move Object, Selective • 4 points per rank)"
       }
     ]
   }

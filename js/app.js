@@ -1822,7 +1822,7 @@ class AppController {
   }
 
   async checkForUpdates({ isManual = false } = {}) {
-    const CURRENT_VERSION = '3.47';
+    const CURRENT_VERSION = '3.48';
     const versionEl = document.getElementById('header-version-tag');
     const updateBtn = document.getElementById('btn-header-update-alert');
     if (typeof window === 'undefined' || !window.location || !window.location.href || window.location.href === 'about:blank') return;
@@ -1849,7 +1849,8 @@ class AppController {
       }
       if (updateBtn) {
         updateBtn.className = `btn-header-update-alert ${isOutdated ? 'out-of-date' : 'up-to-date'}`;
-        updateBtn.title = isOutdated ? `Update available (v${remoteVersion}). Click to view.` : 'You are running the latest version. Click to recheck.';
+        updateBtn.style.display = isOutdated ? 'inline-flex' : 'none';
+        updateBtn.title = isOutdated ? `Update available (v${remoteVersion}). Click to view.` : '';
       }
 
       if (isOutdated) {
@@ -1867,6 +1868,9 @@ class AppController {
       if (versionEl) {
         versionEl.textContent = `v${CURRENT_VERSION}`;
         versionEl.className = 'header-version-tag up-to-date';
+      }
+      if (updateBtn) {
+        updateBtn.style.display = 'none';
       }
       if (isManual) await this.showAlertDialog('Could not check for updates. Please check your internet connection.', { title: 'Update Check' });
     }
@@ -2248,12 +2252,56 @@ class AppController {
     });
 
     const applyBtn = document.getElementById('btn-apply-profile');
-    if (applyBtn) {
-      applyBtn.disabled = !select.value;
-      select.addEventListener('change', () => {
-        applyBtn.disabled = !select.value;
-      });
-    }
+    const infoBtn = document.getElementById('btn-power-profile-info');
+
+    const updateProfileButtons = () => {
+      const hasVal = !!select.value;
+      if (applyBtn) applyBtn.disabled = !hasVal;
+      if (infoBtn) infoBtn.disabled = !hasVal;
+    };
+
+    select.addEventListener('change', updateProfileButtons);
+    updateProfileButtons();
+
+    infoBtn?.addEventListener('click', () => {
+      const profileId = select.value;
+      if (!profileId) return;
+      let matchedProfile = null;
+      let matchedCategory = '';
+      for (const grp of POWER_PROFILES_LIBRARY) {
+        const found = grp.profiles.find(p => p.id === profileId);
+        if (found) { matchedProfile = found; matchedCategory = grp.category; break; }
+      }
+      if (!matchedProfile) return;
+
+      const titleEl = document.getElementById('profile-info-title');
+      const catEl = document.getElementById('profile-info-category');
+      const descrEl = document.getElementById('profile-info-descriptor');
+      const costEl = document.getElementById('profile-info-cost');
+      const mechEl = document.getElementById('profile-info-mechanics');
+      const descEl = document.getElementById('profile-info-desc');
+
+      if (titleEl) titleEl.textContent = `${matchedProfile.name} (Rank ${matchedProfile.rank})`;
+      if (catEl) catEl.textContent = matchedCategory;
+      if (descrEl) descrEl.textContent = matchedProfile.descriptor ? `Descriptor: ${matchedProfile.descriptor}` : '';
+      if (costEl) costEl.textContent = matchedProfile.cost ? `Cost: ${matchedProfile.cost}` : '';
+      if (mechEl) {
+        const extrasStr = (matchedProfile.extras || []).map(e => e.name + (e.rank > 1 ? ` ${e.rank}` : '')).join(', ');
+        const flawsStr = (matchedProfile.flaws || []).map(f => f.name + (f.rank > 1 ? ` ${f.rank}` : '')).join(', ');
+        const mods = [extrasStr, flawsStr].filter(Boolean).join('; ');
+        mechEl.textContent = `${matchedProfile.action} Action • ${matchedProfile.range} Range • ${matchedProfile.duration} Duration${mods ? ` • Modifiers: ${mods}` : ''}`;
+      }
+      if (descEl) descEl.textContent = matchedProfile.notes || 'No description provided.';
+
+      this.openModal('modal-power-profile-info');
+    });
+
+    document.getElementById('btn-close-profile-info')?.addEventListener('click', () => {
+      this.closeModal('modal-power-profile-info');
+    });
+    document.getElementById('btn-done-profile-info')?.addEventListener('click', () => {
+      this.closeModal('modal-power-profile-info');
+    });
 
     applyBtn?.addEventListener('click', async () => {
       const profileId = select.value;
@@ -2278,7 +2326,7 @@ class AppController {
         action: matchedProfile.action,
         range: matchedProfile.range,
         duration: matchedProfile.duration,
-        descriptor: '',
+        descriptor: matchedProfile.descriptor || '',
         extras: JSON.parse(JSON.stringify(matchedProfile.extras || [])),
         flaws: JSON.parse(JSON.stringify(matchedProfile.flaws || [])),
         alternateEffects: [],
@@ -2291,6 +2339,7 @@ class AppController {
       this.expandedPowerIds.add(newPower.id);
       select.value = '';
       if (applyBtn) applyBtn.disabled = true;
+      if (infoBtn) infoBtn.disabled = true;
       this.refreshPowersState();
     });
 
@@ -6819,7 +6868,7 @@ class AppController {
         const notesRow = document.createElement('div');
         notesRow.style.cssText = 'margin-top: 0.25rem;';
         notesRow.innerHTML = `
-          <input type="text" class="input-power-notes" value="${p.notes || ''}" placeholder="Power notes & mechanics (e.g. DC, special conditions)" style="width: 100%; font-size: var(--font-size-xs);">
+          <textarea class="input-power-notes" rows="2" placeholder="Power notes & mechanics (e.g. DC, special conditions)">${p.notes || ''}</textarea>
         `;
         notesRow.querySelector('.input-power-notes')?.addEventListener('input', (e) => {
           p.notes = e.target.value;
@@ -7176,7 +7225,7 @@ class AppController {
             const aeNotesRow = document.createElement('div');
             aeNotesRow.style.cssText = 'margin-top: 0.25rem;';
             aeNotesRow.innerHTML = `
-              <input type="text" class="input-ae-notes" value="${ae.notes || ''}" placeholder="Alternate effect notes & mechanics (e.g. DC, special conditions)" style="width: 100%; font-size: var(--font-size-xs);">
+              <textarea class="input-ae-notes" rows="2" placeholder="Alternate effect notes & mechanics (e.g. DC, special conditions)">${ae.notes || ''}</textarea>
             `;
             aeNotesRow.querySelector('.input-ae-notes')?.addEventListener('input', (e) => {
               ae.notes = e.target.value;

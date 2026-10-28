@@ -388,8 +388,15 @@ function parsePowerFromDetails(name, detailsStr, costStr, descStr, defaultDesc, 
   const cleanId = 'prof_' + catName.toLowerCase().replace(/[^a-z0-9]+/g, '_') + '_' + name.toLowerCase().replace(/[^a-z0-9]+/g, '_');
 
   let notes = desc;
-  if (!notes || notes.length < 5) {
+  // Clean up any stray leading punctuation or conjunction fragments
+  notes = notes.replace(/^[,\.;:\s]+/, '');
+  notes = notes.replace(/^(?:and|or|but|of|to|with|the|in|for|as)\s+/i, '');
+  if (!notes || notes.length < 8 || /^[0-9\s]+$/.test(notes)) {
     notes = `${name} power from ${catName}.`;
+  }
+  // Ensure starts with a capital letter
+  if (notes && notes.length > 0) {
+    notes = notes.charAt(0).toUpperCase() + notes.slice(1);
   }
   notes += ` (${d} • ${cost})`;
 
@@ -415,7 +422,18 @@ parser.getText().then(res => {
 
   for (const ch of CHAPTERS) {
     let text = '';
-    for (let p = ch.start - 1; p < ch.end; p++) text += res.pages[p].text + '\n';
+    for (let p = ch.start - 1; p < ch.end; p++) {
+      if (res.pages[p]) {
+        let pt = res.pages[p].text;
+        // Strip running headers and footers
+        pt = pt.replace(/[0-9]+\s+[0-9]+\s+[A-Z\s]+POWERS[^\n]*/gi, '');
+        pt = pt.replace(/MUTANTS\s*&\s*MASTERMINDS\s+POWER\s+PROFILES[^\n]*/gi, '');
+        // Strip common sidebars
+        pt = pt.replace(/DEFAULT\s+[A-Z\s]+POWERS[\s\S]*?(?=(?:[A-Z\s]{4,}\n|[A-Z][A-Za-z0-9'’ -]+:))/g, '');
+        pt = pt.replace(/POWER\s+LOSS[\s\S]*?(?=(?:[A-Z\s]{4,}\n|[A-Z][A-Za-z0-9'’ -]+:))/g, '');
+        text += pt + '\n';
+      }
+    }
     const rawLines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
 
     const chapterProfiles = [];
@@ -447,14 +465,31 @@ parser.getText().then(res => {
           const details = parts[0].trim();
           const cost = parts.slice(1).join('•').trim();
 
-          // Get preceding description
-          let descLines = [];
-          let j = i - 1;
-          while (j >= 0 && !rawLines[j].match(/^[A-Z0-9'’ -]{3,}$/) && !rawLines[j].includes('•') && j > i - 6) {
-            descLines.unshift(rawLines[j]);
-            j--;
+          // Get preceding description by matching previous all-caps power title or preceding prose
+          let headingIdx = -1;
+          const normPName = name.toUpperCase().replace(/[^A-Z0-9]/g, '');
+          for (let j = i - 1; j >= Math.max(0, i - 15); j--) {
+            const prev = rawLines[j];
+            if (prev.includes('•') || prev.includes('·')) break;
+            const normPrev = prev.toUpperCase().replace(/[^A-Z0-9]/g, '');
+            if (normPrev === normPName || (normPrev.length >= 4 && /^[A-Z0-9'’ -]+$/.test(prev) && prev === prev.toUpperCase())) {
+              headingIdx = j;
+              break;
+            }
           }
-          const desc = descLines.join(' ');
+
+          let desc = '';
+          if (headingIdx !== -1) {
+            desc = rawLines.slice(headingIdx + 1, i).join(' ');
+          } else {
+            let descLines = [];
+            let j = i - 1;
+            while (j >= 0 && !rawLines[j].match(/^[A-Z0-9'’ -]{3,}$/) && !rawLines[j].includes('•') && j > i - 8) {
+              descLines.unshift(rawLines[j]);
+              j--;
+            }
+            desc = descLines.join(' ');
+          }
 
           if (!seenNames.has(name.toLowerCase())) {
             seenNames.add(name.toLowerCase());

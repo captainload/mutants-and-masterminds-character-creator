@@ -122,7 +122,7 @@ export class ArchetypeWindowManager {
 <head>
   <meta charset="UTF-8">
   <title>Mutants & Masterminds 3E - Interactive Archetype Character Builder</title>
-  <link rel="stylesheet" href="css/styles.css?v=3.48">
+  <link rel="stylesheet" href="css/styles.css?v=3.49">
   <style>
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;

@@ -41,7 +41,7 @@ import {
   tablesManager
 } from './tables.js';
 
-import { POWER_PROFILES_LIBRARY } from './power_profiles.js';
+import { POWER_PROFILES_LIBRARY } from './power_profiles.js?v=3.49';
 import { ARCHETYPES } from './archetypes.js';
 import { archetypeManager } from './archetype_window.js';
 import { ARCHETYPE_CUSTOMIZATION_OPTIONS, buildCustomizedArchetype } from './archetype_builder.js';
@@ -105,6 +105,7 @@ class AppController {
     this.setupSkillMasteryModal();
     this.migrateLanguagesSkillToAdvantage(this.char);
     this.migrateSkillMasteryToAdvantage(this.char);
+    this.repairTruncatedPowerNotes(this.char);
     this.setupUpdateChecker();
     this.renderAll();
     this.checkForUpdates({ isManual: false });
@@ -1822,7 +1823,7 @@ class AppController {
   }
 
   async checkForUpdates({ isManual = false } = {}) {
-    const CURRENT_VERSION = '3.48';
+    const CURRENT_VERSION = '3.49';
     const versionEl = document.getElementById('header-version-tag');
     const updateBtn = document.getElementById('btn-header-update-alert');
     if (typeof window === 'undefined' || !window.location || !window.location.href || window.location.href === 'about:blank') return;
@@ -3756,6 +3757,7 @@ class AppController {
   }
 
   loadCharacterToUI() {
+    this.repairTruncatedPowerNotes(this.char);
     this.renderAll();
     setTimeout(() => this.resizeAllTextareas?.(), 50);
   }
@@ -5417,6 +5419,85 @@ class AppController {
       }
     }
   }
+
+  repairTruncatedPowerNotes(char) {
+    if (!POWER_PROFILES_LIBRARY || !Array.isArray(POWER_PROFILES_LIBRARY)) return;
+
+    // Build lookup maps by profile ID and lower-cased name
+    const profileById = new Map();
+    const profileByName = new Map();
+    for (const grp of POWER_PROFILES_LIBRARY) {
+      if (!grp.profiles) continue;
+      for (const p of grp.profiles) {
+        if (p.id) profileById.set(p.id, p);
+        if (p.name) profileByName.set(p.name.trim().toLowerCase(), p);
+      }
+    }
+
+    const checkAndFix = (item) => {
+      if (!item) return;
+
+      // 1. Direct fix for Shadow Door truncated description
+      if (typeof item.notes === 'string') {
+        const trimmedNotes = item.notes.trim();
+        if (
+          trimmedNotes.startsWith('surface it falls upon, as if you were stepping only through a shadow') ||
+          (trimmedNotes.includes('surface it falls upon, as if you were stepping only through a shadow') &&
+           !trimmedNotes.toLowerCase().includes('shadow as a "doorway"') &&
+           !trimmedNotes.toLowerCase().includes('shadow as a “doorway”'))
+        ) {
+          const shadowDoorProf = profileById.get('prof_darkness_powers_shadow_door');
+          if (shadowDoorProf) {
+            item.notes = shadowDoorProf.notes;
+          } else {
+            item.notes = `You can use a shadow as a "doorway" to pass through the ${trimmedNotes}`;
+          }
+          return;
+        }
+      }
+
+      // 2. Generic fix for any power/alt effect matching a power profile where notes was truncated
+      let matched = null;
+      if (item.profileId && profileById.has(item.profileId)) {
+        matched = profileById.get(item.profileId);
+      } else if (item.name && profileByName.has(item.name.trim().toLowerCase())) {
+        matched = profileByName.get(item.name.trim().toLowerCase());
+      }
+
+      if (matched && matched.notes && typeof item.notes === 'string' && item.notes.trim()) {
+        const itemNotes = item.notes.trim();
+        const fullNotes = matched.notes.trim();
+        if (fullNotes.length > itemNotes.length && fullNotes.endsWith(itemNotes)) {
+          item.notes = matched.notes;
+        }
+      }
+    };
+
+    const repairCharacterObject = (c) => {
+      if (!c || !Array.isArray(c.powers)) return;
+      c.powers.forEach(power => {
+        checkAndFix(power);
+        if (Array.isArray(power.alternateEffects)) {
+          power.alternateEffects.forEach(ae => checkAndFix(ae));
+        }
+      });
+      if (Array.isArray(c.alts)) {
+        c.alts.forEach(alt => repairCharacterObject(alt));
+      }
+    };
+
+    if (char) {
+      repairCharacterObject(char);
+    }
+    if (this.primaryChar) {
+      repairCharacterObject(this.primaryChar);
+    }
+    if (typeof storageManager !== 'undefined' && Array.isArray(storageManager.characters)) {
+      storageManager.characters.forEach(c => repairCharacterObject(c));
+      storageManager.saveAll();
+    }
+  }
+
 
   setupLanguagesModal() {
     const modalEl = document.getElementById('modal-languages');

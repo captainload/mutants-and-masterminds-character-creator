@@ -1,5 +1,5 @@
 {
-  "version": "3.48",
-  "updatedAt": "2026-10-28T18:15:00.000Z",
-  "releaseNotes": "Only show version update alert icon when updates are detected. Reparsed all 1,076 Power Profiles to fix truncated descriptions and eliminate errant text. Expanded effect notes fields to two visible rows. Added profile information 'i' button and fixed light theme styling on power profile picker."
+  "version": "3.49",
+  "updatedAt": "2026-10-28T18:30:00.000Z",
+  "releaseNotes": "Restored full description for Shadow Door in power profiles and automated repair for existing saved character sheets. Added cache-busting to power profile assets."
 }

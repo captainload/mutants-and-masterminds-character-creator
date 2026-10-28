@@ -1,5 +1,5 @@
 {
-  "version": "3.43",
-  "updatedAt": "2026-10-28T05:35:00.000Z",
-  "releaseNotes": "Reworked Languages for 3E as an Advantage with doubling fluency progression (1, 2, 4, 8, 16...). Added two-column interactive Languages Selection Modal with known languages management, search, and custom/fictional language input."
+  "version": "3.44",
+  "updatedAt": "2026-10-28T17:00:00.000Z",
+  "releaseNotes": "Adjusted Languages advantage limit progression so each rank doubles the additional languages unlocked (Rank 1: 1, Rank 2: 3 [+2], Rank 3: 7 [+4], Rank 4: 15 [+8]...). Updated major languages catalog to include exclusively real-world languages with comprehensive regional variations."
 }

@@ -80,6 +80,7 @@ class AppController {
     window.addEventListener('resize', () => this.checkDisplayWidth());
 
     this.initFontSize();
+    this.initTheme();
     this.setupHeaderBindings();
     this.setupNavigation();
     this.setupDiceRollerBar();
@@ -140,6 +141,24 @@ class AppController {
         document.documentElement.setAttribute('data-font-size', size);
         localStorage.setItem('mm3e_font_size', size);
         document.querySelectorAll('.font-size-toggle').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+      });
+    });
+  }
+
+  // =======================================================
+  // 2B. VISUAL THEME (Dark / Light Tan & Beige)
+  // =======================================================
+  initTheme() {
+    const saved = localStorage.getItem('mm3e_theme') || 'dark';
+    document.documentElement.setAttribute('data-theme', saved);
+    document.querySelectorAll('.theme-toggle-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.theme === saved);
+      btn.addEventListener('click', () => {
+        const theme = btn.dataset.theme;
+        document.documentElement.setAttribute('data-theme', theme);
+        localStorage.setItem('mm3e_theme', theme);
+        document.querySelectorAll('.theme-toggle-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
       });
     });
@@ -1674,7 +1693,7 @@ class AppController {
   }
 
   async checkForUpdates({ isManual = false } = {}) {
-    const CURRENT_VERSION = '3.37';
+    const CURRENT_VERSION = '3.38';
     const versionEl = document.getElementById('header-version-tag');
     const updateBtn = document.getElementById('btn-header-update-alert');
     if (typeof window === 'undefined' || !window.location || !window.location.href || window.location.href === 'about:blank') return;
@@ -3036,6 +3055,11 @@ class AppController {
     if (specializationsToggle) {
       specializationsToggle.checked = this.isSpecializationRuleEnabled();
     }
+
+    const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
+    document.querySelectorAll('.theme-toggle-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.theme === currentTheme);
+    });
 
     this.renderDiscordConfigsList();
   }

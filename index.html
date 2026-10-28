@@ -6,8 +6,8 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Mutants & Masterminds 3E - Character Editor v3.37</title>
-  <link rel="stylesheet" href="css/styles.css?v=3.37">
+  <title>Mutants & Masterminds 3E - Character Editor v3.38</title>
+  <link rel="stylesheet" href="css/styles.css?v=3.38">
 </head>
 <body>
 
@@ -80,7 +80,7 @@
 
           <div class="brand-title-centered">
             <span>Mutants & Masterminds 3E Character Editor</span>
-            <span id="header-version-tag" class="header-version-tag up-to-date" title="Current Version">v3.37</span>
+            <span id="header-version-tag" class="header-version-tag up-to-date" title="Current Version">v3.38</span>
             <button type="button" id="btn-header-update-alert" class="btn-header-update-alert" title="Check for updates / Update status">!</button>
           </div>
 
@@ -99,8 +99,8 @@
             <input type="text" id="header-char-name" class="header-field-input" placeholder="Character Name" style="width: 180px;">
           </div>
 
-          <button type="button" class="btn btn-outline" id="btn-open-alts" title="Manage alternate forms, minions, and sidekicks" style="padding: 0.2rem 0.75rem; min-height: 38px; font-size: var(--font-size-xs); font-weight: 700; white-space: nowrap; color: var(--hero-purple); border-color: var(--hero-purple); display: inline-flex; align-items: center; gap: 0.35rem;">
-            👥 Alt Characters <span id="header-alts-count-badge" class="badge-tag" style="display:none; font-size:10px; padding:1px 5px; margin-left:2px; background:var(--hero-purple); color:#fff; border-radius:10px;">0</span>
+          <button type="button" class="btn btn-outline" id="btn-open-alts" title="Manage alternate forms, minions, and sidekicks" style="padding: 0.2rem 0.75rem; min-height: 38px; font-size: var(--font-size-xs); font-weight: 700; white-space: nowrap; color: var(--hero-blue); border-color: var(--hero-blue); display: inline-flex; align-items: center; gap: 0.35rem;">
+            👥 Alt Characters <span id="header-alts-count-badge" class="badge-tag" style="display:none; font-size:10px; padding:1px 5px; margin-left:2px; background:var(--hero-blue); color:#fff; border-radius:10px;">0</span>
           </button>
 
           <div class="header-field" id="header-campaign-box">
@@ -757,6 +757,24 @@
 
       </div>
 
+      <!-- VISUAL THEME SELECTION -->
+      <div class="card-box">
+        <div class="card-box-header">
+          <div class="card-box-title">🎨 Visual Theme</div>
+        </div>
+        <p style="font-size: var(--font-size-xs); color: var(--text-muted); margin-bottom: 0.5rem;">
+          Select visual theme palette for the application:
+        </p>
+        <div style="display: flex; gap: 0.5rem;" id="theme-picker-container">
+          <button type="button" class="btn btn-outline theme-toggle-btn active" data-theme="dark" style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 0.35rem; min-height: 40px; font-weight: 700;">
+            <span>🌙</span> Dark (Default)
+          </button>
+          <button type="button" class="btn btn-outline theme-toggle-btn" data-theme="light" style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 0.35rem; min-height: 40px; font-weight: 700;">
+            <span>☀️</span> Light (Tan &amp; Beige)
+          </button>
+        </div>
+      </div>
+
       <!-- DISPLAY & FONT SIZE -->
       <div class="card-box">
         <div class="card-box-header">
@@ -1370,6 +1388,6 @@
     </div>
   </div>
 
-  <script type="module" src="js/app.js?v=3.37"></script>
+  <script type="module" src="js/app.js?v=3.38"></script>
 </body>
 </html>

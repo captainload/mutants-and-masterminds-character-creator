@@ -1,5 +1,5 @@
 {
-  "version": "3.37",
-  "updatedAt": "2026-10-28T01:45:00.000Z",
-  "releaseNotes": "Notify users in session log history and restore confirmations that restoring a character state also rolls back the state of any attached alts (Alternate Forms, Minions, Sidekicks)."
+  "version": "3.38",
+  "updatedAt": "2026-10-28T02:46:00.000Z",
+  "releaseNotes": "Changed the Alt Characters button from purple to blue. Added a light theme relying on off-white, light tan, and beige coloration with a theme picker in Settings."
 }

@@ -2069,6 +2069,240 @@ button.action-save-card:active {
   border-radius: var(--radius-sm);
 }
 
+/* =====================================================================
+   ALT CHARACTERS BUTTON (Blue Styling)
+   ===================================================================== */
+#btn-open-alts {
+  color: var(--hero-blue) !important;
+  border-color: var(--hero-blue) !important;
+}
+
+#btn-open-alts:hover {
+  background-color: rgba(59, 130, 246, 0.12) !important;
+}
+
+#header-alts-count-badge {
+  background: var(--hero-blue) !important;
+  color: #fff !important;
+}
+
+/* =====================================================================
+   THEME TOGGLE BUTTONS
+   ===================================================================== */
+.theme-toggle-btn {
+  transition: all 0.18s ease;
+}
+
+.theme-toggle-btn.active {
+  background-color: var(--hero-blue) !important;
+  border-color: var(--hero-blue) !important;
+  color: #ffffff !important;
+  box-shadow: 0 0 10px rgba(59, 130, 246, 0.35);
+}
+
+/* =====================================================================
+   LIGHT THEME (Off-White, Light Tan & Beige Primary Coloration)
+   ===================================================================== */
+html[data-theme="light"] {
+  --bg-app: #f5efe6;
+  --bg-header: #ebe3d5;
+  --bg-card: #fcfaf7;
+  --bg-card-hover: #f6f0e6;
+  --bg-input: #ffffff;
+  --border-color: #dcd1c2;
+  --border-active: #2563eb;
+
+  --text-main: #2b251d;
+  --text-muted: #786d5e;
+  --text-bright: #14100c;
+
+  --hero-blue: #2563eb;
+  --hero-cyan: #0284c7;
+  --hero-gold: #b45309;
+  --hero-red: #b91c1c;
+  --hero-green: #047857;
+  --hero-purple: #6d28d9;
+}
+
+html[data-theme="light"] body {
+  background-color: var(--bg-app);
+  color: var(--text-main);
+}
+
+html[data-theme="light"] .app-wrapper {
+  background-color: var(--bg-app);
+  box-shadow: 0 0 30px rgba(90, 70, 40, 0.12);
+}
+
+html[data-theme="light"] .persistent-header-wrapper {
+  background-color: var(--bg-header);
+  border-bottom: 2px solid var(--border-color);
+  box-shadow: 0 3px 12px rgba(90, 70, 40, 0.08);
+}
+
+html[data-theme="light"] .brand-title-centered {
+  color: var(--hero-gold);
+  text-shadow: none;
+}
+
+html[data-theme="light"] .header-field {
+  background: var(--bg-input);
+  border: 1px solid var(--border-color);
+}
+
+html[data-theme="light"] .header-field-input {
+  background: transparent;
+  color: var(--text-bright);
+}
+
+html[data-theme="light"] .nav-tab-bar {
+  background-color: #e5dcce;
+  border-top: 1px solid var(--border-color);
+}
+
+html[data-theme="light"] .nav-tab-btn {
+  color: var(--text-muted);
+}
+
+html[data-theme="light"] .nav-tab-btn:hover {
+  color: var(--text-bright);
+  background-color: rgba(0, 0, 0, 0.04);
+}
+
+html[data-theme="light"] .nav-tab-btn.active {
+  color: var(--hero-blue);
+  border-color: var(--hero-blue);
+  background-color: rgba(37, 99, 235, 0.12);
+  box-shadow: 0 0 8px rgba(37, 99, 235, 0.2);
+}
+
+html[data-theme="light"] .card-box {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+}
+
+html[data-theme="light"] .btn-stepper {
+  background-color: #e4dacf;
+  color: var(--text-bright);
+}
+
+html[data-theme="light"] .btn-stepper:hover {
+  background-color: #d6ccbf;
+}
+
+html[data-theme="light"] .btn-outline {
+  border-color: var(--border-color);
+  color: var(--text-main);
+}
+
+html[data-theme="light"] .btn-outline:hover {
+  background-color: rgba(0, 0, 0, 0.04);
+}
+
+html[data-theme="light"] .dense-table th {
+  background-color: #ede5d8;
+  color: var(--text-muted);
+}
+
+html[data-theme="light"] .dense-table td {
+  border-bottom: 1px solid var(--border-color);
+}
+
+html[data-theme="light"] .dense-table tr:hover td {
+  background-color: rgba(0, 0, 0, 0.025);
+}
+
+html[data-theme="light"] .modal-overlay {
+  background-color: rgba(45, 38, 30, 0.5);
+}
+
+html[data-theme="light"] .modal-container,
+html[data-theme="light"] .help-modal-container {
+  background-color: var(--bg-card);
+  box-shadow: 0 12px 36px rgba(45, 38, 30, 0.25);
+}
+
+html[data-theme="light"] .modal-header-bar {
+  background: linear-gradient(180deg, #ede5d8 0%, #e2d9cb 100%);
+  border-bottom: 1px solid var(--border-color);
+}
+
+html[data-theme="light"] .modal-footer-bar {
+  background: #ede5d8;
+  border-top: 1px solid var(--border-color);
+}
+
+html[data-theme="light"] .flyout-panel {
+  background-color: var(--bg-card);
+  border-left: 2px solid var(--border-color);
+  box-shadow: -8px 0 32px rgba(45, 38, 30, 0.2);
+}
+
+html[data-theme="light"] .flyout-header {
+  background-color: #ede5d8;
+  border-bottom: 1px solid var(--border-color);
+}
+
+html[data-theme="light"] .menu-dropdown-panel {
+  background-color: var(--bg-card);
+  box-shadow: 0 12px 30px rgba(45, 38, 30, 0.18);
+  border: 1px solid var(--border-color);
+}
+
+html[data-theme="light"] .menu-dropdown-item {
+  color: var(--text-main);
+}
+
+html[data-theme="light"] .menu-dropdown-item:hover {
+  background-color: rgba(37, 99, 235, 0.1);
+  color: var(--hero-blue);
+}
+
+html[data-theme="light"] .history-entry {
+  background-color: #f7f1e7;
+  border: 1px solid var(--border-color);
+}
+
+html[data-theme="light"] input,
+html[data-theme="light"] select,
+html[data-theme="light"] textarea {
+  background-color: var(--bg-input);
+  color: var(--text-bright);
+  border: 1px solid var(--border-color);
+}
+
+html[data-theme="light"] .alt-name-input {
+  background: var(--bg-input) !important;
+  color: var(--text-bright) !important;
+}
+
+html[data-theme="light"] #pointer-rules-popup {
+  background: var(--bg-card);
+  border-color: var(--border-color);
+  color: var(--text-main);
+  box-shadow: 0 8px 24px rgba(45, 38, 30, 0.2);
+}
+
+html[data-theme="light"] .power-card-collapsible {
+  background-color: var(--bg-card);
+  border-color: var(--border-color);
+}
+
+html[data-theme="light"] .power-card-header {
+  background: rgba(0, 0, 0, 0.02);
+}
+
+html[data-theme="light"] .power-card-header:hover {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+html[data-theme="light"] .header-version-tag.up-to-date {
+  color: var(--hero-blue);
+  background: rgba(37, 99, 235, 0.12);
+  border: 1px solid rgba(37, 99, 235, 0.35);
+}
+
+
 
 
 

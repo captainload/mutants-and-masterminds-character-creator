@@ -103,6 +103,7 @@ class AppController {
     this.setupAltCharactersModal();
     this.setupLanguagesModal();
     this.migrateLanguagesSkillToAdvantage(this.char);
+    this.migrateSkillMasteryToAdvantage(this.char);
     this.setupUpdateChecker();
     this.renderAll();
     this.checkForUpdates({ isManual: false });
@@ -1811,7 +1812,7 @@ class AppController {
   }
 
   async checkForUpdates({ isManual = false } = {}) {
-    const CURRENT_VERSION = '3.44';
+    const CURRENT_VERSION = '3.45';
     const versionEl = document.getElementById('header-version-tag');
     const updateBtn = document.getElementById('btn-header-update-alert');
     if (typeof window === 'undefined' || !window.location || !window.location.href || window.location.href === 'about:blank') return;
@@ -4476,7 +4477,7 @@ class AppController {
       const allowsSpecialty = skillDef.requiresOption3E || isAssignedFocus || houseRuleActive;
 
       if (!allowsSpecialty) {
-        // Standard 3E skill row (Specialization house rule disabled, and not Close Combat/Expertise/Ranged Combat/Languages/Skill Mastery)
+        // Standard 3E skill row (Specialization house rule disabled, and not Close Combat/Expertise/Ranged Combat)
         const instances = (this.char.skills || []).filter(s => s.id === skillDef.id);
         const ranks = instances.reduce((sum, inst) => sum + (parseInt(inst.ranks, 10) || 0), 0);
         const totalBonus = baseVal + ranks;
@@ -4515,7 +4516,7 @@ class AppController {
 
         tbody.appendChild(row);
       } else {
-        // Multi-instance specialty/focus skill (Close Combat, Ranged Combat, Expertise, Languages, Skill Mastery, OR any skill when house rule is active)
+        // Multi-instance specialty skill (Close Combat, Ranged Combat, Expertise, OR any skill when house rule is active)
         const instances = (this.char.skills || []).filter(s => s.id === skillDef.id);
 
         if (instances.length === 0) {
@@ -4728,7 +4729,7 @@ class AppController {
 
     const search = (document.getElementById('adv-search-box')?.value || '').toLowerCase();
     const filterCat = document.getElementById('adv-filter-cat')?.value || 'all';
-    const showDescriptions = document.getElementById('adv-show-descriptions')?.checked ?? true;
+    const showDescriptions = document.getElementById('adv-show-descriptions')?.checked ?? false;
 
     ADVANTAGES_DATABASE.forEach(advDef => {
       if (filterCat !== 'all' && advDef.category !== filterCat) return;
@@ -4928,6 +4929,37 @@ class AppController {
         advLang.note = advLang.languages.join(', ');
       }
       char.languages = [...(advLang.languages || [])];
+    }
+  }
+
+  migrateSkillMasteryToAdvantage(char) {
+    if (!char) return;
+    if (char.skills && char.skills.some(s => s.id === 'skill_mastery')) {
+      const legacySmSkills = char.skills.filter(s => s.id === 'skill_mastery');
+      const chosenSkills = legacySmSkills.map(s => s.specialty).filter(Boolean);
+      char.skills = char.skills.filter(s => s.id !== 'skill_mastery');
+
+      if (!char.advantages) char.advantages = [];
+      let advSm = char.advantages.find(a => a.id === 'skill_mastery');
+      const count = Math.max(1, chosenSkills.length);
+      if (!advSm) {
+        advSm = {
+          id: 'skill_mastery',
+          name: 'Skill Mastery',
+          rank: count,
+          note: chosenSkills.join(', ')
+        };
+        char.advantages.push(advSm);
+      } else {
+        advSm.rank = Math.max(parseInt(advSm.rank, 10) || 1, count);
+        if (chosenSkills.length > 0) {
+          const existingNotes = advSm.note ? advSm.note.split(',').map(s => s.trim()) : [];
+          chosenSkills.forEach(s => {
+            if (!existingNotes.includes(s)) existingNotes.push(s);
+          });
+          advSm.note = existingNotes.join(', ');
+        }
+      }
     }
   }
 

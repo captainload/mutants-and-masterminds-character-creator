@@ -128,18 +128,6 @@ export const SKILLS_LIST = [
     options: ['Energy Blasters', 'Firearms / Pistols', 'Rifles & Snipers', 'Bows & Arrows', 'Thrown Weapons', 'Heavy Artillery', 'Magic Bolts']
   },
   {
-    id: 'skill_mastery',
-    name: 'Skill Mastery',
-    ability: 'int',
-    trainedOnly: true,
-    hasSpecialty: true,
-    requiresOption3E: true,
-    isAssignedFocus: true,
-    maxRankPerInstance: 1,
-    desc: 'Each rank applies to one chosen skill, allowing routine checks (take 10) even under combat pressure. Each skill mastery instance has a 1 rank limit.',
-    options: ['Acrobatics', 'Athletics', 'Close Combat', 'Deception', 'Expertise', 'Insight', 'Intimidation', 'Investigation', 'Perception', 'Persuasion', 'Ranged Combat', 'Sleight of Hand', 'Stealth', 'Technology', 'Treatment', 'Vehicles']
-  },
-  {
     id: 'sleight_of_hand',
     name: 'Sleight of Hand',
     ability: 'dex',
@@ -626,10 +614,10 @@ export const ADVANTAGES_DATABASE = [
     id: 'skill_mastery',
     name: 'Skill Mastery',
     category: 'Skill',
-    maxRank: 5,
+    maxRank: 16,
     hasOptions: true,
     desc: 'You are so practiced with chosen skills that you can make routine checks (take 10) even under extreme danger and combat pressure. Each rank applies to one skill.',
-    options: ['Acrobatics', 'Athletics', 'Deception', 'Insight', 'Investigation', 'Perception', 'Stealth', 'Technology', 'Treatment', 'Vehicles']
+    options: ['Acrobatics', 'Athletics', 'Close Combat', 'Deception', 'Expertise', 'Insight', 'Intimidation', 'Investigation', 'Perception', 'Persuasion', 'Ranged Combat', 'Sleight of Hand', 'Stealth', 'Technology', 'Treatment', 'Vehicles']
   },
   {
     id: 'startle',

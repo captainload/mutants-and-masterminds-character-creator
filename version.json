@@ -1,5 +1,5 @@
 {
-  "version": "3.52",
-  "updatedAt": "2026-10-28T22:21:28.074Z",
-  "releaseNotes": "Simplified power effect tags: now displays only 'Primary' towards the right side of the effect row, followed by '(AE: #)' if the power has alternate effects in an array."
+  "version": "3.53",
+  "updatedAt": "2026-10-28T22:47:19.307Z",
+  "releaseNotes": "Arrays: Shifted collapse/dupe/delete buttons upward on the same row as effect name. Moved 'Primary' tag to the stat summary row of primary effect in arrays. Added 'alternate' link on AE stat summary row with 'make primary' dropdown to promote alternate effects with cost limit verification."
 }

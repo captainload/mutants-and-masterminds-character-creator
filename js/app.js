@@ -41,7 +41,7 @@ import {
   tablesManager
 } from './tables.js';
 
-import { POWER_PROFILES_LIBRARY } from './power_profiles.js?v=3.52';
+import { POWER_PROFILES_LIBRARY } from './power_profiles.js?v=3.53';
 import { ARCHETYPES } from './archetypes.js';
 import { archetypeManager } from './archetype_window.js';
 import { ARCHETYPE_CUSTOMIZATION_OPTIONS, buildCustomizedArchetype } from './archetype_builder.js';
@@ -1823,7 +1823,7 @@ class AppController {
   }
 
   async checkForUpdates({ isManual = false } = {}) {
-    const CURRENT_VERSION = '3.52';
+    const CURRENT_VERSION = '3.53';
     const versionEl = document.getElementById('header-version-tag');
     const updateBtn = document.getElementById('btn-header-update-alert');
     if (typeof window === 'undefined' || !window.location || !window.location.href || window.location.href === 'about:blank') return;
@@ -6243,10 +6243,35 @@ class AppController {
     this.showAlertDialog(html, { title: `${eff.name} — Effect Description`, icon: 'ℹ️', isHtml: true });
   }
 
-  renderEffectStatsSummaryBar(targetObj) {
+  renderEffectStatsSummaryBar(targetObj, isArray = false, isPrimary = false, powerContext = null, aeIndex = -1) {
     const stats = computePowerEffectiveStats(targetObj.effect, targetObj.extras || [], targetObj.flaws || [], null, targetObj.rank);
     const row = document.createElement('div');
     row.className = 'power-stats-summary-bar power-effective-stats-bar';
+
+    let rightContent = '';
+    if (isArray) {
+      if (isPrimary) {
+        rightContent = `
+          <div class="stats-summary-right" style="margin-left: auto; display: flex; align-items: center;">
+            <span class="badge-tag tag-primary-effect" style="background: rgba(56, 189, 248, 0.15); border: 1px solid var(--hero-cyan); color: var(--hero-cyan); font-weight: 700; text-transform: uppercase; font-size: var(--font-size-xs);" title="Primary effect of this array">Primary</span>
+          </div>
+        `;
+      } else {
+        rightContent = `
+          <div class="stats-summary-right ae-promote-container" style="margin-left: auto; position: relative; display: inline-flex; align-items: center;">
+            <button type="button" class="btn-ae-promote-link badge-tag" style="background: rgba(59, 130, 246, 0.15); border: 1px solid var(--hero-blue); color: var(--hero-blue); font-weight: 700; cursor: pointer; text-decoration: underline; font-size: var(--font-size-xs); padding: 0.15rem 0.5rem;" title="Click to manage array assignment">
+              alternate ▾
+            </button>
+            <div class="ae-promote-dropdown" style="display: none; position: absolute; right: 0; top: 100%; margin-top: 4px; z-index: 100; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-sm); box-shadow: 0 4px 14px rgba(0,0,0,0.35); padding: 0.35rem; min-width: 140px;">
+              <button type="button" class="btn btn-primary btn-action-make-primary" style="width: 100%; font-size: var(--font-size-xs); font-weight: 700; padding: 0.3rem 0.6rem; min-height: 28px; text-transform: uppercase; white-space: nowrap;">
+                make primary
+              </button>
+            </div>
+          </div>
+        `;
+      }
+    }
+
     row.innerHTML = `
       <div class="stats-summary-left" style="display: flex; gap: 0.65rem; align-items: center; flex-wrap: wrap;">
         <span class="stats-summary-title">Stats:</span>
@@ -6258,8 +6283,155 @@ class AppController {
         <span class="stat-sep">•</span>
         <span class="stat-item effective-stat-chip stat-area"><span class="stat-lbl effective-stat-label">Area:</span> <span class="stat-val effective-stat-val text-gold">${stats.area}</span></span>
       </div>
+      ${rightContent}
     `;
+
+    if (isArray && !isPrimary && powerContext && aeIndex >= 0) {
+      const link = row.querySelector('.btn-ae-promote-link');
+      const dropdown = row.querySelector('.ae-promote-dropdown');
+      const makePrimaryBtn = row.querySelector('.btn-action-make-primary');
+
+      link?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const isOpen = dropdown.style.display === 'block';
+        document.querySelectorAll('.ae-promote-dropdown').forEach(d => d.style.display = 'none');
+        if (!isOpen) {
+          dropdown.style.display = 'block';
+        }
+      });
+
+      makePrimaryBtn?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        dropdown.style.display = 'none';
+        this.promoteAlternateEffectToPrimary(powerContext, aeIndex);
+      });
+    }
+
     return row;
+  }
+
+    async promoteAlternateEffectToPrimary(powerContext, aeIndex) {
+    if (!powerContext || !Array.isArray(powerContext.alternateEffects) || !powerContext.alternateEffects[aeIndex]) {
+      return;
+    }
+
+    const ae = powerContext.alternateEffects[aeIndex];
+
+    // 1. Standalone cost of the alternate effect (this would become the new primary effect cost)
+    const aeStandaloneCost = calculatePowerCost({
+      ...ae,
+      isAlternateEffect: false,
+      alternateEffects: [],
+      linkedEffects: [],
+      isDynamicArray: false
+    });
+
+    // 2. Standalone cost of the current primary effect (which will become an alternate effect)
+    const currentPrimaryStandaloneCost = calculatePowerCost({
+      ...powerContext,
+      isAlternateEffect: false,
+      alternateEffects: [],
+      linkedEffects: [],
+      isDynamicArray: false
+    });
+
+    // Rule Check 1: In M&M 3E, NO alternate effect in an array can cost more than the primary effect.
+    if (currentPrimaryStandaloneCost > aeStandaloneCost) {
+      const excess = currentPrimaryStandaloneCost - aeStandaloneCost;
+      await this.showAlertDialog(
+        `Cannot make "${ae.name || 'Alternate Effect'}" the Primary Effect:\n\n` +
+        `The current primary effect ("${powerContext.name || 'Primary'}") costs ${currentPrimaryStandaloneCost} PP standalone, ` +
+        `which exceeds this alternate effect's cost (${aeStandaloneCost} PP) by ${excess} PP.\n\n` +
+        `In official M&M 3E rules, alternate effects cannot cost more than the primary effect. ` +
+        `You need to reduce "${powerContext.name || 'Primary'}" by ${excess} PP first, or increase this effect's rank/extras.`,
+        { title: 'Alternate Effect Exceeds Array Limit', icon: '⚠️' }
+      );
+      return;
+    }
+
+    // Check other alternate effects in the array:
+    for (let i = 0; i < powerContext.alternateEffects.length; i++) {
+      if (i === aeIndex) continue;
+      const otherAe = powerContext.alternateEffects[i];
+      const otherCost = calculatePowerCost({
+        ...otherAe,
+        isAlternateEffect: false,
+        alternateEffects: [],
+        linkedEffects: [],
+        isDynamicArray: false
+      });
+      if (otherCost > aeStandaloneCost) {
+        const excess = otherCost - aeStandaloneCost;
+        await this.showAlertDialog(
+          `Cannot make "${ae.name || 'Alternate Effect'}" the Primary Effect:\n\n` +
+          `Another alternate effect in this array ("${otherAe.name || 'Alternate Effect ' + (i + 1)}") costs ${otherCost} PP standalone, ` +
+          `which exceeds this effect's cost (${aeStandaloneCost} PP) by ${excess} PP.\n\n` +
+          `In official M&M 3E rules, alternate effects cannot cost more than the primary effect.`,
+          { title: 'Alternate Effect Exceeds Array Limit', icon: '⚠️' }
+        );
+        return;
+      }
+    }
+
+    // Rule Check 2: Character Power Point Budget Limit
+    const currentPowerCost = calculatePowerCost(powerContext);
+    const newPowerCost = aeStandaloneCost + (powerContext.alternateEffects.length * (powerContext.isDynamicArray ? 2 : 1));
+    const powerDelta = newPowerCost - currentPowerCost;
+
+    if (powerDelta > 0) {
+      const audit = auditCharacter(this.char);
+      const currentSpent = audit.totalSpentPP;
+      const budget = (this.char.powerPoints && this.char.powerPoints.total) || (this.char.powerLevel * 15);
+
+      if (currentSpent + powerDelta > budget) {
+        const excess = (currentSpent + powerDelta) - budget;
+        await this.showAlertDialog(
+          `Cannot make "${ae.name || 'Alternate Effect'}" the Primary Effect:\n\n` +
+          `Promoting this alternate effect would increase your total character Power Points to ${currentSpent + powerDelta} PP, ` +
+          `which exceeds your budget (${budget} PP) by ${excess} PP.\n\n` +
+          `You need to reduce this alternate effect's cost by ${excess} PP in order for it to become the Primary Effect.`,
+          { title: 'Array Power Point Limit Exceeded', icon: '⚠️' }
+        );
+        return;
+      }
+    }
+
+    // All checks pass! Execute the swap.
+    const demotedAe = {
+      id: 'ae_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6),
+      name: powerContext.name || 'Alternate Effect',
+      effect: powerContext.effect,
+      rank: powerContext.rank || 1,
+      action: powerContext.action,
+      range: powerContext.range,
+      duration: powerContext.duration,
+      extras: JSON.parse(JSON.stringify(powerContext.extras || [])),
+      flaws: JSON.parse(JSON.stringify(powerContext.flaws || [])),
+      notes: powerContext.notes || '',
+      config: powerContext.config ? JSON.parse(JSON.stringify(powerContext.config)) : undefined,
+      isDynamic: powerContext.isDynamicArray || false
+    };
+
+    powerContext.name = ae.name || 'Primary Effect';
+    powerContext.effect = ae.effect;
+    powerContext.rank = ae.rank || 1;
+    powerContext.action = ae.action;
+    powerContext.range = ae.range;
+    powerContext.duration = ae.duration;
+    powerContext.extras = JSON.parse(JSON.stringify(ae.extras || []));
+    powerContext.flaws = JSON.parse(JSON.stringify(ae.flaws || []));
+    powerContext.notes = ae.notes || '';
+    powerContext.config = ae.config ? JSON.parse(JSON.stringify(ae.config)) : undefined;
+
+    powerContext.alternateEffects[aeIndex] = demotedAe;
+
+    this.saveAndAudit();
+    this.renderAll();
+    await this.showAlertDialog(
+      `"${powerContext.name}" is now the Primary Effect of this array.\n` +
+      `"${demotedAe.name}" has been placed as an alternate effect.`,
+      { title: 'Primary Effect Updated', icon: '✅' }
+    );
   }
 
   renderModifierColumns(targetObj, powerContext = null) {
@@ -6632,15 +6804,10 @@ class AppController {
           <strong class="power-title-name">⚡ ${p.name || 'Unnamed Power'}</strong>
           <span class="power-title-sep">—</span>
           <span class="power-title-effect">${p.effect?.name || 'Effect'} Rank ${p.rank || 1}</span>
-          <span class="power-title-details">(${cost} PP${p.alternateEffects?.length ? ` total • ${mainStandaloneCost} PP base` : ''} • ${effStats.action} • ${effStats.effectiveRange} • ${effStats.effectiveDuration} • ${effStats.area})</span>
-          ${p.isDynamicArray ? '<span class="badge-tag dynamic">Dynamic Array</span>' : ''}
+          <span class="power-title-details">(${cost} PP • ${effStats.action} • ${effStats.effectiveRange} • ${effStats.effectiveDuration} • ${effStats.area})</span>
           ${(p.isLinked || p.linkedToId) ? `<span class="badge-tag linked">🔗 Linked</span>` : ''}
           ${p.linkedEffects?.length ? `<span class="badge-tag linked">${p.linkedEffects.length} Linked</span>` : ''}
           ${!valResult.valid ? '<span class="badge-tag conflict" title="Rule conflicts detected">⚠️ Conflict</span>' : ''}
-          <div class="power-effect-tags-right" style="margin-left: auto; display: inline-flex; align-items: center; gap: 0.35rem;">
-            <span class="badge-tag tag-primary-effect" style="background: rgba(56, 189, 248, 0.15); border: 1px solid var(--hero-cyan); color: var(--hero-cyan); font-weight: 700;" title="Primary Effect">Primary</span>
-            ${p.alternateEffects?.length ? `<span class="badge-tag ae" style="font-weight: 700;" title="${p.alternateEffects.length} Alternate Effects in Array">(AE: ${p.alternateEffects.length})</span>` : ''}
-          </div>
         </div>
         <div class="power-card-header-actions">
           <button class="btn btn-outline btn-toggle-power-expand" style="min-height: 32px; padding: 0.2rem 0.65rem; font-size: var(--font-size-base); font-weight: 700;">${isExpanded ? '▲ Collapse' : '▼ Configure'}</button>
@@ -6706,11 +6873,7 @@ class AppController {
           <div style="flex: 1.6; min-width: 160px;">
             <label class="field-label" style="display: flex; align-items: center; justify-content: space-between;">
               <span>Base Effect</span>
-              <div style="display: flex; align-items: center; gap: 0.35rem;">
-                <span class="badge-tag tag-primary-effect" style="background: rgba(56, 189, 248, 0.15); border: 1px solid var(--hero-cyan); color: var(--hero-cyan); font-size: 11px; font-weight: 700; padding: 0.1rem 0.4rem;" title="Primary Effect">Primary</span>
-                ${p.alternateEffects?.length ? `<span class="badge-tag ae" style="font-size: 11px; font-weight: 700; padding: 0.1rem 0.4rem;">(AE: ${p.alternateEffects.length})</span>` : ''}
-                <button type="button" class="btn-effect-info" title="View effect rules description" style="background: none; border: none; cursor: pointer; font-size: var(--font-size-base); padding: 0 0.2rem; color: var(--hero-blue); line-height: 1;">ℹ️</button>
-              </div>
+              <button type="button" class="btn-effect-info" title="View effect rules description" style="background: none; border: none; cursor: pointer; font-size: var(--font-size-base); padding: 0 0.2rem; color: var(--hero-blue); line-height: 1;">ℹ️</button>
             </label>
             <select class="select-power-effect" style="width: 100%; font-size: var(--font-size-base); min-height: 36px;">
               ${POWER_EFFECTS_CATALOG.map(e => `<option value="${e.id}" ${p.effect?.id === e.id ? 'selected' : ''}>${e.name} (${e.baseCost} PP/rk)</option>`).join('')}
@@ -6912,7 +7075,8 @@ class AppController {
         mainBlock.appendChild(row1);
 
         // Row 2: Final Effect Stats Summary Bar (Action, Range with measurement, Duration, Area)
-        const row2 = this.renderEffectStatsSummaryBar(p);
+        const isArray = Boolean(p.alternateEffects && p.alternateEffects.length > 0);
+        const row2 = this.renderEffectStatsSummaryBar(p, isArray, true, p, -1);
         mainBlock.appendChild(row2);
 
         // Power Effect Specific Configuration (Affliction, Immunity, Senses, Weaken, Nullify)
@@ -6970,7 +7134,7 @@ class AppController {
           <div class="power-section-header" style="display: flex; justify-content: space-between; align-items: center;">
             <div>
               <strong style="color: var(--hero-blue); font-size: var(--font-size-base);">🔄 Power Array & Alternate Effects (AE)</strong>
-              <span style="font-size: var(--font-size-sm); color: var(--text-muted); margin-left: 0.65rem;">Primary effect is above.</span>
+              
             </div>
             <button class="btn btn-outline btn-add-ae-effect" style="font-size: var(--font-size-sm); min-height: 32px; padding: 0.2rem 0.75rem;" title="Add alternate power effect to array">Add alternate power effect</button>
           </div>
@@ -7006,13 +7170,12 @@ class AppController {
             aeHeader.className = 'power-ae-header';
             aeHeader.style.cursor = 'pointer';
             aeHeader.innerHTML = `
-              <div style="display: flex; align-items: center; gap: 0.55rem; flex-wrap: wrap;">
+              <div style="display: flex; align-items: center; gap: 0.55rem; flex-wrap: wrap; flex: 1;">
                 <span class="ae-toggle-icon" style="font-size: var(--font-size-sm); color: var(--hero-blue); line-height: 1;">${isAeExpanded ? '▼' : '▶'}</span>
-                <strong style="color: var(--hero-gold); font-size: var(--font-size-base); letter-spacing: 0.04em;">⚡ ALTERNATE ${aeIdx + 1}</strong>
-                <span style="font-weight: 600; color: var(--text-bright); font-size: var(--font-size-base);">${ae.name || 'Unnamed Effect'}</span>
-                <span style="font-size: var(--font-size-sm); color: var(--hero-blue); font-weight: 600;">— ${ae.effect?.name || 'Effect'} Rank ${ae.rank || 1}</span>
-                <span class="badge-tag ae" style="font-size: var(--font-size-xs);">+${aeSlotCost} PP slot</span>
-                <span style="font-size: var(--font-size-sm); color: var(--text-muted);">(AE Cost: ${aeStandaloneCost} PP / Max Allowed: ${mainStandaloneCost} PP)</span>
+                <strong class="power-title-name">⚡ ${ae.name || 'Unnamed Effect'}</strong>
+                <span class="power-title-sep">—</span>
+                <span class="power-title-effect">${ae.effect?.name || 'Effect'} Rank ${ae.rank || 1}</span>
+                <span class="power-title-details">(${aeSlotCost} PP)</span>
               </div>
               <div style="display: flex; gap: 0.45rem; align-items: center;">
                 <button type="button" class="btn btn-outline btn-toggle-ae" style="padding: 0.2rem 0.65rem; min-height: 32px; font-size: var(--font-size-sm); color: var(--hero-blue); border-color: var(--hero-blue);">
@@ -7268,7 +7431,7 @@ class AppController {
             aeBody.appendChild(aeRow1);
 
             // Row 2 for AE: Stats Summary Bar
-            const aeStatsBar = this.renderEffectStatsSummaryBar(ae);
+            const aeStatsBar = this.renderEffectStatsSummaryBar(ae, true, false, p, aeIdx);
             aeBody.appendChild(aeStatsBar);
 
             // Effect Config Section for AE (Affliction, Immunity, Senses, Weaken, Nullify)

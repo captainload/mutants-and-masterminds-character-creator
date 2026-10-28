@@ -41,7 +41,7 @@ import {
   tablesManager
 } from './tables.js';
 
-import { POWER_PROFILES_LIBRARY } from './power_profiles.js?v=3.49';
+import { POWER_PROFILES_LIBRARY } from './power_profiles.js?v=3.50';
 import { ARCHETYPES } from './archetypes.js';
 import { archetypeManager } from './archetype_window.js';
 import { ARCHETYPE_CUSTOMIZATION_OPTIONS, buildCustomizedArchetype } from './archetype_builder.js';
@@ -1383,7 +1383,7 @@ class AppController {
         : roll.rawDie;
       const formula = `d20(${dieFormatted})${modStr}${roll.extraText ? ` (${roll.extraText})` : ''}`;
       resEl.innerHTML = `
-        <strong style="color: #fff; margin-right: 0.4rem;">${roll.title}:</strong>
+        <strong style="color: var(--text-bright); margin-right: 0.4rem;">${roll.title}:</strong>
         <span style="font-size: 0.95rem; font-weight: 900; color: ${isNat20 ? 'var(--hero-green)' : 'var(--hero-gold)'}; margin-right: 0.4rem;">${roll.total}</span>
         <span style="color: var(--text-muted); margin-right: 0.5rem;">[${formula}]</span>
         ${isNat20 ? '<span style="color: var(--hero-green); font-weight: 900;">🎯 NAT 20!</span>' : ''}
@@ -1422,7 +1422,7 @@ class AppController {
       : `d20(${dieStr})${roll.modifier >= 0 ? '+' + roll.modifier : roll.modifier}`;
 
     resEl.innerHTML = `
-      <strong style="color: #fff; margin-right: 0.4rem;">${roll.title}:</strong>
+      <strong style="color: var(--text-bright); margin-right: 0.4rem;">${roll.title}:</strong>
       <span style="font-size: 0.95rem; font-weight: 900; color: ${isNat20 ? 'var(--hero-green)' : 'inherit'}; margin-right: 0.4rem;">${roll.total}</span>
       <span style="color: var(--text-muted); margin-right: 0.5rem;">[${formula}${dcText}]</span>
       ${outcomeTag ? `<span>${outcomeTag}</span>` : ''}
@@ -1823,7 +1823,7 @@ class AppController {
   }
 
   async checkForUpdates({ isManual = false } = {}) {
-    const CURRENT_VERSION = '3.49';
+    const CURRENT_VERSION = '3.50';
     const versionEl = document.getElementById('header-version-tag');
     const updateBtn = document.getElementById('btn-header-update-alert');
     if (typeof window === 'undefined' || !window.location || !window.location.href || window.location.href === 'about:blank') return;
@@ -2549,7 +2549,7 @@ class AppController {
     const delBtn = document.createElement('button');
     delBtn.type = 'button';
     delBtn.className = 'btn btn-outline';
-    delBtn.style.cssText = 'min-height: 34px; padding: 0.2rem 0.55rem; font-size: var(--font-size-base); color: #fff; border-color: rgba(255, 255, 255, 0.25);';
+    delBtn.style.cssText = 'min-height: 34px; padding: 0.2rem 0.55rem; font-size: var(--font-size-base); color: #ef4444; border-color: rgba(239, 68, 68, 0.35);';
     delBtn.textContent = '✕';
     delBtn.title = 'Remove Extra';
     delBtn.addEventListener('click', () => {
@@ -2594,7 +2594,7 @@ class AppController {
     const delBtn = document.createElement('button');
     delBtn.type = 'button';
     delBtn.className = 'btn btn-outline';
-    delBtn.style.cssText = 'min-height: 34px; padding: 0.2rem 0.55rem; font-size: var(--font-size-base); color: #fff; border-color: rgba(255, 255, 255, 0.25);';
+    delBtn.style.cssText = 'min-height: 34px; padding: 0.2rem 0.55rem; font-size: var(--font-size-base); color: #ef4444; border-color: rgba(239, 68, 68, 0.35);';
     delBtn.textContent = '✕';
     delBtn.title = 'Remove Flaw';
     delBtn.addEventListener('click', () => {
@@ -2626,7 +2626,7 @@ class AppController {
     const delBtn = document.createElement('button');
     delBtn.type = 'button';
     delBtn.className = 'btn btn-outline';
-    delBtn.style.cssText = 'min-height: 34px; padding: 0.2rem 0.55rem; font-size: var(--font-size-base); color: #fff; border-color: rgba(255, 255, 255, 0.25);';
+    delBtn.style.cssText = 'min-height: 34px; padding: 0.2rem 0.55rem; font-size: var(--font-size-base); color: #ef4444; border-color: rgba(239, 68, 68, 0.35);';
     delBtn.textContent = '✕';
     delBtn.title = 'Remove Alternate Effect';
     delBtn.addEventListener('click', () => {
@@ -4973,7 +4973,7 @@ class AppController {
           ` : ''}
 
           ${advDef.id === 'languages' && isSelected ? `
-            <button class="btn btn-outline" style="min-height: 38px; font-size: var(--font-size-base); font-weight: 700; padding: 0.35rem 0.8rem; border-color: var(--hero-blue); color: #93c5fd;" data-manage-languages="${advDef.id}" title="Manage known languages">
+            <button class="btn btn-outline" style="min-height: 38px; font-size: var(--font-size-base); font-weight: 700; padding: 0.35rem 0.8rem; border-color: var(--hero-blue); color: var(--hero-blue);" data-manage-languages="${advDef.id}" title="Manage known languages">
               🗣️ Languages (${(existing?.languages || []).length}/${getLanguagesLimit(currentRank)})
             </button>
           ` : ''}
@@ -6044,7 +6044,7 @@ class AppController {
               <span style="color: var(--text-bright);">${item.name}</span>
               <span style="color: var(--hero-blue); font-weight: 700; margin-left: 0.35rem;">(${item.ranks} ${item.ranks === 1 ? 'rank' : 'ranks'})</span>
             </div>
-            <button type="button" class="btn btn-outline btn-add-imm-item" style="padding: 0.15rem 0.55rem; min-height: 28px; font-size: var(--font-size-sm); white-space: nowrap; border-color: var(--hero-blue); color: #fff;">
+            <button type="button" class="btn btn-outline btn-add-imm-item" style="padding: 0.15rem 0.55rem; min-height: 28px; font-size: var(--font-size-sm); white-space: nowrap;">
               ➕ Add
             </button>
           `;
@@ -6116,7 +6116,7 @@ class AppController {
             <span style="color: var(--hero-blue); font-weight: 700; margin-left: 0.35rem;">(${item.ranks} ${item.ranks === 1 ? 'rank' : 'ranks'})</span>
             <span style="color: var(--text-muted); font-size: var(--font-size-xs); margin-left: 0.4rem;">- ${item.desc}</span>
           </div>
-          <button type="button" class="btn btn-outline btn-add-sens-item" style="padding: 0.15rem 0.55rem; min-height: 28px; font-size: var(--font-size-sm); white-space: nowrap; border-color: var(--hero-blue); color: #fff;">
+          <button type="button" class="btn btn-outline btn-add-sens-item" style="padding: 0.15rem 0.55rem; min-height: 28px; font-size: var(--font-size-sm); white-space: nowrap;">
             ➕ Add
           </button>
         `;
@@ -6331,7 +6331,7 @@ class AppController {
             ? '<option value="" disabled selected>No additional legal extras available</option>'
             : '<option value="" disabled selected>Select extra to add...</option>' + legalExtras.map(ex => `<option value="${ex.id}">${ex.name} (${ex.isFlat ? `+${ex.cost} flat` : `+${ex.cost}/rank`})</option>`).join('')}
         </select>
-        <button class="btn btn-outline btn-add-extra" style="font-size: var(--font-size-sm); min-height: 32px; padding: 0.2rem 0.55rem; white-space: nowrap; flex-shrink: 0; border-color: var(--hero-blue); color: #fff;" disabled>+ Add Extra</button>
+        <button class="btn btn-outline btn-add-extra" style="font-size: var(--font-size-sm); min-height: 32px; padding: 0.2rem 0.55rem; white-space: nowrap; flex-shrink: 0;" disabled>+ Add Extra</button>
       </div>
       <div class="extras-items-container" style="display: flex; flex-direction: column; gap: 0.35rem;"></div>
     `;
@@ -6366,7 +6366,7 @@ class AppController {
               <button class="btn-stepper compact btn-ex-plus" ${r >= maxR ? 'disabled' : ''}>+</button>
             </div>
           ` : ''}
-          <button class="btn btn-outline btn-remove-extra" style="padding: 0.15rem 0.45rem; min-height: 28px; font-size: var(--font-size-sm); color: #fff; border-color: rgba(255,255,255,0.25);" title="Remove extra">✕</button>
+          <button class="btn btn-outline btn-remove-extra" style="padding: 0.15rem 0.45rem; min-height: 28px; font-size: var(--font-size-sm);" title="Remove extra">✕</button>
         </div>
       `;
 
@@ -6435,7 +6435,7 @@ class AppController {
             ? '<option value="" disabled selected>No additional legal flaws available</option>'
             : '<option value="" disabled selected>Select flaw to add...</option>' + legalFlaws.map(fl => `<option value="${fl.id}">${fl.name} (${fl.isDevice ? `Device -${fl.discountPer5}/5` : (fl.isFlat ? `-${fl.cost} flat` : `-${fl.cost}/rank`)})</option>`).join('')}
         </select>
-        <button class="btn btn-outline btn-add-flaw" style="font-size: var(--font-size-sm); min-height: 32px; padding: 0.2rem 0.55rem; white-space: nowrap; flex-shrink: 0; border-color: var(--hero-blue); color: #fff;" disabled>+ Add Flaw</button>
+        <button class="btn btn-outline btn-add-flaw" style="font-size: var(--font-size-sm); min-height: 32px; padding: 0.2rem 0.55rem; white-space: nowrap; flex-shrink: 0;" disabled>+ Add Flaw</button>
       </div>
       <div class="flaws-items-container" style="display: flex; flex-direction: column; gap: 0.35rem;"></div>
     `;
@@ -6474,7 +6474,7 @@ class AppController {
                 <button class="btn-stepper compact btn-fl-plus" ${r >= maxR ? 'disabled' : ''}>+</button>
               </div>
             ` : ''}
-            <button class="btn btn-outline btn-remove-flaw" style="padding: 0.15rem 0.45rem; min-height: 28px; font-size: var(--font-size-sm); color: #fff; border-color: rgba(255,255,255,0.25);" title="Remove flaw">✕</button>
+            <button class="btn btn-outline btn-remove-flaw" style="padding: 0.15rem 0.45rem; min-height: 28px; font-size: var(--font-size-sm);" title="Remove flaw">✕</button>
           </div>
         </div>
         ${fl.id === 'quirk' ? `
@@ -6643,7 +6643,7 @@ class AppController {
         <div class="power-card-header-actions">
           <button class="btn btn-outline btn-toggle-power-expand" style="min-height: 32px; padding: 0.2rem 0.65rem; font-size: var(--font-size-base); font-weight: 700;">${isExpanded ? '▲ Collapse' : '▼ Configure'}</button>
           <button class="btn btn-outline btn-duplicate-power" data-p-id="${p.id}" title="Duplicate Power" style="min-height: 32px; padding: 0.2rem 0.65rem; font-size: var(--font-size-base); font-weight: 700;">📋 Duplicate</button>
-          <button class="btn btn-outline btn-delete-power" data-p-id="${p.id}" title="Delete Power" style="min-height: 32px; padding: 0.2rem 0.65rem; font-size: var(--font-size-base); font-weight: 700; color: #fff; border-color: rgba(255, 255, 255, 0.25);">🗑️ Delete</button>
+          <button class="btn btn-outline btn-delete-power" data-p-id="${p.id}" title="Delete Power" style="min-height: 32px; padding: 0.2rem 0.65rem; font-size: var(--font-size-base); font-weight: 700;">🗑️ Delete</button>
         </div>
       `;
 
@@ -6840,7 +6840,7 @@ class AppController {
               e.target.checked = false;
               await this.showAlertDialog(
                 'No other eligible unlinked powers found to link with.\n\n' +
-                '• To build an Alternate Effect Array (alternate powers sharing PP): This power is already the Primary Effect! Simply click "+ Add Alternate Effect" at the bottom of this power card.\n\n' +
+                '• To build an Alternate Effect Array (alternate powers sharing PP): This power is already the Primary Effect! Simply click "+ Add Alternate Power / Effect" at the bottom of this power card.\n\n' +
                 '• To build a Linked Power (multiple powers activating simultaneously): You must first create another power, then check "Linked" to combine them.',
                 { title: 'Linked Effects vs Alternate Effect Arrays' }
               );
@@ -6969,7 +6969,7 @@ class AppController {
               <strong style="color: var(--hero-blue); font-size: var(--font-size-base);">🔄 Power Array & Alternate Effects (AE)</strong>
               <span style="font-size: var(--font-size-sm); color: var(--text-muted); margin-left: 0.65rem;">Primary effect is above.</span>
             </div>
-            <button class="btn btn-outline btn-add-ae-effect" style="font-size: var(--font-size-sm); min-height: 32px; padding: 0.2rem 0.75rem; border-color: var(--hero-blue); color: #fff;">➕ Add Alternate Effect to Array</button>
+            <button class="btn btn-outline btn-add-ae-effect" style="font-size: var(--font-size-sm); min-height: 32px; padding: 0.2rem 0.75rem;" title="Add Alternate Effect / Power to Array">➕ Add Alternate Power / Effect to Array</button>
           </div>
           <div class="ae-items-container" style="display: flex; flex-direction: column; gap: 0.75rem; margin-top: 0.5rem;"></div>
         `;
@@ -6979,7 +6979,7 @@ class AppController {
         if (!this.expandedAeIds) this.expandedAeIds = new Set();
 
         if (p.alternateEffects.length === 0) {
-          aeContainer.innerHTML = `<div style="font-size: var(--font-size-sm); color: var(--text-muted); font-style: italic; padding: 0.25rem 0;">No alternate effects added. Click "➕ Add Alternate Effect to Array" above to add one.</div>`;
+          aeContainer.innerHTML = `<div style="font-size: var(--font-size-sm); color: var(--text-muted); font-style: italic; padding: 0.25rem 0;">No alternate effects added. Click "➕ Add Alternate Power / Effect to Array" above to add one.</div>`;
         } else {
           p.alternateEffects.forEach((ae, aeIdx) => {
             if (!ae.id) {
@@ -7015,7 +7015,7 @@ class AppController {
                 <button type="button" class="btn btn-outline btn-toggle-ae" style="padding: 0.2rem 0.65rem; min-height: 32px; font-size: var(--font-size-sm); color: var(--hero-blue); border-color: var(--hero-blue);">
                   ${isAeExpanded ? '▲ Collapse' : '▼ Configure'}
                 </button>
-                <button type="button" class="btn btn-outline btn-delete-ae" style="padding: 0.2rem 0.65rem; min-height: 32px; font-size: var(--font-size-sm); color: #fff; border-color: rgba(255, 255, 255, 0.25);" title="Remove this alternate effect">🗑️</button>
+                <button type="button" class="btn btn-outline btn-delete-ae" style="padding: 0.2rem 0.65rem; min-height: 32px; font-size: var(--font-size-sm);" title="Remove this alternate effect">🗑️</button>
               </div>
             `;
 
@@ -7371,7 +7371,7 @@ class AppController {
             leRow.style.cssText = 'display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.2); padding: 0.3rem 0.5rem; border-radius: 4px;';
             leRow.innerHTML = `
               <div><strong class="text-gold">${le.name || 'Linked Effect'}</strong> (${le.effect?.name || 'Effect'} Rank ${le.rank || 1}) - +${leCost} PP</div>
-              <button class="btn btn-outline btn-delete-le" style="padding: 0.15rem 0.5rem; min-height: 28px; font-size: var(--font-size-sm); color: #fff; border-color: rgba(255, 255, 255, 0.25);">🗑️</button>
+              <button class="btn btn-outline btn-delete-le" style="padding: 0.15rem 0.5rem; min-height: 28px; font-size: var(--font-size-sm);">🗑️</button>
             `;
             leRow.querySelector('.btn-delete-le')?.addEventListener('click', () => {
               p.linkedEffects.splice(leIdx, 1);

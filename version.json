@@ -1,5 +1,5 @@
 {
-  "version": "3.49",
-  "updatedAt": "2026-10-28T18:30:00.000Z",
-  "releaseNotes": "Restored full description for Shadow Door in power profiles and automated repair for existing saved character sheets. Added cache-busting to power profile assets."
+  "version": "3.50",
+  "updatedAt": "2026-10-28T18:36:13.130Z",
+  "releaseNotes": "Fixed white-on-white unreadable styling on 'Add Alternate Power / Effect' button, modifier buttons, and delete buttons across light and dark themes."
 }

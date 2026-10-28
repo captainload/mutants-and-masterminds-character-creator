@@ -1996,7 +1996,7 @@ button.action-roll-card {
   border: 1px solid var(--hero-blue);
   border-radius: var(--radius-sm);
   padding: 0.45rem 0.75rem;
-  color: #ffffff;
+  color: var(--text-bright);
   font-size: var(--font-size-xs);
   display: flex;
   flex-direction: column;
@@ -2008,7 +2008,7 @@ button.action-roll-card {
   border: 1px solid var(--hero-gold);
   border-radius: var(--radius-sm);
   padding: 0.45rem 0.75rem;
-  color: #ffffff;
+  color: var(--text-bright);
   font-size: var(--font-size-xs);
   display: flex;
   flex-direction: column;
@@ -2753,10 +2753,102 @@ html[data-theme="light"] #btn-power-profile-info:hover:not(:disabled) {
   background-color: #ede4d5 !important;
 }
 
+/* =====================================================================
+   POWER ARRAY & ALTERNATE EFFECT (AE) BUTTONS (v3.50)
+   ===================================================================== */
+.btn-add-ae-effect {
+  color: var(--hero-blue) !important;
+  border: 1px solid var(--hero-blue) !important;
+  background-color: rgba(59, 130, 246, 0.12) !important;
+  font-weight: 700 !important;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
 
+.btn-add-ae-effect:hover {
+  background-color: var(--hero-blue) !important;
+  color: #ffffff !important;
+}
 
+html[data-theme="light"] .btn-add-ae-effect {
+  color: var(--hero-blue) !important;
+  border: 1px solid var(--hero-blue) !important;
+  background-color: rgba(37, 99, 235, 0.1) !important;
+}
 
+html[data-theme="light"] .btn-add-ae-effect:hover {
+  background-color: var(--hero-blue) !important;
+  color: #ffffff !important;
+}
 
+/* Modifier Add & Delete Action Buttons */
+.btn-add-extra,
+.btn-add-flaw,
+.btn-add-imm-item,
+.btn-add-sens-item {
+  color: var(--hero-blue) !important;
+  border: 1px solid var(--hero-blue) !important;
+  background-color: rgba(59, 130, 246, 0.1) !important;
+  font-weight: 700 !important;
+  transition: all 0.15s ease;
+}
 
+.btn-add-extra:hover:not(:disabled),
+.btn-add-flaw:hover:not(:disabled),
+.btn-add-imm-item:hover:not(:disabled),
+.btn-add-sens-item:hover:not(:disabled) {
+  background-color: var(--hero-blue) !important;
+  color: #ffffff !important;
+}
 
+.btn-add-extra:disabled,
+.btn-add-flaw:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  color: var(--text-muted) !important;
+  border-color: var(--border-color) !important;
+  background-color: transparent !important;
+}
 
+html[data-theme="light"] .btn-add-extra,
+html[data-theme="light"] .btn-add-flaw,
+html[data-theme="light"] .btn-add-imm-item,
+html[data-theme="light"] .btn-add-sens-item {
+  color: var(--hero-blue) !important;
+  border: 1px solid var(--hero-blue) !important;
+  background-color: rgba(37, 99, 235, 0.08) !important;
+}
+
+html[data-theme="light"] .btn-add-extra:hover:not(:disabled),
+html[data-theme="light"] .btn-add-flaw:hover:not(:disabled),
+html[data-theme="light"] .btn-add-imm-item:hover:not(:disabled),
+html[data-theme="light"] .btn-add-sens-item:hover:not(:disabled) {
+  background-color: var(--hero-blue) !important;
+  color: #ffffff !important;
+}
+
+.btn-delete-power,
+.btn-delete-ae,
+.btn-delete-le,
+.btn-remove-extra,
+.btn-remove-flaw {
+  color: #ef4444 !important;
+  border: 1px solid rgba(239, 68, 68, 0.4) !important;
+  background-color: rgba(239, 68, 68, 0.08) !important;
+  font-weight: 700 !important;
+  transition: all 0.15s ease;
+}
+
+.btn-delete-power:hover,
+.btn-delete-ae:hover,
+.btn-delete-le:hover,
+.btn-remove-extra:hover,
+.btn-remove-flaw:hover {
+  background-color: #ef4444 !important;
+  color: #ffffff !important;
+}
+
+html[data-theme="light"] .power-validation-alert,
+html[data-theme="light"] .power-validation-warning {
+  color: var(--text-bright) !important;
+}

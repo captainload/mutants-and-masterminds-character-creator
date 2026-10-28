@@ -6,8 +6,8 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Mutants & Masterminds 3E - Character Editor v3.40</title>
-  <link rel="stylesheet" href="css/styles.css?v=3.40">
+  <title>Mutants & Masterminds 3E - Character Editor v3.41</title>
+  <link rel="stylesheet" href="css/styles.css?v=3.41">
 </head>
 <body>
 
@@ -80,7 +80,7 @@
 
           <div class="brand-title-centered">
             <span>Mutants & Masterminds 3E Character Editor</span>
-            <span id="header-version-tag" class="header-version-tag up-to-date" title="Current Version">v3.40</span>
+            <span id="header-version-tag" class="header-version-tag up-to-date" title="Current Version">v3.41</span>
             <button type="button" id="btn-header-update-alert" class="btn-header-update-alert" title="Check for updates / Update status">!</button>
           </div>
 
@@ -208,11 +208,11 @@
             <div id="action-dice-result" class="dice-result-badge" style="flex: 1; min-height: 38px; display: flex; align-items: center; padding: 0 2.2rem 0 0.75rem; background: #0c1424; border: 1px solid var(--border-color); border-radius: var(--radius-sm); font-size: var(--font-size-xs); color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
               Result: Ready to roll
             </div>
-            <button type="button" id="btn-toggle-dice-history" title="Show last 10 rolls" aria-label="Show last 10 rolls" style="position: absolute; right: 4px; top: 50%; transform: translateY(-50%); width: 28px; height: 28px; background: rgba(255, 255, 255, 0.06); border: 1px solid var(--border-color); color: var(--hero-cyan); border-radius: var(--radius-sm); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 800; transition: all 0.15s ease; z-index: 5;">
+            <button type="button" id="btn-toggle-dice-history" title="Show last 25 rolls" aria-label="Show last 25 rolls" style="position: absolute; right: 4px; top: 50%; transform: translateY(-50%); width: 28px; height: 28px; background: rgba(255, 255, 255, 0.06); border: 1px solid var(--border-color); color: var(--hero-cyan); border-radius: var(--radius-sm); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 800; transition: all 0.15s ease; z-index: 5;">
               <span id="dice-history-arrow-icon" style="transition: transform 0.2s ease;">▼</span>
             </button>
-            <div id="dice-history-dropdown" class="dice-history-dropdown-panel" style="display: none; position: absolute; top: calc(100% + 4px); right: 0; left: 0; max-height: 340px; overflow-y: auto; background-color: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-sm); box-shadow: 0 12px 30px rgba(0, 0, 0, 0.75); z-index: 1500; padding: 0.35rem 0;">
-              <!-- Populated via JS with last 10 rolls -->
+            <div id="dice-history-dropdown" class="dice-history-dropdown-panel" style="display: none; position: absolute; top: calc(100% + 4px); right: 0; left: 0; max-height: 400px; overflow-y: auto; background-color: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-sm); box-shadow: 0 12px 30px rgba(0, 0, 0, 0.75); z-index: 1500; padding: 0.35rem 0;">
+              <!-- Populated via JS with last 25 rolls -->
             </div>
           </div>
         </div>
@@ -1396,6 +1396,6 @@
     </div>
   </div>
 
-  <script type="module" src="js/app.js?v=3.40"></script>
+  <script type="module" src="js/app.js?v=3.41"></script>
 </body>
 </html>

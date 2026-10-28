@@ -1419,12 +1419,12 @@ class AppController {
   renderDiceHistoryDropdown() {
     const dropdown = document.getElementById('dice-history-dropdown');
     if (!dropdown) return;
-    const last10 = diceRoller.history.slice(0, 10);
+    const last25 = diceRoller.history.slice(0, 25);
 
-    if (last10.length === 0) {
+    if (last25.length === 0) {
       dropdown.innerHTML = `
         <div style="padding: 0.85rem 1rem; text-align: center; color: var(--text-muted); font-size: var(--font-size-xs); font-style: italic;">
-          No rolls recorded yet. Roll the dice to see the last 10 rolls here.
+          No rolls recorded yet. Roll the dice to see the last 25 rolls here.
         </div>
       `;
       return;
@@ -1432,13 +1432,13 @@ class AppController {
 
     let html = `
       <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.4rem 0.85rem 0.35rem 0.85rem; border-bottom: 1px solid var(--border-color); font-size: var(--font-size-xs); font-weight: 800; color: var(--hero-cyan);">
-        <span>🎲 Last ${last10.length} Roll${last10.length > 1 ? 's' : ''}</span>
+        <span>🎲 Last ${last25.length} Roll${last25.length > 1 ? 's' : ''}</span>
         <button type="button" id="btn-clear-dice-history" style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 11px; text-decoration: underline;">Clear</button>
       </div>
       <div style="display: flex; flex-direction: column;">
     `;
 
-    last10.forEach((r, idx) => {
+    last25.forEach((r, idx) => {
       const isNat20 = !!r.isNatural20 || r.rawDie === 20 || (typeof r.rawDie === 'string' && (r.rawDie === '20' || r.rawDie.split(', ').includes('20')));
       const dcText = r.targetDC !== null && r.targetDC !== undefined ? ` vs DC ${r.targetDC}` : '';
       let outcomeLabel = '';
@@ -1807,7 +1807,7 @@ class AppController {
   }
 
   async checkForUpdates({ isManual = false } = {}) {
-    const CURRENT_VERSION = '3.40';
+    const CURRENT_VERSION = '3.41';
     const versionEl = document.getElementById('header-version-tag');
     const updateBtn = document.getElementById('btn-header-update-alert');
     if (typeof window === 'undefined' || !window.location || !window.location.href || window.location.href === 'about:blank') return;

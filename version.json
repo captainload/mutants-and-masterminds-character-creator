@@ -1,5 +1,5 @@
 {
-  "version": "3.36",
-  "updatedAt": "2026-10-27T22:04:00.000Z",
-  "releaseNotes": "Alt Characters UI refinement: Display alt type icons directly to the left of the alt type labels ('🎭 Alt form:', '🤖 Minion:', '🦸 Sidekick:') in front of alt names, remove redundant trailing alt type badges from existing alts list cards, and widen and heighten the Alt Characters dialog."
+  "version": "3.37",
+  "updatedAt": "2026-10-28T01:45:00.000Z",
+  "releaseNotes": "Notify users in session log history and restore confirmations that restoring a character state also rolls back the state of any attached alts (Alternate Forms, Minions, Sidekicks)."
 }

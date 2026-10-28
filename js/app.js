@@ -1674,7 +1674,7 @@ class AppController {
   }
 
   async checkForUpdates({ isManual = false } = {}) {
-    const CURRENT_VERSION = '3.36';
+    const CURRENT_VERSION = '3.37';
     const versionEl = document.getElementById('header-version-tag');
     const updateBtn = document.getElementById('btn-header-update-alert');
     if (typeof window === 'undefined' || !window.location || !window.location.href || window.location.href === 'about:blank') return;
@@ -6437,7 +6437,7 @@ class AppController {
         <div style="font-size: var(--font-size-xs); color: var(--text-bright); line-height: 1.45; white-space: pre-line;">${sess.notes || '<span style="color: var(--text-muted); font-style: italic;">No session notes recorded.</span>'}</div>
         <div style="display: flex; justify-content: flex-end; gap: 0.4rem; margin-top: 0.5rem; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 0.4rem; flex-wrap: wrap;">
           <button class="btn btn-outline btn-export-session" title="Export character state as saved in this session" style="min-height: 28px; padding: 0.2rem 0.6rem; font-size: var(--font-size-sm);">💾 Export Backup</button>
-          ${sess.characterSnapshot ? '<button class="btn btn-warning btn-restore-session" title="Roll back character to state saved in this session" style="min-height: 28px; padding: 0.2rem 0.6rem; font-size: var(--font-size-sm); color: #fff; font-weight: 800; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); border: none;">⏪ Restore</button>' : ''}
+          ${sess.characterSnapshot ? '<button class="btn btn-warning btn-restore-session" title="Roll back character and all attached alts to state saved in this session" style="min-height: 28px; padding: 0.2rem 0.6rem; font-size: var(--font-size-sm); color: #fff; font-weight: 800; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); border: none;">⏪ Restore</button>' : ''}
           <button class="btn btn-outline btn-edit-session" style="min-height: 28px; padding: 0.2rem 0.6rem; font-size: var(--font-size-sm);">✏️ Edit</button>
           <button class="btn btn-danger btn-delete-session" style="min-height: 28px; padding: 0.2rem 0.6rem; font-size: var(--font-size-sm);">🗑️ Delete</button>
         </div>
@@ -6453,8 +6453,14 @@ class AppController {
           await this.showAlertDialog('No character backup was found for this session entry.', { title: 'Restore Error' });
           return;
         }
+        const alts = sess.alts || sess.characterSnapshot?.alts || [];
+        const altsCount = alts.length;
+        const altsNote = altsCount > 0
+          ? `\n\n⚠️ IMPORTANT: Restoring this character will also roll back the state of all ${altsCount} attached alt(s) (${alts.map(a => a.name || 'Unnamed Alt').join(', ')}) to this session backup.`
+          : `\n\n⚠️ IMPORTANT: Restoring a character will also roll back the state of any alts attached to the character.`;
+
         const confirmed = await this.showConfirmDialog(
-          `Roll back "${this.char.name || 'Hero'}" to the state saved in session "${sess.title}" (${sess.date})?\n\nThis will restore your abilities, powers, skills, advantages, defenses, and HP/PP (${sess.characterHP ?? '—'} HP, ${sess.characterPP ?? '—'} PP) to the snapshot taken during that session.\n\nCurrent unsaved character stats will be overwritten.`,
+          `Roll back "${this.char.name || 'Hero'}" to the state saved in session "${sess.title}" (${sess.date})?\n\nThis will restore your abilities, powers, skills, advantages, defenses, and HP/PP (${sess.characterHP ?? '—'} HP, ${sess.characterPP ?? '—'} PP) to the snapshot taken during that session.${altsNote}\n\nCurrent unsaved character stats will be overwritten.`,
           {
             title: 'Restore Character State',
             confirmText: 'Restore Backup',

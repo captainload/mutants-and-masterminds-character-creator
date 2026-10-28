@@ -1128,8 +1128,9 @@ textarea {
   position: fixed;
   top: 0;
   right: 0;
-  width: 480px;
-  max-width: 95vw;
+  width: calc(100vw - 160px);
+  max-width: calc(100vw - 140px);
+  min-width: 480px;
   height: 100vh;
   background-color: #0c1424;
   border-left: 2px solid var(--border-color);

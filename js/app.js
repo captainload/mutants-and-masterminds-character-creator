@@ -102,6 +102,7 @@ class AppController {
     this.setupArchetypeWizard();
     this.setupAltCharactersModal();
     this.setupLanguagesModal();
+    this.setupSkillMasteryModal();
     this.migrateLanguagesSkillToAdvantage(this.char);
     this.migrateSkillMasteryToAdvantage(this.char);
     this.setupUpdateChecker();
@@ -747,15 +748,24 @@ class AppController {
       </div>
     `;
 
-    document.getElementById('btn-alt-rank-minus')?.addEventListener('click', () => {
+    document.getElementById('btn-alt-rank-minus')?.addEventListener('click', async () => {
       if (currentRank <= 1) return;
       const nextRank = currentRank - 1;
+      const targetBudget = nextRank * ppMultiplier;
+      const currentSpent = auditCharacter(this.char).totalSpent;
+      if (currentSpent > targetBudget) {
+        await this.showAlertDialog(
+          `Cannot reduce advantage rank to ${nextRank}.\n\nTotal spent Power Points (${currentSpent} PP) would exceed the new budget of ${targetBudget} PP (${ppMultiplier} PP/rank).\n\nPlease remove traits on this ${isMinion ? 'minion' : 'sidekick'} first.`,
+          { title: 'Power Points Cost Overrun' }
+        );
+        return;
+      }
       if (isMinion) {
         this.char.minionRank = nextRank;
       } else {
         this.char.sidekickRank = nextRank;
       }
-      this.char.powerPointsBudget = nextRank * ppMultiplier;
+      this.char.powerPointsBudget = targetBudget;
       this.saveAndAudit();
       this.renderAll();
     });
@@ -1812,7 +1822,7 @@ class AppController {
   }
 
   async checkForUpdates({ isManual = false } = {}) {
-    const CURRENT_VERSION = '3.45';
+    const CURRENT_VERSION = '3.46';
     const versionEl = document.getElementById('header-version-tag');
     const updateBtn = document.getElementById('btn-header-update-alert');
     if (typeof window === 'undefined' || !window.location || !window.location.href || window.location.href === 'about:blank') return;
@@ -3167,6 +3177,15 @@ class AppController {
   openSettingsFlyout() {
     const backdrop = document.getElementById('flyout-settings-backdrop');
     const panel = document.getElementById('flyout-settings-panel');
+    if (panel) {
+      const menuBtn = document.getElementById('btn-open-menu');
+      if (menuBtn) {
+        const rect = menuBtn.getBoundingClientRect();
+        const targetWidth = Math.max(480, Math.floor(window.innerWidth - rect.right - 14));
+        panel.style.width = `${targetWidth}px`;
+        panel.style.maxWidth = `calc(100vw - ${Math.max(40, Math.floor(rect.right + 10))}px)`;
+      }
+    }
     backdrop?.classList.add('open');
     panel?.classList.add('open');
 
@@ -3614,6 +3633,44 @@ class AppController {
   // =======================================================
   // 16. MASTER RENDER ALL
   // =======================================================
+  syncAltAdvantagesToPrimary() {
+    if (!this.primaryChar) return;
+    if (!this.primaryChar.advantages) this.primaryChar.advantages = [];
+    const alts = this.primaryChar.alts || [];
+
+    // Minion advantage sync
+    const minionAlts = alts.filter(a => a.altType === 'minion');
+    const totalMinionRanks = minionAlts.reduce((sum, a) => sum + (parseInt(a.minionRank, 10) || 1), 0);
+    let minionAdv = this.primaryChar.advantages.find(a => a.id === 'minion');
+    if (totalMinionRanks > 0) {
+      const minionNotes = minionAlts.map(a => `${a.name || 'Minion'} (Rank ${a.minionRank || 1})`).join(', ');
+      if (!minionAdv) {
+        this.primaryChar.advantages.push({ id: 'minion', name: 'Minion', rank: totalMinionRanks, note: minionNotes });
+      } else {
+        minionAdv.rank = totalMinionRanks;
+        minionAdv.note = minionNotes;
+      }
+    } else if (minionAdv) {
+      this.primaryChar.advantages = this.primaryChar.advantages.filter(a => a.id !== 'minion');
+    }
+
+    // Sidekick advantage sync
+    const sidekickAlts = alts.filter(a => a.altType === 'sidekick');
+    const totalSidekickRanks = sidekickAlts.reduce((sum, a) => sum + (parseInt(a.sidekickRank, 10) || 1), 0);
+    let sidekickAdv = this.primaryChar.advantages.find(a => a.id === 'sidekick');
+    if (totalSidekickRanks > 0) {
+      const sidekickNotes = sidekickAlts.map(a => `${a.name || 'Sidekick'} (Rank ${a.sidekickRank || 1})`).join(', ');
+      if (!sidekickAdv) {
+        this.primaryChar.advantages.push({ id: 'sidekick', name: 'Sidekick', rank: totalSidekickRanks, note: sidekickNotes });
+      } else {
+        sidekickAdv.rank = totalSidekickRanks;
+        sidekickAdv.note = sidekickNotes;
+      }
+    } else if (sidekickAdv) {
+      this.primaryChar.advantages = this.primaryChar.advantages.filter(a => a.id !== 'sidekick');
+    }
+  }
+
   saveAndAudit() {
     if (!this.primaryChar) {
       this.primaryChar = this.char;
@@ -3623,14 +3680,27 @@ class AppController {
     }
 
     if (this.activeAltId && this.char) {
+      this.char.primaryHeroPL = parseInt(this.primaryChar.powerLevel, 10) || 10;
+      if (this.char.altType === 'minion') {
+        const mRank = parseInt(this.char.minionRank, 10) || 1;
+        this.char.powerPointsBudget = mRank * 15;
+      } else if (this.char.altType === 'sidekick') {
+        const sRank = parseInt(this.char.sidekickRank, 10) || 1;
+        this.char.powerPointsBudget = sRank * 5;
+      } else if (this.char.altType === 'alternate_form') {
+        this.char.powerPointsBudget = this.primaryChar.powerPointsBudget || ((parseInt(this.primaryChar.powerLevel, 10) || 10) * 15);
+      }
+
       const idx = this.primaryChar.alts.findIndex(a => a.id === this.activeAltId);
       if (idx >= 0) {
         this.primaryChar.alts[idx] = this.char;
       } else {
         this.primaryChar.alts.push(this.char);
       }
+      this.syncAltAdvantagesToPrimary();
       storageManager.saveCharacter(this.primaryChar);
     } else {
+      this.syncAltAdvantagesToPrimary();
       storageManager.saveCharacter(this.primaryChar);
     }
     return auditCharacter(this.char);
@@ -3656,7 +3726,16 @@ class AppController {
   renderHeaderStatus() {
     const audit = auditCharacter(this.char);
     const ppUsedEl = document.getElementById('header-pp-used');
-    if (ppUsedEl) ppUsedEl.textContent = `${audit.totalSpent} / ${audit.budget} used`;
+    if (ppUsedEl) {
+      ppUsedEl.textContent = `${audit.totalSpent} / ${audit.budget} used`;
+      if (audit.totalSpent > audit.budget) {
+        ppUsedEl.style.color = 'var(--hero-red)';
+        ppUsedEl.style.fontWeight = '900';
+      } else {
+        ppUsedEl.style.color = '';
+        ppUsedEl.style.fontWeight = '';
+      }
+    }
 
     const plDisplayEl = document.getElementById('header-pl-display');
     if (plDisplayEl) plDisplayEl.textContent = `${audit.powerLevel}`;
@@ -4165,6 +4244,7 @@ class AppController {
             <span class="rules-link" data-id="${sk.id}" data-type="skill" data-name="${sk.name}" data-cat="Official 3E Skill" style="cursor: pointer; font-weight: 700;">
               ${sk.name}${sk.specialty ? ` (${sk.specialty})` : ''}
             </span>
+            ${this.isSkillMastered(sk.id, sk.name, sk.specialty) ? '<span class="badge-mastery" style="font-size: var(--font-size-xs); background: rgba(234, 179, 8, 0.2); border: 1px solid rgba(234, 179, 8, 0.45); color: var(--hero-gold); margin-left: 0.4rem; padding: 0.1rem 0.4rem; border-radius: 4px; font-weight: 700;" title="Skill Mastery: Routine checks (take 10) allowed under stress">🎯 Mastery</span>' : ''}
             ${sk.isUntrained 
               ? `<span style="font-size: var(--font-size-xs); background: rgba(255,255,255,0.06); padding: 0.1rem 0.35rem; border-radius: 3px; color: var(--text-muted); margin-left: 0.4rem;">Untrained</span>`
               : `<span style="font-size: var(--font-size-xs); background: rgba(37,99,235,0.15); border: 1px solid rgba(37,99,235,0.3); padding: 0.1rem 0.35rem; border-radius: 3px; color: var(--hero-cyan); margin-left: 0.4rem;">Rank ${sk.ranks}</span>`
@@ -4172,12 +4252,15 @@ class AppController {
           </td>
           <td><strong style="color: var(--text-muted);">${sk.ability.toUpperCase()}</strong></td>
           <td><strong style="color: ${effBonus !== sk.baseBonus ? 'var(--hero-red)' : 'var(--hero-cyan)'}; font-size: var(--font-size-md); font-weight: 900;">${effBonus >= 0 ? '+' : ''}${effBonus}</strong></td>
-          <td style="text-align: right;">
+          <td style="text-align: right; white-space: nowrap;">
             <button class="btn-touch-roll" style="min-height: 30px; padding: 0.2rem 0.65rem; font-size: var(--font-size-sm);">🎲 Roll</button>
+            ${this.isSkillMastered(sk.id, sk.name, sk.specialty) ? `
+              <button class="btn btn-outline btn-mastery-take10" style="min-height: 30px; padding: 0.2rem 0.55rem; font-size: var(--font-size-xs); font-weight: 800; border-color: var(--hero-gold); color: var(--hero-gold); margin-left: 0.3rem;" title="Skill Mastery: Take 10 routine check">Take 10 (${10 + effBonus})</button>
+            ` : ''}
           </td>
         `;
 
-        row.querySelector('button')?.addEventListener('click', () => {
+        row.querySelector('.btn-touch-roll')?.addEventListener('click', () => {
           const roll = diceRoller.rollCheck({
             title: `${sk.name} Check`,
             characterName: this.char.name,
@@ -4185,6 +4268,24 @@ class AppController {
             targetDC: this.getCurrentDC(),
             rollType: 'skill',
             extraText: effBonus !== sk.baseBonus ? `Base +${sk.baseBonus}${mods.checkPenalty ? ` ${mods.checkPenalty} (Conditions)` : ''}` : ''
+          });
+          this.displayRollResult(roll);
+        });
+
+        row.querySelector('.btn-mastery-take10')?.addEventListener('click', () => {
+          const roll = diceRoller.notify({
+            id: 'roll_' + Date.now(),
+            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+            title: `${sk.name}${sk.specialty ? ` (${sk.specialty})` : ''} (Routine Check - Take 10)`,
+            characterName: this.char.name,
+            rollType: 'skill',
+            rawDie: 10,
+            modifier: effBonus,
+            total: 10 + effBonus,
+            targetDC: this.getCurrentDC(),
+            isNatural20: false,
+            extraText: `Skill Mastery Take 10 + ${effBonus} bonus`,
+            outcomeClass: (10 + effBonus >= this.getCurrentDC()) ? 'success' : 'failure'
           });
           this.displayRollResult(roll);
         });
@@ -4490,6 +4591,7 @@ class AppController {
               ${skillDef.name}
             </span>
             ${skillDef.trainedOnly ? '<span style="font-size: var(--font-size-xs); color: var(--hero-red); margin-left: 0.4rem; font-weight: 600;">[Trained Only]</span>' : ''}
+            ${this.isSkillMastered(skillDef.id, skillDef.name, '') ? '<span class="badge-mastery" style="font-size: var(--font-size-xs); background: rgba(234, 179, 8, 0.2); border: 1px solid rgba(234, 179, 8, 0.45); color: var(--hero-gold); margin-left: 0.45rem; padding: 0.1rem 0.45rem; border-radius: 4px; font-weight: 700;" title="Skill Mastery: Routine checks (take 10) allowed under stress">🎯 Mastery (Take 10)</span>' : ''}
             ${hasStoredSpecialty ? '<span style="font-size: var(--font-size-xs); color: var(--text-muted); margin-left: 0.4rem; font-style: italic;" title="Specialization inactive while House Rule is disabled (remembered in data)">[Specialty Inactive]</span>' : ''}
           </td>
           <td><strong style="color: var(--text-muted);">${skillDef.ability.toUpperCase()}</strong></td>
@@ -4573,6 +4675,7 @@ class AppController {
                 <span class="skill-specialty-badge" style="font-size: var(--font-size-sm); color: var(--hero-gold); margin-left: 0.5rem; font-weight: 800; cursor: pointer; text-decoration: underline dotted;" title="Click to edit ${isAssignedFocus ? 'focus' : 'specialty'}">
                   [${specialty || (isAssignedFocus ? 'Focus Unassigned' : 'General / Unspecified')}]
                 </span>
+                ${this.isSkillMastered(skillDef.id, skillDef.name, specialty) ? '<span class="badge-mastery" style="font-size: var(--font-size-xs); background: rgba(234, 179, 8, 0.2); border: 1px solid rgba(234, 179, 8, 0.45); color: var(--hero-gold); margin-left: 0.45rem; padding: 0.1rem 0.45rem; border-radius: 4px; font-weight: 700;" title="Skill Mastery: Routine checks (take 10) allowed under stress">🎯 Mastery (Take 10)</span>' : ''}
                 ${isAssignedFocus ? '<span style="font-size: var(--font-size-xs); color: var(--hero-cyan); margin-left: 0.35rem; font-style: italic;">(1-Rank Focus)</span>' : ''}
               </td>
               <td><strong style="color: var(--text-muted);">${skillDef.ability.toUpperCase()}</strong></td>
@@ -4774,7 +4877,12 @@ class AppController {
                 ${(existing?.languages || []).length} / ${getLanguagesLimit(currentRank)} Languages
               </span>
             ` : ''}
-            ${existing?.note && advDef.id !== 'languages' ? `
+            ${advDef.id === 'skill_mastery' && isSelected ? `
+              <span style="font-size: var(--font-size-xs); background: rgba(234, 179, 8, 0.2); border: 1px solid rgba(234, 179, 8, 0.4); color: var(--hero-gold); padding: 0.1rem 0.45rem; border-radius: 4px; font-weight: 700;">
+                ${this.getMasteredSkillNames().length} / ${currentRank} Skills Mastered
+              </span>
+            ` : ''}
+            ${existing?.note && advDef.id !== 'languages' && advDef.id !== 'skill_mastery' ? `
               <span style="font-size: var(--font-size-xs); background: rgba(234, 179, 8, 0.15); border: 1px solid rgba(234, 179, 8, 0.35); color: var(--hero-gold); padding: 0.1rem 0.45rem; border-radius: 4px; font-weight: 600;">
                 🏷️ ${existing.note}
               </span>
@@ -4790,6 +4898,14 @@ class AppController {
               <span style="color: var(--text-muted);">Fluent in:</span>
               <span style="background: rgba(0,0,0,0.25); padding: 0.15rem 0.5rem; border-radius: 4px; border: 1px solid var(--border-color); color: var(--hero-cyan); font-weight: 700;">
                 Native + ${existing.languages.join(', ')}
+              </span>
+            </div>
+          ` : ''}
+          ${advDef.id === 'skill_mastery' && isSelected && this.getMasteredSkillNames().length > 0 ? `
+            <div style="font-size: var(--font-size-xs); color: var(--hero-gold); margin-top: 0.35rem; font-weight: 600; display: flex; align-items: center; gap: 0.35rem; flex-wrap: wrap;">
+              <span style="color: var(--text-muted);">Mastered Skills:</span>
+              <span style="background: rgba(0,0,0,0.25); padding: 0.15rem 0.5rem; border-radius: 4px; border: 1px solid var(--border-color); color: var(--hero-gold); font-weight: 700;">
+                🎯 ${this.getMasteredSkillNames().join(', ')}
               </span>
             </div>
           ` : ''}
@@ -4810,7 +4926,13 @@ class AppController {
             </button>
           ` : ''}
 
-          ${advDef.hasOptions ? `
+          ${advDef.id === 'skill_mastery' && isSelected ? `
+            <button class="btn btn-outline" style="min-height: 38px; font-size: var(--font-size-base); font-weight: 700; padding: 0.35rem 0.8rem; border-color: var(--hero-gold); color: var(--hero-gold);" data-manage-mastery="${advDef.id}" title="Choose mastered skills (1 per rank)">
+              🎯 Mastered (${this.getMasteredSkillNames().length}/${currentRank})
+            </button>
+          ` : ''}
+
+          ${advDef.hasOptions && advDef.id !== 'skill_mastery' ? `
             <button class="btn btn-outline" style="min-height: 38px; font-size: var(--font-size-base); font-weight: 700; padding: 0.35rem 0.8rem;" data-opt-adv="${advDef.id}">
               ${existing?.note ? '✏️ Option' : '+ Option'}
             </button>
@@ -4828,6 +4950,8 @@ class AppController {
           this.setAdvantageRank(advDef.id, advDef.name, currentRank + dir, advDef.maxRank);
           if (advDef.id === 'languages' && dir > 0) {
             this.openLanguagesModal();
+          } else if (advDef.id === 'skill_mastery' && dir > 0) {
+            this.openSkillMasteryModal();
           }
         });
       });
@@ -4838,10 +4962,15 @@ class AppController {
           this.char.advantages = this.char.advantages.filter(a => a.id !== advDef.id);
           this.renderAll();
         } else {
-          this.char.advantages.push({ id: advDef.id, name: advDef.name, rank: 1, languages: [] });
+          const newAdvItem = { id: advDef.id, name: advDef.name, rank: 1 };
+          if (advDef.id === 'languages') newAdvItem.languages = [];
+          if (advDef.id === 'skill_mastery') newAdvItem.skills = [];
+          this.char.advantages.push(newAdvItem);
           this.renderAll();
           if (advDef.id === 'languages') {
             this.openLanguagesModal();
+          } else if (advDef.id === 'skill_mastery') {
+            this.openSkillMasteryModal();
           }
         }
       });
@@ -4849,6 +4978,12 @@ class AppController {
       if (advDef.id === 'languages') {
         row.querySelector('[data-manage-languages]')?.addEventListener('click', () => {
           this.openLanguagesModal();
+        });
+      }
+
+      if (advDef.id === 'skill_mastery') {
+        row.querySelector('[data-manage-mastery]')?.addEventListener('click', () => {
+          this.openSkillMasteryModal();
         });
       }
 
@@ -4894,6 +5029,276 @@ class AppController {
       }
     }
     this.renderAll();
+  }
+
+  // =======================================================
+  // SKILL MASTERY ADVANTAGE & SELECTION MODAL (M&M 3E)
+  // =======================================================
+  getMasteredSkillNames() {
+    const smAdv = (this.char.advantages || []).find(a => a.id === 'skill_mastery');
+    if (!smAdv) return [];
+    if (Array.isArray(smAdv.skills)) return smAdv.skills;
+    if (smAdv.note) {
+      return smAdv.note.split(',').map(s => s.trim()).filter(Boolean);
+    }
+    return [];
+  }
+
+  isSkillMastered(skillId, skillName, specialty) {
+    const mastered = this.getMasteredSkillNames().map(s => s.toLowerCase());
+    if (mastered.includes(skillId.toLowerCase())) return true;
+    if (mastered.includes(skillName.toLowerCase())) return true;
+    if (specialty) {
+      if (mastered.includes(specialty.toLowerCase())) return true;
+      if (mastered.includes(`${skillName}: ${specialty}`.toLowerCase())) return true;
+      if (mastered.includes(`${skillName} (${specialty})`.toLowerCase())) return true;
+    }
+    return false;
+  }
+
+  getKnownSkillsList() {
+    const list = [];
+    const houseRuleActive = this.isSpecializationRuleEnabled();
+
+    SKILLS_LIST.forEach(def => {
+      const instances = (this.char.skills || []).filter(s => s.id === def.id);
+      if (instances.length > 0) {
+        instances.forEach(inst => {
+          const ranks = parseInt(inst.ranks, 10) || 0;
+          if (ranks > 0 || inst.specialty) {
+            const label = inst.specialty ? `${def.name} (${inst.specialty})` : def.name;
+            list.push({
+              id: def.id,
+              name: def.name,
+              specialty: inst.specialty || '',
+              label,
+              ranks,
+              ability: def.ability,
+              isTrained: ranks > 0
+            });
+          }
+        });
+      }
+    });
+
+    (this.char.skills || []).forEach(inst => {
+      if (!list.some(item => item.id === inst.id && item.specialty === (inst.specialty || ''))) {
+        const ranks = parseInt(inst.ranks, 10) || 0;
+        if (ranks > 0) {
+          const def = SKILLS_LIST.find(s => s.id === inst.id);
+          const name = def ? def.name : inst.id;
+          const label = inst.specialty ? `${name} (${inst.specialty})` : name;
+          list.push({
+            id: inst.id,
+            name,
+            specialty: inst.specialty || '',
+            label,
+            ranks,
+            ability: def ? def.ability : 'int',
+            isTrained: true
+          });
+        }
+      }
+    });
+
+    // If no trained skills yet, include the 16 core skills
+    if (list.length === 0) {
+      SKILLS_LIST.forEach(def => {
+        list.push({
+          id: def.id,
+          name: def.name,
+          specialty: '',
+          label: def.name,
+          ranks: 0,
+          ability: def.ability,
+          isTrained: false
+        });
+      });
+    }
+
+    return list;
+  }
+
+  setupSkillMasteryModal() {
+    const modalEl = document.getElementById('modal-skill-mastery');
+    if (!modalEl) return;
+
+    document.getElementById('btn-close-skill-mastery-modal')?.addEventListener('click', () => {
+      this.closeModal('modal-skill-mastery');
+      this.renderAll();
+    });
+
+    document.getElementById('btn-close-sm-modal-done')?.addEventListener('click', () => {
+      this.closeModal('modal-skill-mastery');
+      this.renderAll();
+    });
+
+    document.getElementById('btn-modal-sm-rank-minus')?.addEventListener('click', () => {
+      let adv = (this.char.advantages || []).find(a => a.id === 'skill_mastery');
+      if (adv) {
+        const curRank = parseInt(adv.rank, 10) || 1;
+        if (curRank > 1) {
+          adv.rank = curRank - 1;
+          this.saveAndAudit();
+          this.renderSkillMasteryModal();
+          this.renderAdvantagesTab(auditCharacter(this.char));
+        }
+      }
+    });
+
+    document.getElementById('btn-modal-sm-rank-plus')?.addEventListener('click', () => {
+      let adv = (this.char.advantages || []).find(a => a.id === 'skill_mastery');
+      if (adv) {
+        const curRank = parseInt(adv.rank, 10) || 1;
+        if (curRank < 16) {
+          adv.rank = curRank + 1;
+          this.saveAndAudit();
+          this.renderSkillMasteryModal();
+          this.renderAdvantagesTab(auditCharacter(this.char));
+        }
+      }
+    });
+  }
+
+  openSkillMasteryModal() {
+    if (!this.char.advantages) this.char.advantages = [];
+    let adv = this.char.advantages.find(a => a.id === 'skill_mastery');
+    if (!adv) {
+      adv = { id: 'skill_mastery', name: 'Skill Mastery', rank: 1, skills: [] };
+      this.char.advantages.push(adv);
+      this.saveAndAudit();
+    }
+    if (!adv.skills) {
+      adv.skills = adv.note ? adv.note.split(',').map(s => s.trim()).filter(Boolean) : [];
+    }
+
+    const alertEl = document.getElementById('modal-sm-limit-alert');
+    if (alertEl) {
+      alertEl.style.display = 'none';
+      alertEl.textContent = '';
+    }
+
+    this.renderSkillMasteryModal();
+    this.openModal('modal-skill-mastery');
+  }
+
+  renderSkillMasteryModal() {
+    let adv = (this.char.advantages || []).find(a => a.id === 'skill_mastery');
+    if (!adv) return;
+    if (!adv.skills) adv.skills = [];
+
+    const rank = parseInt(adv.rank, 10) || 1;
+    const knownSkills = this.getKnownSkillsList();
+    const selectedList = adv.skills;
+    const selectedCount = selectedList.length;
+
+    // Stepper & rank display
+    const rankDisplay = document.getElementById('modal-sm-rank-display');
+    if (rankDisplay) rankDisplay.textContent = rank;
+    const minusBtn = document.getElementById('btn-modal-sm-rank-minus');
+    if (minusBtn) minusBtn.disabled = (rank <= 1);
+    const plusBtn = document.getElementById('btn-modal-sm-rank-plus');
+    if (plusBtn) plusBtn.disabled = (rank >= 16);
+
+    // Counter badge
+    const badge = document.getElementById('modal-sm-count-badge');
+    if (badge) {
+      badge.textContent = `${selectedCount} / ${rank} Selected (Rank ${rank})`;
+      if (selectedCount > rank) {
+        badge.style.background = 'rgba(239, 68, 68, 0.2)';
+        badge.style.borderColor = 'rgba(239, 68, 68, 0.4)';
+        badge.style.color = '#fca5a5';
+      } else if (selectedCount === rank) {
+        badge.style.background = 'rgba(234, 179, 8, 0.2)';
+        badge.style.borderColor = 'rgba(234, 179, 8, 0.4)';
+        badge.style.color = 'var(--hero-gold)';
+      } else {
+        badge.style.background = 'rgba(59, 130, 246, 0.2)';
+        badge.style.borderColor = 'rgba(59, 130, 246, 0.4)';
+        badge.style.color = '#93c5fd';
+      }
+    }
+
+    // Alert element update
+    const alertEl = document.getElementById('modal-sm-limit-alert');
+    if (alertEl) {
+      if (selectedCount > rank) {
+        alertEl.textContent = `⚠️ You have selected ${selectedCount} skills, but Rank ${rank} only allows ${rank} mastered skill${rank === 1 ? '' : 's'}. Please deselect ${selectedCount - rank} skill(s) or increase your Skill Mastery rank.`;
+        alertEl.style.display = 'block';
+      } else {
+        alertEl.style.display = 'none';
+        alertEl.textContent = '';
+      }
+    }
+
+    // Render list
+    const container = document.getElementById('modal-sm-skills-list');
+    if (!container) return;
+    container.innerHTML = '';
+
+    knownSkills.forEach(item => {
+      const isSelected = selectedList.some(s => s.toLowerCase() === item.label.toLowerCase() || s.toLowerCase() === item.name.toLowerCase());
+      const row = document.createElement('div');
+      row.className = 'sm-skill-row';
+      row.style.cssText = `
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0.55rem 0.85rem;
+        background: ${isSelected ? 'rgba(234, 179, 8, 0.12)' : 'rgba(255, 255, 255, 0.03)'};
+        border: 1px solid ${isSelected ? 'rgba(234, 179, 8, 0.45)' : 'var(--border-color)'};
+        border-radius: var(--radius-sm);
+        transition: background 0.15s ease;
+      `;
+
+      row.innerHTML = `
+        <div style="display: flex; align-items: center; gap: 0.6rem; overflow: hidden;">
+          <span style="font-size: 1.15rem;">${isSelected ? '🎯' : '🔘'}</span>
+          <div>
+            <strong style="font-size: var(--font-size-base); color: ${isSelected ? 'var(--hero-gold)' : 'var(--text-main)'};">
+              ${item.label}
+            </strong>
+            <span style="font-size: var(--font-size-xs); color: var(--text-muted); margin-left: 0.45rem;">
+              (${item.ability.toUpperCase()}${item.ranks > 0 ? ` • Rank ${item.ranks}` : ' • Untrained'})
+            </span>
+          </div>
+        </div>
+        <button class="btn ${isSelected ? 'btn-danger' : 'btn-primary'} btn-toggle-sm-item" style="min-height: 30px; padding: 0.2rem 0.75rem; font-size: var(--font-size-sm); font-weight: 700;">
+          ${isSelected ? '✕ Remove' : '+ Master'}
+        </button>
+      `;
+
+      row.querySelector('.btn-toggle-sm-item')?.addEventListener('click', () => {
+        if (isSelected) {
+          adv.skills = adv.skills.filter(s => s.toLowerCase() !== item.label.toLowerCase() && s.toLowerCase() !== item.name.toLowerCase());
+          adv.note = adv.skills.join(', ');
+          this.saveAndAudit();
+          this.renderSkillMasteryModal();
+          this.renderAdvantagesTab(auditCharacter(this.char));
+        } else {
+          if (adv.skills.length >= rank) {
+            if (alertEl) {
+              alertEl.textContent = `Limit reached: Rank ${rank} allows ${rank} mastered skill${rank === 1 ? '' : 's'}. Increase Skill Mastery rank to add more.`;
+              alertEl.style.display = 'block';
+            }
+            return;
+          }
+          adv.skills.push(item.label);
+          adv.note = adv.skills.join(', ');
+          this.saveAndAudit();
+          this.renderSkillMasteryModal();
+          this.renderAdvantagesTab(auditCharacter(this.char));
+        }
+      });
+
+      container.appendChild(row);
+    });
+
+    // Footer summary
+    const footerEl = document.getElementById('modal-sm-footer-summary');
+    if (footerEl) {
+      footerEl.textContent = `Mastered ${selectedCount} of ${rank} skill${rank === 1 ? '' : 's'} (Rank ${rank})`;
+    }
   }
 
   // =======================================================

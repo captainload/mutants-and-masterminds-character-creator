@@ -537,6 +537,14 @@ export const ADVANTAGES_DATABASE = [
     desc: 'When you take a standard action (such as an attack), you can split your movement, taking part of your move action before the standard action and the remainder after.'
   },
   {
+    id: 'minion',
+    name: 'Minion',
+    category: 'General',
+    maxRank: 30,
+    hasOptions: false,
+    desc: 'Each rank in the Minion advantage grants you 15 Power Points to build a loyal follower or servant. A minion cannot have a Power Level higher than your own, and is subject to minion combat rules.'
+  },
+  {
     id: 'power_attack',
     name: 'Power Attack',
     category: 'Combat',
@@ -609,6 +617,14 @@ export const ADVANTAGES_DATABASE = [
     category: 'Combat',
     maxRank: 1,
     desc: 'When you successfully feint or deceive an opponent in combat, you can transfer the combat advantage of their vulnerability to an ally instead of yourself.'
+  },
+  {
+    id: 'sidekick',
+    name: 'Sidekick',
+    category: 'General',
+    maxRank: 30,
+    hasOptions: false,
+    desc: 'Each rank in the Sidekick advantage grants you 5 Power Points to build a loyal hero companion. A sidekick cannot have a Power Level higher than your own.'
   },
   {
     id: 'skill_mastery',
@@ -1778,7 +1794,16 @@ export function calculatePowerCost(power) {
 
 export function auditCharacter(char) {
   const pl = parseInt(char.powerLevel, 10) || 10;
-  const budget = parseInt(char.powerPointsBudget, 10) || (pl * 15);
+  let budget = parseInt(char.powerPointsBudget, 10);
+  if (char.altType === 'minion') {
+    const rank = parseInt(char.minionRank, 10) || 1;
+    budget = rank * 15;
+  } else if (char.altType === 'sidekick') {
+    const rank = parseInt(char.sidekickRank, 10) || 1;
+    budget = rank * 5;
+  } else if (!budget) {
+    budget = pl * 15;
+  }
 
   let abilitiesCost = 0;
   ABILITIES.forEach(ab => {
@@ -1888,6 +1913,28 @@ export function auditCharacter(char) {
       });
     }
   });
+
+  if (totalSpent > budget) {
+    const altLabel = char.altType === 'minion' ? 'Minion' : (char.altType === 'sidekick' ? 'Sidekick' : (char.altType === 'alternate_form' ? 'Alternate Form' : 'Character'));
+    violations.push({
+      rule: 'Power Point Budget Cap',
+      current: totalSpent,
+      max: budget,
+      message: `${altLabel} spent ${totalSpent} PP, exceeding the budget limit of ${budget} PP.`
+    });
+  }
+
+  const heroPL = parseInt(char.primaryHeroPL || char.heroPL, 10);
+  if (heroPL && (char.altType === 'minion' || char.altType === 'sidekick')) {
+    if (pl > heroPL) {
+      violations.push({
+        rule: 'Power Level Cap',
+        current: pl,
+        max: heroPL,
+        message: `${char.altType === 'minion' ? 'Minion' : 'Sidekick'} Power Level (PL ${pl}) exceeds the primary hero's Power Level (PL ${heroPL}).`
+      });
+    }
+  }
 
   return {
     powerLevel: pl,

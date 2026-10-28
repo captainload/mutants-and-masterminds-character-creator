@@ -1,5 +1,5 @@
 {
-  "version": "3.45",
-  "updatedAt": "2026-10-28T17:15:00.000Z",
-  "releaseNotes": "Corrected Skill Mastery to be classified strictly as an Advantage rather than a skill, supporting all 16 skills. Set advantages show-descriptions option to disabled by default."
+  "version": "3.46",
+  "updatedAt": "2026-10-28T17:35:00.000Z",
+  "releaseNotes": "Allowed Skill Mastery to select one known skill per rank with active mastery indicators across skills tab and action center quick rolls. Expanded settings flyout dialog to reach the Menu button, and strictly enforced M&M 3E PP and PL rules for alt characters."
 }

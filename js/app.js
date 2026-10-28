@@ -41,7 +41,7 @@ import {
   tablesManager
 } from './tables.js';
 
-import { POWER_PROFILES_LIBRARY } from './power_profiles.js?v=3.51';
+import { POWER_PROFILES_LIBRARY } from './power_profiles.js?v=3.52';
 import { ARCHETYPES } from './archetypes.js';
 import { archetypeManager } from './archetype_window.js';
 import { ARCHETYPE_CUSTOMIZATION_OPTIONS, buildCustomizedArchetype } from './archetype_builder.js';
@@ -1823,7 +1823,7 @@ class AppController {
   }
 
   async checkForUpdates({ isManual = false } = {}) {
-    const CURRENT_VERSION = '3.51';
+    const CURRENT_VERSION = '3.52';
     const versionEl = document.getElementById('header-version-tag');
     const updateBtn = document.getElementById('btn-header-update-alert');
     if (typeof window === 'undefined' || !window.location || !window.location.href || window.location.href === 'about:blank') return;
@@ -6634,13 +6634,12 @@ class AppController {
           <span class="power-title-effect">${p.effect?.name || 'Effect'} Rank ${p.rank || 1}</span>
           <span class="power-title-details">(${cost} PP${p.alternateEffects?.length ? ` total • ${mainStandaloneCost} PP base` : ''} • ${effStats.action} • ${effStats.effectiveRange} • ${effStats.effectiveDuration} • ${effStats.area})</span>
           ${p.isDynamicArray ? '<span class="badge-tag dynamic">Dynamic Array</span>' : ''}
-          ${p.alternateEffects?.length ? `<span class="badge-tag ae">${p.alternateEffects.length} AE</span>` : ''}
           ${(p.isLinked || p.linkedToId) ? `<span class="badge-tag linked">🔗 Linked</span>` : ''}
           ${p.linkedEffects?.length ? `<span class="badge-tag linked">${p.linkedEffects.length} Linked</span>` : ''}
           ${!valResult.valid ? '<span class="badge-tag conflict" title="Rule conflicts detected">⚠️ Conflict</span>' : ''}
           <div class="power-effect-tags-right" style="margin-left: auto; display: inline-flex; align-items: center; gap: 0.35rem;">
-            <span class="badge-tag tag-primary-effect" style="background: rgba(56, 189, 248, 0.15); border: 1px solid var(--hero-cyan); color: var(--hero-cyan); font-weight: 700;" title="Primary Base Effect of this Power">Primary Effect</span>
-            ${p.alternateEffects?.length ? '<span class="badge-tag tag-array-main" style="background: rgba(59, 130, 246, 0.18); border: 1px solid var(--hero-blue); color: var(--hero-blue); font-weight: 700;" title="Main effect of this Power Array">Array Main</span>' : ''}
+            <span class="badge-tag tag-primary-effect" style="background: rgba(56, 189, 248, 0.15); border: 1px solid var(--hero-cyan); color: var(--hero-cyan); font-weight: 700;" title="Primary Effect">Primary</span>
+            ${p.alternateEffects?.length ? `<span class="badge-tag ae" style="font-weight: 700;" title="${p.alternateEffects.length} Alternate Effects in Array">(AE: ${p.alternateEffects.length})</span>` : ''}
           </div>
         </div>
         <div class="power-card-header-actions">
@@ -6708,8 +6707,8 @@ class AppController {
             <label class="field-label" style="display: flex; align-items: center; justify-content: space-between;">
               <span>Base Effect</span>
               <div style="display: flex; align-items: center; gap: 0.35rem;">
-                <span class="badge-tag tag-primary-effect" style="background: rgba(56, 189, 248, 0.15); border: 1px solid var(--hero-cyan); color: var(--hero-cyan); font-size: 11px; font-weight: 700; padding: 0.1rem 0.4rem;" title="Primary Effect">Primary Effect</span>
-                ${p.alternateEffects?.length ? '<span class="badge-tag tag-array-main" style="background: rgba(59, 130, 246, 0.18); border: 1px solid var(--hero-blue); color: var(--hero-blue); font-size: 11px; font-weight: 700; padding: 0.1rem 0.4rem;" title="Array Main">Array Main</span>' : ''}
+                <span class="badge-tag tag-primary-effect" style="background: rgba(56, 189, 248, 0.15); border: 1px solid var(--hero-cyan); color: var(--hero-cyan); font-size: 11px; font-weight: 700; padding: 0.1rem 0.4rem;" title="Primary Effect">Primary</span>
+                ${p.alternateEffects?.length ? `<span class="badge-tag ae" style="font-size: 11px; font-weight: 700; padding: 0.1rem 0.4rem;">(AE: ${p.alternateEffects.length})</span>` : ''}
                 <button type="button" class="btn-effect-info" title="View effect rules description" style="background: none; border: none; cursor: pointer; font-size: var(--font-size-base); padding: 0 0.2rem; color: var(--hero-blue); line-height: 1;">ℹ️</button>
               </div>
             </label>

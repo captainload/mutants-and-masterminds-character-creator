@@ -1,5 +1,5 @@
 {
-  "version": "3.51",
-  "updatedAt": "2026-10-28T18:48:34.964Z",
-  "releaseNotes": "Moved 'Primary Effect' and 'Array Main' tags to appear right-justified after the actual effect name in power effect entries. Changed add alternate power button label to 'Add alternate power effect'."
+  "version": "3.52",
+  "updatedAt": "2026-10-28T22:21:28.074Z",
+  "releaseNotes": "Simplified power effect tags: now displays only 'Primary' towards the right side of the effect row, followed by '(AE: #)' if the power has alternate effects in an array."
 }

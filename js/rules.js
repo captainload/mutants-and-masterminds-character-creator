@@ -768,85 +768,90 @@ export const POWER_EFFECTS_CATALOG = [
 ];
 
 export const EXTRAS_CATALOG = [
-  { id: 'accurate', name: 'Accurate', cost: 1, isFlat: true, isRanked: true, maxRank: 10, minRank: 1, isUnique: false, isEffectSpecific: false, desc: '+2 to attack check rolls with this power per rank of Accurate.' },
-  { id: 'action_extra', name: 'Action (Faster)', cost: 1, isFlat: false, isRanked: true, maxRank: 2, minRank: 1, isUnique: false, isEffectSpecific: false, desc: 'Decreases the time required to use the effect by one step per rank (Standard -> Move -> Free).' },
-  { id: 'affects_corporeal', name: '★ Affects Corporeal', cost: 1, isFlat: false, isUnique: true, isEffectSpecific: true, desc: 'Can affect physical targets while you are Insubstantial (specific to Insubstantial).' },
-  { id: 'affects_insubstantial', name: 'Affects Insubstantial', cost: 1, isFlat: true, isRanked: true, maxRank: 2, minRank: 1, isUnique: false, isEffectSpecific: false, desc: 'Full effect against Insubstantial targets (Rank 1 half, Rank 2 full).' },
-  { id: 'affects_others', name: 'Affects Others', cost: 1, isFlat: false, isUnique: false, isEffectSpecific: false, desc: 'Can grant personal powers (Flight, Protection, etc.) to allies at Close range (specific to Personal range powers).' },
-  { id: 'area_burst', name: 'Area (Burst 30ft)', cost: 1, isFlat: false, isRanked: true, maxRank: 5, minRank: 1, isUnique: false, isEffectSpecific: false, desc: 'Affects all targets in 30ft radius (+30ft per additional rank). Targets make Dodge check for half effect.' },
-  { id: 'area_cloud', name: 'Area (Cloud 15ft)', cost: 1, isFlat: false, isRanked: true, maxRank: 5, minRank: 1, isUnique: false, isEffectSpecific: false, desc: 'Affects 15ft radius cloud that lingers for 1 additional round, affecting anyone inside. Dodge check for half effect.' },
-  { id: 'area_cone', name: 'Area (Cone 60ft)', cost: 1, isFlat: false, isRanked: true, maxRank: 5, minRank: 1, isUnique: false, isEffectSpecific: false, desc: 'Affects all targets in 60ft cone (+60ft per additional rank). Dodge check for half effect.' },
-  { id: 'area_cylinder', name: 'Area (Cylinder 30ft)', cost: 1, isFlat: false, isRanked: true, maxRank: 5, minRank: 1, isUnique: false, isEffectSpecific: false, desc: 'Affects an upright cylinder 30 feet in radius and height. Dodge check for half effect.' },
-  { id: 'area_line', name: 'Area (Line 30ft)', cost: 1, isFlat: false, isRanked: true, maxRank: 5, minRank: 1, isUnique: false, isEffectSpecific: false, desc: 'Affects all targets in 30ft line (+30ft per additional rank). Dodge check for half effect.' },
-  { id: 'area_perception', name: 'Area (Perception)', cost: 1, isFlat: false, isRanked: true, maxRank: 5, minRank: 1, isUnique: false, isEffectSpecific: false, desc: 'Affects any target capable of perceiving the effect (visual, auditory, or scent). Dodge check for half effect.' },
-  { id: 'area_shapeable', name: 'Area (Shapeable)', cost: 1, isFlat: false, isRanked: true, maxRank: 5, minRank: 1, isUnique: false, isEffectSpecific: false, desc: 'Affects 30 cubic feet shaped as desired (+30 cu ft per rank). Dodge check for half effect.' },
-  { id: 'attack', name: 'Attack', cost: 0, isFlat: false, isUnique: false, isEffectSpecific: false, desc: 'Converts personal power into an attack resisted by Dodge/Fortitude/Will (specific to Personal range powers).' },
-  { id: 'contagious', name: 'Contagious', cost: 1, isFlat: false, isUnique: false, isEffectSpecific: false, desc: 'Spreads to any person touching or in close contact with the affected target (specific to attack/condition effects).' },
-  { id: 'continuous', name: 'Continuous', cost: 1, isFlat: false, isUnique: false, isEffectSpecific: false, desc: 'Power remains active continuously without needing maintenance actions until deliberately dismissed.' },
-  { id: 'cumulative', name: 'Cumulative', cost: 1, isFlat: false, isUnique: false, isEffectSpecific: false, desc: 'Affliction/Weaken/Nullify degrees accumulate across multiple hits on same target (specific to Affliction, Weaken, Nullify).' },
-  { id: 'extended_range', name: 'Extended Range', cost: 1, isFlat: true, isRanked: true, maxRank: 4, minRank: 1, isUnique: false, isEffectSpecific: false, desc: 'Doubles short, medium, and long range increments per rank.' },
-  { id: 'homing', name: 'Homing', cost: 1, isFlat: true, isRanked: true, maxRank: 5, minRank: 1, isUnique: false, isEffectSpecific: false, desc: 'Reroll missed attack checks once per round per rank of homing.' },
-  { id: 'impervious', name: '★ Impervious', cost: 1, isFlat: false, isUnique: true, isRanked: true, maxRankByEffect: true, minRank: 1, isEffectSpecific: true, desc: 'Ignores damage effects with rank <= half impervious rank (specific to Protection / Defenses).' },
-  { id: 'increased_duration', name: 'Increased Duration', cost: 1, isFlat: false, isRanked: true, maxRank: 3, minRank: 1, isUnique: false, isEffectSpecific: false, desc: 'Increases duration by one step per rank (Instant -> Concentration -> Sustained -> Continuous).' },
-  { id: 'increased_mass', name: 'Increased Mass', cost: 1, isFlat: true, isRanked: true, maxRank: 20, minRank: 1, isUnique: false, isEffectSpecific: false, desc: 'Allows carrying or affecting additional mass ranks with movement or teleport effects (Flat 1 point per rank).' },
-  { id: 'increased_range', name: 'Increased Range', cost: 1, isFlat: false, isRanked: true, maxRank: 2, minRank: 1, isUnique: false, isEffectSpecific: false, desc: 'Increases range by one step per rank (Close -> Ranged [1 rank], Close -> Perception [2 ranks]).' },
-  { id: 'incurable', name: 'Incurable', cost: 1, isFlat: true, isUnique: false, isEffectSpecific: false, desc: 'Cannot be healed by ordinary Healing or Regeneration without Persistent.' },
-  { id: 'linked', name: 'Linked', cost: 0, isFlat: true, isUnique: false, isEffectSpecific: false, desc: 'Links two powers together so they activate simultaneously on the same target with one action.' },
-  { id: 'multiattack', name: 'Multiattack', cost: 1, isFlat: false, isUnique: false, isEffectSpecific: false, desc: 'Fires bursts for +2 or +5 damage bonus on high hits, or sprays multiple targets.' },
-  { id: 'penetrating', name: '★ Penetrating', cost: 1, isFlat: false, isRanked: true, maxRankByEffect: true, minRank: 1, isUnique: true, isEffectSpecific: true, desc: 'Overcomes Impervious Toughness equal to the penetrating rank (specific to Damage).' },
-  { id: 'portal', name: '★ Portal', cost: 2, isFlat: false, isUnique: true, isEffectSpecific: true, desc: 'Teleport creates an open portal that remains open until your next turn for others to pass through (+2 cost per rank).' },
-  { id: 'precise', name: 'Precise', cost: 1, isFlat: true, isUnique: false, isEffectSpecific: false, desc: 'Power can perform fine or delicate tasks with great finesse.' },
-  { id: 'progressive', name: '★ Progressive', cost: 2, isFlat: false, isUnique: true, isEffectSpecific: true, desc: 'Target makes defense check each round until resisting; failure increases degree of affliction or weaken (specific to Affliction, Weaken).' },
-  { id: 'psychic', name: '★ Psychic', cost: 1, isFlat: false, isUnique: true, isEffectSpecific: true, desc: 'Illusion is perceived directly in the minds of targets rather than in the external environment (+1 cost per rank).' },
-  { id: 'reach', name: 'Reach', cost: 1, isFlat: true, isRanked: true, maxRank: 10, minRank: 1, isUnique: false, isEffectSpecific: false, desc: 'Extends reach of close range attack by 5ft per rank (specific to Close range powers).' },
-  { id: 'reaction', name: 'Reaction Action', cost: 3, isFlat: false, isUnique: false, isEffectSpecific: false, desc: 'Power triggers automatically in response to a specified triggering event.' },
-  { id: 'responsive', name: '★ Responsive', cost: 1, isFlat: false, isUnique: true, isEffectSpecific: true, desc: 'Summoned creatures are responsive and can act on the same round summoned (+1 cost per rank).' },
-  { id: 'reversible', name: 'Reversible', cost: 1, isFlat: true, isUnique: false, isEffectSpecific: false, desc: 'Can undo or remove power effects at will (e.g. undoing Affliction, Damage bruised, or Insubstantial).' },
-  { id: 'ricochet', name: 'Ricochet', cost: 1, isFlat: true, isRanked: true, maxRank: 5, minRank: 1, isUnique: false, isEffectSpecific: false, desc: 'Power can bounce off solid surfaces around corners or obstacles.' },
-  { id: 'secondary_effect', name: 'Secondary Effect', cost: 1, isFlat: false, isUnique: false, isEffectSpecific: false, desc: 'Power hits again automatically on the next round without an additional action roll (specific to Instant duration attacks).' },
-  { id: 'selective', name: 'Selective', cost: 1, isFlat: false, isUnique: false, isEffectSpecific: false, desc: 'Freely choose who is affected within the area (requires Area modifier).' },
-  { id: 'split', name: 'Split', cost: 1, isFlat: true, isRanked: true, maxRank: 5, minRank: 1, isUnique: false, isEffectSpecific: false, desc: 'Splits power rank across multiple targets (e.g. Rank 10 split into two Rank 5 attacks).' },
-  { id: 'strength_based', name: '★ Strength-Based', cost: 0, isFlat: true, isUnique: true, isEffectSpecific: true, desc: 'Adds Strength rank directly to power damage (specific to Damage effects).' },
-  { id: 'subtle', name: 'Subtle', cost: 1, isFlat: true, isRanked: true, maxRank: 2, minRank: 1, isUnique: false, isEffectSpecific: false, desc: 'Power display is imperceptible (Rank 1 DC 20 Perception, Rank 2 completely invisible).' },
-  { id: 'sustained', name: 'Sustained', cost: 0, isFlat: true, isUnique: false, isEffectSpecific: false, desc: 'Requires a free action each round to maintain.' },
-  { id: 'triggered', name: 'Triggered', cost: 1, isFlat: true, isRanked: true, maxRank: 5, minRank: 1, isUnique: false, isEffectSpecific: false, desc: 'Sets a conditional trigger or trap that activates automatically when conditions are met.' },
-  { id: 'turnabout', name: '★ Turnabout', cost: 1, isFlat: true, isUnique: true, isEffectSpecific: true, desc: 'Allows moving before and after using Teleport, or returning to starting point (Flat 1 point).' },
-  { id: 'variable_conditions', name: '★ Variable Conditions', cost: 2, isFlat: false, isUnique: true, isEffectSpecific: true, desc: 'Affliction can impose different condition sets chosen when the attack is made (+2 cost per rank).' },
-  { id: 'variable_descriptor', name: 'Variable Descriptor', cost: 1, isFlat: true, isRanked: true, maxRank: 2, minRank: 1, isUnique: false, isEffectSpecific: false, desc: 'Change descriptor freely (Rank 1 broad group like weather or elements, Rank 2 any descriptor).' }
+  { id: 'accurate', name: 'Accurate', cost: 1, isFlat: true, isRanked: true, maxRank: 10, minRank: 1, isUnique: false, isEffectSpecific: false, isExtra: true, desc: '+2 to attack check rolls with this power per rank of Accurate.' },
+  { id: 'action_extra', name: 'Action (Faster)', cost: 1, isFlat: false, isRanked: true, maxRank: 2, minRank: 1, isUnique: false, isEffectSpecific: false, isExtra: true, desc: 'Decreases the time required to use the effect by one step per rank (Standard -> Move -> Free).' },
+  { id: 'affects_corporeal', name: '★ Affects Corporeal', cost: 1, isFlat: false, isUnique: true, isEffectSpecific: true, isExtra: true, desc: 'Can affect physical targets while you are Insubstantial (specific to Insubstantial).' },
+  { id: 'affects_insubstantial', name: 'Affects Insubstantial', cost: 1, isFlat: true, isRanked: true, maxRank: 2, minRank: 1, isUnique: false, isEffectSpecific: false, isExtra: true, desc: 'Full effect against Insubstantial targets (Rank 1 half, Rank 2 full).' },
+  { id: 'affects_others', name: 'Affects Others', cost: 1, isFlat: false, isUnique: false, isEffectSpecific: false, isExtra: true, desc: 'Can grant personal powers (Flight, Protection, etc.) to allies at Close range (specific to Personal range powers).' },
+  { id: 'alternate_resistance', name: '★ Alternate Resistance', cost: 1, isFlat: false, isRanked: false, isUnique: true, isEffectSpecific: true, isExtra: true, desc: 'Target makes defense check using an alternate defense (e.g. Dodge or Parry for +0 cost, or Toughness/Fortitude/Will for +1 cost per rank).' },
+  { id: 'area_burst', name: 'Area (Burst 30ft)', cost: 1, isFlat: false, isRanked: true, maxRank: 5, minRank: 1, isUnique: false, isEffectSpecific: false, isExtra: true, desc: 'Affects all targets in 30ft radius (+30ft per additional rank). Targets make Dodge check for half effect.' },
+  { id: 'area_cloud', name: 'Area (Cloud 15ft)', cost: 1, isFlat: false, isRanked: true, maxRank: 5, minRank: 1, isUnique: false, isEffectSpecific: false, isExtra: true, desc: 'Affects 15ft radius cloud that lingers for 1 additional round, affecting anyone inside. Dodge check for half effect.' },
+  { id: 'area_cone', name: 'Area (Cone 60ft)', cost: 1, isFlat: false, isRanked: true, maxRank: 5, minRank: 1, isUnique: false, isEffectSpecific: false, isExtra: true, desc: 'Affects all targets in 60ft cone (+60ft per additional rank). Dodge check for half effect.' },
+  { id: 'area_cylinder', name: 'Area (Cylinder 30ft)', cost: 1, isFlat: false, isRanked: true, maxRank: 5, minRank: 1, isUnique: false, isEffectSpecific: false, isExtra: true, desc: 'Affects an upright cylinder 30 feet in radius and height. Dodge check for half effect.' },
+  { id: 'area_line', name: 'Area (Line 30ft)', cost: 1, isFlat: false, isRanked: true, maxRank: 5, minRank: 1, isUnique: false, isEffectSpecific: false, isExtra: true, desc: 'Affects all targets in 30ft line (+30ft per additional rank). Dodge check for half effect.' },
+  { id: 'area_perception', name: 'Area (Perception)', cost: 1, isFlat: false, isRanked: true, maxRank: 5, minRank: 1, isUnique: false, isEffectSpecific: false, isExtra: true, desc: 'Affects any target capable of perceiving the effect (visual, auditory, or scent). Dodge check for half effect.' },
+  { id: 'area_shapeable', name: 'Area (Shapeable)', cost: 1, isFlat: false, isRanked: true, maxRank: 5, minRank: 1, isUnique: false, isEffectSpecific: false, isExtra: true, desc: 'Affects 30 cubic feet shaped as desired (+30 cu ft per rank). Dodge check for half effect.' },
+  { id: 'attack', name: 'Attack', cost: 0, isFlat: false, isUnique: false, isEffectSpecific: false, isExtra: true, desc: 'Converts personal power into an attack resisted by Dodge/Fortitude/Will (specific to Personal range powers).' },
+  { id: 'concentration', name: '★ Concentration', cost: 1, isFlat: false, isRanked: false, isUnique: true, isEffectSpecific: true, isExtra: true, desc: 'Maintain the effect each round with a standard action; target makes a new resistance check each round without needing an attack roll (specific to Affliction, Weaken, Nullify).' },
+  { id: 'contagious', name: 'Contagious', cost: 1, isFlat: false, isUnique: false, isEffectSpecific: false, isExtra: true, desc: 'Spreads to any person touching or in close contact with the affected target (specific to attack/condition effects).' },
+  { id: 'continuous', name: 'Continuous', cost: 1, isFlat: false, isUnique: false, isEffectSpecific: false, isExtra: true, desc: 'Power remains active continuously without needing maintenance actions until deliberately dismissed.' },
+  { id: 'cumulative', name: '★ Cumulative', cost: 1, isFlat: false, isRanked: false, isUnique: true, isEffectSpecific: true, isExtra: true, desc: 'Degrees of failure accumulate across multiple hits on same target (specific to Affliction, Weaken, Nullify, Mind Reading).' },
+  { id: 'extended_range', name: 'Extended Range', cost: 1, isFlat: true, isRanked: true, maxRank: 4, minRank: 1, isUnique: false, isEffectSpecific: false, isExtra: true, desc: 'Doubles short, medium, and long range increments per rank.' },
+  { id: 'extra_condition', name: '★ Extra Condition', cost: 1, isFlat: false, isRanked: true, maxRank: 3, minRank: 1, isUnique: true, isEffectSpecific: true, isExtra: true, desc: 'Target suffers an additional condition for each degree of failure (+1 cost per rank per extra condition).' },
+  { id: 'homing', name: 'Homing', cost: 1, isFlat: true, isRanked: true, maxRank: 5, minRank: 1, isUnique: false, isEffectSpecific: false, isExtra: true, desc: 'Reroll missed attack checks once per round per rank of homing.' },
+  { id: 'impervious', name: '★ Impervious', cost: 1, isFlat: false, isUnique: true, isRanked: true, maxRankByEffect: true, minRank: 1, isEffectSpecific: true, isExtra: true, desc: 'Ignores damage effects with rank <= half impervious rank (specific to Protection / Defenses).' },
+  { id: 'increased_duration', name: 'Increased Duration', cost: 1, isFlat: false, isRanked: true, maxRank: 3, minRank: 1, isUnique: false, isEffectSpecific: false, isExtra: true, desc: 'Increases duration by one step per rank (Instant -> Concentration -> Sustained -> Continuous).' },
+  { id: 'increased_mass', name: 'Increased Mass', cost: 1, isFlat: true, isRanked: true, maxRank: 20, minRank: 1, isUnique: false, isEffectSpecific: false, isExtra: true, desc: 'Allows carrying or affecting additional mass ranks with movement or teleport effects (Flat 1 point per rank).' },
+  { id: 'increased_range', name: 'Increased Range', cost: 1, isFlat: false, isRanked: true, maxRank: 2, minRank: 1, isUnique: false, isEffectSpecific: false, isExtra: true, desc: 'Increases range by one step per rank (Close -> Ranged [1 rank], Close -> Perception [2 ranks]).' },
+  { id: 'incurable', name: 'Incurable', cost: 1, isFlat: true, isUnique: false, isEffectSpecific: false, isExtra: true, desc: 'Cannot be healed by ordinary Healing or Regeneration without Persistent.' },
+  { id: 'linked', name: 'Linked', cost: 0, isFlat: true, isUnique: false, isEffectSpecific: false, isExtra: true, desc: 'Links two powers together so they activate simultaneously on the same target with one action.' },
+  { id: 'multiattack', name: 'Multiattack', cost: 1, isFlat: false, isUnique: false, isEffectSpecific: false, isExtra: true, desc: 'Fires bursts for +2 or +5 damage bonus on high hits, or sprays multiple targets.' },
+  { id: 'penetrating', name: '★ Penetrating', cost: 1, isFlat: false, isRanked: true, maxRankByEffect: true, minRank: 1, isUnique: true, isEffectSpecific: true, isExtra: true, desc: 'Overcomes Impervious Toughness equal to the penetrating rank (specific to Damage).' },
+  { id: 'portal', name: '★ Portal', cost: 2, isFlat: false, isUnique: true, isEffectSpecific: true, isExtra: true, desc: 'Teleport creates an open portal that remains open until your next turn for others to pass through (+2 cost per rank).' },
+  { id: 'precise', name: 'Precise', cost: 1, isFlat: true, isUnique: false, isEffectSpecific: false, isExtra: true, desc: 'Power can perform fine or delicate tasks with great finesse.' },
+  { id: 'progressive', name: '★ Progressive', cost: 2, isFlat: false, isUnique: true, isEffectSpecific: true, isExtra: true, desc: 'Target makes defense check each round until resisting; failure increases degree of affliction or weaken (specific to Affliction, Weaken).' },
+  { id: 'psychic', name: '★ Psychic', cost: 1, isFlat: false, isUnique: true, isEffectSpecific: true, isExtra: true, desc: 'Illusion is perceived directly in the minds of targets rather than in the external environment (+1 cost per rank).' },
+  { id: 'reach', name: 'Reach', cost: 1, isFlat: true, isRanked: true, maxRank: 10, minRank: 1, isUnique: false, isEffectSpecific: false, isExtra: true, desc: 'Extends reach of close range attack by 5ft per rank (specific to Close range powers).' },
+  { id: 'reaction', name: 'Reaction Action', cost: 3, isFlat: false, isUnique: false, isEffectSpecific: false, isExtra: true, desc: 'Power triggers automatically in response to a specified triggering event.' },
+  { id: 'responsive', name: '★ Responsive', cost: 1, isFlat: false, isUnique: true, isEffectSpecific: true, isExtra: true, desc: 'Summoned creatures are responsive and can act on the same round summoned (+1 cost per rank).' },
+  { id: 'reversible', name: 'Reversible', cost: 1, isFlat: true, isUnique: false, isEffectSpecific: false, isExtra: true, desc: 'Can undo or remove power effects at will (e.g. undoing Affliction, Damage bruised, or Insubstantial).' },
+  { id: 'ricochet', name: 'Ricochet', cost: 1, isFlat: true, isRanked: true, maxRank: 5, minRank: 1, isUnique: false, isEffectSpecific: false, isExtra: true, desc: 'Power can bounce off solid surfaces around corners or obstacles.' },
+  { id: 'secondary_effect', name: 'Secondary Effect', cost: 1, isFlat: false, isUnique: false, isEffectSpecific: false, isExtra: true, desc: 'Power hits again automatically on the next round without an additional action roll (specific to Instant duration attacks).' },
+  { id: 'selective', name: 'Selective', cost: 1, isFlat: false, isUnique: false, isEffectSpecific: false, isExtra: true, desc: 'Freely choose who is affected within the area (requires Area modifier).' },
+  { id: 'split', name: 'Split', cost: 1, isFlat: true, isRanked: true, maxRank: 5, minRank: 1, isUnique: false, isEffectSpecific: false, isExtra: true, desc: 'Splits power rank across multiple targets (e.g. Rank 10 split into two Rank 5 attacks).' },
+  { id: 'strength_based', name: '★ Strength-Based', cost: 0, isFlat: true, isUnique: true, isEffectSpecific: true, isExtra: true, desc: 'Adds Strength rank directly to power damage (specific to Damage effects).' },
+  { id: 'subtle', name: 'Subtle', cost: 1, isFlat: true, isRanked: true, maxRank: 2, minRank: 1, isUnique: false, isEffectSpecific: false, isExtra: true, desc: 'Power display is imperceptible (Rank 1 DC 20 Perception, Rank 2 completely invisible).' },
+  { id: 'sustained', name: 'Sustained', cost: 0, isFlat: true, isUnique: false, isEffectSpecific: false, isExtra: true, desc: 'Requires a free action each round to maintain.' },
+  { id: 'triggered', name: 'Triggered', cost: 1, isFlat: true, isRanked: true, maxRank: 5, minRank: 1, isUnique: false, isEffectSpecific: false, isExtra: true, desc: 'Sets a conditional trigger or trap that activates automatically when conditions are met.' },
+  { id: 'turnabout', name: '★ Turnabout', cost: 1, isFlat: true, isUnique: true, isEffectSpecific: true, isExtra: true, desc: 'Allows moving before and after using Teleport, or returning to starting point (Flat 1 point).' },
+  { id: 'variable_conditions', name: 'Variable Conditions', cost: 2, isFlat: false, isUnique: false, isEffectSpecific: false, isExtra: true, desc: 'Affliction can impose different condition sets chosen when the attack is made (+2 cost per rank).' },
+  { id: 'variable_descriptor', name: 'Variable Descriptor', cost: 1, isFlat: true, isRanked: true, maxRank: 2, minRank: 1, isUnique: false, isEffectSpecific: false, isExtra: true, desc: 'Change descriptor freely (Rank 1 broad group like weather or elements, Rank 2 any descriptor).' }
 ];
 
 export const FLAWS_CATALOG = [
-  { id: 'action_flaw', name: 'Action (Slower)', cost: 1, isFlat: false, isRanked: true, maxRank: 2, minRank: 1, isUnique: false, isEffectSpecific: false, desc: 'Increases the time required to use the effect by one step per rank (Free -> Move -> Standard).' },
-  { id: 'activation_move', name: 'Activation (Move Action)', cost: 1, isFlat: true, isUnique: false, isEffectSpecific: false, desc: 'Takes a move action to activate before benefits apply.' },
-  { id: 'activation_standard', name: 'Activation (Standard Action)', cost: 2, isFlat: true, isUnique: false, isEffectSpecific: false, desc: 'Takes a standard action to activate.' },
-  { id: 'check_required', name: 'Check Required (Skill DC 11+)', cost: 1, isFlat: false, isRanked: true, maxRank: 10, minRank: 1, isUnique: false, isEffectSpecific: false, desc: 'Requires successful skill check to activate (DC 11 + rank).' },
-  { id: 'concentration', name: 'Concentration Duration', cost: 1, isFlat: false, isUnique: false, isEffectSpecific: false, desc: 'Requires standard action each round to maintain.' },
-  { id: 'diminished_range', name: 'Diminished Range', cost: 1, isFlat: true, isRanked: true, maxRank: 3, minRank: 1, isUnique: false, isEffectSpecific: false, desc: 'Reduces ranged attack range brackets (Rank 1: 10/25/50, Rank 2: 5/10/25, Rank 3: 2/5/10; specific to Ranged attacks).' },
-  { id: 'distracting', name: 'Distracting', cost: 1, isFlat: false, isUnique: false, isEffectSpecific: false, desc: 'You become vulnerable while using this power, halving active defenses.' },
-  { id: 'easily_removable', name: 'Easily Removable (Device / Disarmable)', cost: 0, isFlat: false, isDevice: true, discountPer5: 2, isUnique: false, isEffectSpecific: false, desc: 'Handheld item easily knocked away or stolen (-2 PP per 5 PP total).' },
-  { id: 'empathic', name: '★ Empathic', cost: 1, isFlat: false, isUnique: true, isEffectSpecific: true, desc: 'You suffer any damage conditions that you successfully heal from others (specific to Healing).' },
-  { id: 'fades', name: 'Fades', cost: 1, isFlat: false, isUnique: false, isEffectSpecific: false, desc: 'Loses 1 rank per use until restored by recharge or rest.' },
-  { id: 'feedback', name: 'Feedback', cost: 1, isFlat: false, isUnique: false, isEffectSpecific: false, desc: 'Damage inflicted on power manifestations damages you directly (specific to physical or sensory manifestations: Create, Illusion, Summon, Remote Sensing).' },
-  { id: 'grab_based', name: 'Grab-Based', cost: 1, isFlat: false, isUnique: false, isEffectSpecific: false, desc: 'Must first successfully grab or pin target before power takes effect (specific to Close attacks).' },
-  { id: 'inaccurate', name: 'Inaccurate (-2 to hit)', cost: 1, isFlat: true, isRanked: true, maxRank: 5, minRank: 1, isUnique: false, isEffectSpecific: false, desc: '-2 penalty on attack checks per rank of Inaccurate.' },
-  { id: 'limited', name: 'Limited (Half Utility/Specific Targets)', cost: 1, isFlat: false, isRanked: true, maxRank: 2, minRank: 1, isUnique: false, isEffectSpecific: false, desc: 'Only works in limited conditions, against specific foes (-1/rank per tier of limitation).' },
-  { id: 'limited_location', name: '★ Limited to Locations', cost: 1, isFlat: false, isRanked: true, maxRank: 2, minRank: 1, isUnique: true, isEffectSpecific: true, desc: 'Teleport is limited to fixed transit locations, portals, or anchor points (-1 or -2 cost per rank).' },
-  { id: 'limited_to_minds', name: '★ Limited to Minds', cost: 1, isFlat: false, isRanked: true, maxRank: 1, minRank: 1, isUnique: true, isEffectSpecific: true, desc: 'Effect only works on thinking creatures with a mind (-1 cost per rank).' },
-  { id: 'limited_ambient', name: '★ Limited: Ambient Source', cost: 1, isFlat: false, isRanked: true, maxRank: 1, minRank: 1, isUnique: true, isEffectSpecific: true, desc: 'Requires existing ambient source of the element or energy to manipulate (-1 cost per rank).' },
-  { id: 'limited_custom', name: 'Limited: Custom', cost: 1, isFlat: false, isRanked: true, maxRank: 2, minRank: 1, isUnique: false, isEffectSpecific: false, desc: 'Effect loses about half its effectiveness under custom conditions or against specific targets (-1 or -2 cost per rank).' },
-  { id: 'limited_to_resistance', name: '★ Limited: Single Resistance', cost: 1, isFlat: false, isRanked: true, maxRank: 1, minRank: 1, isUnique: true, isEffectSpecific: true, desc: 'Effect is limited to a single specific resistance or defense (-1 cost per rank).' },
-  { id: 'noticeable', name: 'Noticeable', cost: 1, isFlat: true, isUnique: false, isEffectSpecific: false, desc: 'Power is clearly obvious and conspicuous even if continuous or passive.' },
-  { id: 'quirk', name: 'Quirk (Minor drawback)', cost: 1, isFlat: true, isRanked: true, maxRank: 5, minRank: 1, isUnique: false, isEffectSpecific: false, desc: 'Minor inconvenience or limitation (-1 PP flat per quirk).' },
-  { id: 'reduced_range', name: 'Reduced Range', cost: 1, isFlat: false, isRanked: true, maxRank: 1, minRank: 1, isUnique: false, isEffectSpecific: false, desc: 'Power range reduced by one step (Perception -> Ranged, or Ranged -> Close).' },
-  { id: 'removable', name: 'Removable (Worn Device / Suit / Belt)', cost: 0, isFlat: false, isDevice: true, discountPer5: 1, isUnique: false, isEffectSpecific: false, desc: 'Worn suit or gadget that can only be removed when immobilized (-1 PP per 5 PP total).' },
-  { id: 'resistible', name: 'Resistible', cost: 1, isFlat: false, isUnique: false, isEffectSpecific: false, desc: 'Allows extra defense check (e.g. Will or Fortitude) to completely negate.' },
-  { id: 'self_powered', name: '★ Self-Powered', cost: 1, isFlat: false, isUnique: true, isEffectSpecific: true, desc: 'Summoned minion draws power from the summoner; damage or fatigue to minion affects the summoner (-1 cost per rank).' },
-  { id: 'sense_dependent', name: 'Sense-Dependent', cost: 1, isFlat: false, isUnique: false, isEffectSpecific: false, desc: 'Target must be able to perceive power with specific sense.' },
-  { id: 'side_effect', name: 'Side Effect', cost: 1, isFlat: false, isUnique: false, isEffectSpecific: false, desc: 'Suffers automatic negative backlash if power roll fails or is used (-1 or -2/rank).' },
-  { id: 'tiring', name: 'Tiring', cost: 1, isFlat: false, isUnique: false, isEffectSpecific: false, desc: 'Causes 1 degree of fatigue when used; can be offset with hero point.' },
-  { id: 'transit_time', name: '★ Transit Time', cost: 1, isFlat: true, isRanked: true, maxRank: 5, minRank: 1, isUnique: true, isEffectSpecific: true, desc: 'Teleportation requires time to travel across the distance rather than being instantaneous (Flat -1 point per rank).' },
-  { id: 'uncontrolled', name: 'Uncontrolled', cost: 1, isFlat: false, isUnique: false, isEffectSpecific: false, desc: 'GM decides when and how the power triggers or manifests.' },
-  { id: 'unreliable', name: 'Unreliable (5 uses or 50% fail)', cost: 1, isFlat: false, isUnique: false, isEffectSpecific: false, desc: 'Has 5 uses per scene or requires a DC 11 flat check before each use.' }
+  { id: 'action_flaw', name: 'Action (Slower)', cost: 1, isFlat: false, isRanked: true, maxRank: 2, minRank: 1, isUnique: false, isEffectSpecific: false, isExtra: false, desc: 'Increases the time required to use the effect by one step per rank (Free -> Move -> Standard).' },
+  { id: 'activation_move', name: 'Activation (Move Action)', cost: 1, isFlat: true, isUnique: false, isEffectSpecific: false, isExtra: false, desc: 'Takes a move action to activate before benefits apply.' },
+  { id: 'activation_standard', name: 'Activation (Standard Action)', cost: 2, isFlat: true, isUnique: false, isEffectSpecific: false, isExtra: false, desc: 'Takes a standard action to activate.' },
+  { id: 'check_required', name: 'Check Required (Skill DC 11+)', cost: 1, isFlat: false, isRanked: true, maxRank: 10, minRank: 1, isUnique: false, isEffectSpecific: false, isExtra: false, desc: 'Requires successful skill check to activate (DC 11 + rank).' },
+  { id: 'concentration', name: 'Concentration Duration', cost: 1, isFlat: false, isUnique: false, isEffectSpecific: false, isExtra: false, desc: 'Requires standard action each round to maintain.' },
+  { id: 'diminished_range', name: 'Diminished Range', cost: 1, isFlat: true, isRanked: true, maxRank: 3, minRank: 1, isUnique: false, isEffectSpecific: false, isExtra: false, desc: 'Reduces ranged attack range brackets (Rank 1: 10/25/50, Rank 2: 5/10/25, Rank 3: 2/5/10; specific to Ranged attacks).' },
+  { id: 'distracting', name: 'Distracting', cost: 1, isFlat: false, isUnique: false, isEffectSpecific: false, isExtra: false, desc: 'You become vulnerable while using this power, halving active defenses.' },
+  { id: 'easily_removable', name: 'Easily Removable (Device / Disarmable)', cost: 0, isFlat: false, isDevice: true, discountPer5: 2, isUnique: false, isEffectSpecific: false, isExtra: false, desc: 'Handheld item easily knocked away or stolen (-2 PP per 5 PP total).' },
+  { id: 'empathic', name: '★ Empathic', cost: 1, isFlat: false, isUnique: true, isEffectSpecific: true, isExtra: false, desc: 'You suffer any damage conditions that you successfully heal from others (specific to Healing).' },
+  { id: 'fades', name: 'Fades', cost: 1, isFlat: false, isUnique: false, isEffectSpecific: false, isExtra: false, desc: 'Loses 1 rank per use until restored by recharge or rest.' },
+  { id: 'feedback', name: 'Feedback', cost: 1, isFlat: false, isUnique: false, isEffectSpecific: false, isExtra: false, desc: 'Damage inflicted on power manifestations damages you directly (specific to physical or sensory manifestations: Create, Illusion, Summon, Remote Sensing).' },
+  { id: 'grab_based', name: 'Grab-Based', cost: 1, isFlat: false, isUnique: false, isEffectSpecific: false, isExtra: false, desc: 'Must first successfully grab or pin target before power takes effect (specific to Close attacks).' },
+  { id: 'inaccurate', name: 'Inaccurate (-2 to hit)', cost: 1, isFlat: true, isRanked: true, maxRank: 5, minRank: 1, isUnique: false, isEffectSpecific: false, isExtra: false, desc: '-2 penalty on attack checks per rank of Inaccurate.' },
+  { id: 'instant_recovery', name: '★ Instant Recovery', cost: 1, isFlat: false, isRanked: false, isUnique: true, isEffectSpecific: true, isExtra: false, desc: 'Target recovers automatically from conditions at the end of the round following the attack without requiring a resistance check (-1 cost per rank).' },
+  { id: 'limited', name: 'Limited (Half Utility/Specific Targets)', cost: 1, isFlat: false, isRanked: true, maxRank: 2, minRank: 1, isUnique: false, isEffectSpecific: false, isExtra: false, desc: 'Only works in limited conditions, against specific foes (-1/rank per tier of limitation).' },
+  { id: 'limited_degree', name: '★ Limited Degree', cost: 1, isFlat: false, isRanked: true, maxRank: 2, minRank: 1, isUnique: true, isEffectSpecific: true, isExtra: false, desc: 'Affliction is limited to fewer degrees of effect: Rank 1 limits to 2 degrees (3rd degree has no effect); Rank 2 limits to 1 degree (-1 cost per rank).' },
+  { id: 'limited_location', name: '★ Limited to Locations', cost: 1, isFlat: false, isRanked: true, maxRank: 2, minRank: 1, isUnique: true, isEffectSpecific: true, isExtra: false, desc: 'Teleport is limited to fixed transit locations, portals, or anchor points (-1 or -2 cost per rank).' },
+  { id: 'limited_to_minds', name: 'Limited to Minds', cost: 1, isFlat: false, isRanked: true, maxRank: 1, minRank: 1, isUnique: false, isEffectSpecific: false, isExtra: false, desc: 'Effect only works on thinking creatures with a mind (-1 cost per rank).' },
+  { id: 'limited_ambient', name: 'Limited: Ambient Source', cost: 1, isFlat: false, isRanked: true, maxRank: 1, minRank: 1, isUnique: false, isEffectSpecific: false, isExtra: false, desc: 'Requires existing ambient source of the element or energy to manipulate (-1 cost per rank).' },
+  { id: 'limited_custom', name: 'Limited: Custom', cost: 1, isFlat: false, isRanked: true, maxRank: 2, minRank: 1, isUnique: false, isEffectSpecific: false, isExtra: false, desc: 'Effect loses about half its effectiveness under custom conditions or against specific targets (-1 or -2 cost per rank).' },
+  { id: 'limited_to_resistance', name: 'Limited: Single Resistance', cost: 1, isFlat: false, isRanked: true, maxRank: 1, minRank: 1, isUnique: false, isEffectSpecific: false, isExtra: false, desc: 'Effect is limited to a single specific resistance or defense (-1 cost per rank).' },
+  { id: 'noticeable', name: 'Noticeable', cost: 1, isFlat: true, isUnique: false, isEffectSpecific: false, isExtra: false, desc: 'Power is clearly obvious and conspicuous even if continuous or passive.' },
+  { id: 'quirk', name: 'Quirk (Minor drawback)', cost: 1, isFlat: true, isRanked: true, maxRank: 5, minRank: 1, isUnique: false, isEffectSpecific: false, isExtra: false, desc: 'Minor inconvenience or limitation (-1 PP flat per quirk).' },
+  { id: 'reduced_range', name: 'Reduced Range', cost: 1, isFlat: false, isRanked: true, maxRank: 1, minRank: 1, isUnique: false, isEffectSpecific: false, isExtra: false, desc: 'Power range reduced by one step (Perception -> Ranged, or Ranged -> Close).' },
+  { id: 'removable', name: 'Removable (Worn Device / Suit / Belt)', cost: 0, isFlat: false, isDevice: true, discountPer5: 1, isUnique: false, isEffectSpecific: false, isExtra: false, desc: 'Worn suit or gadget that can only be removed when immobilized (-1 PP per 5 PP total).' },
+  { id: 'resistible', name: 'Resistible', cost: 1, isFlat: false, isUnique: false, isEffectSpecific: false, isExtra: false, desc: 'Allows extra defense check (e.g. Will or Fortitude) to completely negate.' },
+  { id: 'self_powered', name: '★ Self-Powered', cost: 1, isFlat: false, isUnique: true, isEffectSpecific: true, isExtra: false, desc: 'Summoned minion draws power from the summoner; damage or fatigue to minion affects the summoner (-1 cost per rank).' },
+  { id: 'sense_dependent', name: 'Sense-Dependent', cost: 1, isFlat: false, isUnique: false, isEffectSpecific: false, isExtra: false, desc: 'Target must be able to perceive power with specific sense.' },
+  { id: 'side_effect', name: 'Side Effect', cost: 1, isFlat: false, isUnique: false, isEffectSpecific: false, isExtra: false, desc: 'Suffers automatic negative backlash if power roll fails or is used (-1 or -2/rank).' },
+  { id: 'tiring', name: 'Tiring', cost: 1, isFlat: false, isUnique: false, isEffectSpecific: false, isExtra: false, desc: 'Causes 1 degree of fatigue when used; can be offset with hero point.' },
+  { id: 'transit_time', name: '★ Transit Time', cost: 1, isFlat: true, isRanked: true, maxRank: 5, minRank: 1, isUnique: true, isEffectSpecific: true, isExtra: false, desc: 'Teleportation requires time to travel across the distance rather than being instantaneous (Flat -1 point per rank).' },
+  { id: 'uncontrolled', name: 'Uncontrolled', cost: 1, isFlat: false, isUnique: false, isEffectSpecific: false, isExtra: false, desc: 'GM decides when and how the power triggers or manifests.' },
+  { id: 'unreliable', name: 'Unreliable (5 uses or 50% fail)', cost: 1, isFlat: false, isUnique: false, isEffectSpecific: false, isExtra: false, desc: 'Has 5 uses per scene or requires a DC 11 flat check before each use.' }
 ];
 
 export const AFFLICTION_CONDITIONS = {
@@ -1007,6 +1012,12 @@ export function computePowerRangeAndDuration(effect, extras = [], flaws = []) {
     }
   }
 
+  const concentrationExtra = (extras || []).find(e => e.id === 'concentration');
+  if (concentrationExtra) {
+    curDurIdx = Math.max(curDurIdx, 1);
+    durationNotes.push('Concentration (+1/rank)');
+  }
+
   if (concentrationFlaw) {
     curDurIdx = 1;
     durationNotes.push('Concentration (-1/rank)');
@@ -1141,7 +1152,10 @@ export function isModifierLegalForEffect(modifier, effect, extras = [], flaws = 
   const effectiveRange = rd.effectiveRange;
 
   // 1. Single instance rule: cannot add multiple instances of the same modifier
-  if (extraIds.has(modifier.id) || flawIds.has(modifier.id)) {
+  const alreadyInSameCategory = modifier.isExtra !== undefined
+    ? (modifier.isExtra ? extraIds.has(modifier.id) : flawIds.has(modifier.id))
+    : (extraIds.has(modifier.id) || flawIds.has(modifier.id));
+  if (alreadyInSameCategory) {
     return { legal: false, reason: 'Already added (adjust ranks instead)' };
   }
 
@@ -1275,7 +1289,7 @@ export function isModifierLegalForEffect(modifier, effect, extras = [], flaws = 
   }
 
   // 7. Duration constraints
-  if (modifier.id === 'concentration') {
+  if (modifier.id === 'concentration' && !modifier.isExtra) {
     if (extraIds.has('sustained') || extraIds.has('continuous') || extraIds.has('increased_duration')) {
       return { legal: false, reason: 'Incompatible with Sustained/Continuous' };
     }
@@ -1367,9 +1381,16 @@ export function isModifierLegalForEffect(modifier, effect, extras = [], flaws = 
   }
 
   // Concentration flaw: Sustained duration only
-  if (modifier.id === 'concentration') {
+  if (modifier.id === 'concentration' && !modifier.isExtra) {
     if (rd.effectiveDuration !== 'Sustained') {
       return { legal: false, reason: 'Concentration flaw only applies to Sustained duration effects' };
+    }
+  }
+
+  // Concentration extra: Instant condition/attack effects only
+  if (modifier.id === 'concentration' && modifier.isExtra) {
+    if (!['affliction', 'weaken', 'nullify'].includes(effId)) {
+      return { legal: false, reason: 'Concentration extra only applies to Affliction, Weaken, or Nullify' };
     }
   }
 
@@ -1453,6 +1474,23 @@ export function isModifierLegalForEffect(modifier, effect, extras = [], flaws = 
   }
   if (modifier.id === 'variable_conditions') {
     if (effId !== 'affliction') return { legal: false, reason: 'Variable Conditions extra only applies to Affliction' };
+  }
+  if (modifier.id === 'extra_condition') {
+    if (effId !== 'affliction') return { legal: false, reason: 'Extra Condition extra only applies to Affliction' };
+  }
+  if (modifier.id === 'instant_recovery') {
+    if (effId !== 'affliction') return { legal: false, reason: 'Instant Recovery flaw only applies to Affliction' };
+  }
+  if (modifier.id === 'limited_degree') {
+    if (effId !== 'affliction') return { legal: false, reason: 'Limited Degree flaw only applies to Affliction' };
+  }
+  if (modifier.id === 'alternate_resistance') {
+    if (!isAttackEffect && !['affliction', 'damage', 'blast', 'weaken', 'nullify'].includes(effId)) {
+      return { legal: false, reason: 'Alternate Resistance extra only applies to resistance-checked attack effects (Affliction, Damage, Weaken, Nullify)' };
+    }
+  }
+  if (modifier.id === 'affects_corporeal') {
+    if (effId !== 'insubstantial') return { legal: false, reason: 'Affects Corporeal extra only applies to Insubstantial' };
   }
   if (modifier.id === 'responsive') {
     if (effId !== 'summon') return { legal: false, reason: 'Responsive extra only applies to Summon' };

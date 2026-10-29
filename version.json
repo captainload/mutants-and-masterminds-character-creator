@@ -1,5 +1,5 @@
 {
-  "version": "3.55",
-  "updatedAt": "2026-10-28T23:52:00.000Z",
-  "releaseNotes": "Aligned Alternate Effect (AE) delete button styling, text, and sizing to match the Primary Effect (PE) delete button."
+  "version": "3.56",
+  "updatedAt": "2026-10-29T04:41:00.000Z",
+  "releaseNotes": "Corrected unique effect-specific extras and flaws across power effects: Affliction now properly features Alternate Resistance, Concentration, Cumulative, Extra Condition, and Progressive as unique extras, and Instant Recovery and Limited Degree as unique flaws; restricted Insubstantial's Affects Corporeal from leaking into other effects."
 }

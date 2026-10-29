@@ -1592,7 +1592,7 @@ button.action-roll-card {
 }
 
 .movement-badge .movement-rate {
-  color: #fff;
+  color: var(--text-bright);
   font-weight: 700;
 }
 
@@ -2372,6 +2372,19 @@ html[data-theme="light"] .movement-badge {
   background: #f0e8dc !important;
   border-color: var(--border-color) !important;
   color: var(--text-main) !important;
+}
+
+html[data-theme="light"] .movement-badge strong {
+  color: #0369a1 !important;
+}
+
+html[data-theme="light"] .movement-badge .movement-rate {
+  color: #0f172a !important;
+  font-weight: 700 !important;
+}
+
+html[data-theme="light"] .movement-badge .movement-mph {
+  color: #64748b !important;
 }
 
 /* Stepper Controls in Light Theme */

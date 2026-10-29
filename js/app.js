@@ -41,7 +41,7 @@ import {
   tablesManager
 } from './tables.js';
 
-import { POWER_PROFILES_LIBRARY } from './power_profiles.js?v=3.57';
+import { POWER_PROFILES_LIBRARY } from './power_profiles.js?v=3.58';
 import { ARCHETYPES } from './archetypes.js';
 import { archetypeManager } from './archetype_window.js';
 import { ARCHETYPE_CUSTOMIZATION_OPTIONS, buildCustomizedArchetype } from './archetype_builder.js';
@@ -165,6 +165,13 @@ class AppController {
         const theme = btn.dataset.theme;
         document.documentElement.setAttribute('data-theme', theme);
         localStorage.setItem('mm3e_theme', theme);
+        // Sync active popout windows
+        if (this.archetypeManager?.popoutWindow && !this.archetypeManager.popoutWindow.closed) {
+          try { this.archetypeManager.popoutWindow.document.documentElement.setAttribute('data-theme', theme); } catch(e) {}
+        }
+        if (this.tablesManager?.popoutWindow && !this.tablesManager.popoutWindow.closed) {
+          try { this.tablesManager.popoutWindow.document.documentElement.setAttribute('data-theme', theme); } catch(e) {}
+        }
         document.querySelectorAll('.theme-toggle-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
       });
@@ -1914,7 +1921,7 @@ class AppController {
   }
 
   async checkForUpdates({ isManual = false } = {}) {
-    const CURRENT_VERSION = '3.57';
+    const CURRENT_VERSION = '3.58';
     const versionEl = document.getElementById('header-version-tag');
     const updateBtn = document.getElementById('btn-header-update-alert');
     if (typeof window === 'undefined' || !window.location || !window.location.href || window.location.href === 'about:blank') return;
@@ -2143,9 +2150,10 @@ class AppController {
         return;
       }
 
-      const targetCheck = this.lastFailedCheck || diceRoller.lastFailedCheck || this.lastCheck || diceRoller.mostRecentCheck;
+      // Any die roll can be rerolled with a Hero Point (attacks, defenses, checks, initiative, custom rolls, etc.)
+      const targetCheck = this.lastCheck || diceRoller.mostRecentRoll || diceRoller.mostRecentCheck || this.lastFailedCheck || diceRoller.lastFailedCheck;
       if (!targetCheck) {
-        await this.showAlertDialog('No previous check has been rolled to reroll yet! Make an attack, resistance, or skill check first.', { title: 'No Check to Reroll' });
+        await this.showAlertDialog('No previous die roll has been made to reroll yet! Roll an attack, resistance check, skill check, initiative, or any custom die roll first.', { title: 'No Die Roll to Reroll' });
         return;
       }
 
@@ -2289,7 +2297,8 @@ class AppController {
   }
 
   updateHeroPointModal() {
-    const targetCheck = this.lastFailedCheck || diceRoller.lastFailedCheck || this.lastCheck || diceRoller.mostRecentCheck;
+    // Priority: most recent die roll, or last failed roll
+    const targetCheck = this.lastCheck || diceRoller.mostRecentRoll || diceRoller.mostRecentCheck || this.lastFailedCheck || diceRoller.lastFailedCheck;
     const infoEl = document.getElementById('hp-reroll-target-info');
     const btnEl = document.getElementById('btn-hp-exec-reroll');
 
@@ -2298,11 +2307,11 @@ class AppController {
         const isFailed = targetCheck.outcomeClass === 'failure' || targetCheck.outcome === 'Failure';
         const dcText = (targetCheck.targetDC !== null && targetCheck.targetDC !== undefined && targetCheck.targetDC !== '') ? ` vs DC ${targetCheck.targetDC}` : '';
         const modStr = (targetCheck.modifier !== undefined && targetCheck.modifier !== null) ? (targetCheck.modifier >= 0 ? `+${targetCheck.modifier}` : `${targetCheck.modifier}`) : '';
-        const outcomeDesc = targetCheck.outcomeDescription || targetCheck.outcome || (isFailed ? 'Failure' : 'Success');
+        const outcomeDesc = targetCheck.outcomeDescription || targetCheck.outcome || (isFailed ? 'Failure' : 'Die Roll Recorded');
         infoEl.innerHTML = `
-          <div style="font-weight: 700; color: #fff;">
-            ${isFailed ? '⚠️ Failed Check:' : 'Last Check:'} 
-            <span style="color: var(--hero-gold);">${targetCheck.title || 'Check'}</span> 
+          <div style="font-weight: 700; color: var(--text-bright, #fff);">
+            ${isFailed ? '⚠️ Failed Die Roll:' : '🎲 Previous Die Roll:'} 
+            <span style="color: var(--hero-gold);">${targetCheck.title || 'Die Roll'}</span> 
             <span style="color: var(--text-muted); font-size: var(--font-size-xs);">(${modStr || 'no mod'}${dcText})</span>
           </div>
           <div style="font-size: var(--font-size-xs); color: ${isFailed ? 'var(--hero-red)' : 'var(--hero-green)'}; margin-top: 0.2rem;">
@@ -2310,15 +2319,15 @@ class AppController {
           </div>
         `;
       } else {
-        infoEl.innerHTML = `<span style="color: var(--text-muted); font-style: italic;">No previous check recorded yet.</span>`;
+        infoEl.innerHTML = `<span style="color: var(--text-muted); font-style: italic;">No previous die roll recorded yet.</span>`;
       }
     }
 
     if (btnEl) {
       if (targetCheck) {
-        btnEl.textContent = `🎲 Reroll: ${targetCheck.title || 'Previous Check'}`;
+        btnEl.textContent = `🎲 Reroll Die Roll: ${targetCheck.title || 'Previous Roll'}`;
       } else {
-        btnEl.textContent = 'Reroll Previous Failed Check';
+        btnEl.textContent = 'Reroll Previous Die Roll';
       }
     }
   }

@@ -1,5 +1,6 @@
 {
-  "version": "3.57",
+  "version": "3.58",
   "updatedAt": "2026-10-29T15:25:26.491Z",
-  "releaseNotes": "Archetypes: Reset wizard state on open, finish, and close to prevent being stuck on the last option picker. When loading an archetype, archetype alts replace existing alts; otherwise user is prompted to keep within-budget alts (over-budget alts are erased)."
+  "releaseNotes": "Archetypes: Reset wizard state on open, finish, and close to prevent being stuck on the last option picker. When loading an archetype, archetype alts replace existing alts; otherwise user is prompted to keep within-budget alts (over-budget alts are erased).",
+  "updated": "2026-10-29"
 }

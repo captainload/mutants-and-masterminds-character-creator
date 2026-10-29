@@ -226,58 +226,61 @@ export class TablesWindowManager {
       return;
     }
 
+    const currentTheme = (typeof document !== 'undefined' && document.documentElement.getAttribute('data-theme')) || (typeof localStorage !== 'undefined' && localStorage.getItem('mm3e_theme')) || 'dark';
+
     const htmlContent = `
       <!DOCTYPE html>
-      <html lang="en">
+      <html lang="en" data-theme="${currentTheme}">
       <head>
         <meta charset="UTF-8">
         <title>Mutants & Masterminds 3E - Official Reference Tables</title>
+        <link rel="stylesheet" href="css/styles.css?v=3.58">
         <style>
           body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background: #0f172a;
-            color: #f8fafc;
+            background: var(--bg-app, #0f172a);
+            color: var(--text-main, #f8fafc);
             margin: 0;
             padding: 1rem;
             font-size: 13px;
           }
-          h2 { color: #06b6d4; margin-top: 0; border-bottom: 2px solid #334155; padding-bottom: 0.5rem; }
+          h2 { color: var(--hero-blue, #06b6d4); margin-top: 0; border-bottom: 2px solid var(--border-color, #334155); padding-bottom: 0.5rem; }
           .collapsible {
-            background: #1e293b;
-            border: 1px solid #334155;
+            background: var(--bg-card, #1e293b);
+            border: 1px solid var(--border-color, #334155);
             border-radius: 6px;
             margin-bottom: 0.75rem;
             overflow: hidden;
           }
           .collapsible-header {
             padding: 0.6rem 0.85rem;
-            background: #162032;
+            background: var(--bg-header, #162032);
             font-weight: 800;
-            color: #f1c40f;
+            color: var(--hero-gold, #f1c40f);
             cursor: pointer;
             display: flex;
             justify-content: space-between;
             align-items: center;
             user-select: none;
           }
-          .collapsible-header:hover { background: #223049; }
-          .collapsible-content { padding: 0.75rem; display: block; overflow-x: auto; }
+          .collapsible-header:hover { background: var(--bg-card-hover, #223049); }
+          .collapsible-content { padding: 0.75rem; display: block; overflow-x: auto; color: var(--text-main); }
           .collapsible-content.collapsed { display: none; }
-          table { width: 100%; border-collapse: collapse; font-size: 12px; }
-          th { text-align: left; padding: 6px 8px; background: #0b1120; color: #94a3b8; border-bottom: 1px solid #334155; }
-          td { padding: 5px 8px; border-bottom: 1px solid rgba(255,255,255,0.05); }
-          tr:nth-child(even) td { background: rgba(255,255,255,0.02); }
+          table { width: 100%; border-collapse: collapse; font-size: 12px; color: var(--text-main); }
+          th { text-align: left; padding: 6px 8px; background: var(--bg-input, #0b1120); color: var(--text-muted, #94a3b8); border-bottom: 1px solid var(--border-color, #334155); }
+          td { padding: 5px 8px; border-bottom: 1px solid var(--border-color, rgba(255,255,255,0.05)); color: var(--text-main); }
+          tr:nth-child(even) td { background: rgba(0,0,0,0.03); }
           .top-bar { display: flex; gap: 0.5rem; margin-bottom: 1rem; justify-content: flex-end; }
           button {
-            background: #334155;
-            color: #fff;
-            border: none;
+            background: var(--bg-card, #334155);
+            color: var(--text-bright, #fff);
+            border: 1px solid var(--border-color, #475569);
             padding: 5px 10px;
             border-radius: 4px;
             font-weight: 700;
             cursor: pointer;
           }
-          button:hover { background: #2563eb; }
+          button:hover { background: var(--hero-blue, #2563eb); color: #fff; }
         </style>
       </head>
       <body>
@@ -291,6 +294,23 @@ export class TablesWindowManager {
         <script>
           const tablesHtml = window.opener ? window.opener.document.getElementById('tables-content-body').innerHTML : '';
           document.getElementById('popout-tables-root').innerHTML = tablesHtml;
+
+          // Theme sync listener
+          window.addEventListener('storage', (e) => {
+            if (e.key === 'mm3e_theme' && e.newValue) {
+              document.documentElement.setAttribute('data-theme', e.newValue);
+            }
+          });
+          window.addEventListener('focus', () => {
+            if (window.opener && !window.opener.closed) {
+              try {
+                const t = window.opener.document.documentElement.getAttribute('data-theme');
+                if (t && t !== document.documentElement.getAttribute('data-theme')) {
+                  document.documentElement.setAttribute('data-theme', t);
+                }
+              } catch(e) {}
+            }
+          });
           
           document.querySelectorAll('.collapsible-header').forEach(hdr => {
             hdr.addEventListener('click', () => {

@@ -138,11 +138,14 @@ export class DiscordIntegrator {
 
     let diceString = `d20 (${roll.rawDie})`;
     if (roll.heroPointAdjusted) {
-      diceString = `d20 (${roll.rawDie} ➜ **${roll.effectiveDie}** Hero Point +10)`;
+      diceString = `d20 (${roll.rawDie} ➔ **${roll.effectiveDie}** HP+10)`;
     }
     const modString = roll.modifier >= 0 ? `+ ${roll.modifier}` : `- ${Math.abs(roll.modifier)}`;
     const mathBreakdown = `${diceString} ${modString} = **${roll.total}**`;
 
+    // Assuming Discord desktop >= 1080px display:
+    // Discord displays up to 3 inline fields side-by-side per row.
+    // We pack primary stats in Row 1 and secondary stats in Row 2 to minimize vertical rows.
     const fields = [
       {
         name: roll.rollType === 'initiative' ? 'Initiative Score' : 'Result',
@@ -164,15 +167,15 @@ export class DiscordIntegrator {
       fields.push({
         name: 'Outcome',
         value: `${icon} **${roll.outcome}** (${roll.outcomeDescription})`,
-        inline: false
+        inline: true
       });
     }
 
-    if (roll.isCriticalHit) {
+    if (roll.damageRank) {
       fields.push({
-        name: '💥 CRITICAL HIT!',
-        value: '+5 to effect rank or alternate effect!',
-        inline: false
+        name: 'Damage Rank',
+        value: `Rank **${roll.damageRank}** (DC ${15 + parseInt(roll.damageRank, 10)})`,
+        inline: true
       });
     }
 
@@ -184,19 +187,19 @@ export class DiscordIntegrator {
       });
     }
 
-    if (roll.damageRank) {
-      fields.push({
-        name: 'Damage Rank',
-        value: `Rank **${roll.damageRank}** (Toughness DC ${15 + parseInt(roll.damageRank, 10)})`,
-        inline: true
-      });
+    // Combine critical alerts and details horizontally to minimize vertical rows
+    const detailParts = [];
+    if (roll.isCriticalHit) {
+      detailParts.push('💥 **CRITICAL HIT!** (+5 rank/alt)');
     }
-
     if (roll.extraText) {
+      detailParts.push(roll.extraText);
+    }
+    if (detailParts.length > 0) {
       fields.push({
         name: 'Details',
-        value: roll.extraText,
-        inline: false
+        value: detailParts.join(' • '),
+        inline: true
       });
     }
 
@@ -235,20 +238,14 @@ export class DiscordIntegrator {
     const activeConfigs = this.configs.filter(c => c.enabled);
     if (activeConfigs.length === 0) return;
 
+    // Streamlined compact embed for >= 1080px display (minimizes vertical rows)
     const embed = {
-      title: `⚡ HERO POINT SPENT!`,
+      title: '⚡ HERO POINT SPENT!',
       author: {
         name: characterName || 'Hero'
       },
       color: 0x9b59b6, // Purple
-      description: `**${characterName}** expended 1 Hero Point for **${spendType}**!`,
-      fields: [
-        {
-          name: 'Benefit',
-          value: spendDetails,
-          inline: false
-        }
-      ],
+      description: `**${characterName || 'Hero'}** expended 1 Hero Point for **${spendType}**!\n**Benefit:** ${spendDetails}`,
       footer: {
         text: `Mutants & Masterminds 3e • ${new Date().toLocaleTimeString()}`
       }
@@ -256,7 +253,6 @@ export class DiscordIntegrator {
 
     const promises = activeConfigs.map(config => {
       const payload = {
-        content: `⚡ **${characterName || 'Hero'}** expended 1 Hero Point for **${spendType}** (${spendDetails})`,
         username: config.botName || 'M&M 3E Hero Roller',
         avatar_url: config.avatarUrl || undefined,
         embeds: [embed]

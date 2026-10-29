@@ -117,17 +117,19 @@ export class ArchetypeWindowManager {
       return;
     }
 
+    const currentTheme = (typeof document !== 'undefined' && document.documentElement.getAttribute('data-theme')) || (typeof localStorage !== 'undefined' && localStorage.getItem('mm3e_theme')) || 'dark';
+
     const htmlContent = `<!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="${currentTheme}">
 <head>
   <meta charset="UTF-8">
   <title>Mutants & Masterminds 3E - Interactive Archetype Character Builder</title>
-  <link rel="stylesheet" href="css/styles.css?v=3.57">
+  <link rel="stylesheet" href="css/styles.css?v=3.58">
   <style>
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      background: #0f172a;
-      color: #f8fafc;
+      background: var(--bg-app, #0f172a);
+      color: var(--text-main, #f8fafc);
       margin: 0;
       padding: 1rem;
       font-size: 13px;
@@ -140,12 +142,12 @@ export class ArchetypeWindowManager {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      border-bottom: 2px solid #334155;
+      border-bottom: 2px solid var(--border-color, #334155);
       padding-bottom: 0.6rem;
       margin-bottom: 1rem;
     }
     .popout-title {
-      color: #06b6d4;
+      color: var(--hero-blue, #06b6d4);
       font-size: 1.15rem;
       font-weight: 800;
       margin: 0;
@@ -163,9 +165,9 @@ export class ArchetypeWindowManager {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      border-top: 1px solid #334155;
+      border-top: 1px solid var(--border-color, #334155);
       padding-top: 0.75rem;
-      background: #0f172a;
+      background: var(--bg-app, #0f172a);
     }
   </style>
 </head>
@@ -188,6 +190,22 @@ export class ArchetypeWindowManager {
     if (window.opener && window.opener.appController) {
       window.opener.appController.renderWizardStep();
     }
+    // Theme sync listener
+    window.addEventListener('storage', (e) => {
+      if (e.key === 'mm3e_theme' && e.newValue) {
+        document.documentElement.setAttribute('data-theme', e.newValue);
+      }
+    });
+    window.addEventListener('focus', () => {
+      if (window.opener && !window.opener.closed) {
+        try {
+          const t = window.opener.document.documentElement.getAttribute('data-theme');
+          if (t && t !== document.documentElement.getAttribute('data-theme')) {
+            document.documentElement.setAttribute('data-theme', t);
+          }
+        } catch(e) {}
+      }
+    });
     document.getElementById('btn-popout-close')?.addEventListener('click', () => {
       if (window.opener && window.opener.archetypeManager) {
         window.opener.archetypeManager.setClosedWhilePoppedOut(true);

@@ -18,7 +18,7 @@ export class StorageManager {
 
     if (this.characters.length === 0) {
       // Create a clean, blank freeform hero by default (never seed an archetype)
-      const defaultHero = this.buildBlankHero('New Hero', 10, 150);
+      const defaultHero = this.buildBlankHero('', 10, 150);
       this.characters = [defaultHero];
       this.activeId = defaultHero.id;
       this.saveAll();
@@ -39,7 +39,7 @@ export class StorageManager {
     return false;
   }
 
-  buildBlankHero(name = 'New Hero', pl = 10, budget = 150) {
+  buildBlankHero(name = '', pl = 10, budget = 150) {
     return {
       id: 'char_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
       name,
@@ -107,7 +107,7 @@ export class StorageManager {
     this.saveAll();
   }
 
-  createFreeformCharacter(name = 'New Hero', pl = 10, budget = 150) {
+  createFreeformCharacter(name = '', pl = 10, budget = 150) {
     const newChar = this.buildBlankHero(name, pl, budget);
     this.characters.push(newChar);
     this.activeId = newChar.id;

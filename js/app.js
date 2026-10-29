@@ -41,9 +41,10 @@ import {
   tablesManager
 } from './tables.js';
 
-import { POWER_PROFILES_LIBRARY } from './power_profiles.js?v=3.59';
+import { POWER_PROFILES_LIBRARY } from './power_profiles.js?v=3.60';
 import { ARCHETYPES } from './archetypes.js';
 import { archetypeManager } from './archetype_window.js';
+import { partyManager } from './party.js';
 import { ARCHETYPE_CUSTOMIZATION_OPTIONS, buildCustomizedArchetype } from './archetype_builder.js';
 import { diceRoller } from './dice.js';
 import { DiscordConfig, discordIntegrator } from './discord.js';
@@ -169,6 +170,9 @@ class AppController {
         if (this.archetypeManager?.popoutWindow && !this.archetypeManager.popoutWindow.closed) {
           try { this.archetypeManager.popoutWindow.document.documentElement.setAttribute('data-theme', theme); } catch(e) {}
         }
+        if (partyManager?.popoutWindow && !partyManager.popoutWindow.closed) {
+          try { partyManager.popoutWindow.document.documentElement.setAttribute('data-theme', theme); } catch(e) {}
+        }
         if (this.tablesManager?.popoutWindow && !this.tablesManager.popoutWindow.closed) {
           try { this.tablesManager.popoutWindow.document.documentElement.setAttribute('data-theme', theme); } catch(e) {}
         }
@@ -204,12 +208,50 @@ class AppController {
 
     // Campaign Name
     const campaignInput = document.getElementById('header-campaign-name');
-    campaignInput.value = this.char.campaign || 'Earth-Prime';
+    campaignInput.value = this.char.campaign || '';
     campaignInput.addEventListener('input', (e) => {
       this.char.campaign = e.target.value;
       this.saveAndAudit();
     });
 
+        // Party Tracker Button
+    document.getElementById('btn-open-party')?.addEventListener('click', () => {
+      partyManager.updateCurrentPlayer(this.char, this.primaryChar, this.activeAltId);
+      this.openPartyTracker();
+    });
+
+    document.getElementById('btn-party-popout')?.addEventListener('click', () => {
+      this.closeModal('modal-party');
+      partyManager.openPopout();
+    });
+
+    document.getElementById('btn-close-party-modal')?.addEventListener('click', () => {
+      this.closeModal('modal-party');
+    });
+
+    document.getElementById('btn-party-modal-close-footer')?.addEventListener('click', () => {
+      this.closeModal('modal-party');
+    });
+
+    document.getElementById('btn-party-sync-discord')?.addEventListener('click', async () => {
+      await this.broadcastPartyToDiscord();
+    });
+
+    document.getElementById('btn-party-add-ally')?.addEventListener('click', async () => {
+      const name = await this.showPromptDialog({
+        title: 'Add Ally / NPC to Party',
+        label: 'Enter hero or ally name:',
+        defaultValue: '',
+        placeholder: 'e.g. Aegis, Night Ranger'
+      });
+      if (name && name.trim()) {
+        partyManager.addManualMember({ characterName: name.trim() });
+      }
+    });
+
+    document.getElementById('btn-party-clear-inactive')?.addEventListener('click', () => {
+      partyManager.clearInactiveMembers();
+    });
     // Power Level (PL) Steppers & Lock (Top Row)
     const plMinusBtn = document.getElementById('btn-pl-minus');
     const plPlusBtn = document.getElementById('btn-pl-plus');
@@ -1718,6 +1760,7 @@ class AppController {
     const popup = document.getElementById('pointer-rules-popup');
     window.tablesManager = tablesManager;
     window.archetypeManager = archetypeManager;
+window.partyManager = partyManager;
     window.appController = this;
 
     document.addEventListener('click', (e) => {
@@ -1921,7 +1964,7 @@ class AppController {
   }
 
   async checkForUpdates({ isManual = false } = {}) {
-    const CURRENT_VERSION = '3.59';
+    const CURRENT_VERSION = '3.60';
     const versionEl = document.getElementById('header-version-tag');
     const updateBtn = document.getElementById('btn-header-update-alert');
     if (typeof window === 'undefined' || !window.location || !window.location.href || window.location.href === 'about:blank') return;
@@ -2331,6 +2374,19 @@ class AppController {
   // =======================================================
   // 11. POWER PROFILES (Official 3E Profiles Library)
   // =======================================================
+  
+  openPartyTracker() {
+    partyManager.updateCurrentPlayer(this.char, this.primaryChar, this.activeAltId);
+    this.openModal('modal-party');
+    partyManager.renderAllOpenViews();
+  }
+
+  async broadcastPartyToDiscord() {
+    partyManager.updateCurrentPlayer(this.char, this.primaryChar, this.activeAltId);
+    const camp = this.char.campaign || this.primaryChar?.campaign || '';
+    await partyManager.broadcastToDiscord(discordIntegrator, camp);
+    await this.showAlertDialog('Party conditions & toughness summary broadcasted to Discord!', { title: 'Party Broadcast' });
+  }
   setupPowerProfiles() {
     const select = document.getElementById('power-profiles-select');
     if (!select) return;
@@ -3507,6 +3563,27 @@ class AppController {
   // =======================================================
   async saveCharacterFile({ forceSaveAs = false, cloneName = '' } = {}) {
     let targetChar = this.char;
+
+    // Users must assign a name to a character before it can be saved
+    if (!targetChar.name || !targetChar.name.trim() || targetChar.name.trim().toLowerCase() === 'new hero') {
+      const enteredName = await this.showPromptDialog({
+        title: 'Character Name Required',
+        label: 'A character must have an assigned name before it can be saved. Please enter a name:',
+        defaultValue: '',
+        placeholder: 'e.g. Paragon, Shadow Spider, Aegis',
+        confirmText: 'Assign Name & Save'
+      });
+      if (!enteredName || !enteredName.trim() || enteredName.trim().toLowerCase() === 'new hero') {
+        await this.showAlertDialog('Characters must have an assigned name before they can be saved.', { title: 'Name Required' });
+        document.getElementById('header-char-name')?.focus();
+        return;
+      }
+      targetChar.name = enteredName.trim();
+      this.char.name = targetChar.name;
+      const cNameEl = document.getElementById('header-char-name');
+      if (cNameEl) cNameEl.value = targetChar.name;
+      this.saveAndAudit();
+    }
     if (forceSaveAs) {
       const suggestedCloneName = cloneName || `${this.char.name} (Clone)`;
       const newName = cloneName || await this.showPromptDialog({
@@ -3849,6 +3926,7 @@ class AppController {
       this.syncAltAdvantagesToPrimary();
       storageManager.saveCharacter(this.primaryChar);
     }
+    try { partyManager.updateCurrentPlayer(this.char, this.primaryChar, this.activeAltId); } catch(e) {}
     return auditCharacter(this.char);
   }
 
@@ -3913,7 +3991,7 @@ class AppController {
     const cNameEl = document.getElementById('header-char-name');
     if (cNameEl) cNameEl.value = this.char.name || '';
     const campEl = document.getElementById('header-campaign-name');
-    if (campEl) campEl.value = this.char.campaign || 'Earth-Prime';
+    if (campEl) campEl.value = this.char.campaign || '';
 
     // Alt Characters count badge
     const altsCountBadge = document.getElementById('header-alts-count-badge');

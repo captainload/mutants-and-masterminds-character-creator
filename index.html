@@ -6,8 +6,8 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Mutants & Masterminds 3E - Character Editor v3.59</title>
-  <link rel="stylesheet" href="css/styles.css?v=3.59">
+  <title>Mutants & Masterminds 3E - Character Editor v3.60</title>
+  <link rel="stylesheet" href="css/styles.css?v=3.60">
 </head>
 <body>
 
@@ -80,7 +80,7 @@
 
           <div class="brand-title-centered">
             <span>Mutants & Masterminds 3E Character Editor</span>
-            <span id="header-version-tag" class="header-version-tag up-to-date" title="Current Version">v3.59</span>
+            <span id="header-version-tag" class="header-version-tag up-to-date" title="Current Version">v3.60</span>
             <button type="button" id="btn-header-update-alert" class="btn-header-update-alert" title="Check for updates / Update status" style="display: none;">!</button>
           </div>
 
@@ -96,7 +96,7 @@
 
           <div class="header-field" id="header-char-box">
             <span class="header-field-label" id="header-char-label">Hero:</span>
-            <input type="text" id="header-char-name" class="header-field-input" placeholder="Character Name" style="width: 180px;">
+            <input type="text" id="header-char-name" class="header-field-input" placeholder="Character Name (Required)" style="width: 180px;">
           </div>
 
           <button type="button" class="btn btn-outline" id="btn-open-alts" title="Manage alternate forms, minions, and sidekicks" style="padding: 0.2rem 0.75rem; min-height: 38px; font-size: var(--font-size-xs); font-weight: 700; white-space: nowrap; color: var(--hero-blue); border-color: var(--hero-blue); display: inline-flex; align-items: center; gap: 0.35rem;">
@@ -107,6 +107,10 @@
             <span class="header-field-label">Campaign:</span>
             <input type="text" id="header-campaign-name" class="header-field-input" placeholder="Campaign / Setting" style="width: 150px;">
           </div>
+
+          <button type="button" class="btn btn-outline" id="btn-open-party" title="Open Party Conditions & Toughness Tracker" style="padding: 0.2rem 0.75rem; min-height: 38px; font-size: var(--font-size-xs); font-weight: 700; white-space: nowrap; color: var(--hero-green); border-color: var(--hero-green); display: inline-flex; align-items: center; gap: 0.35rem;">
+            🛡️ Party
+          </button>
 
           <div id="header-active-alt-badge" style="display: none; align-items: center; gap: 0.35rem; background: rgba(139, 92, 246, 0.18); border: 1px solid var(--hero-purple); border-radius: var(--radius-sm); padding: 0.2rem 0.65rem; min-height: 38px; font-size: var(--font-size-xs); color: var(--hero-purple); font-weight: 700; white-space: nowrap;">
             <span id="header-active-alt-type" style="color: var(--hero-purple); font-weight: 800;">Alt form:</span>
@@ -1551,6 +1555,34 @@
   <!-- ======================================================= -->
   <!-- MODAL: REUSABLE HTML ALERT DIALOG                       -->
   <!-- ======================================================= -->
+  
+  <!-- ======================================================= -->
+  <!-- MODAL: PARTY CONDITIONS & TOUGHNESS TRACKER             -->
+  <!-- ======================================================= -->
+  <div class="modal-overlay" id="modal-party">
+    <div class="modal-container" style="max-width: 780px;">
+      <div class="modal-header-bar">
+        <div class="modal-header-title">🛡️ Party Conditions & Toughness Tracker</div>
+        <div style="display: flex; gap: 0.4rem; align-items: center;">
+          <button class="btn btn-outline" id="btn-party-popout" title="Pop out into separate window" style="min-height: 28px; padding: 0.15rem 0.6rem; font-size: 11px; font-weight: 700;">↗ Pop-out</button>
+          <button class="btn btn-outline" id="btn-close-party-modal" style="min-height: 28px; padding: 0.1rem 0.5rem;">✕</button>
+        </div>
+      </div>
+      <div class="modal-scroll-body" style="max-height: 520px; overflow-y: auto;" id="party-tracker-content">
+        <!-- Rendered dynamically -->
+      </div>
+      <div class="modal-footer-bar" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
+        <div style="display: flex; gap: 0.4rem;">
+          <button class="btn btn-primary" id="btn-party-sync-discord" style="font-size: var(--font-size-xs); font-weight: 800; min-height: 32px; padding: 0.2rem 0.85rem;">📢 Broadcast to Discord</button>
+          <button class="btn btn-outline" id="btn-party-add-ally" style="font-size: var(--font-size-xs); font-weight: 700; min-height: 32px; padding: 0.2rem 0.75rem;">➕ Add Ally</button>
+        </div>
+        <div style="display: flex; gap: 0.4rem;">
+          <button class="btn btn-outline" id="btn-party-clear-inactive" style="font-size: var(--font-size-xs); min-height: 32px; padding: 0.2rem 0.6rem;">Clear Inactive</button>
+          <button class="btn btn-outline" id="btn-party-modal-close-footer" style="font-size: var(--font-size-xs); min-height: 32px; padding: 0.2rem 0.85rem;">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
   <div class="modal-overlay" id="modal-alert-dialog">
     <div class="modal-container" style="max-width: 460px;">
       <div class="modal-header-bar">

@@ -2238,9 +2238,9 @@ html[data-theme="light"] {
   --border-color: #dcd1c2;
   --border-active: #2563eb;
 
-  --text-main: #2b251d;
-  --text-muted: #786d5e;
-  --text-bright: #14100c;
+  --text-main: #1f1b15;
+  --text-muted: #3d3429;
+  --text-bright: #0a0806;
 
   --hero-blue: #2563eb;
   --hero-cyan: #0284c7;
@@ -2887,4 +2887,34 @@ html[data-theme="light"] .power-validation-warning {
   align-items: center;
   width: 100%;
   margin-top: 0.25rem;
+}
+
+/* Light Theme High Contrast: Eliminate grey-on-white text */
+html[data-theme="light"] .header-field-label {
+  color: #1e293b !important;
+  font-weight: 800 !important;
+}
+
+html[data-theme="light"] input::placeholder,
+html[data-theme="light"] textarea::placeholder {
+  color: #524738 !important;
+  opacity: 1 !important;
+}
+
+html[data-theme="light"] input,
+html[data-theme="light"] select,
+html[data-theme="light"] textarea {
+  color: #0f172a !important;
+}
+
+html[data-theme="light"] .text-muted,
+html[data-theme="light"] [style*="color: var(--text-muted)"],
+html[data-theme="light"] [style*="color: #94a3b8"],
+html[data-theme="light"] [style*="color: #64748b"] {
+  color: #3d3429 !important;
+}
+
+html[data-theme="light"] .card-box-subtitle,
+html[data-theme="light"] .stat-summary-bar {
+  color: #1f1b15 !important;
 }

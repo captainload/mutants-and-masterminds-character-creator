@@ -41,7 +41,7 @@ import {
   tablesManager
 } from './tables.js';
 
-import { POWER_PROFILES_LIBRARY } from './power_profiles.js?v=3.61';
+import { POWER_PROFILES_LIBRARY } from './power_profiles.js?v=3.62';
 import { ARCHETYPES } from './archetypes.js';
 import { archetypeManager } from './archetype_window.js';
 import { campaignManager, partyManager } from './party.js';
@@ -206,57 +206,61 @@ class AppController {
       this.saveAndAudit();
     });
 
-    // Campaign Name
+    // Campaign Name - Do NOT prefill from global storage unless character is already associated
     const campaignInput = document.getElementById('header-campaign-name');
-    const lastCamp = this.char.lastCampaign || this.char.campaign || (typeof localStorage !== 'undefined' ? localStorage.getItem('mm3e_last_joined_campaign') : '') || '';
-    if (!this.char.campaign && lastCamp) {
-      this.char.campaign = lastCamp;
+    const existingCamp = (this.char.campaign || this.char.lastCampaign || '').trim();
+    if (campaignInput) {
+      campaignInput.value = existingCamp;
+      campaignInput.addEventListener('input', (e) => {
+        this.char.campaign = e.target.value;
+        if (e.target.value) this.char.lastCampaign = e.target.value;
+        this.saveAndAudit();
+      });
     }
-    campaignInput.value = this.char.campaign || lastCamp || '';
-    campaignInput.addEventListener('input', (e) => {
-      this.char.campaign = e.target.value;
-      if (e.target.value) this.char.lastCampaign = e.target.value;
-      this.saveAndAudit();
-    });
 
-        // Party Tracker Button
-    document.getElementById('btn-open-party')?.addEventListener('click', () => {
-      partyManager.updateCurrentPlayer(this.char, this.primaryChar, this.activeAltId);
-      this.openPartyTracker();
-    });
+    // Campaign Tracker Button & Label Click Handlers
+    const openCampaignsHandler = () => {
+      campaignManager.updateCurrentPlayer(this.char, this.primaryChar, this.activeAltId);
+      this.openCampaignTracker();
+    };
+    document.getElementById('btn-open-campaigns')?.addEventListener('click', openCampaignsHandler);
+    document.getElementById('btn-open-campaigns-label')?.addEventListener('click', openCampaignsHandler);
 
-    document.getElementById('btn-party-popout')?.addEventListener('click', () => {
+    const closeCampaignsHandler = () => {
+      this.closeModal('modal-campaign-tracker');
       this.closeModal('modal-party');
-      partyManager.openPopout();
+    };
+    document.getElementById('btn-campaign-popout')?.addEventListener('click', () => {
+      closeCampaignsHandler();
+      campaignManager.openPopout();
     });
 
-    document.getElementById('btn-close-party-modal')?.addEventListener('click', () => {
-      this.closeModal('modal-party');
-    });
+    document.getElementById('btn-close-campaign-modal')?.addEventListener('click', closeCampaignsHandler);
+    document.getElementById('btn-campaign-modal-close-footer')?.addEventListener('click', closeCampaignsHandler);
 
-    document.getElementById('btn-party-modal-close-footer')?.addEventListener('click', () => {
-      this.closeModal('modal-party');
-    });
-
-    document.getElementById('btn-party-sync-discord')?.addEventListener('click', async () => {
+    document.getElementById('btn-campaign-sync-discord')?.addEventListener('click', async () => {
       await this.broadcastPartyToDiscord();
     });
 
-    document.getElementById('btn-party-add-ally')?.addEventListener('click', async () => {
+    const addAllyHandler = async () => {
       const name = await this.showPromptDialog({
-        title: 'Add Ally / NPC to Party',
-        label: 'Enter hero or ally name:',
+        title: 'Add Ally / Minion to Campaign',
+        label: 'Character Name:',
         defaultValue: '',
-        placeholder: 'e.g. Aegis, Night Ranger'
+        placeholder: 'e.g. Aegis, Night Ranger, Police Officer',
+        confirmText: 'Add to Party'
       });
       if (name && name.trim()) {
-        partyManager.addManualMember({ characterName: name.trim() });
+        campaignManager.addManualMember({ characterName: name.trim() });
+        campaignManager.renderAllOpenViews();
       }
-    });
+    };
+    document.getElementById('btn-campaign-add-ally')?.addEventListener('click', addAllyHandler);
 
-    document.getElementById('btn-party-clear-inactive')?.addEventListener('click', () => {
-      partyManager.clearInactiveMembers();
-    });
+    const clearInactiveHandler = () => {
+      campaignManager.clearInactiveMembers();
+    };
+    document.getElementById('btn-campaign-clear-inactive')?.addEventListener('click', clearInactiveHandler);
     // Power Level (PL) Steppers & Lock (Top Row)
     const plMinusBtn = document.getElementById('btn-pl-minus');
     const plPlusBtn = document.getElementById('btn-pl-plus');
@@ -1969,7 +1973,7 @@ window.partyManager = partyManager;
   }
 
   async checkForUpdates({ isManual = false } = {}) {
-    const CURRENT_VERSION = '3.61';
+    const CURRENT_VERSION = '3.62';
     const versionEl = document.getElementById('header-version-tag');
     const updateBtn = document.getElementById('btn-header-update-alert');
     if (typeof window === 'undefined' || !window.location || !window.location.href || window.location.href === 'about:blank') return;
@@ -2391,36 +2395,56 @@ window.partyManager = partyManager;
     }
 
     this.showPromptDialog({
-      title: 'Create P2P Campaign Room',
+      title: 'Create P2P Campaign Room (1/3)',
       label: 'Campaign Title / Name:',
       defaultValue: (this.char.campaign || this.primaryChar?.campaign || '').trim() || 'New Campaign',
       placeholder: 'e.g. Justice League, Freedom City',
-      confirmText: 'Next: Set PIN'
+      confirmText: 'Next: Campaign PL'
     }).then(campName => {
       if (!campName || !campName.trim()) return;
 
+      const defaultPL = this.char.powerLevel || 10;
       this.showPromptDialog({
-        title: 'Campaign Security PIN (Optional)',
-        label: 'Enter an optional 4-digit PIN to ensure privacy (identically named campaigns with different PINs will never collide):',
-        defaultValue: '',
-        placeholder: 'e.g. 1234 (or leave blank for open)',
-        confirmText: 'Create & Connect'
-      }).then(pin => {
-        try {
-          const created = partyManager.createCampaign({
-            name: campName.trim(),
-            pin: (pin || '').trim(),
-            creatorName: this.char.playerName || this.char.name || 'GM'
-          });
-          partyManager.updateCurrentPlayer(this.char, this.primaryChar, this.activeAltId);
-          this.showAlertDialog(
-            `Campaign "${created.campaignName}" created successfully!\n\nShare this with your players:\nCampaign ID #: #${created.campaignId}${created.pin ? `\nPIN: ${created.pin}` : ''}\n\nYour app is now live connected. Other campaign creation is disabled while connected.`,
-            { title: 'Campaign Created' }
-          );
-          partyManager.renderAllOpenViews();
-        } catch (err) {
-          this.showAlertDialog(err.message, { title: 'Cannot Create Campaign' });
-        }
+        title: 'Campaign Power Level (2/3)',
+        label: 'Enter Campaign Power Level (PL):',
+        defaultValue: String(defaultPL),
+        placeholder: 'e.g. 10',
+        confirmText: 'Next: Security PIN'
+      }).then(plStr => {
+        const campPL = parseInt(plStr, 10) || 10;
+
+        this.showPromptDialog({
+          title: 'Campaign Security PIN (3/3)',
+          label: 'Enter an optional 4-digit PIN to ensure privacy (identically named campaigns with different PINs will never collide):',
+          defaultValue: '',
+          placeholder: 'e.g. 1234 (or leave blank for open)',
+          confirmText: 'Create & Connect'
+        }).then(pin => {
+          try {
+            const created = partyManager.createCampaign({
+              name: campName.trim(),
+              pin: (pin || '').trim(),
+              powerLevel: campPL,
+              dontEnforcePL: false,
+              creatorName: this.char.playerName || this.char.name || 'GM'
+            });
+            this.char.campaign = created.campaignName;
+            this.char.lastCampaign = created.campaignName;
+            this.char.campaignId = created.campaignId;
+            const campInput = document.getElementById('header-campaign-name');
+            if (campInput) campInput.value = created.campaignName;
+            this.saveAndAudit();
+
+            partyManager.updateCurrentPlayer(this.char, this.primaryChar, this.activeAltId);
+            this.showAlertDialog(
+              `Campaign "${created.campaignName}" created successfully!\n\nShare this with your players:\nCampaign ID #: #${created.campaignId}\nTarget PL: PL ${created.powerLevel}${created.pin ? `\nPIN: ${created.pin}` : ''}\n\nYour app is now live connected. Other campaign creation is disabled while connected.`,
+              { title: 'Campaign Created' }
+            );
+            partyManager.renderAllOpenViews();
+          } catch (err) {
+            this.showAlertDialog(err.message, { title: 'Cannot Create Campaign' });
+          }
+        });
       });
     });
   }
@@ -2438,31 +2462,71 @@ window.partyManager = partyManager;
       if (!confirmed) return; // User chose to stay connected
       campaignManager.leaveCampaign();
     }
+
     this.showPromptDialog({
       title: 'Join Campaign Room',
       label: 'Enter Campaign ID # (from your GM):',
       defaultValue: '',
       placeholder: 'e.g. HERO-8492 or JL-1024',
-      confirmText: 'Next: PIN'
-    }).then(campId => {
+      confirmText: 'Next: Verify & PIN'
+    }).then(async campId => {
       if (!campId || !campId.trim()) return;
+
+      const cleanCampId = campId.trim().toUpperCase();
+      const campInfo = campaignManager.getCampaignInfo(cleanCampId);
+      const campPL = campInfo?.powerLevel ?? 10;
+      const dontEnforcePL = !!campInfo?.dontEnforcePL;
+      const campName = campInfo?.campaignName || cleanCampId;
+
+      const charName = (this.char.name || '').trim() || 'Hero';
+      const charPL = parseInt(this.char.powerLevel, 10) || 10;
+
+      // Check against campaign's PL: if character isn't of the same PL inform user this needs to be corrected
+      if (!dontEnforcePL && charPL !== campPL) {
+        await this.showAlertDialog(
+          `Cannot join campaign "${campName}":\n\n"${charName}" is Power Level ${charPL}, but the campaign requires Power Level ${campPL}.\n\nThis needs to be corrected before you can join the campaign (unless the GM has enabled the "Don't enforce PL" option in the campaign manager settings).`,
+          { title: 'Power Level Mismatch' }
+        );
+        return;
+      }
 
       this.showPromptDialog({
         title: 'Enter Campaign PIN',
         label: 'Enter Campaign PIN (leave blank if none):',
         defaultValue: '',
         placeholder: '4-digit PIN',
-        confirmText: 'Connect'
-      }).then(pin => {
+        confirmText: 'Next: Confirm Join'
+      }).then(async pin => {
+        // Always confirm before joining:
+        const confirmed = await this.showConfirmDialog(
+          `Are you sure you want to connect "${charName}" (PL ${charPL}) to campaign "${campName}" (ID: #${cleanCampId}, PL ${campPL})?\n\nYour character's conditions, bruises, and active alt status will be live-synced with the campaign party.`,
+          {
+            title: 'Confirm Join Campaign',
+            confirmText: 'Join Campaign',
+            confirmClass: 'btn-primary'
+          }
+        );
+        if (!confirmed) return;
+
         try {
           const joined = partyManager.joinCampaign({
-            campaignId: campId.trim(),
+            campaignId: cleanCampId,
             pin: (pin || '').trim(),
-            playerName: this.char.playerName || this.char.name || 'Hero'
+            playerName: this.char.playerName || this.char.name || 'Hero',
+            campaignName: campName,
+            powerLevel: campPL,
+            dontEnforcePL
           });
+          this.char.campaign = joined.campaignName;
+          this.char.lastCampaign = joined.campaignName;
+          this.char.campaignId = joined.campaignId;
+          const campInput = document.getElementById('header-campaign-name');
+          if (campInput) campInput.value = joined.campaignName;
+          this.saveAndAudit();
+
           partyManager.updateCurrentPlayer(this.char, this.primaryChar, this.activeAltId);
-          this.showAlertDialog(
-            `Successfully connected to Campaign ID #${joined.campaignId}!\n\nYour hero conditions, bruises, and active alt status are now live synced with the party.`,
+          await this.showAlertDialog(
+            `"${charName}" successfully connected to Campaign "${joined.campaignName}" (#${joined.campaignId})!\n\nYour hero conditions, bruises, and active alt status are now live synced with the party.`,
             { title: 'Connected to Campaign' }
           );
           partyManager.renderAllOpenViews();
@@ -4097,11 +4161,9 @@ window.partyManager = partyManager;
     const cNameEl = document.getElementById('header-char-name');
     if (cNameEl) cNameEl.value = this.char.name || '';
     const campEl = document.getElementById('header-campaign-name');
-    const lastJoinedCamp = this.char.lastCampaign || this.char.campaign || (typeof localStorage !== 'undefined' ? localStorage.getItem('mm3e_last_joined_campaign') : '') || '';
-    if (!this.char.campaign && lastJoinedCamp) {
-      this.char.campaign = lastJoinedCamp;
+    if (campEl) {
+      campEl.value = (this.char.campaign || this.char.lastCampaign || '').trim();
     }
-    if (campEl) campEl.value = this.char.campaign || lastJoinedCamp || '';
 
     // Alt Characters count badge
     const altsCountBadge = document.getElementById('header-alts-count-badge');
@@ -8142,7 +8204,17 @@ window.partyManager = partyManager;
     });
   }
 
-  showConfirmDialog(message, { title = 'Confirm Action', confirmText = 'Confirm', confirmClass = 'btn-primary' } = {}) {
+  showConfirmDialog(messageOrOptions, maybeOptions = {}) {
+    let message = '';
+    let options = {};
+    if (typeof messageOrOptions === 'object' && messageOrOptions !== null) {
+      options = messageOrOptions;
+      message = options.message || '';
+    } else {
+      message = messageOrOptions || '';
+      options = maybeOptions || {};
+    }
+    const { title = 'Confirm Action', confirmText = 'Confirm', confirmClass = 'btn-primary' } = options;
     return new Promise((resolve) => {
       const titleEl = document.getElementById('confirm-dialog-title');
       if (titleEl) titleEl.textContent = title;

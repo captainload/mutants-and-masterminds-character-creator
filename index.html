@@ -6,8 +6,8 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Mutants & Masterminds 3E - Character Editor v3.61</title>
-  <link rel="stylesheet" href="css/styles.css?v=3.61">
+  <title>Mutants & Masterminds 3E - Character Editor v3.62</title>
+  <link rel="stylesheet" href="css/styles.css?v=3.62">
 </head>
 <body>
 
@@ -80,7 +80,7 @@
 
           <div class="brand-title-centered">
             <span>Mutants & Masterminds 3E Character Editor</span>
-            <span id="header-version-tag" class="header-version-tag up-to-date" title="Current Version">v3.61</span>
+            <span id="header-version-tag" class="header-version-tag up-to-date" title="Current Version">v3.62</span>
             <button type="button" id="btn-header-update-alert" class="btn-header-update-alert" title="Check for updates / Update status" style="display: none;">!</button>
           </div>
 
@@ -103,14 +103,15 @@
             👥 Alt Characters <span id="header-alts-count-badge" style="display:none; min-width: 22px; height: 22px; font-size: 13px; font-weight: 900; padding: 0 4px; margin-left: 0.4rem; background: var(--hero-blue); color: #fff; border-radius: 0; line-height: 22px; text-align: center; box-sizing: border-box;">0</span>
           </button>
 
-          <div class="header-field" id="header-campaign-box">
-            <span class="header-field-label">Campaign:</span>
-            <input type="text" id="header-campaign-name" class="header-field-input" placeholder="Campaign / Setting" style="width: 150px;">
+          <div class="header-campaign-group" style="display: inline-flex; align-items: center; gap: 0.35rem; flex-shrink: 0;">
+            <div class="header-field" id="header-campaign-box">
+              <button type="button" class="header-field-label header-field-label-btn" id="btn-open-campaigns-label" title="Click to open Campaign Tracker & Settings">Campaign:</button>
+              <input type="text" id="header-campaign-name" class="header-field-input" placeholder="Campaign / Setting" style="width: 140px;">
+            </div>
+            <button type="button" class="btn btn-outline" id="btn-open-campaigns" title="Open Campaign Tracker, Member Conditions & Live P2P Sync" style="padding: 0.2rem 0.65rem; min-height: 38px; font-size: var(--font-size-xs); font-weight: 700; white-space: nowrap; color: var(--hero-green); border-color: var(--hero-green); display: inline-flex; align-items: center; gap: 0.25rem;">
+              🛡️ Campaigns
+            </button>
           </div>
-
-          <button type="button" class="btn btn-outline" id="btn-open-campaigns" title="Open Campaign Tracker, Member Conditions & Live P2P Sync" style="padding: 0.2rem 0.75rem; min-height: 38px; font-size: var(--font-size-xs); font-weight: 700; white-space: nowrap; color: var(--hero-green); border-color: var(--hero-green); display: inline-flex; align-items: center; gap: 0.35rem;">
-            🛡️ Campaigns
-          </button>
 
           <div id="header-active-alt-badge" style="display: none; align-items: center; gap: 0.35rem; background: rgba(139, 92, 246, 0.18); border: 1px solid var(--hero-purple); border-radius: var(--radius-sm); padding: 0.2rem 0.65rem; min-height: 38px; font-size: var(--font-size-xs); color: var(--hero-purple); font-weight: 700; white-space: nowrap;">
             <span id="header-active-alt-type" style="color: var(--hero-purple); font-weight: 800;">Alt form:</span>
@@ -1599,6 +1600,6 @@
     </div>
   </div>
 
-  <script type="module" src="js/app.js?v=3.56"></script>
+  <script type="module" src="js/app.js?v=3.62"></script>
 </body>
 </html>

@@ -1,6 +1,6 @@
 {
-  "version": "3.61",
-  "updatedAt": "2026-10-29T15:25:26.491Z",
-  "releaseNotes": "Archetypes: Reset wizard state on open, finish, and close to prevent being stuck on the last option picker. When loading an archetype, archetype alts replace existing alts; otherwise user is prompted to keep within-budget alts (over-budget alts are erased).",
+  "version": "3.62",
+  "updatedAt": "2026-10-29T19:11:51.752Z",
+  "releaseNotes": "Campaigns: Moved Campaigns button directly to the right of the campaign field and enabled clickable 'Campaign:' label button. Prevented campaign prefill unless character is already associated with a campaign. Added join confirmation prompt and Power Level enforcement check (with GM 'Don't enforce PL' campaign setting).",
   "updated": "2026-10-29"
 }

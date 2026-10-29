@@ -278,6 +278,30 @@ body {
   white-space: nowrap;
 }
 
+button.header-field-label-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  font-family: inherit;
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  text-underline-offset: 3px;
+  display: inline-flex;
+  align-items: center;
+  transition: color 0.15s ease;
+}
+
+button.header-field-label-btn:hover {
+  color: var(--hero-gold) !important;
+  text-decoration-style: solid;
+}
+
 .header-field-input {
   background: none;
   border: none;
@@ -2890,9 +2914,14 @@ html[data-theme="light"] .power-validation-warning {
 }
 
 /* Light Theme High Contrast: Eliminate grey-on-white text */
-html[data-theme="light"] .header-field-label {
+html[data-theme="light"] .header-field-label,
+html[data-theme="light"] button.header-field-label-btn {
   color: #1e293b !important;
   font-weight: 800 !important;
+}
+
+html[data-theme="light"] button.header-field-label-btn:hover {
+  color: #d97706 !important;
 }
 
 html[data-theme="light"] input::placeholder,

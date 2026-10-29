@@ -52,12 +52,52 @@ export class CampaignTrackerManager {
   // =======================================================
   // CAMPAIGN CONNECTION STATE & P2P ACCESS CONTROL
   // =======================================================
+  getCampaignRegistry() {
+    try {
+      const raw = typeof localStorage !== 'undefined' ? localStorage.getItem('mm3e_campaign_registry') : this._memoryFallback['mm3e_campaign_registry'];
+      return raw ? JSON.parse(raw) : {};
+    } catch {
+      return {};
+    }
+  }
+
+  registerCampaignInfo(info) {
+    if (!info || !info.campaignId) return;
+    try {
+      const reg = this.getCampaignRegistry();
+      const id = String(info.campaignId).trim().toUpperCase();
+      reg[id] = {
+        campaignId: id,
+        campaignName: (info.campaignName || id).trim(),
+        pin: (info.pin || '').trim(),
+        powerLevel: parseInt(info.powerLevel, 10) || 10,
+        dontEnforcePL: !!info.dontEnforcePL,
+        isHost: !!info.isHost,
+        lastUpdated: Date.now()
+      };
+      const serialized = JSON.stringify(reg);
+      if (typeof localStorage !== 'undefined') {
+        localStorage.setItem('mm3e_campaign_registry', serialized);
+      } else {
+        this._memoryFallback['mm3e_campaign_registry'] = serialized;
+      }
+    } catch (e) {
+      console.warn('Failed to register campaign info', e);
+    }
+  }
+
+  getCampaignInfo(campaignId) {
+    if (!campaignId) return null;
+    const reg = this.getCampaignRegistry();
+    return reg[String(campaignId).trim().toUpperCase()] || null;
+  }
+
   getCampaignState() {
     try {
       const raw = typeof localStorage !== 'undefined' ? localStorage.getItem(this.campaignStateKey) : this._memoryFallback[this.campaignStateKey];
-      return raw ? JSON.parse(raw) : { isConnected: false, campaignId: '', campaignName: '', pin: '', isHost: false };
+      return raw ? JSON.parse(raw) : { isConnected: false, campaignId: '', campaignName: '', pin: '', powerLevel: 10, dontEnforcePL: false, isHost: false };
     } catch {
-      return { isConnected: false, campaignId: '', campaignName: '', pin: '', isHost: false };
+      return { isConnected: false, campaignId: '', campaignName: '', pin: '', powerLevel: 10, dontEnforcePL: false, isHost: false };
     }
   }
 
@@ -97,7 +137,7 @@ export class CampaignTrackerManager {
    * Creates a new campaign room.
    * Strictly enforces that a connected user cannot create other campaigns.
    */
-  createCampaign({ name, campaignId, pin, creatorName = 'GM' }) {
+  createCampaign({ name, campaignId, pin, creatorName = 'GM', powerLevel = 10, dontEnforcePL = false }) {
     if (this.isUserConnected()) {
       const current = this.getCampaignState();
       throw new Error(`You are currently connected to campaign "${current.campaignName || current.campaignId}" (ID: #${current.campaignId}). You must disconnect from your current campaign before creating a new one.`);
@@ -105,18 +145,23 @@ export class CampaignTrackerManager {
 
     const assignedId = (campaignId || this.generateUniqueCampaignId(name)).trim().toUpperCase();
     const cleanPin = (pin || '').trim();
+    const pl = parseInt(powerLevel, 10) || 10;
+    const noEnforce = !!dontEnforcePL;
 
     const newState = {
       isConnected: true,
       campaignId: assignedId,
       campaignName: (name || 'New Campaign').trim(),
       pin: cleanPin,
+      powerLevel: pl,
+      dontEnforcePL: noEnforce,
       isHost: true,
       creatorName,
       connectedAt: new Date().toLocaleTimeString()
     };
 
     this.saveCampaignState(newState);
+    this.registerCampaignInfo(newState);
 
     // Announce creation to network
     this.broadcastMessage({
@@ -124,17 +169,37 @@ export class CampaignTrackerManager {
       campaignId: assignedId,
       campaignName: newState.campaignName,
       pin: cleanPin,
+      powerLevel: pl,
+      dontEnforcePL: noEnforce,
       creatorName
     });
 
     return newState;
   }
 
+  updateCampaignSettings({ powerLevel, dontEnforcePL }) {
+    const current = this.getCampaignState();
+    if (!current.isConnected || !current.isHost) return;
+    if (powerLevel !== undefined) current.powerLevel = parseInt(powerLevel, 10) || 10;
+    if (dontEnforcePL !== undefined) current.dontEnforcePL = !!dontEnforcePL;
+    this.saveCampaignState(current);
+    this.registerCampaignInfo(current);
+    this.broadcastMessage({
+      type: 'CAMPAIGN_UPDATE',
+      campaignId: current.campaignId,
+      campaignName: current.campaignName,
+      pin: current.pin,
+      powerLevel: current.powerLevel,
+      dontEnforcePL: current.dontEnforcePL
+    });
+    this.renderAllOpenViews();
+  }
+
   /**
    * Joins an existing campaign room using ID and PIN.
    * Even identically named campaigns are differentiated by PIN and ID.
    */
-  joinCampaign({ campaignId, pin, playerName = 'Player' }) {
+  joinCampaign({ campaignId, pin, playerName = 'Player', powerLevel = 10, dontEnforcePL = false, campaignName = '' }) {
     if (this.isUserConnected()) {
       const current = this.getCampaignState();
       throw new Error(`You are currently connected to campaign "${current.campaignName || current.campaignId}". Disconnect first to join a different campaign.`);
@@ -147,11 +212,18 @@ export class CampaignTrackerManager {
       throw new Error('Please enter a valid Campaign ID # to join.');
     }
 
+    const info = this.getCampaignInfo(cleanId);
+    const effName = campaignName || info?.campaignName || cleanId;
+    const effPL = info?.powerLevel ?? (parseInt(powerLevel, 10) || 10);
+    const effDontEnforce = info?.dontEnforcePL ?? (!!dontEnforcePL);
+
     const newState = {
       isConnected: true,
       campaignId: cleanId,
-      campaignName: cleanId, // Will update when peer packet is received
+      campaignName: effName,
       pin: cleanPin,
+      powerLevel: effPL,
+      dontEnforcePL: effDontEnforce,
       isHost: false,
       playerName,
       connectedAt: new Date().toLocaleTimeString()
@@ -208,6 +280,10 @@ export class CampaignTrackerManager {
   handleNetworkMessage(msg) {
     if (!msg || !msg.type) return;
 
+    if (msg.type === 'CAMPAIGN_ANNOUNCE' || msg.type === 'CAMPAIGN_UPDATE') {
+      this.registerCampaignInfo(msg);
+    }
+
     const current = this.getCampaignState();
     if (!current.isConnected) return;
 
@@ -218,8 +294,11 @@ export class CampaignTrackerManager {
 
     switch (msg.type) {
       case 'CAMPAIGN_ANNOUNCE':
-        if (!current.isHost && msg.campaignName) {
-          current.campaignName = msg.campaignName;
+      case 'CAMPAIGN_UPDATE':
+        if (!current.isHost) {
+          if (msg.campaignName) current.campaignName = msg.campaignName;
+          if (msg.powerLevel !== undefined) current.powerLevel = parseInt(msg.powerLevel, 10) || 10;
+          if (msg.dontEnforcePL !== undefined) current.dontEnforcePL = !!msg.dontEnforcePL;
           this.saveCampaignState(current);
         }
         break;
@@ -411,16 +490,26 @@ export class CampaignTrackerManager {
   updateHeaderBadge() {
     if (typeof document === 'undefined') return;
     const btn = document.getElementById('btn-open-campaigns') || document.getElementById('btn-open-party');
-    if (!btn) return;
+    const labelBtn = document.getElementById('btn-open-campaigns-label');
     const state = this.getCampaignState();
     if (state.isConnected && state.campaignId) {
-      btn.innerHTML = `🛡️ Campaigns <span style="font-size: 10px; font-weight: 900; background: #10b981; color: #fff; padding: 1px 5px; border-radius: 4px; margin-left: 2px;">#${state.campaignId}</span>`;
-      btn.style.borderColor = '#10b981';
-      btn.style.color = '#10b981';
+      if (btn) {
+        btn.innerHTML = `🛡️ Campaigns <span style="font-size: 10px; font-weight: 900; background: #10b981; color: #fff; padding: 1px 5px; border-radius: 4px; margin-left: 2px;">#${state.campaignId}</span>`;
+        btn.style.borderColor = '#10b981';
+        btn.style.color = '#10b981';
+      }
+      if (labelBtn) {
+        labelBtn.title = `Campaign: ${state.campaignName || ''} (#${state.campaignId}) [PL ${state.powerLevel || 10}]`;
+      }
     } else {
-      btn.innerHTML = `🛡️ Campaigns`;
-      btn.style.borderColor = '';
-      btn.style.color = '';
+      if (btn) {
+        btn.innerHTML = `🛡️ Campaigns`;
+        btn.style.borderColor = '';
+        btn.style.color = '';
+      }
+      if (labelBtn) {
+        labelBtn.title = 'Click to open Campaign Tracker & Settings';
+      }
     }
   }
 
@@ -493,15 +582,37 @@ export class CampaignTrackerManager {
     let connectionBar = '';
     if (state.isConnected) {
       connectionBar = `
-        <div style="background: rgba(16, 185, 129, 0.12); border: 1px solid var(--hero-green); border-radius: 6px; padding: 0.6rem 0.85rem; margin-bottom: 0.75rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
-          <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
-            <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #10b981; box-shadow: 0 0 6px #10b981;"></span>
-            <strong style="color: var(--text-bright);">${state.campaignName || 'Campaign Room'}</strong>
-            <span style="font-size: 11px; background: rgba(0,0,0,0.15); padding: 2px 7px; border-radius: 4px; font-weight: 800; color: var(--hero-blue);">ID: #${state.campaignId}</span>
-            ${state.pin ? `<span style="font-size: 11px; color: var(--hero-gold); font-weight: 700;">🔒 PIN Protected</span>` : ''}
-            <span style="font-size: 11px; color: var(--text-muted); font-weight: 600;">(${state.isHost ? 'Host' : 'Connected Player'})</span>
+        <div style="background: rgba(16, 185, 129, 0.12); border: 1px solid var(--hero-green); border-radius: 6px; padding: 0.65rem 0.85rem; margin-bottom: 0.75rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
+            <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+              <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #10b981; box-shadow: 0 0 6px #10b981;"></span>
+              <strong style="color: var(--text-bright); font-size: 1.05rem;">${state.campaignName || 'Campaign Room'}</strong>
+              <span style="font-size: 11px; background: rgba(0,0,0,0.15); padding: 2px 7px; border-radius: 4px; font-weight: 800; color: var(--hero-blue);">ID: #${state.campaignId}</span>
+              <span style="font-size: 11px; background: rgba(234, 179, 8, 0.15); border: 1px solid var(--hero-gold); padding: 2px 7px; border-radius: 4px; font-weight: 800; color: var(--hero-gold);">PL ${state.powerLevel || 10}</span>
+              ${state.pin ? `<span style="font-size: 11px; color: var(--hero-gold); font-weight: 700;">🔒 PIN Protected</span>` : ''}
+              <span style="font-size: 11px; color: var(--text-muted); font-weight: 600;">(${state.isHost ? 'GM / Host' : 'Connected Player'})</span>
+            </div>
+            <button type="button" class="btn btn-outline btn-leave-campaign-room" style="font-size: 11px; font-weight: 700; padding: 0.2rem 0.65rem; color: var(--hero-red); border-color: var(--hero-red);">🚪 Disconnect / Leave</button>
           </div>
-          <button type="button" class="btn btn-outline btn-leave-campaign-room" style="font-size: 11px; font-weight: 700; padding: 0.2rem 0.65rem; color: var(--hero-red); border-color: var(--hero-red);">🚪 Disconnect / Leave</button>
+          ${state.isHost ? `
+            <div style="display: flex; align-items: center; gap: 0.75rem; margin-top: 0.45rem; padding-top: 0.45rem; border-top: 1px dashed rgba(255,255,255,0.15); font-size: 12px; flex-wrap: wrap;">
+              <span style="color: var(--hero-gold); font-weight: 800;">⚙️ GM Campaign Settings:</span>
+              <label style="display: inline-flex; align-items: center; gap: 0.35rem; cursor: pointer; user-select: none; color: var(--text-bright); font-weight: 700;" title="When checked, characters of any Power Level can join without PL restrictions">
+                <input type="checkbox" class="chk-campaign-dont-enforce-pl" ${state.dontEnforcePL ? 'checked' : ''} style="cursor: pointer; width: 14px; height: 14px; accent-color: var(--hero-gold);">
+                <span>Don't enforce PL (allow any character PL)</span>
+              </label>
+              <div style="display: inline-flex; align-items: center; gap: 0.35rem;">
+                <span style="color: var(--text-muted); font-size: 11px; font-weight: 700;">Campaign PL:</span>
+                <select class="sel-campaign-target-pl" style="background: var(--bg-input); color: var(--text-bright); border: 1px solid var(--border-color); border-radius: 3px; padding: 1px 6px; font-size: 11px; font-weight: 800;">
+                  ${[6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20].map(pl => `<option value="${pl}" ${(state.powerLevel || 10) === pl ? 'selected' : ''}>PL ${pl}</option>`).join('')}
+                </select>
+              </div>
+            </div>
+          ` : `
+            <div style="margin-top: 0.35rem; font-size: 11px; color: var(--text-muted);">
+              ${state.dontEnforcePL ? '⚠️ PL Enforcement is disabled by GM (any character PL permitted)' : '🛡️ Strict PL Enforcement is active (characters must match campaign PL)'}
+            </div>
+          `}
         </div>
       `;
     } else {
@@ -625,6 +736,18 @@ export class CampaignTrackerManager {
       });
     });
 
+    parentEl.querySelectorAll('.chk-campaign-dont-enforce-pl').forEach(chk => {
+      chk.addEventListener('change', (e) => {
+        this.updateCampaignSettings({ dontEnforcePL: e.target.checked });
+      });
+    });
+
+    parentEl.querySelectorAll('.sel-campaign-target-pl').forEach(sel => {
+      sel.addEventListener('change', (e) => {
+        this.updateCampaignSettings({ powerLevel: parseInt(e.target.value, 10) });
+      });
+    });
+
     parentEl.querySelectorAll('.btn-trigger-create-campaign').forEach(btn => {
       btn.addEventListener('click', () => {
         if (typeof window !== 'undefined' && window.appController) {
@@ -664,7 +787,7 @@ export class CampaignTrackerManager {
 <head>
   <meta charset="UTF-8">
   <title>Mutants & Masterminds 3E - Party Conditions & Toughness Tracker</title>
-  <link rel="stylesheet" href="css/styles.css?v=3.61">
+  <link rel="stylesheet" href="css/styles.css?v=3.62">
   <style>
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;

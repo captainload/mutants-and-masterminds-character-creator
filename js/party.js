@@ -5,7 +5,7 @@
  * campaign PIN isolation, and prevents creating new campaigns while connected.
  */
 
-export class PartyManager {
+export class CampaignTrackerManager {
   constructor() {
     this.storageKey = 'mm3e_party_members';
     this.coordsKey = 'mm3e_party_window_coords';
@@ -410,17 +410,17 @@ export class PartyManager {
 
   updateHeaderBadge() {
     if (typeof document === 'undefined') return;
-    const partyBtn = document.getElementById('btn-open-party');
-    if (!partyBtn) return;
+    const btn = document.getElementById('btn-open-campaigns') || document.getElementById('btn-open-party');
+    if (!btn) return;
     const state = this.getCampaignState();
     if (state.isConnected && state.campaignId) {
-      partyBtn.innerHTML = `🛡️ Party <span style="font-size: 10px; font-weight: 900; background: #10b981; color: #fff; padding: 1px 5px; border-radius: 4px; margin-left: 2px;">#${state.campaignId}</span>`;
-      partyBtn.style.borderColor = '#10b981';
-      partyBtn.style.color = '#10b981';
+      btn.innerHTML = `🛡️ Campaigns <span style="font-size: 10px; font-weight: 900; background: #10b981; color: #fff; padding: 1px 5px; border-radius: 4px; margin-left: 2px;">#${state.campaignId}</span>`;
+      btn.style.borderColor = '#10b981';
+      btn.style.color = '#10b981';
     } else {
-      partyBtn.innerHTML = `🛡️ Party`;
-      partyBtn.style.borderColor = '';
-      partyBtn.style.color = '';
+      btn.innerHTML = `🛡️ Campaigns`;
+      btn.style.borderColor = '';
+      btn.style.color = '';
     }
   }
 
@@ -591,7 +591,7 @@ export class PartyManager {
 
   renderAllOpenViews() {
     this.updateHeaderBadge();
-    const container = typeof document !== 'undefined' ? document.getElementById('party-tracker-content') : null;
+    const container = typeof document !== 'undefined' ? (document.getElementById('campaign-tracker-content') || document.getElementById('party-tracker-content')) : null;
     if (container) {
       container.innerHTML = this.generatePartyHTML();
       this.wireCardButtons(container);
@@ -664,7 +664,7 @@ export class PartyManager {
 <head>
   <meta charset="UTF-8">
   <title>Mutants & Masterminds 3E - Party Conditions & Toughness Tracker</title>
-  <link rel="stylesheet" href="css/styles.css?v=3.60">
+  <link rel="stylesheet" href="css/styles.css?v=3.61">
   <style>
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -797,4 +797,6 @@ export class PartyManager {
   }
 }
 
-export const partyManager = new PartyManager();
+export const campaignManager = new CampaignTrackerManager();
+export const partyManager = campaignManager;
+export const PartyManager = CampaignTrackerManager;

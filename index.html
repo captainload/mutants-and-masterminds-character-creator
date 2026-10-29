@@ -6,8 +6,8 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Mutants & Masterminds 3E - Character Editor v3.60</title>
-  <link rel="stylesheet" href="css/styles.css?v=3.60">
+  <title>Mutants & Masterminds 3E - Character Editor v3.61</title>
+  <link rel="stylesheet" href="css/styles.css?v=3.61">
 </head>
 <body>
 
@@ -80,7 +80,7 @@
 
           <div class="brand-title-centered">
             <span>Mutants & Masterminds 3E Character Editor</span>
-            <span id="header-version-tag" class="header-version-tag up-to-date" title="Current Version">v3.60</span>
+            <span id="header-version-tag" class="header-version-tag up-to-date" title="Current Version">v3.61</span>
             <button type="button" id="btn-header-update-alert" class="btn-header-update-alert" title="Check for updates / Update status" style="display: none;">!</button>
           </div>
 
@@ -108,8 +108,8 @@
             <input type="text" id="header-campaign-name" class="header-field-input" placeholder="Campaign / Setting" style="width: 150px;">
           </div>
 
-          <button type="button" class="btn btn-outline" id="btn-open-party" title="Open Party Conditions & Toughness Tracker" style="padding: 0.2rem 0.75rem; min-height: 38px; font-size: var(--font-size-xs); font-weight: 700; white-space: nowrap; color: var(--hero-green); border-color: var(--hero-green); display: inline-flex; align-items: center; gap: 0.35rem;">
-            🛡️ Party
+          <button type="button" class="btn btn-outline" id="btn-open-campaigns" title="Open Campaign Tracker, Member Conditions & Live P2P Sync" style="padding: 0.2rem 0.75rem; min-height: 38px; font-size: var(--font-size-xs); font-weight: 700; white-space: nowrap; color: var(--hero-green); border-color: var(--hero-green); display: inline-flex; align-items: center; gap: 0.35rem;">
+            🛡️ Campaigns
           </button>
 
           <div id="header-active-alt-badge" style="display: none; align-items: center; gap: 0.35rem; background: rgba(139, 92, 246, 0.18); border: 1px solid var(--hero-purple); border-radius: var(--radius-sm); padding: 0.2rem 0.65rem; min-height: 38px; font-size: var(--font-size-xs); color: var(--hero-purple); font-weight: 700; white-space: nowrap;">
@@ -1557,28 +1557,28 @@
   <!-- ======================================================= -->
   
   <!-- ======================================================= -->
-  <!-- MODAL: PARTY CONDITIONS & TOUGHNESS TRACKER             -->
+  <!-- MODAL: CAMPAIGN TRACKER & CONDITIONS                    -->
   <!-- ======================================================= -->
-  <div class="modal-overlay" id="modal-party">
+  <div class="modal-overlay" id="modal-campaign-tracker">
     <div class="modal-container" style="max-width: 780px;">
       <div class="modal-header-bar">
-        <div class="modal-header-title">🛡️ Party Conditions & Toughness Tracker</div>
+        <div class="modal-header-title">🛡️ Campaign Tracker & Conditions</div>
         <div style="display: flex; gap: 0.4rem; align-items: center;">
-          <button class="btn btn-outline" id="btn-party-popout" title="Pop out into separate window" style="min-height: 28px; padding: 0.15rem 0.6rem; font-size: 11px; font-weight: 700;">↗ Pop-out</button>
-          <button class="btn btn-outline" id="btn-close-party-modal" style="min-height: 28px; padding: 0.1rem 0.5rem;">✕</button>
+          <button class="btn btn-outline" id="btn-campaign-popout" title="Pop out into separate window" style="min-height: 28px; padding: 0.15rem 0.6rem; font-size: 11px; font-weight: 700;">↗ Pop-out</button>
+          <button class="btn btn-outline" id="btn-close-campaign-modal" style="min-height: 28px; padding: 0.1rem 0.5rem;">✕</button>
         </div>
       </div>
-      <div class="modal-scroll-body" style="max-height: 520px; overflow-y: auto;" id="party-tracker-content">
+      <div class="modal-scroll-body" style="max-height: 520px; overflow-y: auto;" id="campaign-tracker-content">
         <!-- Rendered dynamically -->
       </div>
       <div class="modal-footer-bar" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
         <div style="display: flex; gap: 0.4rem;">
-          <button class="btn btn-primary" id="btn-party-sync-discord" style="font-size: var(--font-size-xs); font-weight: 800; min-height: 32px; padding: 0.2rem 0.85rem;">📢 Broadcast to Discord</button>
-          <button class="btn btn-outline" id="btn-party-add-ally" style="font-size: var(--font-size-xs); font-weight: 700; min-height: 32px; padding: 0.2rem 0.75rem;">➕ Add Ally</button>
+          <button class="btn btn-primary" id="btn-campaign-sync-discord" style="font-size: var(--font-size-xs); font-weight: 800; min-height: 32px; padding: 0.2rem 0.85rem;">📢 Broadcast to Discord</button>
+          <button class="btn btn-outline" id="btn-campaign-add-ally" style="font-size: var(--font-size-xs); font-weight: 700; min-height: 32px; padding: 0.2rem 0.75rem;">➕ Add Ally</button>
         </div>
         <div style="display: flex; gap: 0.4rem;">
-          <button class="btn btn-outline" id="btn-party-clear-inactive" style="font-size: var(--font-size-xs); min-height: 32px; padding: 0.2rem 0.6rem;">Clear Inactive</button>
-          <button class="btn btn-outline" id="btn-party-modal-close-footer" style="font-size: var(--font-size-xs); min-height: 32px; padding: 0.2rem 0.85rem;">Close</button>
+          <button class="btn btn-outline" id="btn-campaign-clear-inactive" style="font-size: var(--font-size-xs); min-height: 32px; padding: 0.2rem 0.6rem;">Clear Inactive</button>
+          <button class="btn btn-outline" id="btn-campaign-modal-close-footer" style="font-size: var(--font-size-xs); min-height: 32px; padding: 0.2rem 0.85rem;">Close</button>
         </div>
       </div>
     </div>

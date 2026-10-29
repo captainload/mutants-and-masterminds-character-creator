@@ -41,10 +41,10 @@ import {
   tablesManager
 } from './tables.js';
 
-import { POWER_PROFILES_LIBRARY } from './power_profiles.js?v=3.60';
+import { POWER_PROFILES_LIBRARY } from './power_profiles.js?v=3.61';
 import { ARCHETYPES } from './archetypes.js';
 import { archetypeManager } from './archetype_window.js';
-import { partyManager } from './party.js';
+import { campaignManager, partyManager } from './party.js';
 import { ARCHETYPE_CUSTOMIZATION_OPTIONS, buildCustomizedArchetype } from './archetype_builder.js';
 import { diceRoller } from './dice.js';
 import { DiscordConfig, discordIntegrator } from './discord.js';
@@ -208,9 +208,14 @@ class AppController {
 
     // Campaign Name
     const campaignInput = document.getElementById('header-campaign-name');
-    campaignInput.value = this.char.campaign || '';
+    const lastCamp = this.char.lastCampaign || this.char.campaign || (typeof localStorage !== 'undefined' ? localStorage.getItem('mm3e_last_joined_campaign') : '') || '';
+    if (!this.char.campaign && lastCamp) {
+      this.char.campaign = lastCamp;
+    }
+    campaignInput.value = this.char.campaign || lastCamp || '';
     campaignInput.addEventListener('input', (e) => {
       this.char.campaign = e.target.value;
+      if (e.target.value) this.char.lastCampaign = e.target.value;
       this.saveAndAudit();
     });
 
@@ -1964,7 +1969,7 @@ window.partyManager = partyManager;
   }
 
   async checkForUpdates({ isManual = false } = {}) {
-    const CURRENT_VERSION = '3.60';
+    const CURRENT_VERSION = '3.61';
     const versionEl = document.getElementById('header-version-tag');
     const updateBtn = document.getElementById('btn-header-update-alert');
     if (typeof window === 'undefined' || !window.location || !window.location.href || window.location.href === 'about:blank') return;
@@ -2420,16 +2425,19 @@ window.partyManager = partyManager;
     });
   }
 
-  openJoinCampaignDialog() {
-    if (partyManager.isUserConnected()) {
-      const state = partyManager.getCampaignState();
-      this.showAlertDialog(
-        `You are currently connected to campaign "${state.campaignName || state.campaignId}". Disconnect first to join a different campaign.`,
-        { title: 'Already Connected' }
-      );
-      return;
+  async openJoinCampaignDialog() {
+    if (campaignManager.isUserConnected()) {
+      const state = campaignManager.getCampaignState();
+      const currentName = state.campaignName || state.campaignId || 'current campaign';
+      const confirmed = await this.showConfirmDialog({
+        title: 'Switch Campaigns?',
+        message: `You are currently connected to "${currentName}" (ID: #${state.campaignId}).\n\nDo you want to disconnect from this campaign to join another one?`,
+        confirmText: 'Disconnect & Join New',
+        cancelText: 'Stay Connected'
+      });
+      if (!confirmed) return; // User chose to stay connected
+      campaignManager.leaveCampaign();
     }
-
     this.showPromptDialog({
       title: 'Join Campaign Room',
       label: 'Enter Campaign ID # (from your GM):',
@@ -2465,10 +2473,18 @@ window.partyManager = partyManager;
     });
   }
 
+  openCampaignTracker() {
+    campaignManager.updateCurrentPlayer(this.char, this.primaryChar, this.activeAltId);
+    if (document.getElementById('modal-campaign-tracker')) {
+      this.openModal('modal-campaign-tracker');
+    } else {
+      this.openModal('modal-party');
+    }
+    campaignManager.renderAllOpenViews();
+  }
+
   openPartyTracker() {
-    partyManager.updateCurrentPlayer(this.char, this.primaryChar, this.activeAltId);
-    this.openModal('modal-party');
-    partyManager.renderAllOpenViews();
+    this.openCampaignTracker();
   }
 
   async broadcastPartyToDiscord() {
@@ -4081,7 +4097,11 @@ window.partyManager = partyManager;
     const cNameEl = document.getElementById('header-char-name');
     if (cNameEl) cNameEl.value = this.char.name || '';
     const campEl = document.getElementById('header-campaign-name');
-    if (campEl) campEl.value = this.char.campaign || '';
+    const lastJoinedCamp = this.char.lastCampaign || this.char.campaign || (typeof localStorage !== 'undefined' ? localStorage.getItem('mm3e_last_joined_campaign') : '') || '';
+    if (!this.char.campaign && lastJoinedCamp) {
+      this.char.campaign = lastJoinedCamp;
+    }
+    if (campEl) campEl.value = this.char.campaign || lastJoinedCamp || '';
 
     // Alt Characters count badge
     const altsCountBadge = document.getElementById('header-alts-count-badge');

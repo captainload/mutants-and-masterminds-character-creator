@@ -41,7 +41,7 @@ import {
   tablesManager
 } from './tables.js';
 
-import { POWER_PROFILES_LIBRARY } from './power_profiles.js?v=3.56';
+import { POWER_PROFILES_LIBRARY } from './power_profiles.js?v=3.57';
 import { ARCHETYPES } from './archetypes.js';
 import { archetypeManager } from './archetype_window.js';
 import { ARCHETYPE_CUSTOMIZATION_OPTIONS, buildCustomizedArchetype } from './archetype_builder.js';
@@ -890,11 +890,12 @@ class AppController {
     document.getElementById('btn-close-archetype-wizard').addEventListener('click', () => {
       if (typeof archetypeManager !== 'undefined') archetypeManager.setClosedWhilePoppedOut(false);
       this.closeModal('modal-archetype-wizard');
+      this.resetWizardState();
     });
 
     document.getElementById('btn-archetype-popout')?.addEventListener('click', () => {
       this.closeModal('modal-archetype-wizard');
-      this.openArchetypePopout();
+      this.openArchetypePopout({ reset: false });
     });
 
     document.getElementById('btn-wizard-back').addEventListener('click', () => {
@@ -922,30 +923,28 @@ class AppController {
     });
   }
 
-  openArchetypeWizard() {
-    if (!this.wizardState) {
-      this.wizardState = {
-        step: 1,
-        selectedArchetypeId: null,
-        selectedSpecializationId: null,
-        selectedComplication: null,
-        heroName: ''
-      };
+  resetWizardState() {
+    this.wizardState = {
+      step: 1,
+      selectedArchetypeId: null,
+      selectedSpecializationId: null,
+      selectedComplication: null,
+      heroName: ''
+    };
+  }
+
+  openArchetypeWizard({ reset = true } = {}) {
+    if (reset || !this.wizardState) {
+      this.resetWizardState();
     }
     if (typeof archetypeManager !== 'undefined') archetypeManager.setClosedWhilePoppedOut(false);
     this.renderWizardStep();
     this.openModal('modal-archetype-wizard');
   }
 
-  openArchetypePopout() {
-    if (!this.wizardState) {
-      this.wizardState = {
-        step: 1,
-        selectedArchetypeId: null,
-        selectedSpecializationId: null,
-        selectedComplication: null,
-        heroName: ''
-      };
+  openArchetypePopout({ reset = true } = {}) {
+    if (reset || !this.wizardState) {
+      this.resetWizardState();
     }
     if (typeof archetypeManager !== 'undefined') {
       archetypeManager.openPopout();
@@ -1148,7 +1147,8 @@ class AppController {
 
   async finishArchetypeWizard() {
     window.focus();
-    const activeName = this.char.name || 'Current Character';
+    const currentPrimary = this.primaryChar || this.char;
+    const activeName = currentPrimary.name || 'Current Character';
     const confirmed = await this.showConfirmDialog(
       `⚠️ WARNING: Applying this archetype will overwrite all currently loaded character data for "${activeName}".\n\nAre you sure you want to proceed and replace the active character?`,
       { title: 'Overwrite Character', confirmText: 'Apply Archetype', confirmClass: 'btn-danger' }
@@ -1170,16 +1170,107 @@ class AppController {
       this.wizardState.selectedComplication
     );
 
-    newHero.id = this.char.id; // overwrite active character slot
+    newHero.id = currentPrimary.id; // overwrite active primary character slot
     newHero.userApplied = true;
+
+    // Alts handling:
+    // When an archetype is loaded it doesn't delete existing alts.
+    // If an archetype has alts then those should replace any existing alts.
+    // Otherwise, the user should be asked if they want to keep alts that are within budget (over budget alts would still be erased).
+    const existingAlts = currentPrimary.alts || [];
+    const archetypeAlts = newHero.alts || [];
+
+    if (archetypeAlts.length > 0) {
+      newHero.alts = JSON.parse(JSON.stringify(archetypeAlts));
+      newHero.alts.forEach(a => {
+        a.primaryCharId = newHero.id;
+      });
+    } else if (existingAlts.length > 0) {
+      const heroPL = parseInt(newHero.powerLevel, 10) || 10;
+      const heroBudget = newHero.powerPointsBudget || (heroPL * 15);
+
+      const withinBudgetAlts = [];
+      const overBudgetAlts = [];
+
+      existingAlts.forEach(alt => {
+        const altCopy = JSON.parse(JSON.stringify(alt));
+        altCopy.primaryCharId = newHero.id;
+        altCopy.primaryHeroPL = heroPL;
+
+        if (altCopy.altType === 'alternate_form') {
+          altCopy.powerLevel = heroPL;
+          altCopy.powerPointsBudget = heroBudget;
+        } else if (altCopy.altType === 'minion') {
+          const rank = parseInt(altCopy.minionRank, 10) || 1;
+          altCopy.powerPointsBudget = rank * 15;
+          altCopy.powerLevel = Math.min(heroPL, parseInt(altCopy.powerLevel, 10) || heroPL);
+        } else if (altCopy.altType === 'sidekick') {
+          const rank = parseInt(altCopy.sidekickRank, 10) || 1;
+          altCopy.powerPointsBudget = rank * 5;
+          altCopy.powerLevel = Math.min(heroPL, parseInt(altCopy.powerLevel, 10) || heroPL);
+        }
+
+        const audit = auditCharacter(altCopy);
+        const spent = audit.totalSpent || 0;
+        const budget = altCopy.powerPointsBudget || 0;
+
+        if (spent <= budget) {
+          withinBudgetAlts.push(altCopy);
+        } else {
+          overBudgetAlts.push({ alt: altCopy, spent, budget });
+        }
+      });
+
+      if (withinBudgetAlts.length === 0) {
+        newHero.alts = [];
+        if (overBudgetAlts.length > 0) {
+          const names = overBudgetAlts.map(o => `• "${o.alt.name || 'Alt'}" (${o.spent} spent / ${o.budget} PP budget)`).join('\n');
+          await this.showAlertDialog(
+            `All ${overBudgetAlts.length} existing alternate character(s) exceeded the archetype budget and have been erased:\n\n${names}`,
+            { title: 'Over-Budget Alts Erased' }
+          );
+        }
+      } else {
+        let confirmMsg = '';
+        const withinList = withinBudgetAlts.map(a => `• "${a.name || 'Alt'}" (${a.altType ? a.altType.replace('_', ' ') : 'alt'}, ${auditCharacter(a).totalSpent}/${a.powerPointsBudget} PP)`).join('\n');
+
+        if (overBudgetAlts.length > 0) {
+          const overList = overBudgetAlts.map(o => `• "${o.alt.name || 'Alt'}" (${o.spent} spent / ${o.budget} PP budget)`).join('\n');
+          confirmMsg = `The following alternate character(s) exceed the archetype budget and will be erased:\n${overList}\n\nDo you want to keep the remaining ${withinBudgetAlts.length} alt(s) that are within budget?\n\n${withinList}`;
+        } else {
+          confirmMsg = `Do you want to keep your ${withinBudgetAlts.length} existing alternate character(s)?\n\n${withinList}`;
+        }
+
+        const keepConfirmed = await this.showConfirmDialog(confirmMsg, {
+          title: 'Keep Alternate Characters?',
+          confirmText: 'Keep Within-Budget Alts',
+          cancelText: 'Erase All Alts',
+          confirmClass: 'btn-primary'
+        });
+
+        if (keepConfirmed) {
+          newHero.alts = withinBudgetAlts;
+        } else {
+          newHero.alts = [];
+        }
+      }
+    } else {
+      newHero.alts = [];
+    }
+
     this.char = newHero;
-    storageManager.saveCharacter(this.char);
+    this.primaryChar = newHero;
+    this.activeAltId = null;
+    this.syncAltAdvantagesToPrimary();
+    this.saveAndAudit();
+
     if (typeof archetypeManager !== 'undefined' && archetypeManager.popoutWindow && !archetypeManager.popoutWindow.closed) {
       archetypeManager.popoutWindow.close();
       archetypeManager.popoutWindow = null;
     }
     this.closeModal('modal-archetype-wizard');
-    this.renderAll();
+    this.resetWizardState();
+    this.loadCharacterToUI();
     await this.showAlertDialog(`Archetype successfully applied! "${newHero.name}" is now the active character.`, { title: 'Archetype Applied' });
   }
 
@@ -1823,7 +1914,7 @@ class AppController {
   }
 
   async checkForUpdates({ isManual = false } = {}) {
-    const CURRENT_VERSION = '3.56';
+    const CURRENT_VERSION = '3.57';
     const versionEl = document.getElementById('header-version-tag');
     const updateBtn = document.getElementById('btn-header-update-alert');
     if (typeof window === 'undefined' || !window.location || !window.location.href || window.location.href === 'about:blank') return;
@@ -7818,8 +7909,11 @@ class AppController {
     if (id === 'modal-tables' && typeof tablesManager !== 'undefined') {
       tablesManager.setClosedWhilePoppedOut(false);
     }
-    if (id === 'modal-archetype-wizard' && typeof archetypeManager !== 'undefined') {
-      archetypeManager.setClosedWhilePoppedOut(false);
+    if (id === 'modal-archetype-wizard') {
+      if (typeof archetypeManager !== 'undefined') {
+        archetypeManager.setClosedWhilePoppedOut(false);
+      }
+      this.resetWizardState();
     }
   }
 

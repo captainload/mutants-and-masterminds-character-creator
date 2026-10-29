@@ -122,7 +122,7 @@ export class ArchetypeWindowManager {
 <head>
   <meta charset="UTF-8">
   <title>Mutants & Masterminds 3E - Interactive Archetype Character Builder</title>
-  <link rel="stylesheet" href="css/styles.css?v=3.56">
+  <link rel="stylesheet" href="css/styles.css?v=3.57">
   <style>
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -192,6 +192,9 @@ export class ArchetypeWindowManager {
       if (window.opener && window.opener.archetypeManager) {
         window.opener.archetypeManager.setClosedWhilePoppedOut(true);
       }
+      if (window.opener && window.opener.appController) {
+        window.opener.appController.resetWizardState();
+      }
       window.close();
     });
     window.addEventListener('beforeunload', () => {
@@ -203,6 +206,9 @@ export class ArchetypeWindowManager {
           height: window.outerHeight
         });
         window.opener.archetypeManager.savePopoutClosedState();
+      }
+      if (window.opener && window.opener.appController) {
+        window.opener.appController.resetWizardState();
       }
     });
   </script>

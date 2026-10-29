@@ -1,5 +1,5 @@
 {
-  "version": "3.56",
-  "updatedAt": "2026-10-29T04:41:00.000Z",
-  "releaseNotes": "Corrected unique effect-specific extras and flaws across power effects: Affliction now properly features Alternate Resistance, Concentration, Cumulative, Extra Condition, and Progressive as unique extras, and Instant Recovery and Limited Degree as unique flaws; restricted Insubstantial's Affects Corporeal from leaking into other effects."
+  "version": "3.57",
+  "updatedAt": "2026-10-29T15:25:26.491Z",
+  "releaseNotes": "Archetypes: Reset wizard state on open, finish, and close to prevent being stuck on the last option picker. When loading an archetype, archetype alts replace existing alts; otherwise user is prompted to keep within-budget alts (over-budget alts are erased)."
 }

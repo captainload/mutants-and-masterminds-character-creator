@@ -3,16 +3,16 @@ import assert from 'assert';
 import { DiceRoller } from './js/dice.js';
 import { DiscordIntegrator } from './js/discord.js';
 
-console.log('--- Testing v3.58 Features & Requirements ---');
+console.log('--- Testing v3.59 Features & Requirements ---');
 
 // 1. Verify version.json, index.html, app.js
 const versionJson = JSON.parse(fs.readFileSync('version.json', 'utf8'));
-assert.strictEqual(versionJson.version, '3.58', 'version.json should be 3.58');
+assert.strictEqual(versionJson.version, '3.59', 'version.json should be 3.59');
 
 const indexHtml = fs.readFileSync('index.html', 'utf8');
-assert(indexHtml.includes('Character Editor v3.58'), 'index.html title has v3.58');
-assert(indexHtml.includes('css/styles.css?v=3.58'), 'index.html stylesheet has v3.58');
-assert(indexHtml.includes('>v3.58</span>'), 'index.html header version tag has v3.58');
+assert(indexHtml.includes('Character Editor v3.59'), 'index.html title has v3.59');
+assert(indexHtml.includes('css/styles.css?v=3.59'), 'index.html stylesheet has v3.59');
+assert(indexHtml.includes('>v3.59</span>'), 'index.html header version tag has v3.59');
 
 // 2. Verify Movement Speed Light Mode CSS
 const stylesCss = fs.readFileSync('css/styles.css', 'utf8');
@@ -55,7 +55,7 @@ assert(archJs.includes("window.addEventListener('storage'"), 'archetype_window h
 
 const tablesJs = fs.readFileSync('js/tables.js', 'utf8');
 assert(tablesJs.includes('data-theme="${currentTheme}"'), 'tables popout includes data-theme attribute');
-assert(tablesJs.includes('<link rel="stylesheet" href="css/styles.css?v=3.58">'), 'tables popout includes stylesheet');
+assert(tablesJs.includes('<link rel="stylesheet" href="css/styles.css?v=3.59">'), 'tables popout includes stylesheet');
 assert(tablesJs.includes('var(--bg-app, #0f172a)'), 'tables popout body uses var(--bg-app)');
 assert(tablesJs.includes('var(--text-main, #f8fafc)'), 'tables popout text uses var(--text-main)');
 assert(tablesJs.includes("window.addEventListener('storage'"), 'tables popout has storage theme listener');
@@ -86,6 +86,9 @@ const complexRoll = {
 
 const embed = integrator.buildEmbedFromRoll(complexRoll);
 
+// Verify that the title on the row with the dice symbol contains the total roll result following the roll type
+assert.strictEqual(embed.title, '🎲 Smash Attack: 24', 'Title has total roll result following the roll type on the row with dice symbol');
+
 // All fields MUST have inline: true so they pack into 3-column rows on >= 1080px display
 embed.fields.forEach(f => {
   assert.strictEqual(f.inline, true, `Field ${f.name} must be inline: true to minimize vertical rows`);
@@ -96,7 +99,7 @@ embed.fields.forEach(f => {
 assert(embed.fields.length <= 6, 'Total fields should not exceed 6 (at most 2 rows in 3-col layout)');
 assert(embed.fields.some(f => f.name === 'Details' && f.value.includes('CRITICAL HIT') && f.value.includes('Target pushed')), 'Critical alert and details packed into single inline field');
 
-// Test initiative roll (minimal row)
+// Test initiative roll (minimal row and title format)
 const initEmbed = integrator.buildEmbedFromRoll({
   title: 'Initiative',
   rawDie: 18,
@@ -104,9 +107,15 @@ const initEmbed = integrator.buildEmbedFromRoll({
   total: 22,
   rollType: 'initiative'
 });
+assert.strictEqual(initEmbed.title, '🎲 Initiative: 22', 'Initiative embed title has total following roll type');
 assert.strictEqual(initEmbed.fields.length, 1, 'Initiative embed uses exactly 1 compact field');
 assert.strictEqual(initEmbed.fields[0].inline, true, 'Initiative field is inline');
 
-console.log('✓ Discord >= 1080px horizontal packing & minimized rows verified');
+// 6. Verify Single Post on HP Spend in app.js
+const appJs = fs.readFileSync('js/app.js', 'utf8');
+assert(!appJs.includes("discordIntegrator.sendHeroPointSpend(\n        this.char.name,\n        'Reroll"), 'No second post (sendHeroPointSpend) on HP reroll');
 
-console.log('ALL v3.58 TESTS PASSED SUCCESSFULLY!');
+console.log('✓ Discord single post on HP reroll verified');
+console.log('✓ Discord total roll result following roll type on dice symbol row verified');
+
+console.log('ALL v3.59 TESTS PASSED SUCCESSFULLY!');

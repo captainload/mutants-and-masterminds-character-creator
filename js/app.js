@@ -41,7 +41,7 @@ import {
   tablesManager
 } from './tables.js';
 
-import { POWER_PROFILES_LIBRARY } from './power_profiles.js?v=3.58';
+import { POWER_PROFILES_LIBRARY } from './power_profiles.js?v=3.59';
 import { ARCHETYPES } from './archetypes.js';
 import { archetypeManager } from './archetype_window.js';
 import { ARCHETYPE_CUSTOMIZATION_OPTIONS, buildCustomizedArchetype } from './archetype_builder.js';
@@ -1481,7 +1481,7 @@ class AppController {
         : roll.rawDie;
       const formula = `d20(${dieFormatted})${modStr}${roll.extraText ? ` (${roll.extraText})` : ''}`;
       resEl.innerHTML = `
-        <strong style="color: var(--text-bright); margin-right: 0.4rem;">${roll.title}:</strong>
+        <span style="margin-right: 0.35rem;">🎲</span><strong style="color: var(--text-bright); margin-right: 0.4rem;">${roll.title}:</strong>
         <span style="font-size: 0.95rem; font-weight: 900; color: ${isNat20 ? 'var(--hero-green)' : 'var(--hero-gold)'}; margin-right: 0.4rem;">${roll.total}</span>
         <span style="color: var(--text-muted); margin-right: 0.5rem;">[${formula}]</span>
         ${isNat20 ? '<span style="color: var(--hero-green); font-weight: 900;">🎯 NAT 20!</span>' : ''}
@@ -1921,7 +1921,7 @@ class AppController {
   }
 
   async checkForUpdates({ isManual = false } = {}) {
-    const CURRENT_VERSION = '3.58';
+    const CURRENT_VERSION = '3.59';
     const versionEl = document.getElementById('header-version-tag');
     const updateBtn = document.getElementById('btn-header-update-alert');
     if (typeof window === 'undefined' || !window.location || !window.location.href || window.location.href === 'about:blank') return;
@@ -2244,12 +2244,8 @@ class AppController {
         diceRoller.lastFailedCheck = null;
       }
 
-      discordIntegrator.sendHeroPointSpend(
-        this.char.name,
-        'Reroll (1-10 + 10 Rule)',
-        `Rerolled **${targetCheck.title || 'Previous Check'}**: **${reroll.total}** (${reroll.outcomeDescription || reroll.outcome || 'Total ' + reroll.total})`
-      );
-      discordIntegrator.sendRollEmbed(reroll);
+      // Don't send a second post for HP reroll - the roll embed itself is the single comprehensive post
+      // discordIntegrator.sendRollEmbed is dispatched cleanly via displayRollResult
       this.saveAndAudit();
       this.renderHeaderStatus();
       this.renderActionCenter(auditCharacter(this.char));

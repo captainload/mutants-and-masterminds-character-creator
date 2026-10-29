@@ -203,8 +203,11 @@ export class DiscordIntegrator {
       });
     }
 
+    const rollTitle = roll.title || 'Roll';
+    const titleWithTotal = rollTitle.includes(String(roll.total)) ? rollTitle : `${rollTitle}: ${roll.total}`;
+
     return {
-      title: `🎲 ${roll.title}`,
+      title: `🎲 ${titleWithTotal}`,
       author: {
         name: `${roll.characterName || 'Hero'}`
       },
@@ -217,6 +220,10 @@ export class DiscordIntegrator {
   }
 
   async sendRollEmbed(roll) {
+    if (!roll) return;
+    if (roll._discordSent) return;
+    roll._discordSent = true;
+
     const activeConfigs = this.configs.filter(c => c.enabled);
     if (activeConfigs.length === 0) return;
 

@@ -2375,6 +2375,96 @@ window.partyManager = partyManager;
   // 11. POWER PROFILES (Official 3E Profiles Library)
   // =======================================================
   
+  openCreateCampaignDialog() {
+    if (partyManager.isUserConnected()) {
+      const state = partyManager.getCampaignState();
+      this.showAlertDialog(
+        `You are currently connected to campaign "${state.campaignName || state.campaignId}" (ID: #${state.campaignId}).\n\nYou must disconnect from your current campaign before creating a new one.`,
+        { title: 'Already Connected' }
+      );
+      return;
+    }
+
+    this.showPromptDialog({
+      title: 'Create P2P Campaign Room',
+      label: 'Campaign Title / Name:',
+      defaultValue: (this.char.campaign || this.primaryChar?.campaign || '').trim() || 'New Campaign',
+      placeholder: 'e.g. Justice League, Freedom City',
+      confirmText: 'Next: Set PIN'
+    }).then(campName => {
+      if (!campName || !campName.trim()) return;
+
+      this.showPromptDialog({
+        title: 'Campaign Security PIN (Optional)',
+        label: 'Enter an optional 4-digit PIN to ensure privacy (identically named campaigns with different PINs will never collide):',
+        defaultValue: '',
+        placeholder: 'e.g. 1234 (or leave blank for open)',
+        confirmText: 'Create & Connect'
+      }).then(pin => {
+        try {
+          const created = partyManager.createCampaign({
+            name: campName.trim(),
+            pin: (pin || '').trim(),
+            creatorName: this.char.playerName || this.char.name || 'GM'
+          });
+          partyManager.updateCurrentPlayer(this.char, this.primaryChar, this.activeAltId);
+          this.showAlertDialog(
+            `Campaign "${created.campaignName}" created successfully!\n\nShare this with your players:\nCampaign ID #: #${created.campaignId}${created.pin ? `\nPIN: ${created.pin}` : ''}\n\nYour app is now live connected. Other campaign creation is disabled while connected.`,
+            { title: 'Campaign Created' }
+          );
+          partyManager.renderAllOpenViews();
+        } catch (err) {
+          this.showAlertDialog(err.message, { title: 'Cannot Create Campaign' });
+        }
+      });
+    });
+  }
+
+  openJoinCampaignDialog() {
+    if (partyManager.isUserConnected()) {
+      const state = partyManager.getCampaignState();
+      this.showAlertDialog(
+        `You are currently connected to campaign "${state.campaignName || state.campaignId}". Disconnect first to join a different campaign.`,
+        { title: 'Already Connected' }
+      );
+      return;
+    }
+
+    this.showPromptDialog({
+      title: 'Join Campaign Room',
+      label: 'Enter Campaign ID # (from your GM):',
+      defaultValue: '',
+      placeholder: 'e.g. HERO-8492 or JL-1024',
+      confirmText: 'Next: PIN'
+    }).then(campId => {
+      if (!campId || !campId.trim()) return;
+
+      this.showPromptDialog({
+        title: 'Enter Campaign PIN',
+        label: 'Enter Campaign PIN (leave blank if none):',
+        defaultValue: '',
+        placeholder: '4-digit PIN',
+        confirmText: 'Connect'
+      }).then(pin => {
+        try {
+          const joined = partyManager.joinCampaign({
+            campaignId: campId.trim(),
+            pin: (pin || '').trim(),
+            playerName: this.char.playerName || this.char.name || 'Hero'
+          });
+          partyManager.updateCurrentPlayer(this.char, this.primaryChar, this.activeAltId);
+          this.showAlertDialog(
+            `Successfully connected to Campaign ID #${joined.campaignId}!\n\nYour hero conditions, bruises, and active alt status are now live synced with the party.`,
+            { title: 'Connected to Campaign' }
+          );
+          partyManager.renderAllOpenViews();
+        } catch (err) {
+          this.showAlertDialog(err.message, { title: 'Connection Error' });
+        }
+      });
+    });
+  }
+
   openPartyTracker() {
     partyManager.updateCurrentPlayer(this.char, this.primaryChar, this.activeAltId);
     this.openModal('modal-party');

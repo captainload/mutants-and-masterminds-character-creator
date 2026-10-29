@@ -1,24 +1,25 @@
 /**
  * Mutants & Masterminds 3E - Party Conditions & Toughness Tracker
  * Tracks conditions, bruises (toughness penalties), active forms/alts, and Hero Points
- * across party members. Supports local/multi-tab sync, external popout window, and Discord forwarding.
+ * across party members. Supports P2P Campaign synchronization, collision checks,
+ * campaign PIN isolation, and prevents creating new campaigns while connected.
  */
 
 export class PartyManager {
   constructor() {
     this.storageKey = 'mm3e_party_members';
     this.coordsKey = 'mm3e_party_window_coords';
+    this.campaignStateKey = 'mm3e_party_campaign_state';
     this.popoutWindow = null;
     this.isEmbeddedOpen = false;
     this.broadcastChannel = null;
+    this._memoryFallback = {};
 
     if (typeof window !== 'undefined' && 'BroadcastChannel' in window) {
       try {
-        this.broadcastChannel = new BroadcastChannel('mm3e_party_sync');
+        this.broadcastChannel = new BroadcastChannel('mm3e_party_p2p_channel');
         this.broadcastChannel.onmessage = (event) => {
-          if (event.data?.type === 'PARTY_UPDATE') {
-            this.renderAllOpenViews();
-          }
+          this.handleNetworkMessage(event.data);
         };
       } catch (e) {
         console.warn('BroadcastChannel not supported or blocked:', e);
@@ -28,7 +29,7 @@ export class PartyManager {
 
   getSavedCoords() {
     try {
-      const raw = typeof localStorage !== 'undefined' ? localStorage.getItem(this.coordsKey) : null;
+      const raw = typeof localStorage !== 'undefined' ? localStorage.getItem(this.coordsKey) : this._memoryFallback[this.coordsKey];
       return raw ? JSON.parse(raw) : { left: 160, top: 160, width: 840, height: 680 };
     } catch {
       return { left: 160, top: 160, width: 840, height: 680 };
@@ -37,17 +38,217 @@ export class PartyManager {
 
   saveCoords(coords) {
     try {
+      const serialized = JSON.stringify(coords);
       if (typeof localStorage !== 'undefined') {
-        localStorage.setItem(this.coordsKey, JSON.stringify(coords));
+        localStorage.setItem(this.coordsKey, serialized);
+      } else {
+        this._memoryFallback[this.coordsKey] = serialized;
       }
     } catch (e) {
       console.warn('Failed to save party window coords', e);
     }
   }
 
+  // =======================================================
+  // CAMPAIGN CONNECTION STATE & P2P ACCESS CONTROL
+  // =======================================================
+  getCampaignState() {
+    try {
+      const raw = typeof localStorage !== 'undefined' ? localStorage.getItem(this.campaignStateKey) : this._memoryFallback[this.campaignStateKey];
+      return raw ? JSON.parse(raw) : { isConnected: false, campaignId: '', campaignName: '', pin: '', isHost: false };
+    } catch {
+      return { isConnected: false, campaignId: '', campaignName: '', pin: '', isHost: false };
+    }
+  }
+
+  saveCampaignState(state) {
+    try {
+      const serialized = JSON.stringify(state);
+      if (typeof localStorage !== 'undefined') {
+        localStorage.setItem(this.campaignStateKey, serialized);
+      } else {
+        this._memoryFallback[this.campaignStateKey] = serialized;
+      }
+      this.updateHeaderBadge();
+      this.renderAllOpenViews();
+    } catch (e) {
+      console.error('Failed to save campaign state', e);
+    }
+  }
+
+  isUserConnected() {
+    const state = this.getCampaignState();
+    return !!(state && state.isConnected && state.campaignId);
+  }
+
+  /**
+   * Generates a clean, collision-free campaign ID code (e.g., "HERO-4829" or "JL-8192")
+   */
+  generateUniqueCampaignId(campaignName = 'Hero') {
+    const cleanPrefix = (campaignName || 'HERO')
+      .replace(/[^a-zA-Z]/g, '')
+      .toUpperCase()
+      .slice(0, 4) || 'CAMP';
+    const randDigits = Math.floor(1000 + Math.random() * 9000);
+    return `${cleanPrefix}-${randDigits}`;
+  }
+
+  /**
+   * Creates a new campaign room.
+   * Strictly enforces that a connected user cannot create other campaigns.
+   */
+  createCampaign({ name, campaignId, pin, creatorName = 'GM' }) {
+    if (this.isUserConnected()) {
+      const current = this.getCampaignState();
+      throw new Error(`You are currently connected to campaign "${current.campaignName || current.campaignId}" (ID: #${current.campaignId}). You must disconnect from your current campaign before creating a new one.`);
+    }
+
+    const assignedId = (campaignId || this.generateUniqueCampaignId(name)).trim().toUpperCase();
+    const cleanPin = (pin || '').trim();
+
+    const newState = {
+      isConnected: true,
+      campaignId: assignedId,
+      campaignName: (name || 'New Campaign').trim(),
+      pin: cleanPin,
+      isHost: true,
+      creatorName,
+      connectedAt: new Date().toLocaleTimeString()
+    };
+
+    this.saveCampaignState(newState);
+
+    // Announce creation to network
+    this.broadcastMessage({
+      type: 'CAMPAIGN_ANNOUNCE',
+      campaignId: assignedId,
+      campaignName: newState.campaignName,
+      pin: cleanPin,
+      creatorName
+    });
+
+    return newState;
+  }
+
+  /**
+   * Joins an existing campaign room using ID and PIN.
+   * Even identically named campaigns are differentiated by PIN and ID.
+   */
+  joinCampaign({ campaignId, pin, playerName = 'Player' }) {
+    if (this.isUserConnected()) {
+      const current = this.getCampaignState();
+      throw new Error(`You are currently connected to campaign "${current.campaignName || current.campaignId}". Disconnect first to join a different campaign.`);
+    }
+
+    const cleanId = (campaignId || '').trim().toUpperCase();
+    const cleanPin = (pin || '').trim();
+
+    if (!cleanId) {
+      throw new Error('Please enter a valid Campaign ID # to join.');
+    }
+
+    const newState = {
+      isConnected: true,
+      campaignId: cleanId,
+      campaignName: cleanId, // Will update when peer packet is received
+      pin: cleanPin,
+      isHost: false,
+      playerName,
+      connectedAt: new Date().toLocaleTimeString()
+    };
+
+    this.saveCampaignState(newState);
+
+    // Request full roster from peers in this room
+    this.broadcastMessage({
+      type: 'REQUEST_ROSTER',
+      campaignId: cleanId,
+      pin: cleanPin,
+      playerName
+    });
+
+    return newState;
+  }
+
+  leaveCampaign() {
+    const current = this.getCampaignState();
+    if (current && current.isConnected) {
+      this.broadcastMessage({
+        type: 'MEMBER_LEFT',
+        campaignId: current.campaignId,
+        pin: current.pin
+      });
+    }
+
+    this.saveCampaignState({
+      isConnected: false,
+      campaignId: '',
+      campaignName: '',
+      pin: '',
+      isHost: false
+    });
+
+    // Clear remote members, keep only local hero
+    this.clearInactiveMembers();
+  }
+
+  // =======================================================
+  // P2P NETWORK MESSAGE HANDLING & ISOLATION
+  // =======================================================
+  broadcastMessage(msg) {
+    if (this.broadcastChannel) {
+      try {
+        this.broadcastChannel.postMessage(msg);
+      } catch (e) {
+        console.warn('Failed to broadcast P2P message', e);
+      }
+    }
+  }
+
+  handleNetworkMessage(msg) {
+    if (!msg || !msg.type) return;
+
+    const current = this.getCampaignState();
+    if (!current.isConnected) return;
+
+    // Isolate by Campaign ID and PIN:
+    // Identically named campaigns with different PINs never mix data!
+    if (msg.campaignId !== current.campaignId) return;
+    if ((msg.pin || '') !== (current.pin || '')) return;
+
+    switch (msg.type) {
+      case 'CAMPAIGN_ANNOUNCE':
+        if (!current.isHost && msg.campaignName) {
+          current.campaignName = msg.campaignName;
+          this.saveCampaignState(current);
+        }
+        break;
+
+      case 'REQUEST_ROSTER':
+        // A new peer joined; send our local member data to welcome them
+        this.broadcastLocalMemberData();
+        break;
+
+      case 'MEMBER_UPDATE':
+        if (msg.member && msg.member.id) {
+          this.ingestRemoteMember(msg.member);
+        }
+        break;
+
+      case 'MEMBER_LEFT':
+        if (msg.memberId) {
+          this.removeMember(msg.memberId);
+        }
+        break;
+    }
+  }
+
+  // =======================================================
+  // PARTY MEMBERS ROSTER MANAGEMENT
+  // =======================================================
   getPartyMembers() {
     try {
-      const raw = typeof localStorage !== 'undefined' ? localStorage.getItem(this.storageKey) : this._memoryFallback;
+      const raw = typeof localStorage !== 'undefined' ? localStorage.getItem(this.storageKey) : this._memoryFallback[this.storageKey];
       return raw ? JSON.parse(raw) : [];
     } catch (e) {
       console.warn('Failed to parse party members:', e);
@@ -61,10 +262,7 @@ export class PartyManager {
       if (typeof localStorage !== 'undefined') {
         localStorage.setItem(this.storageKey, serialized);
       } else {
-        this._memoryFallback = serialized;
-      }
-      if (this.broadcastChannel) {
-        this.broadcastChannel.postMessage({ type: 'PARTY_UPDATE' });
+        this._memoryFallback[this.storageKey] = serialized;
       }
       this.renderAllOpenViews();
     } catch (e) {
@@ -72,9 +270,6 @@ export class PartyManager {
     }
   }
 
-  /**
-   * Updates or registers the current local player character in the party list.
-   */
   updateCurrentPlayer(char, primaryChar = null, activeAltId = null) {
     if (!char) return;
 
@@ -82,7 +277,6 @@ export class PartyManager {
     const heroId = baseHero.id || 'hero_local';
     const isAltActive = !!activeAltId && char.id !== baseHero.id;
 
-    // Collect active condition names
     const conditions = [];
     if (char.conditions) {
       Object.entries(char.conditions).forEach(([k, v]) => {
@@ -105,12 +299,15 @@ export class PartyManager {
       activeAltLabel = `${typeNames[activeAltType] || 'Alt'}: ${char.name || 'Unnamed Alt'}`;
     }
 
+    const campaignState = this.getCampaignState();
+
     const memberData = {
       id: heroId,
       characterName: baseHero.name || 'Unnamed Hero',
       activeDisplayName: char.name || baseHero.name || 'Hero',
       playerName: baseHero.playerName || 'Player',
-      campaign: baseHero.campaign || '',
+      campaign: baseHero.campaign || campaignState.campaignName || '',
+      campaignId: campaignState.campaignId || '',
       isAlt: isAltActive,
       activeAltLabel,
       activeAltType,
@@ -133,16 +330,56 @@ export class PartyManager {
     }
 
     this.savePartyMembers(members);
+
+    // If connected to a campaign room, broadcast update to peers
+    if (campaignState.isConnected) {
+      this.broadcastMessage({
+        type: 'MEMBER_UPDATE',
+        campaignId: campaignState.campaignId,
+        pin: campaignState.pin,
+        member: memberData
+      });
+    }
+  }
+
+  broadcastLocalMemberData() {
+    const members = this.getPartyMembers();
+    const localMember = members.find(m => m.isLocal);
+    const campaignState = this.getCampaignState();
+    if (localMember && campaignState.isConnected) {
+      this.broadcastMessage({
+        type: 'MEMBER_UPDATE',
+        campaignId: campaignState.campaignId,
+        pin: campaignState.pin,
+        member: localMember
+      });
+    }
+  }
+
+  ingestRemoteMember(remoteMember) {
+    if (!remoteMember || !remoteMember.id) return;
+    const members = this.getPartyMembers();
+    const existingIndex = members.findIndex(m => m.id === remoteMember.id);
+    const remoteData = { ...remoteMember, isLocal: false };
+
+    if (existingIndex >= 0) {
+      members[existingIndex] = remoteData;
+    } else {
+      members.push(remoteData);
+    }
+
+    this.savePartyMembers(members);
   }
 
   addManualMember(data) {
     const members = this.getPartyMembers();
+    const campaignState = this.getCampaignState();
     const newMember = {
       id: 'manual_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
       characterName: data.characterName || 'Ally Hero',
       activeDisplayName: data.characterName || 'Ally Hero',
       playerName: data.playerName || 'NPC / Ally',
-      campaign: data.campaign || '',
+      campaign: data.campaign || campaignState.campaignName || '',
       isAlt: !!data.isAlt,
       activeAltLabel: data.activeAltLabel || null,
       bruises: parseInt(data.bruises, 10) || 0,
@@ -171,12 +408,30 @@ export class PartyManager {
     this.savePartyMembers(members);
   }
 
-  /**
-   * Generates Discord embed payload summarizing all party conditions.
-   */
+  updateHeaderBadge() {
+    if (typeof document === 'undefined') return;
+    const partyBtn = document.getElementById('btn-open-party');
+    if (!partyBtn) return;
+    const state = this.getCampaignState();
+    if (state.isConnected && state.campaignId) {
+      partyBtn.innerHTML = `🛡️ Party <span style="font-size: 10px; font-weight: 900; background: #10b981; color: #fff; padding: 1px 5px; border-radius: 4px; margin-left: 2px;">#${state.campaignId}</span>`;
+      partyBtn.style.borderColor = '#10b981';
+      partyBtn.style.color = '#10b981';
+    } else {
+      partyBtn.innerHTML = `🛡️ Party`;
+      partyBtn.style.borderColor = '';
+      partyBtn.style.color = '';
+    }
+  }
+
+  // =======================================================
+  // DISCORD EMBED GENERATION
+  // =======================================================
   buildPartyDiscordEmbed(campaignName = '') {
     const members = this.getPartyMembers();
-    const titleCampaign = campaignName ? ` - ${campaignName}` : '';
+    const state = this.getCampaignState();
+    const effectiveCampaign = campaignName || state.campaignName || (state.campaignId ? `#${state.campaignId}` : '');
+    const titleCampaign = effectiveCampaign ? ` - ${effectiveCampaign}` : '';
 
     if (members.length === 0) {
       return {
@@ -227,86 +482,120 @@ export class PartyManager {
     return Promise.allSettled(promises);
   }
 
-  /**
-   * Render HTML for the party list
-   */
+  // =======================================================
+  // HTML RENDERING & VIEW SYNCHRONIZATION
+  // =======================================================
   generatePartyHTML() {
     const members = this.getPartyMembers();
-    if (members.length === 0) {
-      return `
-        <div style="padding: 2.5rem 1rem; text-align: center; color: var(--text-muted); font-size: var(--font-size-sm); font-style: italic;">
-          No party members recorded yet. As heroes make rolls, take bruises, or suffer conditions, they will appear here.
+    const state = this.getCampaignState();
+
+    // Top Connection Bar:
+    let connectionBar = '';
+    if (state.isConnected) {
+      connectionBar = `
+        <div style="background: rgba(16, 185, 129, 0.12); border: 1px solid var(--hero-green); border-radius: 6px; padding: 0.6rem 0.85rem; margin-bottom: 0.75rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
+          <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+            <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #10b981; box-shadow: 0 0 6px #10b981;"></span>
+            <strong style="color: var(--text-bright);">${state.campaignName || 'Campaign Room'}</strong>
+            <span style="font-size: 11px; background: rgba(0,0,0,0.15); padding: 2px 7px; border-radius: 4px; font-weight: 800; color: var(--hero-blue);">ID: #${state.campaignId}</span>
+            ${state.pin ? `<span style="font-size: 11px; color: var(--hero-gold); font-weight: 700;">🔒 PIN Protected</span>` : ''}
+            <span style="font-size: 11px; color: var(--text-muted); font-weight: 600;">(${state.isHost ? 'Host' : 'Connected Player'})</span>
+          </div>
+          <button type="button" class="btn btn-outline btn-leave-campaign-room" style="font-size: 11px; font-weight: 700; padding: 0.2rem 0.65rem; color: var(--hero-red); border-color: var(--hero-red);">🚪 Disconnect / Leave</button>
+        </div>
+      `;
+    } else {
+      connectionBar = `
+        <div style="background: var(--bg-card); border: 1px dashed var(--border-color); border-radius: 6px; padding: 0.75rem 0.85rem; margin-bottom: 0.75rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
+          <div>
+            <div style="font-weight: 800; color: var(--text-bright); font-size: var(--font-size-sm);">P2P Campaign Sync: Disconnected</div>
+            <div style="font-size: 11px; color: var(--text-muted);">Create or join a Campaign ID room to sync conditions and alts in real-time.</div>
+          </div>
+          <div style="display: flex; gap: 0.45rem;">
+            <button type="button" class="btn btn-primary btn-trigger-create-campaign" style="font-size: 11px; font-weight: 800; padding: 0.25rem 0.75rem;">➕ Create Campaign</button>
+            <button type="button" class="btn btn-outline btn-trigger-join-campaign" style="font-size: 11px; font-weight: 700; padding: 0.25rem 0.75rem;">🔗 Join Campaign</button>
+          </div>
         </div>
       `;
     }
 
-    return members.map(m => {
-      const isDamaged = m.bruises > 0;
-      const hasConditions = m.conditions && m.conditions.length > 0;
-      
-      const altBadge = m.isAlt && m.activeAltLabel ? `
-        <span style="font-size: 11px; font-weight: 800; background: rgba(139, 92, 246, 0.2); color: var(--hero-purple); padding: 2px 7px; border-radius: 4px; border: 1px solid var(--hero-purple);">
-          ⚡ Active: ${m.activeAltLabel}
-        </span>
-      ` : `
-        <span style="font-size: 11px; font-weight: 700; color: var(--text-muted);">
-          [Primary Hero]
-        </span>
-      `;
-
-      const conditionPills = hasConditions 
-        ? m.conditions.map(c => `
-            <span style="display: inline-block; font-size: 11px; font-weight: 800; padding: 2px 6px; border-radius: 4px; background: rgba(239, 68, 68, 0.18); color: var(--hero-red); border: 1px solid rgba(239, 68, 68, 0.4);">
-              ⚠️ ${c}
-            </span>
-          `).join(' ')
-        : `<span style="font-size: 11px; font-weight: 700; color: var(--hero-green);">✅ Normal / Unimpaired</span>`;
-
-      const toughnessPill = isDamaged
-        ? `<span style="font-size: 12px; font-weight: 800; color: var(--hero-red); background: rgba(239, 68, 68, 0.15); padding: 3px 8px; border-radius: 4px; border: 1px solid var(--hero-red);">
-             💥 Toughness: -${m.bruises} (${m.bruises} Bruise${m.bruises > 1 ? 's' : ''})
-           </span>`
-        : `<span style="font-size: 12px; font-weight: 800; color: var(--hero-green); background: rgba(16, 185, 129, 0.15); padding: 3px 8px; border-radius: 4px; border: 1px solid var(--hero-green);">
-             🛡️ Toughness: Normal (0 Bruises)
-           </span>`;
-
-      return `
-        <div class="party-member-card" style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 0.75rem 1rem; margin-bottom: 0.65rem; display: flex; flex-direction: column; gap: 0.45rem;">
-          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.4rem;">
-            <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
-              <strong style="font-size: 1.05rem; color: var(--text-bright);">${m.characterName}</strong>
-              ${altBadge}
-              <span style="font-size: var(--font-size-xs); color: var(--text-muted); font-weight: 600;">Player: ${m.playerName}</span>
-            </div>
-            <div style="display: flex; align-items: center; gap: 0.6rem;">
-              <span style="font-size: 12px; font-weight: 800; color: var(--hero-gold);">⚡ ${m.heroPoints} HP</span>
-              ${!m.isLocal ? `<button type="button" class="btn-remove-party-member" data-id="${m.id}" style="background: none; border: none; color: var(--hero-red); cursor: pointer; font-size: 12px; font-weight: 700;">✕</button>` : ''}
-            </div>
-          </div>
-          
-          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.6rem; padding-top: 0.2rem;">
-            <div>${toughnessPill}</div>
-            <div style="display: flex; align-items: center; gap: 0.35rem; flex-wrap: wrap;">
-              <span style="font-size: var(--font-size-xs); color: var(--text-muted); font-weight: 700;">Conditions:</span>
-              ${conditionPills}
-            </div>
-            <div style="font-size: 11px; color: var(--text-muted);">
-              Updated: ${m.lastUpdated}
-            </div>
-          </div>
+    let memberCards = '';
+    if (members.length === 0) {
+      memberCards = `
+        <div style="padding: 2.5rem 1rem; text-align: center; color: var(--text-muted); font-size: var(--font-size-sm); font-style: italic;">
+          No party members recorded yet. When heroes connect or suffer conditions, they appear here live.
         </div>
       `;
-    }).join('');
+    } else {
+      memberCards = members.map(m => {
+        const isDamaged = m.bruises > 0;
+        const hasConditions = m.conditions && m.conditions.length > 0;
+        
+        const altBadge = m.isAlt && m.activeAltLabel ? `
+          <span style="font-size: 11px; font-weight: 800; background: rgba(139, 92, 246, 0.2); color: var(--hero-purple); padding: 2px 7px; border-radius: 4px; border: 1px solid var(--hero-purple);">
+            ⚡ Active: ${m.activeAltLabel}
+          </span>
+        ` : `
+          <span style="font-size: 11px; font-weight: 700; color: var(--text-muted);">
+            [Primary Hero]
+          </span>
+        `;
+
+        const conditionPills = hasConditions 
+          ? m.conditions.map(c => `
+              <span style="display: inline-block; font-size: 11px; font-weight: 800; padding: 2px 6px; border-radius: 4px; background: rgba(239, 68, 68, 0.18); color: var(--hero-red); border: 1px solid rgba(239, 68, 68, 0.4);">
+                ⚠️ ${c}
+              </span>
+            `).join(' ')
+          : `<span style="font-size: 11px; font-weight: 700; color: var(--hero-green);">✅ Normal / Unimpaired</span>`;
+
+        const toughnessPill = isDamaged
+          ? `<span style="font-size: 12px; font-weight: 800; color: var(--hero-red); background: rgba(239, 68, 68, 0.15); padding: 3px 8px; border-radius: 4px; border: 1px solid var(--hero-red);">
+               💥 Toughness: -${m.bruises} (${m.bruises} Bruise${m.bruises > 1 ? 's' : ''})
+             </span>`
+          : `<span style="font-size: 12px; font-weight: 800; color: var(--hero-green); background: rgba(16, 185, 129, 0.15); padding: 3px 8px; border-radius: 4px; border: 1px solid var(--hero-green);">
+               🛡️ Toughness: Normal (0 Bruises)
+             </span>`;
+
+        return `
+          <div class="party-member-card" style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 0.75rem 1rem; margin-bottom: 0.65rem; display: flex; flex-direction: column; gap: 0.45rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.4rem;">
+              <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+                <strong style="font-size: 1.05rem; color: var(--text-bright);">${m.characterName}</strong>
+                ${altBadge}
+                <span style="font-size: var(--font-size-xs); color: var(--text-muted); font-weight: 600;">Player: ${m.playerName}</span>
+              </div>
+              <div style="display: flex; align-items: center; gap: 0.6rem;">
+                <span style="font-size: 12px; font-weight: 800; color: var(--hero-gold);">⚡ ${m.heroPoints} HP</span>
+                ${!m.isLocal ? `<button type="button" class="btn-remove-party-member" data-id="${m.id}" title="Remove member" style="background: none; border: none; color: var(--hero-red); cursor: pointer; font-size: 12px; font-weight: 700;">✕</button>` : ''}
+              </div>
+            </div>
+            
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.6rem; padding-top: 0.2rem;">
+              <div>${toughnessPill}</div>
+              <div style="display: flex; align-items: center; gap: 0.35rem; flex-wrap: wrap;">
+                <span style="font-size: var(--font-size-xs); color: var(--text-muted); font-weight: 700;">Conditions:</span>
+                ${conditionPills}
+              </div>
+              <div style="font-size: 11px; color: var(--text-muted);">
+                Updated: ${m.lastUpdated}
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    return connectionBar + memberCards;
   }
 
   renderAllOpenViews() {
-    // Update in-page modal if present
+    this.updateHeaderBadge();
     const container = typeof document !== 'undefined' ? document.getElementById('party-tracker-content') : null;
     if (container) {
       container.innerHTML = this.generatePartyHTML();
       this.wireCardButtons(container);
     }
-    // Update popout window if open
     if (this.popoutWindow && !this.popoutWindow.closed) {
       try {
         const popContainer = this.popoutWindow.document.getElementById('party-tracker-popout-content');
@@ -326,6 +615,29 @@ export class PartyManager {
       btn.addEventListener('click', (e) => {
         const id = e.currentTarget.dataset.id;
         if (id) this.removeMember(id);
+      });
+    });
+
+    parentEl.querySelectorAll('.btn-leave-campaign-room').forEach(btn => {
+      btn.addEventListener('click', () => {
+        this.leaveCampaign();
+        this.renderAllOpenViews();
+      });
+    });
+
+    parentEl.querySelectorAll('.btn-trigger-create-campaign').forEach(btn => {
+      btn.addEventListener('click', () => {
+        if (typeof window !== 'undefined' && window.appController) {
+          window.appController.openCreateCampaignDialog();
+        }
+      });
+    });
+
+    parentEl.querySelectorAll('.btn-trigger-join-campaign').forEach(btn => {
+      btn.addEventListener('click', () => {
+        if (typeof window !== 'undefined' && window.appController) {
+          window.appController.openJoinCampaignDialog();
+        }
       });
     });
   }
@@ -352,7 +664,7 @@ export class PartyManager {
 <head>
   <meta charset="UTF-8">
   <title>Mutants & Masterminds 3E - Party Conditions & Toughness Tracker</title>
-  <link rel="stylesheet" href="css/styles.css?v=3.59">
+  <link rel="stylesheet" href="css/styles.css?v=3.60">
   <style>
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -411,7 +723,7 @@ export class PartyManager {
     ${this.generatePartyHTML()}
   </div>
   <div class="popout-footer-bar">
-    <span style="font-size: 11px; color: var(--text-muted);">Real-time cross-tab and Discord condition sync</span>
+    <span style="font-size: 11px; color: var(--text-muted);">Real-time P2P campaign sync & collision protection</span>
     <div style="display: flex; gap: 0.45rem;">
       <button class="btn btn-outline" id="btn-popout-clear-inactive" style="font-size: 11px; padding: 0.2rem 0.6rem;">Clear Inactive</button>
     </div>
@@ -422,7 +734,7 @@ export class PartyManager {
       if (e.key === 'mm3e_theme' && e.newValue) {
         document.documentElement.setAttribute('data-theme', e.newValue);
       }
-      if (e.key === 'mm3e_party_members') {
+      if (e.key === 'mm3e_party_members' || e.key === 'mm3e_party_campaign_state') {
         if (window.opener && window.opener.partyManager) {
           const c = document.getElementById('party-tracker-popout-content');
           if (c) {
@@ -459,6 +771,11 @@ export class PartyManager {
         window.opener.partyManager.clearInactiveMembers();
       }
     });
+
+    // Wire up dynamic campaign buttons in popout
+    if (window.opener && window.opener.partyManager) {
+      window.opener.partyManager.wireCardButtons(document.getElementById('party-tracker-popout-content'));
+    }
 
     window.addEventListener('beforeunload', () => {
       if (window.opener && window.opener.partyManager) {

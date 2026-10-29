@@ -94,7 +94,10 @@ export class CampaignTrackerManager {
 
   getCampaignState() {
     try {
-      const raw = typeof localStorage !== 'undefined' ? localStorage.getItem(this.campaignStateKey) : this._memoryFallback[this.campaignStateKey];
+      // Use sessionStorage so individual browser tabs (e.g. GM tab vs Player tab) can connect independently
+      const raw = typeof sessionStorage !== 'undefined'
+        ? sessionStorage.getItem(this.campaignStateKey)
+        : (typeof localStorage !== 'undefined' ? localStorage.getItem(this.campaignStateKey) : this._memoryFallback[this.campaignStateKey]);
       return raw ? JSON.parse(raw) : { isConnected: false, campaignId: '', campaignName: '', pin: '', powerLevel: 10, dontEnforcePL: false, isHost: false };
     } catch {
       return { isConnected: false, campaignId: '', campaignName: '', pin: '', powerLevel: 10, dontEnforcePL: false, isHost: false };
@@ -104,11 +107,10 @@ export class CampaignTrackerManager {
   saveCampaignState(state) {
     try {
       const serialized = JSON.stringify(state);
-      if (typeof localStorage !== 'undefined') {
-        localStorage.setItem(this.campaignStateKey, serialized);
-      } else {
-        this._memoryFallback[this.campaignStateKey] = serialized;
+      if (typeof sessionStorage !== 'undefined') {
+        sessionStorage.setItem(this.campaignStateKey, serialized);
       }
+      this._memoryFallback[this.campaignStateKey] = serialized;
       this.updateHeaderBadge();
       this.renderAllOpenViews();
     } catch (e) {
@@ -252,11 +254,21 @@ export class CampaignTrackerManager {
       });
     }
 
+    if (typeof sessionStorage !== 'undefined') {
+      sessionStorage.removeItem(this.campaignStateKey);
+      sessionStorage.removeItem(this.storageKey);
+    }
+    if (typeof localStorage !== 'undefined') {
+      localStorage.removeItem(this.campaignStateKey);
+    }
+
     this.saveCampaignState({
       isConnected: false,
       campaignId: '',
       campaignName: '',
       pin: '',
+      powerLevel: 10,
+      dontEnforcePL: false,
       isHost: false
     });
 
@@ -327,7 +339,9 @@ export class CampaignTrackerManager {
   // =======================================================
   getPartyMembers() {
     try {
-      const raw = typeof localStorage !== 'undefined' ? localStorage.getItem(this.storageKey) : this._memoryFallback[this.storageKey];
+      const raw = typeof sessionStorage !== 'undefined'
+        ? sessionStorage.getItem(this.storageKey)
+        : (typeof localStorage !== 'undefined' ? localStorage.getItem(this.storageKey) : this._memoryFallback[this.storageKey]);
       return raw ? JSON.parse(raw) : [];
     } catch (e) {
       console.warn('Failed to parse party members:', e);
@@ -338,11 +352,10 @@ export class CampaignTrackerManager {
   savePartyMembers(members) {
     try {
       const serialized = JSON.stringify(members);
-      if (typeof localStorage !== 'undefined') {
-        localStorage.setItem(this.storageKey, serialized);
-      } else {
-        this._memoryFallback[this.storageKey] = serialized;
+      if (typeof sessionStorage !== 'undefined') {
+        sessionStorage.setItem(this.storageKey, serialized);
       }
+      this._memoryFallback[this.storageKey] = serialized;
       this.renderAllOpenViews();
     } catch (e) {
       console.error('Failed to save party members:', e);
@@ -353,7 +366,17 @@ export class CampaignTrackerManager {
     if (!char) return;
 
     const baseHero = primaryChar || char;
-    const heroId = baseHero.id || 'hero_local';
+    if (!baseHero.id) {
+      if (typeof sessionStorage !== 'undefined' && sessionStorage.getItem('mm3e_tab_hero_id')) {
+        baseHero.id = sessionStorage.getItem('mm3e_tab_hero_id');
+      } else {
+        baseHero.id = 'hero_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
+        if (typeof sessionStorage !== 'undefined') {
+          sessionStorage.setItem('mm3e_tab_hero_id', baseHero.id);
+        }
+      }
+    }
+    const heroId = baseHero.id;
     const isAltActive = !!activeAltId && char.id !== baseHero.id;
 
     const conditions = [];
@@ -534,7 +557,7 @@ export class CampaignTrackerManager {
     const fields = members.map(m => {
       const altTag = m.isAlt && m.activeAltLabel ? ` [${m.activeAltLabel}]` : '';
       const toughText = m.bruises > 0 
-        ? `💥 **Toughness -${m.bruises}** (${m.bruises} Bruise${m.bruises > 1 ? 's' : ''})` 
+        ? `💥 **Toughness -${m.bruises} Penalty**` 
         : `🛡️ **Toughness Normal**`;
 
       const condList = m.conditions && m.conditions.length > 0 
@@ -662,10 +685,10 @@ export class CampaignTrackerManager {
 
         const toughnessPill = isDamaged
           ? `<span style="font-size: 12px; font-weight: 800; color: var(--hero-red); background: rgba(239, 68, 68, 0.15); padding: 3px 8px; border-radius: 4px; border: 1px solid var(--hero-red);">
-               💥 Toughness: -${m.bruises} (${m.bruises} Bruise${m.bruises > 1 ? 's' : ''})
+               💥 Toughness: -${m.bruises} Penalty
              </span>`
           : `<span style="font-size: 12px; font-weight: 800; color: var(--hero-green); background: rgba(16, 185, 129, 0.15); padding: 3px 8px; border-radius: 4px; border: 1px solid var(--hero-green);">
-               🛡️ Toughness: Normal (0 Bruises)
+               🛡️ Toughness: Normal (No Penalty)
              </span>`;
 
         return `

@@ -2499,7 +2499,7 @@ window.partyManager = partyManager;
       }).then(async pin => {
         // Always confirm before joining:
         const confirmed = await this.showConfirmDialog(
-          `Are you sure you want to connect "${charName}" (PL ${charPL}) to campaign "${campName}" (ID: #${cleanCampId}, PL ${campPL})?\n\nYour character's conditions, bruises, and active alt status will be live-synced with the campaign party.`,
+          `Are you sure you want to connect "${charName}" (PL ${charPL}) to campaign "${campName}" (ID: #${cleanCampId}, PL ${campPL})?\n\nYour character's conditions, toughness penalty, and active alt status will be live-synced with the campaign party.`,
           {
             title: 'Confirm Join Campaign',
             confirmText: 'Join Campaign',
@@ -2526,7 +2526,7 @@ window.partyManager = partyManager;
 
           partyManager.updateCurrentPlayer(this.char, this.primaryChar, this.activeAltId);
           await this.showAlertDialog(
-            `"${charName}" successfully connected to Campaign "${joined.campaignName}" (#${joined.campaignId})!\n\nYour hero conditions, bruises, and active alt status are now live synced with the party.`,
+            `"${charName}" successfully connected to Campaign "${joined.campaignName}" (#${joined.campaignId})!\n\nYour hero conditions, toughness penalty, and active alt status are now live synced with the party.`,
             { title: 'Connected to Campaign' }
           );
           partyManager.renderAllOpenViews();
@@ -4347,7 +4347,7 @@ window.partyManager = partyManager;
           if (mods.dodgeParryPenalty !== 0) modNotes.push(`${mods.dodgeParryPenalty}`);
         } else if (def.id === 'toughness') {
           effScore = Math.max(0, baseScore + mods.toughnessPenalty);
-          if (mods.bruiseCount > 0) modNotes.push(`-${mods.bruiseCount} Bruises`);
+          if (mods.bruiseCount > 0) modNotes.push(`-${mods.bruiseCount} Toughness Penalty`);
           if (mods.checkPenalty !== 0) modNotes.push(`${mods.checkPenalty} Cond`);
         } else {
           effScore = baseScore + mods.checkPenalty;

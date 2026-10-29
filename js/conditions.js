@@ -51,7 +51,7 @@ export function calculateConditionModifiers(conditions = {}, bruises = 0) {
   const toughnessPenalty = -bruiseCount + checkPenalty;
 
   const notes = [];
-  if (bruiseCount > 0) notes.push(`-${bruiseCount} Bruises`);
+  if (bruiseCount > 0) notes.push(`-${bruiseCount} Toughness Penalty`);
   if (conditions.disabled) notes.push('-5 Disabled');
   else if (conditions.impaired) notes.push('-2 Impaired');
   if (isClumsy) notes.push('-2 Clumsy');

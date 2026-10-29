@@ -6,8 +6,9 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Mutants & Masterminds 3E - Character Editor v3.64</title>
-  <link rel="stylesheet" href="css/styles.css?v=3.64">
+  <title>Mutants & Masterminds 3E - Character Editor v3.65</title>
+  <link rel="stylesheet" href="css/styles.css?v=3.65">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
@@ -80,11 +81,17 @@
 
           <div class="brand-title-centered">
             <span>Mutants & Masterminds 3E Character Editor</span>
-            <span id="header-version-tag" class="header-version-tag up-to-date" title="Current Version">v3.64</span>
+            <span id="header-version-tag" class="header-version-tag up-to-date" title="Current Version">v3.65</span>
             <button type="button" id="btn-header-update-alert" class="btn-header-update-alert" title="Check for updates / Update status" style="display: none;">!</button>
           </div>
 
-          <div class="header-right-spacer" style="width: 95px;" aria-hidden="true"></div>
+          <div class="header-account-area" style="display: flex; align-items: center; justify-content: flex-end; gap: 0.5rem; min-width: 140px;">
+            <button type="button" id="btn-header-auth" class="btn btn-outline" style="font-size: 11px; padding: 2px 9px; font-weight: 700; border-color: var(--hero-blue); color: var(--hero-blue);">👤 Sign In / Register</button>
+            <div id="header-user-badge" style="display: none; align-items: center; gap: 0.35rem; font-size: 11px; font-weight: 700; color: var(--hero-blue);">
+              <span class="user-avatar">👤</span> <span id="header-username-label">User</span>
+              <button type="button" id="btn-header-logout" title="Sign Out" style="background: none; border: none; color: var(--hero-red); cursor: pointer; font-size: 11px; font-weight: 700; padding: 0 3px;">(Sign Out)</button>
+            </div>
+          </div>
         </div>
 
         <!-- ROW 2: Shifted Downwards: Player | Character | Alt Button | Campaign | Active Alt Badge -->
@@ -1603,6 +1610,114 @@
     </div>
   </div>
 
-  <script type="module" src="js/app.js?v=3.64"></script>
+  <!-- ======================================================= -->
+  <!-- MODAL: SUPABASE USER AUTHENTICATION & PASSWORD RESET     -->
+  <!-- ======================================================= -->
+  <div class="modal-overlay" id="modal-auth">
+    <div class="modal-container" style="max-width: 440px;">
+      <div class="modal-header-bar">
+        <div class="modal-header-title" id="auth-modal-title">🔐 Cloud Account &amp; Login</div>
+        <button class="btn btn-outline" id="btn-close-auth-modal" style="min-height: 28px; padding: 0.1rem 0.5rem;">✕</button>
+      </div>
+      <div class="modal-scroll-body" style="padding: 1.25rem;">
+        <!-- Auth Tabs: Sign In | Register | Forgot Password -->
+        <div style="display: flex; gap: 0.5rem; margin-bottom: 1.15rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem;">
+          <button type="button" class="btn btn-outline auth-tab-btn active" id="tab-btn-signin" style="flex: 1; font-size: 11px; font-weight: 800;">Sign In</button>
+          <button type="button" class="btn btn-outline auth-tab-btn" id="tab-btn-signup" style="flex: 1; font-size: 11px; font-weight: 800;">Create Account</button>
+          <button type="button" class="btn btn-outline auth-tab-btn" id="tab-btn-forgot" style="flex: 1; font-size: 11px; font-weight: 800;">Forgot Password</button>
+        </div>
+
+        <!-- Form: Sign In -->
+        <div id="auth-form-signin" class="auth-subform">
+          <div style="margin-bottom: 0.85rem;">
+            <label class="field-label" style="display: block; margin-bottom: 0.3rem;">Email Address:</label>
+            <input type="email" id="auth-signin-email" class="header-field-input" placeholder="you@example.com" style="width: 100%; font-size: 13px;">
+          </div>
+          <div style="margin-bottom: 1rem;">
+            <label class="field-label" style="display: block; margin-bottom: 0.3rem;">Password:</label>
+            <input type="password" id="auth-signin-password" class="header-field-input" placeholder="••••••••" style="width: 100%; font-size: 13px;">
+          </div>
+          <button type="button" class="btn btn-primary" id="btn-submit-signin" style="width: 100%; font-weight: 800; padding: 0.45rem;">Sign In</button>
+        </div>
+
+        <!-- Form: Create Account -->
+        <div id="auth-form-signup" class="auth-subform" style="display: none;">
+          <div style="margin-bottom: 0.85rem;">
+            <label class="field-label" style="display: block; margin-bottom: 0.3rem;">Unique Username (visible to GM &amp; party):</label>
+            <input type="text" id="auth-signup-username" class="header-field-input" placeholder="e.g. CaptainCosmo" style="width: 100%; font-size: 13px;">
+          </div>
+          <div style="margin-bottom: 0.85rem;">
+            <label class="field-label" style="display: block; margin-bottom: 0.3rem;">Email Address:</label>
+            <input type="email" id="auth-signup-email" class="header-field-input" placeholder="you@example.com" style="width: 100%; font-size: 13px;">
+          </div>
+          <div style="margin-bottom: 1rem;">
+            <label class="field-label" style="display: block; margin-bottom: 0.3rem;">Password (min 6 characters):</label>
+            <input type="password" id="auth-signup-password" class="header-field-input" placeholder="••••••••" style="width: 100%; font-size: 13px;">
+          </div>
+          <button type="button" class="btn btn-primary" id="btn-submit-signup" style="width: 100%; font-weight: 800; padding: 0.45rem;">Create Account</button>
+        </div>
+
+        <!-- Form: Forgot Password -->
+        <div id="auth-form-forgot" class="auth-subform" style="display: none;">
+          <p style="font-size: 12px; color: var(--text-muted); line-height: 1.4; margin-bottom: 0.85rem;">
+            Enter your account email. We will send you an official password-reset link to securely regain access to your account and campaigns.
+          </p>
+          <div style="margin-bottom: 1rem;">
+            <label class="field-label" style="display: block; margin-bottom: 0.3rem;">Registered Email Address:</label>
+            <input type="email" id="auth-forgot-email" class="header-field-input" placeholder="you@example.com" style="width: 100%; font-size: 13px;">
+          </div>
+          <button type="button" class="btn btn-primary" id="btn-submit-forgot" style="width: 100%; font-weight: 800; padding: 0.45rem;">Send Password Reset Link</button>
+        </div>
+
+        <!-- Status / Error message display -->
+        <div id="auth-status-msg" style="display: none; margin-top: 0.85rem; font-size: 12px; font-weight: 700; padding: 0.45rem 0.65rem; border-radius: 4px;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================= -->
+  <!-- MODAL: GM JOIN REQUESTS & APPROVAL QUEUE                 -->
+  <!-- ======================================================= -->
+  <div class="modal-overlay" id="modal-join-requests">
+    <div class="modal-container" style="max-width: 650px;">
+      <div class="modal-header-bar">
+        <div class="modal-header-title">🛡️ Campaign Join Requests (Creator Approval)</div>
+        <button class="btn btn-outline" id="btn-close-join-requests" style="min-height: 28px; padding: 0.1rem 0.5rem;">✕</button>
+      </div>
+      <div class="modal-scroll-body" style="padding: 1.25rem;">
+        <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 0.85rem;">
+          As campaign creator, you have sole authority over membership. Players requesting to join appear below. Review their hero sheet and approve or decline their entry.
+        </p>
+        <div id="join-requests-list-container">
+          <div style="text-align: center; color: var(--text-muted); font-size: 12px; font-style: italic; padding: 1.5rem 0;">
+            No pending join requests for this campaign.
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer-bar">
+        <button type="button" class="btn btn-outline" id="btn-close-join-requests-footer">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================= -->
+  <!-- MODAL: GM CHARACTER SHEET INSPECTOR                      -->
+  <!-- ======================================================= -->
+  <div class="modal-overlay" id="modal-character-inspector">
+    <div class="modal-container" style="width: 95%; max-width: 980px; max-height: 90vh; display: flex; flex-direction: column;">
+      <div class="modal-header-bar">
+        <div class="modal-header-title" id="inspector-hero-title">👁️ Character Sheet Inspector</div>
+        <button class="btn btn-outline" id="btn-close-character-inspector" style="min-height: 28px; padding: 0.1rem 0.5rem;">✕</button>
+      </div>
+      <div class="modal-scroll-body" id="inspector-hero-content" style="padding: 1.25rem; flex: 1; overflow-y: auto;">
+        <!-- Dynamically rendered full character sheet breakdown -->
+      </div>
+      <div class="modal-footer-bar">
+        <button type="button" class="btn btn-outline" id="btn-close-inspector-footer">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="js/app.js?v=3.65"></script>
 </body>
 </html>

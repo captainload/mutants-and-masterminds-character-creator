@@ -1,9 +1,113 @@
 /**
  * Mutants & Masterminds 3E - Party Conditions & Toughness Tracker
  * Tracks conditions, bruises (toughness penalties), active forms/alts, and Hero Points
- * across party members. Supports P2P Campaign synchronization, collision checks,
- * campaign PIN isolation, and prevents creating new campaigns while connected.
+ * across party members. Supports Cloud Campaign synchronization via Supabase,
+ * GM join approval queues, character sheet inspection, and P2P fallback.
  */
+
+import { supabaseService } from './supabase_client.js';
+
+export function formatCharacterSheetHTML(char) {
+  if (!char) return '<div style="padding:1rem;color:var(--text-muted);">No character data available.</div>';
+  const abilities = char.abilities || {};
+  const defenses = char.defenses || {};
+  const skills = Array.isArray(char.skills) ? char.skills : [];
+  const advantages = Array.isArray(char.advantages) ? char.advantages : [];
+  const powers = Array.isArray(char.powers) ? char.powers : [];
+  const gear = Array.isArray(char.gear) ? char.gear : [];
+
+  const abilityKeys = ['str', 'sta', 'agi', 'dex', 'fgt', 'int', 'awe', 'pre'];
+  const abilityNames = { str: 'Strength', sta: 'Stamina', agi: 'Agility', dex: 'Dexterity', fgt: 'Fighting', int: 'Intellect', awe: 'Awareness', pre: 'Presence' };
+
+  return `
+    <div class="sheet-inspector-body" style="font-size: 13px; color: var(--text-main); display: flex; flex-direction: column; gap: 1rem;">
+      <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 6px; padding: 0.75rem 1rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;">
+        <div>
+          <div style="font-size: 1.25rem; font-weight: 800; color: var(--text-bright);">${char.name || 'Unnamed Hero'}</div>
+          <div style="font-size: 11px; color: var(--text-muted);">${char.concept || 'Custom Superhero'} • Player: <strong>${char.playerName || char.player || 'Player'}</strong></div>
+        </div>
+        <div style="display: flex; gap: 0.5rem; align-items: center;">
+          <span style="font-size: 12px; font-weight: 800; background: rgba(59, 130, 246, 0.15); color: var(--hero-blue); padding: 3px 8px; border-radius: 4px; border: 1px solid var(--hero-blue);">PL ${char.powerLevel || 10}</span>
+          <span style="font-size: 12px; font-weight: 800; background: rgba(234, 179, 8, 0.15); color: var(--hero-gold); padding: 3px 8px; border-radius: 4px; border: 1px solid var(--hero-gold);">${char.totalSpentPP || char.powerPointsBudget || 150} PP</span>
+        </div>
+      </div>
+
+      <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 6px; padding: 0.75rem 1rem;">
+        <div style="font-weight: 800; color: var(--hero-gold); font-size: 12px; text-transform: uppercase; margin-bottom: 0.5rem;">Abilities</div>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(90px, 1fr)); gap: 0.5rem; text-align: center;">
+          ${abilityKeys.map(k => `
+            <div style="background: var(--bg-input); border: 1px solid var(--border-color); border-radius: 4px; padding: 0.35rem;">
+              <div style="font-size: 10px; color: var(--text-muted); font-weight: 700; text-transform: uppercase;">${k}</div>
+              <div style="font-size: 1.15rem; font-weight: 800; color: var(--text-bright);">${abilities[k] ?? 0}</div>
+              <div style="font-size: 9px; color: var(--text-muted);">${abilityNames[k]}</div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+
+      <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 6px; padding: 0.75rem 1rem;">
+        <div style="font-weight: 800; color: var(--hero-blue); font-size: 12px; text-transform: uppercase; margin-bottom: 0.5rem;">Defenses</div>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 0.5rem; text-align: center;">
+          ${Object.entries({ Dodge: defenses.dodge ?? 0, Parry: defenses.parry ?? 0, Fortitude: defenses.fortitude ?? 0, Toughness: defenses.toughness ?? 0, Will: defenses.will ?? 0 }).map(([name, val]) => `
+            <div style="background: var(--bg-input); border: 1px solid var(--border-color); border-radius: 4px; padding: 0.35rem;">
+              <div style="font-size: 10px; color: var(--text-muted); font-weight: 700; text-transform: uppercase;">${name}</div>
+              <div style="font-size: 1.15rem; font-weight: 800; color: var(--text-bright);">${val}</div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+
+      <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 6px; padding: 0.75rem 1rem;">
+        <div style="font-weight: 800; color: var(--hero-purple); font-size: 12px; text-transform: uppercase; margin-bottom: 0.5rem;">Powers (${powers.length})</div>
+        ${powers.length === 0 ? '<div style="color:var(--text-muted);font-style:italic;font-size:11px;">No powers recorded.</div>' : powers.map(p => `
+          <div style="background: var(--bg-input); border: 1px solid var(--border-color); border-radius: 4px; padding: 0.45rem 0.65rem; margin-bottom: 0.4rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.4rem;">
+            <div>
+              <strong style="color: var(--text-bright); font-size: 12px;">${p.name || 'Power'}</strong>
+              <span style="font-size: 11px; color: var(--hero-gold); font-weight: 700;">Rank ${p.rank ?? 0}</span>
+              ${p.descriptors ? `<span style="font-size: 10px; color: var(--text-muted);">[${p.descriptors}]</span>` : ''}
+              ${p.cost ? `<span style="font-size: 10px; color: var(--hero-green); font-weight: 700;">(${p.cost} PP)</span>` : ''}
+            </div>
+            ${p.summary ? `<div style="font-size: 11px; color: var(--text-muted); width: 100%;">${p.summary}</div>` : ''}
+          </div>
+        `).join('')}
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 0.75rem;">
+        <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 6px; padding: 0.75rem 1rem;">
+          <div style="font-weight: 800; color: var(--hero-green); font-size: 12px; text-transform: uppercase; margin-bottom: 0.5rem;">Skills (${skills.length})</div>
+          ${skills.length === 0 ? '<div style="color:var(--text-muted);font-style:italic;font-size:11px;">No skills recorded.</div>' : skills.map(s => `
+            <div style="display: flex; justify-content: space-between; font-size: 11px; padding: 2px 0; border-bottom: 1px dashed rgba(255,255,255,0.08);">
+              <span>${s.name || s.id} ${s.specialization ? `(${s.specialization})` : ''}</span>
+              <strong style="color: var(--text-bright);">+${s.totalBonus ?? (s.ranks ?? 0)}</strong>
+            </div>
+          `).join('')}
+        </div>
+
+        <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 6px; padding: 0.75rem 1rem;">
+          <div style="font-weight: 800; color: var(--hero-blue); font-size: 12px; text-transform: uppercase; margin-bottom: 0.5rem;">Advantages (${advantages.length})</div>
+          ${advantages.length === 0 ? '<div style="color:var(--text-muted);font-style:italic;font-size:11px;">No advantages recorded.</div>' : `
+            <div style="display: flex; flex-wrap: wrap; gap: 0.35rem;">
+              ${advantages.map(a => `
+                <span style="font-size: 11px; background: var(--bg-input); border: 1px solid var(--border-color); padding: 2px 6px; border-radius: 4px; color: var(--text-bright);">
+                  ${typeof a === 'string' ? a : (a.name + (a.rank > 1 ? ` ${a.rank}` : ''))}
+                </span>
+              `).join('')}
+            </div>
+          `}
+        </div>
+      </div>
+
+      ${gear.length > 0 ? `
+        <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 6px; padding: 0.75rem 1rem;">
+          <div style="font-weight: 800; color: var(--hero-gold); font-size: 12px; text-transform: uppercase; margin-bottom: 0.5rem;">Equipment & Gear (${gear.length})</div>
+          <div style="display: flex; flex-wrap: wrap; gap: 0.35rem;">
+            ${gear.map(g => `<span style="font-size: 11px; background: var(--bg-input); border: 1px solid var(--border-color); padding: 2px 6px; border-radius: 4px;">${typeof g === 'string' ? g : g.name}</span>`).join('')}
+          </div>
+        </div>
+      ` : ''}
+    </div>
+  `;
+}
 
 export class CampaignTrackerManager {
   constructor() {
@@ -757,6 +861,7 @@ export class CampaignTrackerManager {
       conditions,
       heroPoints: char.heroPoints ?? 1,
       powerLevel: char.powerLevel || 10,
+      characterData: baseHero,
       isLocal: true,
       lastUpdated: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
       timestampMs: Date.now()
@@ -982,6 +1087,7 @@ export class CampaignTrackerManager {
                   ${[6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20].map(pl => `<option value="${pl}" ${(state.powerLevel || 10) === pl ? 'selected' : ''}>PL ${pl}</option>`).join('')}
                 </select>
               </div>
+              <button type="button" class="btn btn-outline btn-open-join-requests" style="font-size: 11px; font-weight: 700; color: var(--hero-blue); border-color: var(--hero-blue); padding: 1px 8px; margin-left: 0.35rem; cursor: pointer;">🔔 Join Requests</button>
             </div>
           ` : `
             <div style="margin-top: 0.35rem; font-size: 11px; color: var(--text-muted);">
@@ -1083,8 +1189,9 @@ export class CampaignTrackerManager {
                 ${altBadge}
                 <span style="font-size: var(--font-size-xs); color: var(--text-muted); font-weight: 600;">Player: ${m.playerName}</span>
               </div>
-              <div style="display: flex; align-items: center; gap: 0.6rem;">
+              <div style="display: flex; align-items: center; gap: 0.5rem;">
                 <span style="font-size: 12px; font-weight: 800; color: var(--hero-gold);">⚡ ${m.heroPoints} HP</span>
+                <button type="button" class="btn btn-outline btn-inspect-member-sheet" data-memberid="${m.id}" title="Inspect full character sheet" style="font-size: 11px; font-weight: 700; color: var(--hero-blue); border-color: var(--hero-blue); padding: 1px 7px; cursor: pointer;">👁️ View Sheet</button>
                 ${!m.isLocal ? `<button type="button" class="btn-remove-party-member" data-id="${m.id}" title="Remove member" style="background: none; border: none; color: var(--hero-red); cursor: pointer; font-size: 12px; font-weight: 700;">✕</button>` : ''}
               </div>
             </div>
@@ -1244,6 +1351,24 @@ export class CampaignTrackerManager {
       });
     });
 
+    parentEl.querySelectorAll('.btn-open-join-requests').forEach(btn => {
+      btn.addEventListener('click', () => {
+        if (typeof window !== 'undefined' && window.appController) {
+          window.appController.openJoinRequestsModal();
+        }
+      });
+    });
+
+    parentEl.querySelectorAll('.btn-inspect-member-sheet').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const id = e.currentTarget.dataset.memberid;
+        const member = this.getPartyMembers().find(m => m.id === id);
+        if (member && typeof window !== 'undefined' && window.appController) {
+          window.appController.openCharacterInspectorModal(member.characterData || member);
+        }
+      });
+    });
+
     parentEl.querySelectorAll('.btn-detach-current-char').forEach(btn => {
       btn.addEventListener('click', () => {
         if (typeof window !== 'undefined' && window.appController) {
@@ -1303,7 +1428,7 @@ export class CampaignTrackerManager {
 <head>
   <meta charset="UTF-8">
   <title>Mutants & Masterminds 3E - Party Conditions & Toughness Tracker</title>
-  <link rel="stylesheet" href="css/styles.css?v=3.64">
+  <link rel="stylesheet" href="css/styles.css?v=3.65">
   <style>
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;

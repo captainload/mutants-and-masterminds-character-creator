@@ -1,6 +1,6 @@
 {
-  "version": "3.64",
-  "updatedAt": "2026-10-29T21:28:00.000Z",
-  "releaseNotes": "Campaigns: Disconnect users and GM when app closes; prevent GM loaded characters from automatically joining running campaign party; add Start/End Game Session button for GMs; manual character attach/detach options; and prefill last participated campaign name when joining.",
+  "version": "3.65",
+  "updatedAt": "2026-10-29T22:38:00.000Z",
+  "releaseNotes": "Campaigns: Integrated Supabase cloud authentication, unique username enforcement, email password resets, strict campaign name collision prevention, GM join approval queue workflow, and full character sheet inspection for party members.",
   "updated": "2026-10-29"
 }

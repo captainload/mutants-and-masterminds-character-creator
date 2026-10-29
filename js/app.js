@@ -41,10 +41,11 @@ import {
   tablesManager
 } from './tables.js';
 
-import { POWER_PROFILES_LIBRARY } from './power_profiles.js?v=3.64';
+import { POWER_PROFILES_LIBRARY } from './power_profiles.js?v=3.65';
 import { ARCHETYPES } from './archetypes.js';
 import { archetypeManager } from './archetype_window.js';
-import { campaignManager, partyManager } from './party.js';
+import { campaignManager, partyManager, formatCharacterSheetHTML } from './party.js';
+import { supabaseService } from './supabase_client.js';
 import { ARCHETYPE_CUSTOMIZATION_OPTIONS, buildCustomizedArchetype } from './archetype_builder.js';
 import { diceRoller } from './dice.js';
 import { DiscordConfig, discordIntegrator } from './discord.js';
@@ -85,6 +86,7 @@ class AppController {
     this.initFontSize();
     this.initTheme();
     this.setupHeaderBindings();
+    this.setupAuthBindings();
     this.setupNavigation();
     this.setupDiceRollerBar();
     this.setupTables();
@@ -1996,7 +1998,7 @@ window.partyManager = partyManager;
   }
 
   async checkForUpdates({ isManual = false } = {}) {
-    const CURRENT_VERSION = '3.64';
+    const CURRENT_VERSION = '3.65';
     const versionEl = document.getElementById('header-version-tag');
     const updateBtn = document.getElementById('btn-header-update-alert');
     if (typeof window === 'undefined' || !window.location || !window.location.href || window.location.href === 'about:blank') return;
@@ -2091,6 +2093,10 @@ window.partyManager = partyManager;
     });
 
     // Close any modal when clicking outside on the backdrop overlay
+    document.getElementById('btn-close-join-requests')?.addEventListener('click', () => this.closeModal('modal-join-requests'));
+    document.getElementById('btn-close-join-requests-footer')?.addEventListener('click', () => this.closeModal('modal-join-requests'));
+    document.getElementById('btn-close-character-inspector')?.addEventListener('click', () => this.closeModal('modal-character-inspector'));
+    document.getElementById('btn-close-inspector-footer')?.addEventListener('click', () => this.closeModal('modal-character-inspector'));
     document.querySelectorAll('.modal-overlay').forEach(overlay => {
       overlay.addEventListener('click', (e) => {
         if (e.target === overlay) {
@@ -2443,6 +2449,159 @@ window.partyManager = partyManager;
   }
 
   // =======================================================
+  // SUPABASE USER AUTHENTICATION & PASSWORD RECOVERY
+  // =======================================================
+  setupAuthBindings() {
+    const authBtn = document.getElementById('btn-header-auth');
+    const userBadge = document.getElementById('header-user-badge');
+    const usernameLabel = document.getElementById('header-username-label');
+    const logoutBtn = document.getElementById('btn-header-logout');
+    const authCloseBtn = document.getElementById('btn-close-auth-modal');
+
+    if (authBtn) {
+      authBtn.addEventListener('click', () => this.openModal('modal-auth'));
+    }
+    if (authCloseBtn) {
+      authCloseBtn.addEventListener('click', () => this.closeModal('modal-auth'));
+    }
+    if (logoutBtn) {
+      logoutBtn.addEventListener('click', async () => {
+        await supabaseService.signOut();
+        await this.showAlertDialog('You have been signed out.', { title: 'Signed Out' });
+      });
+    }
+
+    // Modal Tabs
+    const tabSignin = document.getElementById('tab-btn-signin');
+    const tabSignup = document.getElementById('tab-btn-signup');
+    const tabForgot = document.getElementById('tab-btn-forgot');
+    const formSignin = document.getElementById('auth-form-signin');
+    const formSignup = document.getElementById('auth-form-signup');
+    const formForgot = document.getElementById('auth-form-forgot');
+    const statusMsg = document.getElementById('auth-status-msg');
+
+    const showTab = (activeTab, activeForm) => {
+      [tabSignin, tabSignup, tabForgot].forEach(t => t?.classList.remove('active'));
+      [formSignin, formSignup, formForgot].forEach(f => { if (f) f.style.display = 'none'; });
+      activeTab?.classList.add('active');
+      if (activeForm) activeForm.style.display = 'block';
+      if (statusMsg) { statusMsg.style.display = 'none'; statusMsg.textContent = ''; }
+    };
+
+    tabSignin?.addEventListener('click', () => showTab(tabSignin, formSignin));
+    tabSignup?.addEventListener('click', () => showTab(tabSignup, formSignup));
+    tabForgot?.addEventListener('click', () => showTab(tabForgot, formForgot));
+
+    const showAuthStatus = (msg, isError = false) => {
+      if (!statusMsg) return;
+      statusMsg.style.display = 'block';
+      statusMsg.textContent = msg;
+      statusMsg.style.background = isError ? 'rgba(239, 68, 68, 0.15)' : 'rgba(16, 185, 129, 0.15)';
+      statusMsg.style.color = isError ? 'var(--hero-red)' : 'var(--hero-green)';
+      statusMsg.style.border = `1px solid ${isError ? 'var(--hero-red)' : 'var(--hero-green)'}`;
+    };
+
+    // Submit Sign In
+    document.getElementById('btn-submit-signin')?.addEventListener('click', async () => {
+      const email = document.getElementById('auth-signin-email')?.value.trim();
+      const password = document.getElementById('auth-signin-password')?.value;
+      if (!email || !password) {
+        showAuthStatus('Please enter your email and password.', true);
+        return;
+      }
+      try {
+        await supabaseService.signIn({ email, password });
+        showAuthStatus('Signed in successfully!', false);
+        setTimeout(() => {
+          this.closeModal('modal-auth');
+        }, 600);
+      } catch (err) {
+        showAuthStatus(err.message || 'Failed to sign in.', true);
+      }
+    });
+
+    // Submit Sign Up
+    document.getElementById('btn-submit-signup')?.addEventListener('click', async () => {
+      const username = document.getElementById('auth-signup-username')?.value.trim();
+      const email = document.getElementById('auth-signup-email')?.value.trim();
+      const password = document.getElementById('auth-signup-password')?.value;
+      if (!username || !email || !password) {
+        showAuthStatus('Please enter a username, email, and password.', true);
+        return;
+      }
+      if (password.length < 6) {
+        showAuthStatus('Password must be at least 6 characters.', true);
+        return;
+      }
+      try {
+        await supabaseService.signUp({ email, password, username });
+        showAuthStatus('Account created! Please check your email to confirm registration or sign in.', false);
+        setTimeout(() => {
+          this.closeModal('modal-auth');
+        }, 1200);
+      } catch (err) {
+        showAuthStatus(err.message || 'Failed to create account.', true);
+      }
+    });
+
+    // Submit Forgot Password
+    document.getElementById('btn-submit-forgot')?.addEventListener('click', async () => {
+      const email = document.getElementById('auth-forgot-email')?.value.trim();
+      if (!email) {
+        showAuthStatus('Please enter your registered email address.', true);
+        return;
+      }
+      try {
+        await supabaseService.resetPasswordForEmail(email);
+        showAuthStatus('Password reset link sent! Check your email inbox.', false);
+      } catch (err) {
+        showAuthStatus(err.message || 'Failed to send reset link.', true);
+      }
+    });
+
+    // Check Password Recovery URL Hash
+    if (typeof window !== 'undefined' && window.location?.hash?.includes('type=recovery')) {
+      setTimeout(async () => {
+        const newPass = await this.showPromptDialog({
+          title: 'Reset Password',
+          label: 'Enter your new password (minimum 6 characters):',
+          defaultValue: '',
+          placeholder: 'New secure password',
+          confirmText: 'Set Password'
+        });
+        if (newPass && newPass.length >= 6) {
+          try {
+            await supabaseService.updateUserPassword(newPass);
+            await this.showAlertDialog('Your password has been updated successfully! You are now logged in.', { title: 'Password Updated' });
+            window.location.hash = '';
+          } catch (err) {
+            await this.showAlertDialog(err.message || 'Failed to update password.', { title: 'Error' });
+          }
+        }
+      }, 500);
+    }
+
+    // Auth State Observer
+    supabaseService.onAuthStateChange((user) => {
+      if (user) {
+        if (authBtn) authBtn.style.display = 'none';
+        if (userBadge) userBadge.style.display = 'flex';
+        const uname = supabaseService.getUsername();
+        if (usernameLabel) usernameLabel.textContent = uname;
+        const pInput = document.getElementById('header-player-name');
+        if (pInput && !pInput.value.trim()) {
+          pInput.value = uname;
+          this.char.playerName = uname;
+          this.saveAndAudit();
+        }
+      } else {
+        if (authBtn) authBtn.style.display = 'inline-block';
+        if (userBadge) userBadge.style.display = 'none';
+      }
+    });
+  }
+
+  // =======================================================
   // ATTACHED CHARACTER SELECTION & ACTIVE SESSION DETECTION
   // =======================================================
   async checkOfferLoadAttachedCharacter(campaignId, campaignName) {
@@ -2552,14 +2711,28 @@ window.partyManager = partyManager;
           defaultValue: '',
           placeholder: 'e.g. 1234 (or leave blank for open)',
           confirmText: 'Create & Connect'
-        }).then(pin => {
+        }).then(async pin => {
           try {
+            // If logged into Supabase, create in cloud database (enforces unique campaign name & creator ownership)
+            if (supabaseService.isLoggedIn()) {
+              try {
+                await supabaseService.createCampaign({
+                  name: campName.trim(),
+                  powerLevel: campPL,
+                  dontEnforcePL: false
+                });
+              } catch (cloudErr) {
+                await this.showAlertDialog(cloudErr.message, { title: 'Cannot Create Campaign' });
+                return;
+              }
+            }
+
             const created = partyManager.createCampaign({
               name: campName.trim(),
               pin: (pin || '').trim(),
               powerLevel: campPL,
               dontEnforcePL: false,
-              creatorName: this.char.playerName || this.char.name || 'GM'
+              creatorName: supabaseService.getUsername() || this.char.playerName || this.char.name || 'GM'
             });
 
             this.showAlertDialog(
@@ -2655,6 +2828,49 @@ window.partyManager = partyManager;
         placeholder: '4-digit PIN',
         confirmText: 'Next: Confirm Join'
       }).then(async pin => {
+        // If campaign exists in Supabase:
+        let cloudCamp = null;
+        if (supabaseService.client) {
+          try {
+            cloudCamp = await supabaseService.getCampaignByNameOrCode(cleanInput);
+          } catch {}
+        }
+
+        const isCreator = cloudCamp && supabaseService.currentUser && (cloudCamp.creator_id === supabaseService.currentUser.id);
+
+        if (cloudCamp && !isCreator) {
+          if (!supabaseService.isLoggedIn()) {
+            await this.showAlertDialog(
+              `"${campName}" is hosted on the cloud server. Please sign in or register so the GM can identify your account and approve your request.`,
+              { title: 'Account Required' }
+            );
+            this.openModal('modal-auth');
+            return;
+          }
+
+          const confirmed = await this.showConfirmDialog(
+            `Submit a request to join "${campName}" (#${cleanCampId}) with "${charName}" (PL ${charPL})?\n\nThe GM will review your hero sheet and approve your entry.`,
+            { title: 'Submit Join Request', confirmText: 'Request Join', confirmClass: 'btn-primary' }
+          );
+          if (!confirmed) return;
+
+          try {
+            await supabaseService.submitJoinRequest({
+              campaignId: cloudCamp.id,
+              character: this.char,
+              characterData: this.char
+            });
+            await this.showAlertDialog(
+              `Your join request for "${campName}" has been submitted to GM ${cloudCamp.creator_name}!\n\nOnce approved, you will be live-synced with the campaign party.`,
+              { title: 'Join Request Sent' }
+            );
+            return;
+          } catch (err) {
+            this.showAlertDialog(err.message, { title: 'Join Request Error' });
+            return;
+          }
+        }
+
         // Always confirm before joining:
         const confirmed = await this.showConfirmDialog(
           `Are you sure you want to connect "${charName}" (PL ${charPL}) to campaign "${campName}" (ID: #${cleanCampId}, PL ${campPL})?\n\nYour character's conditions, toughness penalty, and active alt status will be live-synced with the campaign party.`,
@@ -2696,6 +2912,114 @@ window.partyManager = partyManager;
         }
       });
     });
+  }
+
+  async openJoinRequestsModal() {
+    const state = campaignManager.getCampaignState();
+    if (!state.campaignId) {
+      await this.showAlertDialog('You are not currently connected to any campaign.', { title: 'No Campaign' });
+      return;
+    }
+
+    const container = document.getElementById('join-requests-list-container');
+    this.openModal('modal-join-requests');
+
+    if (!container) return;
+    container.innerHTML = '<div style="text-align: center; color: var(--text-muted); padding: 1.5rem 0;">Loading pending join requests...</div>';
+
+    let requests = [];
+    if (supabaseService.client) {
+      try {
+        const campInfo = await supabaseService.getCampaignByNameOrCode(state.campaignId);
+        if (campInfo) {
+          requests = await supabaseService.getJoinRequests(campInfo.id);
+        }
+      } catch (e) {
+        console.warn('Error fetching requests:', e);
+      }
+    }
+
+    if (requests.length === 0) {
+      container.innerHTML = `
+        <div style="text-align: center; color: var(--text-muted); font-size: 12px; font-style: italic; padding: 1.5rem 0;">
+          No pending join requests for "${state.campaignName || state.campaignId}".
+        </div>
+      `;
+      return;
+    }
+
+    container.innerHTML = requests.map(req => `
+      <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 6px; padding: 0.75rem 1rem; margin-bottom: 0.65rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
+        <div>
+          <div style="font-size: 13px; font-weight: 800; color: var(--text-bright);">${req.character_name} <span style="font-size: 11px; color: var(--hero-blue); font-weight: 700;">(PL ${req.power_level})</span></div>
+          <div style="font-size: 11px; color: var(--text-muted);">Player: <strong>${req.username}</strong> • Status: <span style="font-weight: 700; color: ${req.status === 'approved' ? 'var(--hero-green)' : (req.status === 'rejected' ? 'var(--hero-red)' : 'var(--hero-gold)')};">${req.status.toUpperCase()}</span></div>
+        </div>
+        <div style="display: flex; gap: 0.4rem; align-items: center;">
+          <button type="button" class="btn btn-outline btn-req-inspect" data-reqid="${req.id}" style="font-size: 11px; padding: 2px 7px; color: var(--hero-blue); border-color: var(--hero-blue); cursor: pointer;">👁️ Inspect Sheet</button>
+          ${req.status === 'pending' ? `
+            <button type="button" class="btn btn-primary btn-req-approve" data-reqid="${req.id}" style="font-size: 11px; padding: 2px 8px; background: var(--hero-green); border-color: var(--hero-green); font-weight: 800; cursor: pointer;">✅ Approve</button>
+            <button type="button" class="btn btn-outline btn-req-reject" data-reqid="${req.id}" style="font-size: 11px; padding: 2px 8px; color: var(--hero-red); border-color: var(--hero-red); font-weight: 800; cursor: pointer;">❌ Reject</button>
+          ` : ''}
+        </div>
+      </div>
+    `).join('');
+
+    container.querySelectorAll('.btn-req-inspect').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const req = requests.find(r => r.id === e.currentTarget.dataset.reqid);
+        if (req && req.character_data) {
+          this.openCharacterInspectorModal(req.character_data);
+        }
+      });
+    });
+
+    container.querySelectorAll('.btn-req-approve').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        const reqId = e.currentTarget.dataset.reqid;
+        const req = requests.find(r => r.id === reqId);
+        try {
+          await supabaseService.respondToJoinRequest(reqId, 'approved');
+          if (req) {
+            partyManager.ingestRemoteMember({
+              id: req.character_id + '_' + req.user_id,
+              characterName: req.character_name,
+              playerName: req.username,
+              powerLevel: req.power_level,
+              characterData: req.character_data
+            });
+          }
+          await this.showAlertDialog(`Approved "${req.character_name}" for campaign party!`, { title: 'Player Approved' });
+          this.openJoinRequestsModal();
+        } catch (err) {
+          this.showAlertDialog(err.message, { title: 'Approval Error' });
+        }
+      });
+    });
+
+    container.querySelectorAll('.btn-req-reject').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        const reqId = e.currentTarget.dataset.reqid;
+        try {
+          await supabaseService.respondToJoinRequest(reqId, 'rejected');
+          await this.showAlertDialog('Join request rejected.', { title: 'Request Rejected' });
+          this.openJoinRequestsModal();
+        } catch (err) {
+          this.showAlertDialog(err.message, { title: 'Rejection Error' });
+        }
+      });
+    });
+  }
+
+  openCharacterInspectorModal(characterData) {
+    const titleEl = document.getElementById('inspector-hero-title');
+    const contentEl = document.getElementById('inspector-hero-content');
+    if (titleEl) {
+      titleEl.innerHTML = `👁️ Character Sheet: <strong>${characterData.name || 'Hero'}</strong> (PL ${characterData.powerLevel || 10})`;
+    }
+    if (contentEl) {
+      contentEl.innerHTML = formatCharacterSheetHTML(characterData);
+    }
+    this.openModal('modal-character-inspector');
   }
 
   async attachCurrentCharacterToCampaign(campId) {

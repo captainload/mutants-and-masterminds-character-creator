@@ -2561,7 +2561,11 @@ window.partyManager = partyManager;
           this.closeModal('modal-auth');
         }, 600);
       } catch (err) {
-        showAuthStatus(err.message || 'Failed to sign in.', true);
+        let msg = err.message || 'Failed to sign in.';
+        if (msg.toLowerCase().includes('email not confirmed')) {
+          msg = 'Email address not yet confirmed. In your Supabase Dashboard, go to Authentication > Users, click "..." on your user, and select "Confirm email".';
+        }
+        showAuthStatus(msg, true);
       }
     });
 
@@ -2585,7 +2589,11 @@ window.partyManager = partyManager;
           this.closeModal('modal-auth');
         }, 1200);
       } catch (err) {
-        showAuthStatus(err.message || 'Failed to create account.', true);
+        let msg = err.message || 'Failed to create account.';
+        if (msg.toLowerCase().includes('already registered')) {
+          msg = 'An account with this email already exists in Supabase. In your Supabase Dashboard (Authentication > Users), click "..." on the user to either "Confirm email" or "Delete user" to start fresh.';
+        }
+        showAuthStatus(msg, true);
       }
     });
 

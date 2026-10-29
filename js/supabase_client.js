@@ -182,6 +182,20 @@ class SupabaseService {
     return data;
   }
 
+  async resendVerificationEmail(email) {
+    if (!this.client) throw new Error('Supabase client is not available.');
+    const redirectUrl = typeof window !== 'undefined' && window.location?.origin ? (window.location.origin + window.location.pathname) : undefined;
+    const { data, error } = await this.client.auth.resend({
+      type: 'signup',
+      email: email.trim(),
+      options: {
+        emailRedirectTo: redirectUrl
+      }
+    });
+    if (error) throw error;
+    return data;
+  }
+
   async updateUserPassword(newPassword) {
     if (!this.client) throw new Error('Supabase client is not available.');
     const { data, error } = await this.client.auth.updateUser({

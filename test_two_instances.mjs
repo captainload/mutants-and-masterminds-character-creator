@@ -114,4 +114,7 @@ assert.strictEqual(gmStarKnight.bruises, 2, 'GM received updated 2 Toughness pen
 assert.strictEqual(gmStarKnight.toughnessPenalty, -2);
 assert(gmStarKnight.conditions.includes('Staggered'), 'GM received Staggered condition');
 
+gmManager.stopSessionHeartbeat();
+playerManager.stopSessionHeartbeat();
 console.log('ALL TWO-INSTANCE HANDSHAKE AND SYNC TESTS PASSED CLEANLY!');
+process.exit(0);

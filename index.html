@@ -6,8 +6,8 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Mutants & Masterminds 3E - Character Editor v3.62</title>
-  <link rel="stylesheet" href="css/styles.css?v=3.62">
+  <title>Mutants & Masterminds 3E - Character Editor v3.63</title>
+  <link rel="stylesheet" href="css/styles.css?v=3.63">
 </head>
 <body>
 
@@ -80,7 +80,7 @@
 
           <div class="brand-title-centered">
             <span>Mutants & Masterminds 3E Character Editor</span>
-            <span id="header-version-tag" class="header-version-tag up-to-date" title="Current Version">v3.62</span>
+            <span id="header-version-tag" class="header-version-tag up-to-date" title="Current Version">v3.63</span>
             <button type="button" id="btn-header-update-alert" class="btn-header-update-alert" title="Check for updates / Update status" style="display: none;">!</button>
           </div>
 
@@ -89,9 +89,12 @@
 
         <!-- ROW 2: Shifted Downwards: Player | Character | Alt Button | Campaign | Active Alt Badge -->
         <div class="header-fields-row">
-          <div class="header-field">
+          <div class="header-field" id="header-player-box" style="position: relative;">
             <span class="header-field-label">Player:</span>
-            <input type="text" id="header-player-name" class="header-field-input" placeholder="Player Name" style="width: 140px;">
+            <input type="text" id="header-player-name" class="header-field-input" placeholder="Player Name" style="width: 130px;">
+            <button type="button" id="btn-player-dropdown-arrow" title="Choose from stored players" style="display: none; background: none; border: none; color: var(--hero-gold); font-size: 11px; font-weight: 900; cursor: pointer; padding: 0 4px; line-height: 1;">▼</button>
+            <div id="player-dropdown-menu" class="card-box" style="display: none; position: absolute; top: calc(100% + 4px); left: 0; min-width: 170px; max-height: 200px; overflow-y: auto; z-index: 1000; box-shadow: 0 4px 14px rgba(0,0,0,0.5); padding: 0.25rem 0;">
+            </div>
           </div>
 
           <div class="header-field" id="header-char-box">
@@ -1600,6 +1603,6 @@
     </div>
   </div>
 
-  <script type="module" src="js/app.js?v=3.62"></script>
+  <script type="module" src="js/app.js?v=3.63"></script>
 </body>
 </html>

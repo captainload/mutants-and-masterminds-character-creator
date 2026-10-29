@@ -90,6 +90,10 @@ export class StorageManager {
     return this.characters.find(c => c.id === this.activeId) || this.characters[0];
   }
 
+  getCharacters() {
+    return this.characters || [];
+  }
+
   setActiveCharacter(id) {
     if (this.characters.some(c => c.id === id)) {
       this.activeId = id;

@@ -20,12 +20,31 @@ export class CampaignTrackerManager {
       try {
         this.broadcastChannel = new BroadcastChannel('mm3e_party_p2p_channel');
         this.broadcastChannel.onmessage = (event) => {
-          this.handleNetworkMessage(event.data);
+          const data = event.data;
+          if (data && data.senderId && data.senderId === this.getTabSessionId()) return;
+          const msg = data && data.msg ? data.msg : data;
+          this.handleNetworkMessage(msg);
         };
       } catch (e) {
         console.warn('BroadcastChannel not supported or blocked:', e);
       }
     }
+
+    // Storage-event bus: Ensures real-time P2P sync across browser tabs even under file:///
+    if (typeof window !== 'undefined') {
+      window.addEventListener('storage', (e) => {
+        if (e.key === 'mm3e_p2p_channel_bus' && e.newValue) {
+          try {
+            const envelope = JSON.parse(e.newValue);
+            if (envelope && envelope.msg && envelope.senderId !== this.getTabSessionId()) {
+              this.handleNetworkMessage(envelope.msg);
+            }
+          } catch (err) {}
+        }
+      });
+    }
+
+    this._heartbeatInterval = null;
   }
 
   getSavedCoords() {
@@ -73,6 +92,135 @@ export class CampaignTrackerManager {
     return members.find(m => m.isLocal) || null;
   }
 
+  // =======================================================
+  // PERSISTENT CAMPAIGN HISTORY & PARTICIPATION
+  // =======================================================
+  saveToCampaignHistory(campaignData) {
+    if (!campaignData || !campaignData.campaignId) return;
+    try {
+      const cleanId = String(campaignData.campaignId).trim().toUpperCase().replace(/^#+/, '');
+      const history = this.getCampaignHistory();
+      const existing = history.find(c => c.campaignId === cleanId) || {};
+
+      const isCreator = campaignData.isCreator !== undefined ? !!campaignData.isCreator : (campaignData.isHost !== undefined ? !!campaignData.isHost : !!existing.isCreator);
+      const entry = {
+        campaignId: cleanId,
+        campaignName: (campaignData.campaignName || existing.campaignName || cleanId).trim(),
+        pin: campaignData.pin !== undefined ? String(campaignData.pin).trim() : (existing.pin || ''),
+        powerLevel: parseInt(campaignData.powerLevel, 10) || existing.powerLevel || 10,
+        dontEnforcePL: campaignData.dontEnforcePL !== undefined ? !!campaignData.dontEnforcePL : !!existing.dontEnforcePL,
+        creatorName: campaignData.creatorName || existing.creatorName || '',
+        isCreator,
+        lastJoined: new Date().toLocaleDateString(),
+        lastJoinedMs: Date.now()
+      };
+
+      const filtered = history.filter(c => c.campaignId !== cleanId);
+      filtered.unshift(entry);
+      const serialized = JSON.stringify(filtered);
+      if (typeof localStorage !== 'undefined') {
+        localStorage.setItem('mm3e_campaigns_history', serialized);
+      } else {
+        this._memoryFallback['mm3e_campaigns_history'] = serialized;
+      }
+    } catch (e) {
+      console.warn('Failed to save campaign history:', e);
+    }
+  }
+
+  getCampaignHistory() {
+    try {
+      const raw = typeof localStorage !== 'undefined' ? localStorage.getItem('mm3e_campaigns_history') : this._memoryFallback['mm3e_campaigns_history'];
+      return raw ? JSON.parse(raw) : [];
+    } catch {
+      return [];
+    }
+  }
+
+  removeFromCampaignHistory(campaignId) {
+    try {
+      const cleanId = String(campaignId).trim().toUpperCase().replace(/^#+/, '');
+      const history = this.getCampaignHistory().filter(c => c.campaignId !== cleanId);
+      const serialized = JSON.stringify(history);
+      if (typeof localStorage !== 'undefined') {
+        localStorage.setItem('mm3e_campaigns_history', serialized);
+      } else {
+        this._memoryFallback['mm3e_campaigns_history'] = serialized;
+      }
+      this.renderAllOpenViews();
+    } catch (e) {}
+  }
+
+  // =======================================================
+  // SESSION HEARTBEAT & ACTIVE SESSION DETECTION
+  // =======================================================
+  startSessionHeartbeat() {
+    this.stopSessionHeartbeat();
+    const emit = () => {
+      const current = this.getCampaignState();
+      if (current.isConnected && current.campaignId) {
+        const cleanId = current.campaignId.replace(/^#+/, '');
+        const payload = {
+          campaignId: cleanId,
+          campaignName: current.campaignName,
+          powerLevel: current.powerLevel || 10,
+          dontEnforcePL: !!current.dontEnforcePL,
+          creatorName: current.creatorName || '',
+          isHost: !!current.isHost,
+          lastHeartbeat: Date.now()
+        };
+        try {
+          const sessions = this.getActiveSessions();
+          sessions[cleanId] = payload;
+          if (typeof localStorage !== 'undefined') {
+            localStorage.setItem('mm3e_active_sessions', JSON.stringify(sessions));
+          } else {
+            this._memoryFallback['mm3e_active_sessions'] = JSON.stringify(sessions);
+          }
+        } catch (e) {}
+
+        this.broadcastMessage({
+          type: 'SESSION_HEARTBEAT',
+          ...payload
+        });
+      }
+    };
+
+    emit();
+    this._heartbeatInterval = setInterval(emit, 4000);
+  }
+
+  stopSessionHeartbeat() {
+    if (this._heartbeatInterval) {
+      clearInterval(this._heartbeatInterval);
+      this._heartbeatInterval = null;
+    }
+  }
+
+  getActiveSessions() {
+    try {
+      const raw = typeof localStorage !== 'undefined' ? localStorage.getItem('mm3e_active_sessions') : this._memoryFallback['mm3e_active_sessions'];
+      const sessions = raw ? JSON.parse(raw) : {};
+      const now = Date.now();
+      const active = {};
+      Object.entries(sessions).forEach(([id, s]) => {
+        if (now - (s.lastHeartbeat || 0) < 12000) {
+          active[id.replace(/^#+/, '')] = s;
+        }
+      });
+      return active;
+    } catch {
+      return {};
+    }
+  }
+
+  isSessionActive(campaignId) {
+    if (!campaignId) return false;
+    const cleanId = String(campaignId).trim().toUpperCase().replace(/^#+/, '');
+    const active = this.getActiveSessions();
+    return !!active[cleanId];
+  }
+
   getCampaignRegistry() {
     try {
       const raw = typeof localStorage !== 'undefined' ? localStorage.getItem('mm3e_campaign_registry') : this._memoryFallback['mm3e_campaign_registry'];
@@ -86,7 +234,7 @@ export class CampaignTrackerManager {
     if (!info || !info.campaignId) return;
     try {
       const reg = this.getCampaignRegistry();
-      const id = String(info.campaignId).trim().toUpperCase();
+      const id = String(info.campaignId).trim().toUpperCase().replace(/^#+/, "");
       reg[id] = {
         campaignId: id,
         campaignName: (info.campaignName || id).trim(),
@@ -110,7 +258,7 @@ export class CampaignTrackerManager {
   getCampaignInfo(campaignId) {
     if (!campaignId) return null;
     const reg = this.getCampaignRegistry();
-    return reg[String(campaignId).trim().toUpperCase()] || null;
+    return reg[String(campaignId).trim().toUpperCase().replace(/^#+/, "")] || null;
   }
 
   getCampaignState() {
@@ -166,7 +314,7 @@ export class CampaignTrackerManager {
       throw new Error(`You are currently connected to campaign "${current.campaignName || current.campaignId}" (ID: #${current.campaignId}). You must disconnect from your current campaign before creating a new one.`);
     }
 
-    const assignedId = (campaignId || this.generateUniqueCampaignId(name)).trim().toUpperCase();
+    const assignedId = (campaignId || this.generateUniqueCampaignId(name)).trim().toUpperCase().replace(/^#+/, '');
     const cleanPin = (pin || '').trim();
     const pl = parseInt(powerLevel, 10) || 10;
     const noEnforce = !!dontEnforcePL;
@@ -179,12 +327,15 @@ export class CampaignTrackerManager {
       powerLevel: pl,
       dontEnforcePL: noEnforce,
       isHost: true,
+      isCreator: true,
       creatorName,
       connectedAt: new Date().toLocaleTimeString()
     };
 
     this.saveCampaignState(newState);
     this.registerCampaignInfo(newState);
+    this.saveToCampaignHistory(newState);
+    this.startSessionHeartbeat();
 
     // Announce creation to network
     this.broadcastMessage({
@@ -228,7 +379,7 @@ export class CampaignTrackerManager {
       throw new Error(`You are currently connected to campaign "${current.campaignName || current.campaignId}". Disconnect first to join a different campaign.`);
     }
 
-    const cleanId = (campaignId || '').trim().toUpperCase();
+    const cleanId = (campaignId || '').trim().toUpperCase().replace(/^#+/, '');
     const cleanPin = (pin || '').trim();
 
     if (!cleanId) {
@@ -240,6 +391,9 @@ export class CampaignTrackerManager {
     const effPL = info?.powerLevel ?? (parseInt(powerLevel, 10) || 10);
     const effDontEnforce = info?.dontEnforcePL ?? (!!dontEnforcePL);
 
+    const historyMatch = this.getCampaignHistory().find(c => c.campaignId === cleanId);
+    const isCreator = !!historyMatch?.isCreator;
+
     const newState = {
       isConnected: true,
       campaignId: cleanId,
@@ -247,12 +401,15 @@ export class CampaignTrackerManager {
       pin: cleanPin,
       powerLevel: effPL,
       dontEnforcePL: effDontEnforce,
-      isHost: false,
+      isHost: isCreator,
+      isCreator,
       playerName,
       connectedAt: new Date().toLocaleTimeString()
     };
 
     this.saveCampaignState(newState);
+    this.saveToCampaignHistory(newState);
+    this.startSessionHeartbeat();
 
     // Request full roster from peers in this room, sending our local member if registered
     this.broadcastMessage({
@@ -267,13 +424,29 @@ export class CampaignTrackerManager {
   }
 
   leaveCampaign() {
+    this.stopSessionHeartbeat();
     const current = this.getCampaignState();
     if (current && current.isConnected) {
+      const cleanId = current.campaignId.replace(/^#+/, '');
       this.broadcastMessage({
         type: 'MEMBER_LEFT',
-        campaignId: current.campaignId,
-        pin: current.pin
+        campaignId: cleanId,
+        pin: current.pin,
+        memberId: this._lastLocalHeroId || undefined
       });
+      this.broadcastMessage({
+        type: 'SESSION_ENDED',
+        campaignId: cleanId
+      });
+      try {
+        const sessions = this.getActiveSessions();
+        delete sessions[cleanId];
+        if (typeof localStorage !== 'undefined') {
+          localStorage.setItem('mm3e_active_sessions', JSON.stringify(sessions));
+        } else {
+          this._memoryFallback['mm3e_active_sessions'] = JSON.stringify(sessions);
+        }
+      } catch (e) {}
     }
 
     if (typeof sessionStorage !== 'undefined') {
@@ -302,16 +475,32 @@ export class CampaignTrackerManager {
   // P2P NETWORK MESSAGE HANDLING & ISOLATION
   // =======================================================
   broadcastMessage(msg) {
+    if (!msg) return;
+    const senderId = this.getTabSessionId();
+
+    // 1. BroadcastChannel transport
     if (this.broadcastChannel) {
       try {
-        this.broadcastChannel.postMessage(msg);
+        this.broadcastChannel.postMessage({ msg, senderId });
       } catch (e) {
-        console.warn('Failed to broadcast P2P message', e);
+        console.warn('Failed to broadcast via BroadcastChannel', e);
+      }
+    }
+
+    // 2. localStorage storage-event bus transport (works across file:/// tabs and windows)
+    if (typeof localStorage !== 'undefined') {
+      try {
+        const envelope = JSON.stringify({ msg, senderId, t: Date.now() + Math.random() });
+        localStorage.setItem('mm3e_p2p_channel_bus', envelope);
+      } catch (e) {
+        console.warn('Failed to broadcast via localStorage bus', e);
       }
     }
   }
 
-  handleNetworkMessage(msg) {
+  handleNetworkMessage(raw) {
+    if (raw && raw.senderId && raw.senderId === this.getTabSessionId()) return;
+    const msg = (raw && raw.msg) ? raw.msg : raw;
     if (!msg || !msg.type) return;
 
     if (msg.type === 'CAMPAIGN_ANNOUNCE' || msg.type === 'CAMPAIGN_UPDATE') {
@@ -321,10 +510,34 @@ export class CampaignTrackerManager {
     const current = this.getCampaignState();
     if (!current.isConnected) return;
 
+    if (msg.type === 'SESSION_HEARTBEAT' && msg.campaignId) {
+      try {
+        const cleanId = String(msg.campaignId).trim().toUpperCase().replace(/^#+/, '');
+        const sessions = this.getActiveSessions();
+        sessions[cleanId] = { ...msg, campaignId: cleanId, lastHeartbeat: Date.now() };
+        if (typeof localStorage !== 'undefined') {
+          localStorage.setItem('mm3e_active_sessions', JSON.stringify(sessions));
+        }
+      } catch (e) {}
+    }
+
+    if (msg.type === 'SESSION_ENDED' && msg.campaignId) {
+      try {
+        const cleanId = String(msg.campaignId).trim().toUpperCase().replace(/^#+/, '');
+        const sessions = this.getActiveSessions();
+        delete sessions[cleanId];
+        if (typeof localStorage !== 'undefined') {
+          localStorage.setItem('mm3e_active_sessions', JSON.stringify(sessions));
+        }
+      } catch (e) {}
+    }
+
     // Isolate by Campaign ID and PIN:
     // Identically named campaigns with different PINs never mix data!
-    if (msg.campaignId !== current.campaignId) return;
-    if ((msg.pin || '') !== (current.pin || '')) return;
+    const cleanMsgId = String(msg.campaignId || '').trim().toUpperCase().replace(/^#+/, '');
+    const cleanCurId = String(current.campaignId || '').trim().toUpperCase().replace(/^#+/, '');
+    if (cleanMsgId !== cleanCurId) return;
+    if ((msg.pin || '').trim() !== (current.pin || '').trim()) return;
 
     switch (msg.type) {
       case 'CAMPAIGN_ANNOUNCE':
@@ -647,9 +860,9 @@ export class CampaignTrackerManager {
             </div>
             <button type="button" class="btn btn-outline btn-leave-campaign-room" style="font-size: 11px; font-weight: 700; padding: 0.2rem 0.65rem; color: var(--hero-red); border-color: var(--hero-red);">🚪 Disconnect / Leave</button>
           </div>
-          ${state.isHost ? `
+          ${(state.isCreator || this.getCampaignHistory().find(c => c.campaignId === state.campaignId)?.isCreator) ? `
             <div style="display: flex; align-items: center; gap: 0.75rem; margin-top: 0.45rem; padding-top: 0.45rem; border-top: 1px dashed rgba(255,255,255,0.15); font-size: 12px; flex-wrap: wrap;">
-              <span style="color: var(--hero-gold); font-weight: 800;">⚙️ GM Campaign Settings:</span>
+              <span style="color: var(--hero-gold); font-weight: 800;">⚙️ GM Campaign Settings (Creator):</span>
               <label style="display: inline-flex; align-items: center; gap: 0.35rem; cursor: pointer; user-select: none; color: var(--text-bright); font-weight: 700;" title="When checked, characters of any Power Level can join without PL restrictions">
                 <input type="checkbox" class="chk-campaign-dont-enforce-pl" ${state.dontEnforcePL ? 'checked' : ''} style="cursor: pointer; width: 14px; height: 14px; accent-color: var(--hero-gold);">
                 <span>Don't enforce PL (allow any character PL)</span>
@@ -750,7 +963,55 @@ export class CampaignTrackerManager {
       }).join('');
     }
 
-    return connectionBar + memberCards;
+
+    // Participated Campaigns History List
+    const history = this.getCampaignHistory();
+    const storedChars = (typeof window !== 'undefined' && window.appController?.storage?.getCharacters()) || [];
+
+    const historyCards = history.map(c => {
+      const isCur = state.isConnected && state.campaignId === c.campaignId;
+      const isLive = this.isSessionActive(c.campaignId);
+      const attached = storedChars.filter(ch => (ch.campaignId && ch.campaignId.toUpperCase().replace(/^#+/, '') === c.campaignId) || (ch.campaign && ch.campaign.trim().toLowerCase() === c.campaignName.toLowerCase()));
+      const attachedStr = attached.map(ch => ch.name || 'Hero').join(', ') || 'None';
+
+      return `
+        <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 4px; padding: 0.5rem 0.75rem; margin-bottom: 0.4rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.4rem;">
+          <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+            <strong>${c.campaignName}</strong>
+            <span style="font-size: 11px; background: rgba(0,0,0,0.15); padding: 1px 6px; border-radius: 4px; font-weight: 800; color: var(--hero-blue);">ID: #${c.campaignId}</span>
+            <span style="font-size: 11px; color: var(--hero-gold); font-weight: 700;">PL ${c.powerLevel}</span>
+            ${c.isCreator ? '<span style="font-size: 10px; font-weight: 800; color: var(--hero-gold); background: rgba(234, 179, 8, 0.15); padding: 1px 5px; border-radius: 3px;">👑 GM</span>' : '<span style="font-size: 10px; font-weight: 700; color: var(--hero-blue); background: rgba(59, 130, 246, 0.15); padding: 1px 5px; border-radius: 3px;">Player</span>'}
+            <span style="font-size: 11px; color: var(--text-muted);">Attached: ${attachedStr}</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 0.4rem;">
+            ${isLive ? '<span style="color: #10b981; font-weight: 800; font-size: 11px;">🟢 Session Running</span>' : '<span style="color: var(--text-muted); font-size: 11px;">⚪ Offline</span>'}
+            ${isCur ? '<span style="font-size: 11px; font-weight: 800; color: var(--hero-green);">[Connected]</span>' : `
+              <button type="button" class="btn btn-outline btn-reconnect-campaign" data-campid="${c.campaignId}" style="font-size: 11px; padding: 2px 8px; font-weight: 700;">🔗 Connect</button>
+            `}
+            ${attached.length > 0 ? `
+              <button type="button" class="btn btn-outline btn-load-attached-char" data-campid="${c.campaignId}" style="font-size: 11px; padding: 2px 8px; color: var(--hero-purple); border-color: var(--hero-purple);">🦸 Load Hero</button>
+            ` : ''}
+            <button type="button" class="btn-remove-campaign-history" data-campid="${c.campaignId}" title="Remove from list" style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 12px; font-weight: 700; padding: 0 4px;">✕</button>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    const historySection = `
+      <div style="margin-top: 1.25rem; border-top: 1px solid var(--border-color); padding-top: 0.75rem;">
+        <div style="font-weight: 800; font-size: var(--font-size-sm); color: var(--text-bright); margin-bottom: 0.5rem; display: flex; justify-content: space-between; align-items: center;">
+          <span>📜 Your Participated Campaigns (${history.length})</span>
+          <span style="font-size: 11px; color: var(--text-muted);">Persistent across sessions</span>
+        </div>
+        ${history.length === 0 ? `
+          <div style="padding: 1rem; text-align: center; color: var(--text-muted); font-size: 11px; font-style: italic;">
+            No participated campaigns stored yet. When you create or join a campaign, it is saved here for quick reconnection.
+          </div>
+        ` : historyCards}
+      </div>
+    `;
+
+    return connectionBar + memberCards + historySection;
   }
 
   renderAllOpenViews() {
@@ -786,6 +1047,33 @@ export class CampaignTrackerManager {
       btn.addEventListener('click', () => {
         this.leaveCampaign();
         this.renderAllOpenViews();
+      });
+    });
+
+    parentEl.querySelectorAll('.btn-reconnect-campaign').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const id = e.currentTarget.dataset.campid;
+        if (id && typeof window !== 'undefined' && window.appController) {
+          window.appController.openJoinCampaignDialog(id);
+        }
+      });
+    });
+
+    parentEl.querySelectorAll('.btn-load-attached-char').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const id = e.currentTarget.dataset.campid;
+        if (id && typeof window !== 'undefined' && window.appController) {
+          window.appController.checkOfferLoadAttachedCharacter(id, '');
+        }
+      });
+    });
+
+    parentEl.querySelectorAll('.btn-remove-campaign-history').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const id = e.currentTarget.dataset.campid;
+        if (id) {
+          this.removeFromCampaignHistory(id);
+        }
       });
     });
 
@@ -840,7 +1128,7 @@ export class CampaignTrackerManager {
 <head>
   <meta charset="UTF-8">
   <title>Mutants & Masterminds 3E - Party Conditions & Toughness Tracker</title>
-  <link rel="stylesheet" href="css/styles.css?v=3.62">
+  <link rel="stylesheet" href="css/styles.css?v=3.63">
   <style>
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;

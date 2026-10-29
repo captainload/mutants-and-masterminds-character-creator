@@ -41,7 +41,7 @@ import {
   tablesManager
 } from './tables.js';
 
-import { POWER_PROFILES_LIBRARY } from './power_profiles.js?v=3.62';
+import { POWER_PROFILES_LIBRARY } from './power_profiles.js?v=3.63';
 import { ARCHETYPES } from './archetypes.js';
 import { archetypeManager } from './archetype_window.js';
 import { campaignManager, partyManager } from './party.js';
@@ -110,6 +110,9 @@ class AppController {
     this.setupUpdateChecker();
     this.renderAll();
     this.checkForUpdates({ isManual: false });
+    setTimeout(() => {
+      this.checkActiveSessionOffer();
+    }, 600);
   }
 
   // =======================================================
@@ -188,11 +191,31 @@ class AppController {
   setupHeaderBindings() {
     // Player Name
     const playerNameInput = document.getElementById('header-player-name');
-    playerNameInput.value = this.char.playerName || '';
-    playerNameInput.addEventListener('input', (e) => {
-      this.char.playerName = e.target.value;
-      this.saveAndAudit();
+    if (playerNameInput) {
+      playerNameInput.value = this.char.playerName || '';
+      playerNameInput.addEventListener('input', (e) => {
+        this.char.playerName = e.target.value;
+        this.saveAndAudit();
+        this.updatePlayerDropdown();
+      });
+    }
+
+    const playerArrowBtn = document.getElementById('btn-player-dropdown-arrow');
+    const playerMenuEl = document.getElementById('player-dropdown-menu');
+
+    playerArrowBtn?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (!playerMenuEl) return;
+      playerMenuEl.style.display = playerMenuEl.style.display === 'none' ? 'block' : 'none';
     });
+
+    document.addEventListener('click', (e) => {
+      if (playerMenuEl && !playerMenuEl.contains(e.target) && e.target !== playerArrowBtn) {
+        playerMenuEl.style.display = 'none';
+      }
+    });
+
+    this.updatePlayerDropdown();
 
     // Character Name
     const charNameInput = document.getElementById('header-char-name');
@@ -1973,7 +1996,7 @@ window.partyManager = partyManager;
   }
 
   async checkForUpdates({ isManual = false } = {}) {
-    const CURRENT_VERSION = '3.62';
+    const CURRENT_VERSION = '3.63';
     const versionEl = document.getElementById('header-version-tag');
     const updateBtn = document.getElementById('btn-header-update-alert');
     if (typeof window === 'undefined' || !window.location || !window.location.href || window.location.href === 'about:blank') return;
@@ -2384,6 +2407,116 @@ window.partyManager = partyManager;
   // 11. POWER PROFILES (Official 3E Profiles Library)
   // =======================================================
   
+  // =======================================================
+  // PLAYER DROPDOWN & MULTI-USER SELECTION
+  // =======================================================
+  updatePlayerDropdown() {
+    const arrowBtn = document.getElementById('btn-player-dropdown-arrow');
+    const menuEl = document.getElementById('player-dropdown-menu');
+    if (!arrowBtn || !menuEl) return;
+
+    const chars = (typeof storageManager.getCharacters === 'function' ? storageManager.getCharacters() : storageManager.characters) || [];
+    const players = [...new Set(chars.map(c => (c.playerName || c.player || '').trim()).filter(Boolean))];
+
+    if (players.length > 1) {
+      arrowBtn.style.display = 'inline-flex';
+      menuEl.innerHTML = players.map(p => `
+        <div class="player-select-option" data-player="${encodeURIComponent(p)}" style="padding: 0.4rem 0.75rem; font-size: 12px; font-weight: 700; cursor: pointer; color: var(--text-bright); border-bottom: 1px solid var(--border-color); display: flex; align-items: center; gap: 0.35rem;">
+          <span>👤</span> <span>${p}</span>
+        </div>
+      `).join('');
+
+      menuEl.querySelectorAll('.player-select-option').forEach(opt => {
+        opt.addEventListener('click', (e) => {
+          const chosen = decodeURIComponent(e.currentTarget.dataset.player);
+          const pInput = document.getElementById('header-player-name');
+          if (pInput) pInput.value = chosen;
+          this.char.playerName = chosen;
+          this.saveAndAudit();
+          menuEl.style.display = 'none';
+        });
+      });
+    } else {
+      arrowBtn.style.display = 'none';
+      menuEl.style.display = 'none';
+    }
+  }
+
+  // =======================================================
+  // ATTACHED CHARACTER SELECTION & ACTIVE SESSION DETECTION
+  // =======================================================
+  async checkOfferLoadAttachedCharacter(campaignId, campaignName) {
+    const cleanId = String(campaignId || '').trim().toUpperCase().replace(/^#+/, '');
+    const cleanName = String(campaignName || '').trim().toLowerCase();
+
+    const isCurrentAttached = (this.char.campaignId && this.char.campaignId.toUpperCase().replace(/^#+/, '') === cleanId) ||
+                              (this.char.campaign && this.char.campaign.trim().toLowerCase() === cleanName);
+
+    if (isCurrentAttached) return true;
+
+    const chars = (typeof storageManager.getCharacters === 'function' ? storageManager.getCharacters() : storageManager.characters) || [];
+    const attachedChars = chars.filter(c => 
+      (c.campaignId && c.campaignId.toUpperCase().replace(/^#+/, '') === cleanId) ||
+      (c.campaign && c.campaign.trim().toLowerCase() === cleanName)
+    );
+
+    if (attachedChars.length === 0) return true;
+
+    const targetChar = attachedChars[0];
+    const confirmed = await this.showConfirmDialog(
+      `The currently loaded character "${this.char.name || 'Current Hero'}" is not attached to this campaign.\n\nFound attached character: "${targetChar.name || 'Hero'}" (PL ${targetChar.powerLevel || 10}).\n\nWould you like to load "${targetChar.name}" for this campaign session?`,
+      {
+        title: 'Load Attached Character?',
+        confirmText: `Load "${targetChar.name}"`,
+        cancelText: 'Keep Current Hero',
+        confirmClass: 'btn-primary'
+      }
+    );
+
+    if (confirmed) {
+      storageManager.activeId = targetChar.id;
+      this.char = targetChar;
+      this.primaryChar = targetChar;
+      this.activeAltId = null;
+      this.loadCharacterToUI();
+      partyManager.updateCurrentPlayer(this.char, this.primaryChar, this.activeAltId);
+            partyManager.broadcastLocalMemberData();
+    }
+    return true;
+  }
+
+  async checkActiveSessionOffer() {
+    if (partyManager.isUserConnected()) return;
+    const campId = (this.char.campaignId || '').trim();
+    const campName = (this.char.campaign || '').trim();
+    if (!campId && !campName) return;
+
+    const activeSessions = partyManager.getActiveSessions();
+    let matchedSession = null;
+    const cleanId = campId.toUpperCase().replace(/^#+/, '');
+    if (cleanId && activeSessions[cleanId]) {
+      matchedSession = activeSessions[cleanId];
+    } else if (campName) {
+      matchedSession = Object.values(activeSessions).find(s => (s.campaignName || '').toLowerCase() === campName.toLowerCase());
+    }
+
+    if (!matchedSession) return;
+
+    const confirmed = await this.showConfirmDialog(
+      `An active game session is currently running for campaign "${matchedSession.campaignName}" (ID: #${matchedSession.campaignId}, PL ${matchedSession.powerLevel}).\n\nWould you like to join the session now with "${this.char.name || 'Hero'}"?`,
+      {
+        title: 'Active Game Session Running!',
+        confirmText: 'Join Game Session',
+        cancelText: 'Not Now',
+        confirmClass: 'btn-primary'
+      }
+    );
+
+    if (confirmed) {
+      await this.openJoinCampaignDialog(matchedSession.campaignId);
+    }
+  }
+
   openCreateCampaignDialog() {
     if (partyManager.isUserConnected()) {
       const state = partyManager.getCampaignState();
@@ -2449,7 +2582,7 @@ window.partyManager = partyManager;
     });
   }
 
-  async openJoinCampaignDialog() {
+  async openJoinCampaignDialog(prefilledCampId = '') {
     if (campaignManager.isUserConnected()) {
       const state = campaignManager.getCampaignState();
       const currentName = state.campaignName || state.campaignId || 'current campaign';
@@ -2463,20 +2596,27 @@ window.partyManager = partyManager;
       campaignManager.leaveCampaign();
     }
 
-    this.showPromptDialog({
-      title: 'Join Campaign Room',
-      label: 'Enter Campaign ID # (from your GM):',
-      defaultValue: '',
-      placeholder: 'e.g. HERO-8492 or JL-1024',
-      confirmText: 'Next: Verify & PIN'
-    }).then(async campId => {
+    const promptForId = async () => {
+      if (prefilledCampId) return prefilledCampId;
+      return await this.showPromptDialog({
+        title: 'Join Campaign Room',
+        label: 'Enter Campaign ID # (from your GM):',
+        defaultValue: '',
+        placeholder: 'e.g. HERO-8492 or JL-1024',
+        confirmText: 'Next: Verify & PIN'
+      });
+    };
+
+    promptForId().then(async campId => {
       if (!campId || !campId.trim()) return;
 
-      const cleanCampId = campId.trim().toUpperCase();
+      const cleanCampId = campId.trim().toUpperCase().replace(/^#+/, '');
       const campInfo = campaignManager.getCampaignInfo(cleanCampId);
       const campPL = campInfo?.powerLevel ?? 10;
       const dontEnforcePL = !!campInfo?.dontEnforcePL;
       const campName = campInfo?.campaignName || cleanCampId;
+
+      await this.checkOfferLoadAttachedCharacter(cleanCampId, campName);
 
       let charName = (this.char.name || '').trim();
       if (!charName) {
@@ -4122,6 +4262,8 @@ window.partyManager = partyManager;
   }
 
   loadCharacterToUI() {
+    this.updatePlayerDropdown();
+    setTimeout(() => this.checkActiveSessionOffer(), 400);
     this.repairTruncatedPowerNotes(this.char);
     this.renderAll();
     setTimeout(() => this.resizeAllTextareas?.(), 50);

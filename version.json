@@ -1,6 +1,6 @@
 {
-  "version": "3.62",
-  "updatedAt": "2026-10-29T19:11:51.752Z",
-  "releaseNotes": "Campaigns: Moved Campaigns button directly to the right of the campaign field and enabled clickable 'Campaign:' label button. Prevented campaign prefill unless character is already associated with a campaign. Added join confirmation prompt and Power Level enforcement check (with GM 'Don't enforce PL' campaign setting).",
+  "version": "3.63",
+  "updatedAt": "2026-10-29T21:07:23.098Z",
+  "releaseNotes": "Campaigns: Dual-transport P2P sync (BroadcastChannel + storage event bus) ensuring multi-tab visibility even on file://; normalized Campaign IDs; persistent participated campaigns history; creator-only GM settings; player name dropdown for multi-player profiles; attached character auto-loading offer on campaign selection; and active campaign session detection & auto-join prompt.",
   "updated": "2026-10-29"
 }

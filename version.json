@@ -1,6 +1,6 @@
 {
-  "version": "3.65",
-  "updatedAt": "2026-10-29T22:38:00.000Z",
-  "releaseNotes": "Campaigns: Integrated Supabase cloud authentication, unique username enforcement, email password resets, strict campaign name collision prevention, GM join approval queue workflow, and full character sheet inspection for party members.",
+  "version": "3.66",
+  "updatedAt": "2026-10-29T23:05:00.000Z",
+  "releaseNotes": "Cloud Backups & Storage: Added Supabase character sheet cloud backups and restore modal dialog, upgraded Menu with Import / Export & Cloud Backup options, enabled local-only editing for offline users, enhanced auth tab active styling, and configured email verification redirect URLs.",
   "updated": "2026-10-29"
 }

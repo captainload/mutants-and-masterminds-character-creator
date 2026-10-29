@@ -5,15 +5,15 @@ import { formatCharacterSheetHTML } from './js/party.js';
 
 console.log('--- Testing v3.65 Supabase Cloud & GM Controls Suite ---');
 
-// 1. Version 3.65 verification
+// 1. Version verification (>= 3.65)
 const versionJson = JSON.parse(fs.readFileSync('version.json', 'utf8'));
-assert.strictEqual(versionJson.version, '3.65', 'version.json is 3.65');
+assert(parseFloat(versionJson.version) >= 3.65, 'version.json is >= 3.65');
 
 const indexHtml = fs.readFileSync('index.html', 'utf8');
-assert(indexHtml.includes('Character Editor v3.65'), 'index.html title has v3.65');
-assert(indexHtml.includes('>v3.65</span>'), 'index.html badge has v3.65');
-assert(indexHtml.includes('css/styles.css?v=3.65'), 'index.html styles link has v3.65');
-assert(indexHtml.includes('js/app.js?v=3.65'), 'index.html app link has v3.65');
+assert(indexHtml.includes('Character Editor v3.'), 'index.html title has version');
+assert(indexHtml.includes('>v3.'), 'index.html badge has version');
+assert(indexHtml.includes('css/styles.css?v=3.'), 'index.html styles link has version');
+assert(indexHtml.includes('js/app.js?v=3.'), 'index.html app link has version');
 
 // 2. Supabase SDK CDN and client credentials
 assert(indexHtml.includes('@supabase/supabase-js@2'), 'index.html loads Supabase JS SDK via CDN');

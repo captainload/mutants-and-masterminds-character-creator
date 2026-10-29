@@ -134,13 +134,15 @@ class SupabaseService {
       throw new Error(`The username "${cleanUser}" is already taken. Please choose another.`);
     }
 
+    const redirectUrl = typeof window !== 'undefined' && window.location?.origin ? (window.location.origin + window.location.pathname) : undefined;
     const { data, error } = await this.client.auth.signUp({
       email: email.trim(),
       password,
       options: {
         data: {
           username: cleanUser
-        }
+        },
+        emailRedirectTo: redirectUrl
       }
     });
 
@@ -518,6 +520,65 @@ class SupabaseService {
       try { this.client.removeChannel(channel); } catch {}
     });
     this.activeSubscriptions = [];
+  }
+
+  // =======================================================
+  // CLOUD CHARACTER BACKUPS & STORAGE
+  // =======================================================
+  async backupCharacter(character) {
+    if (!this.client) throw new Error('Supabase client is not available.');
+    if (!this.currentUser) throw new Error('You must be signed in to your Cloud Account to back up characters.');
+    if (!character) throw new Error('No character data provided for backup.');
+
+    const charData = typeof character.toJSON === 'function' ? character.toJSON() : JSON.parse(JSON.stringify(character));
+    const charId = String(charData.id || character.id || ('hero_' + Date.now()));
+    const name = String(charData.name || character.name || 'Unnamed Hero').trim();
+    const pl = parseInt(charData.powerLevel || character.powerLevel || 10, 10);
+    const concept = String(charData.concept || character.concept || '').trim();
+
+    const record = {
+      user_id: this.currentUser.id,
+      character_id: charId,
+      name,
+      power_level: pl,
+      concept,
+      character_data: charData,
+      updated_at: new Date().toISOString()
+    };
+
+    const { data, error } = await this.client
+      .from('character_backups')
+      .upsert(record, { onConflict: 'user_id,character_id' })
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  }
+
+  async getCharacterBackups() {
+    if (!this.client || !this.currentUser) return [];
+    const { data, error } = await this.client
+      .from('character_backups')
+      .select('id, character_id, name, power_level, concept, updated_at, character_data')
+      .eq('user_id', this.currentUser.id)
+      .order('updated_at', { ascending: false });
+
+    if (error) throw error;
+    return data || [];
+  }
+
+  async deleteCharacterBackup(backupId) {
+    if (!this.client) throw new Error('Supabase client is not available.');
+    if (!this.currentUser) throw new Error('You must be signed in to delete backups.');
+    const { error } = await this.client
+      .from('character_backups')
+      .delete()
+      .eq('id', backupId)
+      .eq('user_id', this.currentUser.id);
+
+    if (error) throw error;
+    return true;
   }
 }
 

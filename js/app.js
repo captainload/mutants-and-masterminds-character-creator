@@ -41,7 +41,7 @@ import {
   tablesManager
 } from './tables.js';
 
-import { POWER_PROFILES_LIBRARY } from './power_profiles.js?v=3.65';
+import { POWER_PROFILES_LIBRARY } from './power_profiles.js?v=3.66';
 import { ARCHETYPES } from './archetypes.js';
 import { archetypeManager } from './archetype_window.js';
 import { campaignManager, partyManager, formatCharacterSheetHTML } from './party.js';
@@ -1935,7 +1935,50 @@ window.partyManager = partyManager;
       await this.loadCharacterFile();
     });
 
-    // 5. Export Character (PDF)
+    // 5. Cloud Backup & Restore (Supabase Online)
+    document.getElementById('menu-action-cloud-backup')?.addEventListener('click', async () => {
+      closeDropdown();
+      if (!supabaseService.isLoggedIn()) {
+        const doAuth = await this.showConfirmDialog(
+          'You need to be signed in to your Cloud Account to back up characters to the cloud database.\n\nWould you like to open the Sign In / Register dialog now?',
+          { title: 'Cloud Account Required', confirmText: 'Sign In / Register' }
+        );
+        if (doAuth) this.openAuthModal();
+        return;
+      }
+      try {
+        await supabaseService.backupCharacter(this.char);
+        await this.showAlertDialog(`Successfully backed up "${this.char.name || 'Hero'}" to your cloud account!`, { title: 'Cloud Backup Complete' });
+      } catch (err) {
+        await this.showAlertDialog('Cloud Backup Failed: ' + err.message, { title: 'Backup Error' });
+      }
+    });
+
+    document.getElementById('menu-action-cloud-restore')?.addEventListener('click', async () => {
+      closeDropdown();
+      if (!supabaseService.isLoggedIn()) {
+        const doAuth = await this.showConfirmDialog(
+          'You need to be signed in to your Cloud Account to restore characters from the cloud database.\n\nWould you like to open the Sign In / Register dialog now?',
+          { title: 'Cloud Account Required', confirmText: 'Sign In / Register' }
+        );
+        if (doAuth) this.openAuthModal();
+        return;
+      }
+      await this.openCloudRestoreModal();
+    });
+
+    // 6. Local Import & Export (.MM3 / JSON)
+    document.getElementById('menu-action-export-mm3')?.addEventListener('click', async () => {
+      closeDropdown();
+      await this.saveCharacterFile({ forceSaveAs: true });
+    });
+
+    document.getElementById('menu-action-import-mm3')?.addEventListener('click', () => {
+      closeDropdown();
+      document.getElementById('menu-file-input')?.click();
+    });
+
+    // 7. Export Character (PDF)
     document.getElementById('menu-action-export-pdf')?.addEventListener('click', () => {
       closeDropdown();
       window.print();
@@ -1998,7 +2041,7 @@ window.partyManager = partyManager;
   }
 
   async checkForUpdates({ isManual = false } = {}) {
-    const CURRENT_VERSION = '3.65';
+    const CURRENT_VERSION = '3.66';
     const versionEl = document.getElementById('header-version-tag');
     const updateBtn = document.getElementById('btn-header-update-alert');
     if (typeof window === 'undefined' || !window.location || !window.location.href || window.location.href === 'about:blank') return;
@@ -2097,6 +2140,8 @@ window.partyManager = partyManager;
     document.getElementById('btn-close-join-requests-footer')?.addEventListener('click', () => this.closeModal('modal-join-requests'));
     document.getElementById('btn-close-character-inspector')?.addEventListener('click', () => this.closeModal('modal-character-inspector'));
     document.getElementById('btn-close-inspector-footer')?.addEventListener('click', () => this.closeModal('modal-character-inspector'));
+    document.getElementById('btn-close-cloud-restore')?.addEventListener('click', () => this.closeModal('modal-cloud-restore'));
+    document.getElementById('btn-close-cloud-restore-footer')?.addEventListener('click', () => this.closeModal('modal-cloud-restore'));
     document.querySelectorAll('.modal-overlay').forEach(overlay => {
       overlay.addEventListener('click', (e) => {
         if (e.target === overlay) {
@@ -2459,7 +2504,7 @@ window.partyManager = partyManager;
     const authCloseBtn = document.getElementById('btn-close-auth-modal');
 
     if (authBtn) {
-      authBtn.addEventListener('click', () => this.openModal('modal-auth'));
+      authBtn.addEventListener('click', () => this.openAuthModal());
     }
     if (authCloseBtn) {
       authCloseBtn.addEventListener('click', () => this.closeModal('modal-auth'));
@@ -2844,7 +2889,7 @@ window.partyManager = partyManager;
               `"${campName}" is hosted on the cloud server. Please sign in or register so the GM can identify your account and approve your request.`,
               { title: 'Account Required' }
             );
-            this.openModal('modal-auth');
+            this.openAuthModal();
             return;
           }
 
@@ -3020,6 +3065,127 @@ window.partyManager = partyManager;
       contentEl.innerHTML = formatCharacterSheetHTML(characterData);
     }
     this.openModal('modal-character-inspector');
+  }
+
+  openAuthModal() {
+    const tabSignin = document.getElementById('tab-btn-signin');
+    const formSignin = document.getElementById('auth-form-signin');
+    const tabSignup = document.getElementById('tab-btn-signup');
+    const tabForgot = document.getElementById('tab-btn-forgot');
+    const formSignup = document.getElementById('auth-form-signup');
+    const formForgot = document.getElementById('auth-form-forgot');
+    const statusMsg = document.getElementById('auth-status-msg');
+    [tabSignin, tabSignup, tabForgot].forEach(t => t?.classList.remove('active'));
+    [formSignin, formSignup, formForgot].forEach(f => { if (f) f.style.display = 'none'; });
+    tabSignin?.classList.add('active');
+    if (formSignin) formSignin.style.display = 'block';
+    if (statusMsg) { statusMsg.style.display = 'none'; statusMsg.textContent = ''; }
+    this.openModal('modal-auth');
+  }
+
+  async openCloudRestoreModal() {
+    const container = document.getElementById('cloud-restore-list');
+    this.openModal('modal-cloud-restore');
+    if (!container) return;
+
+    container.innerHTML = '<div style="text-align: center; color: var(--text-muted); font-size: 12px; padding: 1.5rem 0;">Fetching cloud backups...</div>';
+
+    try {
+      const backups = await supabaseService.getCharacterBackups();
+      if (!backups || backups.length === 0) {
+        container.innerHTML = `
+          <div style="text-align: center; color: var(--text-muted); font-size: 12px; font-style: italic; padding: 2rem 0;">
+            No cloud backups found for your account.<br>
+            Use <strong>Menu &gt; Backup to Cloud Database</strong> to save characters to the cloud.
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = backups.map(b => {
+        const dateStr = b.updated_at ? new Date(b.updated_at).toLocaleString() : 'Unknown';
+        const heroName = (b.name || 'Unnamed Hero').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        const concept = (b.concept || 'No concept specified').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        const pl = b.power_level ?? 10;
+        return `
+          <div class="card" style="margin-bottom: 0.75rem; padding: 0.85rem; border: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; gap: 0.85rem; background: var(--bg-card);">
+            <div style="flex: 1; min-width: 0;">
+              <div style="display: flex; align-items: baseline; gap: 0.5rem; margin-bottom: 0.25rem;">
+                <span style="font-weight: 800; font-size: 14px; color: var(--text-bright);">${heroName}</span>
+                <span class="badge" style="background: var(--hero-blue); color: #fff; font-size: 10px; padding: 1px 6px; border-radius: 3px; font-weight: 700;">PL ${pl}</span>
+              </div>
+              <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 0.25rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                ${concept}
+              </div>
+              <div style="font-size: 11px; color: var(--text-muted); opacity: 0.8;">
+                Last Backup: ${dateStr}
+              </div>
+            </div>
+            <div style="display: flex; gap: 0.4rem; flex-shrink: 0;">
+              <button type="button" class="btn btn-primary btn-restore-cloud-char" data-backup-id="${b.id}" style="font-size: 11px; padding: 0.35rem 0.65rem; font-weight: 700;">
+                📥 Load / Restore
+              </button>
+              <button type="button" class="btn btn-outline btn-delete-cloud-char" data-backup-id="${b.id}" data-char-name="${heroName}" style="font-size: 11px; padding: 0.35rem 0.65rem; color: var(--hero-red); border-color: rgba(239, 68, 68, 0.4);">
+                🗑️ Delete
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      // Wire Restore buttons
+      container.querySelectorAll('.btn-restore-cloud-char').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+          const bId = e.currentTarget.dataset.backupId;
+          const backup = backups.find(x => String(x.id) === String(bId));
+          if (!backup || !backup.character_data) return;
+
+          const confirmed = await this.showConfirmDialog(
+            `Restore "${backup.name}" (PL ${backup.power_level}) from cloud backup?\n\nThis will load the character into your editor workspace. Any unsaved local edits will be replaced.`,
+            { title: 'Confirm Cloud Restore', confirmText: 'Load Hero', confirmClass: 'btn-primary' }
+          );
+          if (!confirmed) return;
+
+          const loadedChar = backup.character_data;
+          this.char = loadedChar;
+          this.primaryChar = loadedChar;
+          this.activeAltId = null;
+          if (!this.char.alts) this.char.alts = [];
+          this.currentFileHandle = null;
+          this.saveAndAudit();
+          this.loadCharacterToUI();
+          partyManager.updateCurrentPlayer(this.char, this.primaryChar, this.activeAltId);
+          partyManager.broadcastLocalMemberData();
+
+          this.closeModal('modal-cloud-restore');
+          await this.showAlertDialog(`Successfully loaded "${backup.name}" from cloud backup!`, { title: 'Restore Complete' });
+        });
+      });
+
+      // Wire Delete buttons
+      container.querySelectorAll('.btn-delete-cloud-char').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+          const bId = e.currentTarget.dataset.backupId;
+          const charName = e.currentTarget.dataset.charName || 'Hero';
+          const confirmed = await this.showConfirmDialog(
+            `Are you sure you want to delete the cloud backup for "${charName}"?\n\nThis cannot be undone.`,
+            { title: 'Delete Cloud Backup', confirmText: 'Delete', confirmClass: 'btn-danger' }
+          );
+          if (!confirmed) return;
+
+          try {
+            await supabaseService.deleteCharacterBackup(bId);
+            await this.showAlertDialog(`Deleted cloud backup for "${charName}".`, { title: 'Backup Deleted' });
+            this.openCloudRestoreModal();
+          } catch (err) {
+            await this.showAlertDialog('Failed to delete backup: ' + err.message, { title: 'Delete Error' });
+          }
+        });
+      });
+
+    } catch (err) {
+      container.innerHTML = `<div style="text-align: center; color: var(--hero-red); font-size: 12px; padding: 1.5rem 0;">Error fetching backups: ${err.message}</div>`;
+    }
   }
 
   async attachCurrentCharacterToCampaign(campId) {

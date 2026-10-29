@@ -6,8 +6,8 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Mutants & Masterminds 3E - Character Editor v3.65</title>
-  <link rel="stylesheet" href="css/styles.css?v=3.65">
+  <title>Mutants & Masterminds 3E - Character Editor v3.66</title>
+  <link rel="stylesheet" href="css/styles.css?v=3.66">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
@@ -55,7 +55,28 @@
                 <span class="menu-item-text">Load Character... (.MM3)</span>
               </button>
               <div class="menu-dropdown-separator"></div>
-              <div class="menu-dropdown-heading">Export</div>
+              <div class="menu-dropdown-heading">Import / Export &amp; Cloud Backup</div>
+              <button class="menu-dropdown-item" id="menu-action-cloud-backup">
+                <span class="menu-item-icon">☁️</span>
+                <span class="menu-item-text">Backup to Cloud Database</span>
+                <span class="menu-item-subtext">Online</span>
+              </button>
+              <button class="menu-dropdown-item" id="menu-action-cloud-restore">
+                <span class="menu-item-icon">📥</span>
+                <span class="menu-item-text">Restore from Cloud Database...</span>
+                <span class="menu-item-subtext">Online</span>
+              </button>
+              <div class="menu-dropdown-separator" style="margin: 3px 0;"></div>
+              <button class="menu-dropdown-item" id="menu-action-export-mm3">
+                <span class="menu-item-icon">💾</span>
+                <span class="menu-item-text">Export File (.MM3 / JSON)</span>
+                <span class="menu-item-subtext">Local</span>
+              </button>
+              <button class="menu-dropdown-item" id="menu-action-import-mm3">
+                <span class="menu-item-icon">📂</span>
+                <span class="menu-item-text">Import File (.MM3 / JSON)...</span>
+                <span class="menu-item-subtext">Local</span>
+              </button>
               <button class="menu-dropdown-item" id="menu-action-export-pdf">
                 <span class="menu-item-icon">📄</span>
                 <span class="menu-item-text">Export Character (PDF)</span>
@@ -81,7 +102,7 @@
 
           <div class="brand-title-centered">
             <span>Mutants & Masterminds 3E Character Editor</span>
-            <span id="header-version-tag" class="header-version-tag up-to-date" title="Current Version">v3.65</span>
+            <span id="header-version-tag" class="header-version-tag up-to-date" title="Current Version">v3.66</span>
             <button type="button" id="btn-header-update-alert" class="btn-header-update-alert" title="Check for updates / Update status" style="display: none;">!</button>
           </div>
 
@@ -1718,6 +1739,31 @@
     </div>
   </div>
 
-  <script type="module" src="js/app.js?v=3.65"></script>
+  <!-- ======================================================= -->
+  <!-- MODAL: CLOUD CHARACTER RESTORE                          -->
+  <!-- ======================================================= -->
+  <div class="modal-overlay" id="modal-cloud-restore">
+    <div class="modal-container" style="max-width: 680px; max-height: 90vh; display: flex; flex-direction: column;">
+      <div class="modal-header-bar">
+        <div class="modal-header-title">📥 Cloud Character Backups</div>
+        <button class="btn btn-outline" id="btn-close-cloud-restore" style="min-height: 28px; padding: 0.1rem 0.5rem;">✕</button>
+      </div>
+      <div class="modal-scroll-body" style="padding: 1.25rem; flex: 1; overflow-y: auto;">
+        <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 0.85rem;">
+          Select a character backed up to your Supabase cloud account to restore and load it into your active editor. You can also delete outdated backups.
+        </p>
+        <div id="cloud-restore-list">
+          <div style="text-align: center; color: var(--text-muted); font-size: 12px; font-style: italic; padding: 2rem 0;">
+            Loading cloud backups...
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer-bar">
+        <button type="button" class="btn btn-outline" id="btn-close-cloud-restore-footer">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="js/app.js?v=3.66"></script>
 </body>
 </html>

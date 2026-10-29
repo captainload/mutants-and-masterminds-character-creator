@@ -14,6 +14,7 @@ export class CampaignTrackerManager {
     this.isEmbeddedOpen = false;
     this.broadcastChannel = null;
     this._memoryFallback = {};
+    this._fallbackTabId = null;
 
     if (typeof window !== 'undefined' && 'BroadcastChannel' in window) {
       try {
@@ -52,6 +53,26 @@ export class CampaignTrackerManager {
   // =======================================================
   // CAMPAIGN CONNECTION STATE & P2P ACCESS CONTROL
   // =======================================================
+  getTabSessionId() {
+    if (typeof sessionStorage !== 'undefined') {
+      let tid = sessionStorage.getItem('mm3e_session_tab_id');
+      if (!tid) {
+        tid = 'tab_' + Date.now().toString(36) + '_' + Math.random().toString(36).substr(2, 5);
+        sessionStorage.setItem('mm3e_session_tab_id', tid);
+      }
+      return tid;
+    }
+    if (!this._fallbackTabId) {
+      this._fallbackTabId = 'tab_' + Date.now().toString(36) + '_' + Math.random().toString(36).substr(2, 5);
+    }
+    return this._fallbackTabId;
+  }
+
+  getLocalMember() {
+    const members = this.getPartyMembers();
+    return members.find(m => m.isLocal) || null;
+  }
+
   getCampaignRegistry() {
     try {
       const raw = typeof localStorage !== 'undefined' ? localStorage.getItem('mm3e_campaign_registry') : this._memoryFallback['mm3e_campaign_registry'];
@@ -233,12 +254,13 @@ export class CampaignTrackerManager {
 
     this.saveCampaignState(newState);
 
-    // Request full roster from peers in this room
+    // Request full roster from peers in this room, sending our local member if registered
     this.broadcastMessage({
       type: 'REQUEST_ROSTER',
       campaignId: cleanId,
       pin: cleanPin,
-      playerName
+      playerName,
+      member: this.getLocalMember()
     });
 
     return newState;
@@ -316,7 +338,11 @@ export class CampaignTrackerManager {
         break;
 
       case 'REQUEST_ROSTER':
-        // A new peer joined; send our local member data to welcome them
+        // A new peer joined; if they sent their member data, ingest it immediately
+        if (msg.member && msg.member.id) {
+          this.ingestRemoteMember(msg.member);
+        }
+        // Send our local member data to welcome them
         this.broadcastLocalMemberData();
         break;
 
@@ -366,17 +392,10 @@ export class CampaignTrackerManager {
     if (!char) return;
 
     const baseHero = primaryChar || char;
-    if (!baseHero.id) {
-      if (typeof sessionStorage !== 'undefined' && sessionStorage.getItem('mm3e_tab_hero_id')) {
-        baseHero.id = sessionStorage.getItem('mm3e_tab_hero_id');
-      } else {
-        baseHero.id = 'hero_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
-        if (typeof sessionStorage !== 'undefined') {
-          sessionStorage.setItem('mm3e_tab_hero_id', baseHero.id);
-        }
-      }
-    }
-    const heroId = baseHero.id;
+    const tabSessionId = this.getTabSessionId();
+    // Unique ID combining character ID and tab session so tabs on the same machine/profile never collide
+    const heroId = (baseHero.id || 'hero') + '_' + tabSessionId;
+    this._lastLocalHeroId = heroId;
     const isAltActive = !!activeAltId && char.id !== baseHero.id;
 
     const conditions = [];
@@ -403,11 +422,17 @@ export class CampaignTrackerManager {
 
     const campaignState = this.getCampaignState();
 
+    const isHost = campaignState.isHost;
+    const defaultCharName = isHost ? `GM (${campaignState.creatorName || 'Host'})` : 'Unnamed Hero';
+    const charName = (baseHero.name || '').trim() || defaultCharName;
+    const activeDisplayName = (char.name || '').trim() || charName;
+    const playerName = (baseHero.playerName || '').trim() || (isHost ? 'GM' : 'Player');
+
     const memberData = {
       id: heroId,
-      characterName: baseHero.name || 'Unnamed Hero',
-      activeDisplayName: char.name || baseHero.name || 'Hero',
-      playerName: baseHero.playerName || 'Player',
+      characterName: charName,
+      activeDisplayName,
+      playerName,
       campaign: baseHero.campaign || campaignState.campaignName || '',
       campaignId: campaignState.campaignId || '',
       isAlt: isAltActive,
@@ -461,6 +486,11 @@ export class CampaignTrackerManager {
   ingestRemoteMember(remoteMember) {
     if (!remoteMember || !remoteMember.id) return;
     const members = this.getPartyMembers();
+    // Do not ingest our own local member as a remote member
+    const localMember = members.find(m => m.isLocal);
+    if (localMember && localMember.id === remoteMember.id) {
+      return;
+    }
     const existingIndex = members.findIndex(m => m.id === remoteMember.id);
     const remoteData = { ...remoteMember, isLocal: false };
 

@@ -2478,7 +2478,23 @@ window.partyManager = partyManager;
       const dontEnforcePL = !!campInfo?.dontEnforcePL;
       const campName = campInfo?.campaignName || cleanCampId;
 
-      const charName = (this.char.name || '').trim() || 'Hero';
+      let charName = (this.char.name || '').trim();
+      if (!charName) {
+        const enteredName = await this.showPromptDialog({
+          title: 'Hero Name Required',
+          label: 'Enter your Character / Hero Name before joining:',
+          defaultValue: 'Hero',
+          placeholder: 'e.g. Star Knight, Aegis',
+          confirmText: 'Continue'
+        });
+        if (!enteredName || !enteredName.trim()) return;
+        this.char.name = enteredName.trim();
+        charName = this.char.name;
+        const nameInput = document.getElementById('header-char-name');
+        if (nameInput) nameInput.value = charName;
+        this.saveAndAudit();
+      }
+
       const charPL = parseInt(this.char.powerLevel, 10) || 10;
 
       // Check against campaign's PL: if character isn't of the same PL inform user this needs to be corrected
@@ -2509,10 +2525,13 @@ window.partyManager = partyManager;
         if (!confirmed) return;
 
         try {
+          // Pre-register local hero before handshake
+          partyManager.updateCurrentPlayer(this.char, this.primaryChar, this.activeAltId);
+
           const joined = partyManager.joinCampaign({
             campaignId: cleanCampId,
             pin: (pin || '').trim(),
-            playerName: this.char.playerName || this.char.name || 'Hero',
+            playerName: this.char.playerName || charName,
             campaignName: campName,
             powerLevel: campPL,
             dontEnforcePL
@@ -2525,6 +2544,8 @@ window.partyManager = partyManager;
           this.saveAndAudit();
 
           partyManager.updateCurrentPlayer(this.char, this.primaryChar, this.activeAltId);
+          partyManager.broadcastLocalMemberData();
+
           await this.showAlertDialog(
             `"${charName}" successfully connected to Campaign "${joined.campaignName}" (#${joined.campaignId})!\n\nYour hero conditions, toughness penalty, and active alt status are now live synced with the party.`,
             { title: 'Connected to Campaign' }

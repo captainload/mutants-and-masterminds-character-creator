@@ -41,7 +41,7 @@ import {
   tablesManager
 } from './tables.js';
 
-import { POWER_PROFILES_LIBRARY } from './power_profiles.js?v=3.63';
+import { POWER_PROFILES_LIBRARY } from './power_profiles.js?v=3.64';
 import { ARCHETYPES } from './archetypes.js';
 import { archetypeManager } from './archetype_window.js';
 import { campaignManager, partyManager } from './party.js';
@@ -1996,7 +1996,7 @@ window.partyManager = partyManager;
   }
 
   async checkForUpdates({ isManual = false } = {}) {
-    const CURRENT_VERSION = '3.63';
+    const CURRENT_VERSION = '3.64';
     const versionEl = document.getElementById('header-version-tag');
     const updateBtn = document.getElementById('btn-header-update-alert');
     if (typeof window === 'undefined' || !window.location || !window.location.href || window.location.href === 'about:blank') return;
@@ -2561,16 +2561,9 @@ window.partyManager = partyManager;
               dontEnforcePL: false,
               creatorName: this.char.playerName || this.char.name || 'GM'
             });
-            this.char.campaign = created.campaignName;
-            this.char.lastCampaign = created.campaignName;
-            this.char.campaignId = created.campaignId;
-            const campInput = document.getElementById('header-campaign-name');
-            if (campInput) campInput.value = created.campaignName;
-            this.saveAndAudit();
 
-            partyManager.updateCurrentPlayer(this.char, this.primaryChar, this.activeAltId);
             this.showAlertDialog(
-              `Campaign "${created.campaignName}" created successfully!\n\nShare this with your players:\nCampaign ID #: #${created.campaignId}\nTarget PL: PL ${created.powerLevel}${created.pin ? `\nPIN: ${created.pin}` : ''}\n\nYour app is now live connected. Other campaign creation is disabled while connected.`,
+              `Campaign "${created.campaignName}" created successfully!\n\nShare this with your players:\nCampaign ID #: #${created.campaignId}\nTarget PL: PL ${created.powerLevel}${created.pin ? `\nPIN: ${created.pin}` : ''}\n\nYour app is now connected as GM host. Use the "Start/End Session" button to control the game session.\n\nNote: Your loaded character has not been automatically added to the party. If you wish to attach a character, you can do so in the Campaign Manager.`,
               { title: 'Campaign Created' }
             );
             partyManager.renderAllOpenViews();
@@ -2582,39 +2575,48 @@ window.partyManager = partyManager;
     });
   }
 
-  async openJoinCampaignDialog(prefilledCampId = '') {
+  async openJoinCampaignDialog(prefilledCampIdOrName = '') {
     if (campaignManager.isUserConnected()) {
       const state = campaignManager.getCampaignState();
       const currentName = state.campaignName || state.campaignId || 'current campaign';
-      const confirmed = await this.showConfirmDialog({
-        title: 'Switch Campaigns?',
-        message: `You are currently connected to "${currentName}" (ID: #${state.campaignId}).\n\nDo you want to disconnect from this campaign to join another one?`,
-        confirmText: 'Disconnect & Join New',
-        cancelText: 'Stay Connected'
-      });
+      const confirmed = await this.showConfirmDialog(
+        `You are currently connected to "${currentName}" (ID: #${state.campaignId}).\n\nDo you want to disconnect from this campaign to join another one?`,
+        {
+          title: 'Switch Campaigns?',
+          confirmText: 'Disconnect & Join New',
+          cancelText: 'Stay Connected'
+        }
+      );
       if (!confirmed) return; // User chose to stay connected
       campaignManager.leaveCampaign();
     }
 
+    let defaultCampName = (prefilledCampIdOrName || this.char.lastCampaign || this.char.campaign || '').trim();
+    if (!defaultCampName && this.char.campaignId) {
+      const info = campaignManager.getCampaignInfo(this.char.campaignId);
+      if (info?.campaignName) defaultCampName = info.campaignName;
+    }
+
     const promptForId = async () => {
-      if (prefilledCampId) return prefilledCampId;
+      if (prefilledCampIdOrName) return prefilledCampIdOrName;
       return await this.showPromptDialog({
         title: 'Join Campaign Room',
-        label: 'Enter Campaign ID # (from your GM):',
-        defaultValue: '',
-        placeholder: 'e.g. HERO-8492 or JL-1024',
+        label: 'Enter Campaign Name or ID # (from your GM):',
+        defaultValue: defaultCampName,
+        placeholder: 'e.g. Freedom League or FREE-101',
         confirmText: 'Next: Verify & PIN'
       });
     };
 
-    promptForId().then(async campId => {
-      if (!campId || !campId.trim()) return;
+    promptForId().then(async campInput => {
+      if (!campInput || !campInput.trim()) return;
 
-      const cleanCampId = campId.trim().toUpperCase().replace(/^#+/, '');
-      const campInfo = campaignManager.getCampaignInfo(cleanCampId);
+      const cleanInput = campInput.trim().replace(/^#+/, '');
+      const campInfo = campaignManager.getCampaignInfo(cleanInput);
+      const cleanCampId = campInfo?.campaignId || cleanInput.toUpperCase();
+      const campName = campInfo?.campaignName || cleanInput;
       const campPL = campInfo?.powerLevel ?? 10;
       const dontEnforcePL = !!campInfo?.dontEnforcePL;
-      const campName = campInfo?.campaignName || cleanCampId;
 
       await this.checkOfferLoadAttachedCharacter(cleanCampId, campName);
 
@@ -2665,8 +2667,12 @@ window.partyManager = partyManager;
         if (!confirmed) return;
 
         try {
-          // Pre-register local hero before handshake
-          partyManager.updateCurrentPlayer(this.char, this.primaryChar, this.activeAltId);
+          this.char.campaign = campName;
+          this.char.lastCampaign = campName;
+          this.char.campaignId = cleanCampId;
+          const campInput = document.getElementById('header-campaign-name');
+          if (campInput) campInput.value = campName;
+          this.saveAndAudit();
 
           const joined = partyManager.joinCampaign({
             campaignId: cleanCampId,
@@ -2676,12 +2682,6 @@ window.partyManager = partyManager;
             powerLevel: campPL,
             dontEnforcePL
           });
-          this.char.campaign = joined.campaignName;
-          this.char.lastCampaign = joined.campaignName;
-          this.char.campaignId = joined.campaignId;
-          const campInput = document.getElementById('header-campaign-name');
-          if (campInput) campInput.value = joined.campaignName;
-          this.saveAndAudit();
 
           partyManager.updateCurrentPlayer(this.char, this.primaryChar, this.activeAltId);
           partyManager.broadcastLocalMemberData();
@@ -2696,6 +2696,83 @@ window.partyManager = partyManager;
         }
       });
     });
+  }
+
+  async attachCurrentCharacterToCampaign(campId) {
+    const cleanId = String(campId || '').toUpperCase().replace(/^#+/, '');
+    const campInfo = campaignManager.getCampaignInfo(cleanId) || campaignManager.getCampaignState();
+    const campName = campInfo?.campaignName || cleanId;
+    const campPL = campInfo?.powerLevel ?? 10;
+    const dontEnforcePL = !!campInfo?.dontEnforcePL;
+
+    let charName = (this.char.name || '').trim();
+    if (!charName) {
+      const enteredName = await this.showPromptDialog({
+        title: 'Hero Name Required',
+        label: 'Enter your Character / Hero Name before attaching:',
+        defaultValue: 'Hero',
+        placeholder: 'e.g. Star Knight, Aegis',
+        confirmText: 'Continue'
+      });
+      if (!enteredName || !enteredName.trim()) return;
+      this.char.name = enteredName.trim();
+      charName = this.char.name;
+      const nameInput = document.getElementById('header-char-name');
+      if (nameInput) nameInput.value = charName;
+      this.saveAndAudit();
+    }
+
+    const charPL = parseInt(this.char.powerLevel, 10) || 10;
+    if (!dontEnforcePL && charPL !== campPL) {
+      await this.showAlertDialog(
+        `Cannot attach "${charName}":\n\n"${charName}" is Power Level ${charPL}, but the campaign requires Power Level ${campPL}.\n\nThis needs to be corrected before attaching this character (unless the GM has enabled "Don't enforce PL").`,
+        { title: 'Power Level Mismatch' }
+      );
+      return;
+    }
+
+    const confirmed = await this.showConfirmDialog(
+      `Attach "${charName}" (PL ${charPL}) to campaign "${campName}" (#${cleanId}) party?\n\nYour conditions and toughness penalties will be live-synced with the campaign.`,
+      {
+        title: 'Confirm Attach Character',
+        confirmText: 'Attach Character',
+        confirmClass: 'btn-primary'
+      }
+    );
+    if (!confirmed) return;
+
+    this.char.campaign = campName;
+    this.char.lastCampaign = campName;
+    this.char.campaignId = cleanId;
+    const campInput = document.getElementById('header-campaign-name');
+    if (campInput) campInput.value = campName;
+    this.saveAndAudit();
+
+    partyManager.updateCurrentPlayer(this.char, this.primaryChar, this.activeAltId);
+    partyManager.broadcastLocalMemberData();
+    partyManager.renderAllOpenViews();
+  }
+
+  async detachCurrentCharacterFromCampaign() {
+    const charName = (this.char.name || 'Hero').trim();
+    const confirmed = await this.showConfirmDialog(
+      `Detach "${charName}" from the current campaign party?`,
+      {
+        title: 'Detach Character',
+        confirmText: 'Detach',
+        confirmClass: 'btn-outline'
+      }
+    );
+    if (!confirmed) return;
+
+    this.char.campaign = '';
+    this.char.campaignId = '';
+    const campInput = document.getElementById('header-campaign-name');
+    if (campInput) campInput.value = '';
+    this.saveAndAudit();
+
+    partyManager.updateCurrentPlayer(this.char, this.primaryChar, this.activeAltId);
+    partyManager.renderAllOpenViews();
   }
 
   openCampaignTracker() {

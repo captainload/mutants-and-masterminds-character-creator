@@ -44,7 +44,7 @@ export class StorageManager {
       id: 'char_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
       name,
       player: '',
-      campaign: 'Standard Issue',
+      campaign: '',
       identity: 'Secret Identity',
       powerLevel: pl,
       powerPointsBudget: budget,

@@ -1,6 +1,6 @@
 {
-  "version": "3.63",
-  "updatedAt": "2026-10-29T21:07:23.098Z",
-  "releaseNotes": "Campaigns: Dual-transport P2P sync (BroadcastChannel + storage event bus) ensuring multi-tab visibility even on file://; normalized Campaign IDs; persistent participated campaigns history; creator-only GM settings; player name dropdown for multi-player profiles; attached character auto-loading offer on campaign selection; and active campaign session detection & auto-join prompt.",
+  "version": "3.64",
+  "updatedAt": "2026-10-29T21:28:00.000Z",
+  "releaseNotes": "Campaigns: Disconnect users and GM when app closes; prevent GM loaded characters from automatically joining running campaign party; add Start/End Game Session button for GMs; manual character attach/detach options; and prefill last participated campaign name when joining.",
   "updated": "2026-10-29"
 }

@@ -45,6 +45,31 @@ export class CampaignTrackerManager {
     }
 
     this._heartbeatInterval = null;
+
+    // Ensure users and GM start in disconnected campaign state on fresh app startup
+    try {
+      if (typeof sessionStorage !== 'undefined' && typeof sessionStorage.removeItem === 'function') {
+        sessionStorage.removeItem(this.campaignStateKey);
+        sessionStorage.removeItem(this.storageKey);
+      }
+      if (typeof localStorage !== 'undefined' && typeof localStorage.removeItem === 'function') {
+        localStorage.removeItem(this.campaignStateKey);
+      }
+    } catch (e) {}
+
+    // Automatically disconnect users and GM from campaigns when the app closes
+    if (typeof window !== 'undefined') {
+      const handleAppClose = () => {
+        try {
+          const current = this.getCampaignState();
+          if (current && current.isConnected) {
+            this.leaveCampaign();
+          }
+        } catch (e) {}
+      };
+      window.addEventListener('beforeunload', handleAppClose);
+      window.addEventListener('pagehide', handleAppClose);
+    }
   }
 
   getSavedCoords() {
@@ -255,10 +280,55 @@ export class CampaignTrackerManager {
     }
   }
 
-  getCampaignInfo(campaignId) {
-    if (!campaignId) return null;
+  startSession(campaignId) {
+    const current = this.getCampaignState();
+    const cleanId = String(campaignId || current.campaignId || '').trim().toUpperCase().replace(/^#+/, '');
+    if (!cleanId) return;
+    this.startSessionHeartbeat();
+    this.broadcastMessage({
+      type: 'SESSION_STARTED',
+      campaignId: cleanId,
+      campaignName: current.campaignName,
+      powerLevel: current.powerLevel
+    });
+    this.renderAllOpenViews();
+  }
+
+  endSession(campaignId) {
+    const current = this.getCampaignState();
+    const cleanId = String(campaignId || current.campaignId || '').trim().toUpperCase().replace(/^#+/, '');
+    if (!cleanId) return;
+    this.stopSessionHeartbeat();
+    this.broadcastMessage({
+      type: 'SESSION_ENDED',
+      campaignId: cleanId
+    });
+    try {
+      const sessions = this.getActiveSessions();
+      delete sessions[cleanId];
+      if (typeof localStorage !== 'undefined') {
+        localStorage.setItem('mm3e_active_sessions', JSON.stringify(sessions));
+      } else {
+        this._memoryFallback['mm3e_active_sessions'] = JSON.stringify(sessions);
+      }
+    } catch (e) {}
+    this.renderAllOpenViews();
+  }
+
+  getCampaignInfo(idOrName) {
+    if (!idOrName) return null;
+    const clean = String(idOrName).trim().toUpperCase().replace(/^#+/, "");
     const reg = this.getCampaignRegistry();
-    return reg[String(campaignId).trim().toUpperCase().replace(/^#+/, "")] || null;
+    if (reg[clean]) return reg[clean];
+    const matchReg = Object.values(reg).find(c => (c.campaignName || '').trim().toUpperCase() === clean);
+    if (matchReg) return matchReg;
+    const history = this.getCampaignHistory();
+    const matchHist = history.find(c => c.campaignId === clean || (c.campaignName || '').trim().toUpperCase() === clean);
+    if (matchHist) return matchHist;
+    const sessions = this.getActiveSessions();
+    const matchSess = Object.values(sessions).find(s => s.campaignId === clean || (s.campaignName || '').trim().toUpperCase() === clean);
+    if (matchSess) return matchSess;
+    return null;
   }
 
   getCampaignState() {
@@ -335,7 +405,7 @@ export class CampaignTrackerManager {
     this.saveCampaignState(newState);
     this.registerCampaignInfo(newState);
     this.saveToCampaignHistory(newState);
-    this.startSessionHeartbeat();
+    this.startSession(assignedId);
 
     // Announce creation to network
     this.broadcastMessage({
@@ -409,7 +479,9 @@ export class CampaignTrackerManager {
 
     this.saveCampaignState(newState);
     this.saveToCampaignHistory(newState);
-    this.startSessionHeartbeat();
+    if (isCreator) {
+      this.startSession(cleanId);
+    }
 
     // Request full roster from peers in this room, sending our local member if registered
     this.broadcastMessage({
@@ -635,9 +707,38 @@ export class CampaignTrackerManager {
 
     const campaignState = this.getCampaignState();
 
+    // When connected to a campaign:
+    // Characters loaded into the client (including GM) do NOT automatically join the party
+    // unless explicitly attached to this campaign!
+    if (campaignState.isConnected && campaignState.campaignId) {
+      const cleanCampId = (campaignState.campaignId || '').toUpperCase().replace(/^#+/, '');
+      const charCampId = (baseHero.campaignId || '').toUpperCase().replace(/^#+/, '');
+      const charCampName = (baseHero.campaign || '').trim().toLowerCase();
+      const campName = (campaignState.campaignName || '').trim().toLowerCase();
+
+      const isAttached = (charCampId && charCampId === cleanCampId) ||
+                         (charCampName && campName && charCampName === campName);
+
+      if (!isAttached) {
+        // Character is not attached to this campaign. Remove from party roster if present.
+        const members = this.getPartyMembers();
+        const filtered = members.filter(m => m.id !== heroId);
+        if (filtered.length !== members.length) {
+          this.savePartyMembers(filtered);
+          this.broadcastMessage({
+            type: 'MEMBER_LEFT',
+            campaignId: campaignState.campaignId,
+            pin: campaignState.pin,
+            memberId: heroId
+          });
+          this.renderAllOpenViews();
+        }
+        return;
+      }
+    }
+
     const isHost = campaignState.isHost;
-    const defaultCharName = isHost ? `GM (${campaignState.creatorName || 'Host'})` : 'Unnamed Hero';
-    const charName = (baseHero.name || '').trim() || defaultCharName;
+    const charName = (baseHero.name || '').trim() || 'Hero';
     const activeDisplayName = (char.name || '').trim() || charName;
     const playerName = (baseHero.playerName || '').trim() || (isHost ? 'GM' : 'Player');
 
@@ -843,6 +944,7 @@ export class CampaignTrackerManager {
   generatePartyHTML() {
     const members = this.getPartyMembers();
     const state = this.getCampaignState();
+    const isLive = state.isConnected ? this.isSessionActive(state.campaignId) : false;
 
     // Top Connection Bar:
     let connectionBar = '';
@@ -861,14 +963,21 @@ export class CampaignTrackerManager {
             <button type="button" class="btn btn-outline btn-leave-campaign-room" style="font-size: 11px; font-weight: 700; padding: 0.2rem 0.65rem; color: var(--hero-red); border-color: var(--hero-red);">🚪 Disconnect / Leave</button>
           </div>
           ${(state.isCreator || this.getCampaignHistory().find(c => c.campaignId === state.campaignId)?.isCreator) ? `
-            <div style="display: flex; align-items: center; gap: 0.75rem; margin-top: 0.45rem; padding-top: 0.45rem; border-top: 1px dashed rgba(255,255,255,0.15); font-size: 12px; flex-wrap: wrap;">
+            <div style="display: flex; align-items: center; gap: 0.6rem; margin-top: 0.45rem; padding-top: 0.45rem; border-top: 1px dashed rgba(255,255,255,0.15); font-size: 12px; flex-wrap: wrap;">
               <span style="color: var(--hero-gold); font-weight: 800;">⚙️ GM Campaign Settings (Creator):</span>
-              <label style="display: inline-flex; align-items: center; gap: 0.35rem; cursor: pointer; user-select: none; color: var(--text-bright); font-weight: 700;" title="When checked, characters of any Power Level can join without PL restrictions">
+              ${isLive ? `
+                <button type="button" class="btn btn-outline btn-gm-toggle-session" data-action="end" data-campid="${state.campaignId}" style="font-size: 11px; font-weight: 800; color: var(--hero-red); border-color: var(--hero-red); padding: 2px 9px; cursor: pointer;">⏹️ End Game Session</button>
+                <span style="color: #10b981; font-size: 11px; font-weight: 800;">🟢 Live Broadcasting</span>
+              ` : `
+                <button type="button" class="btn btn-primary btn-gm-toggle-session" data-action="start" data-campid="${state.campaignId}" style="font-size: 11px; font-weight: 800; background: var(--hero-green); border-color: var(--hero-green); padding: 2px 9px; cursor: pointer;">▶️ Start Game Session</button>
+                <span style="color: var(--text-muted); font-size: 11px; font-weight: 700;">⚪ Inactive / Offline</span>
+              `}
+              <label style="display: inline-flex; align-items: center; gap: 0.35rem; cursor: pointer; user-select: none; color: var(--text-bright); font-weight: 700; margin-left: 0.4rem;" title="When checked, characters of any Power Level can join without PL restrictions">
                 <input type="checkbox" class="chk-campaign-dont-enforce-pl" ${state.dontEnforcePL ? 'checked' : ''} style="cursor: pointer; width: 14px; height: 14px; accent-color: var(--hero-gold);">
-                <span>Don't enforce PL (allow any character PL)</span>
+                <span>Don't enforce PL</span>
               </label>
-              <div style="display: inline-flex; align-items: center; gap: 0.35rem;">
-                <span style="color: var(--text-muted); font-size: 11px; font-weight: 700;">Campaign PL:</span>
+              <div style="display: inline-flex; align-items: center; gap: 0.35rem; margin-left: 0.25rem;">
+                <span style="color: var(--text-muted); font-size: 11px; font-weight: 700;">PL:</span>
                 <select class="sel-campaign-target-pl" style="background: var(--bg-input); color: var(--text-bright); border: 1px solid var(--border-color); border-radius: 3px; padding: 1px 6px; font-size: 11px; font-weight: 800;">
                   ${[6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20].map(pl => `<option value="${pl}" ${(state.powerLevel || 10) === pl ? 'selected' : ''}>PL ${pl}</option>`).join('')}
                 </select>
@@ -894,6 +1003,38 @@ export class CampaignTrackerManager {
           </div>
         </div>
       `;
+    }
+
+    // Hero Attachment Status Bar (Allows GM or Player to manually attach or detach their loaded hero)
+    let charAttachmentBar = '';
+    const activeChar = (typeof window !== 'undefined' && window.appController?.char) || null;
+    if (state.isConnected && activeChar) {
+      const cleanCampId = (state.campaignId || '').toUpperCase().replace(/^#+/, '');
+      const charCampId = (activeChar.campaignId || '').toUpperCase().replace(/^#+/, '');
+      const charCampName = (activeChar.campaign || '').trim().toLowerCase();
+      const campName = (state.campaignName || '').trim().toLowerCase();
+      const isCharAttached = (charCampId && charCampId === cleanCampId) ||
+                             (charCampName && campName && charCampName === campName);
+
+      if (!isCharAttached) {
+        charAttachmentBar = `
+          <div style="background: rgba(59, 130, 246, 0.08); border: 1px dashed var(--hero-blue); border-radius: 6px; padding: 0.5rem 0.85rem; margin-bottom: 0.65rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
+            <div style="font-size: 11px; color: var(--text-bright);">
+              <span>🦸 Loaded Character: <strong>${activeChar.name || 'Hero'}</strong> (PL ${activeChar.powerLevel || 10}) is not in this campaign's party.</span>
+            </div>
+            <button type="button" class="btn btn-outline btn-attach-current-char" style="font-size: 11px; font-weight: 700; color: var(--hero-blue); border-color: var(--hero-blue); padding: 2px 8px;">➕ Attach to Campaign Party</button>
+          </div>
+        `;
+      } else {
+        charAttachmentBar = `
+          <div style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: 6px; padding: 0.4rem 0.85rem; margin-bottom: 0.65rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
+            <div style="font-size: 11px; color: var(--text-bright);">
+              <span>🦸 Active Hero in Party: <strong>${activeChar.name || 'Hero'}</strong> (PL ${activeChar.powerLevel || 10})</span>
+            </div>
+            <button type="button" class="btn btn-outline btn-detach-current-char" style="font-size: 10px; color: var(--text-muted); border-color: var(--border-color); padding: 1px 6px;">Detach from Party</button>
+          </div>
+        `;
+      }
     }
 
     let memberCards = '';
@@ -985,6 +1126,11 @@ export class CampaignTrackerManager {
           </div>
           <div style="display: flex; align-items: center; gap: 0.4rem;">
             ${isLive ? '<span style="color: #10b981; font-weight: 800; font-size: 11px;">🟢 Session Running</span>' : '<span style="color: var(--text-muted); font-size: 11px;">⚪ Offline</span>'}
+            ${c.isCreator ? (isLive ? `
+              <button type="button" class="btn btn-outline btn-gm-toggle-session" data-action="end" data-campid="${c.campaignId}" style="font-size: 11px; padding: 2px 7px; color: var(--hero-red); border-color: var(--hero-red); font-weight: 700;">⏹️ End Session</button>
+            ` : `
+              <button type="button" class="btn btn-outline btn-gm-toggle-session" data-action="start" data-campid="${c.campaignId}" style="font-size: 11px; padding: 2px 7px; color: var(--hero-green); border-color: var(--hero-green); font-weight: 700;">▶️ Start Session</button>
+            `) : ''}
             ${isCur ? '<span style="font-size: 11px; font-weight: 800; color: var(--hero-green);">[Connected]</span>' : `
               <button type="button" class="btn btn-outline btn-reconnect-campaign" data-campid="${c.campaignId}" style="font-size: 11px; padding: 2px 8px; font-weight: 700;">🔗 Connect</button>
             `}
@@ -1011,7 +1157,7 @@ export class CampaignTrackerManager {
       </div>
     `;
 
-    return connectionBar + memberCards + historySection;
+    return connectionBar + charAttachmentBar + memberCards + historySection;
   }
 
   renderAllOpenViews() {
@@ -1077,6 +1223,35 @@ export class CampaignTrackerManager {
       });
     });
 
+    parentEl.querySelectorAll('.btn-gm-toggle-session').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const action = e.currentTarget.dataset.action;
+        const campId = e.currentTarget.dataset.campid;
+        if (action === 'start') {
+          this.startSession(campId);
+        } else {
+          this.endSession(campId);
+        }
+      });
+    });
+
+    parentEl.querySelectorAll('.btn-attach-current-char').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const state = this.getCampaignState();
+        if (typeof window !== 'undefined' && window.appController) {
+          window.appController.attachCurrentCharacterToCampaign(state.campaignId);
+        }
+      });
+    });
+
+    parentEl.querySelectorAll('.btn-detach-current-char').forEach(btn => {
+      btn.addEventListener('click', () => {
+        if (typeof window !== 'undefined' && window.appController) {
+          window.appController.detachCurrentCharacterFromCampaign();
+        }
+      });
+    });
+
     parentEl.querySelectorAll('.chk-campaign-dont-enforce-pl').forEach(chk => {
       chk.addEventListener('change', (e) => {
         this.updateCampaignSettings({ dontEnforcePL: e.target.checked });
@@ -1128,7 +1303,7 @@ export class CampaignTrackerManager {
 <head>
   <meta charset="UTF-8">
   <title>Mutants & Masterminds 3E - Party Conditions & Toughness Tracker</title>
-  <link rel="stylesheet" href="css/styles.css?v=3.63">
+  <link rel="stylesheet" href="css/styles.css?v=3.64">
   <style>
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;

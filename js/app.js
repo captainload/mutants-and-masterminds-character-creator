@@ -41,7 +41,7 @@ import {
   tablesManager
 } from './tables.js';
 
-import { POWER_PROFILES_LIBRARY } from './power_profiles.js?v=3.69';
+import { POWER_PROFILES_LIBRARY } from './power_profiles.js?v=3.70';
 import { ARCHETYPES } from './archetypes.js';
 import { archetypeManager } from './archetype_window.js';
 import { campaignManager, partyManager, formatCharacterSheetHTML } from './party.js';
@@ -2037,7 +2037,7 @@ window.partyManager = partyManager;
   }
 
   async checkForUpdates({ isManual = false } = {}) {
-    const CURRENT_VERSION = '3.69';
+    const CURRENT_VERSION = '3.70';
     const versionEl = document.getElementById('header-version-tag');
     const updateBtn = document.getElementById('btn-header-update-alert');
     if (typeof window === 'undefined' || !window.location || !window.location.href || window.location.href === 'about:blank') return;
@@ -2786,7 +2786,7 @@ window.partyManager = partyManager;
     );
 
     if (confirmed) {
-      await this.openJoinCampaignDialog(matchedSession.campaignId);
+      await this.joinGameSession(matchedSession.campaignId);
     }
   }
 
@@ -2794,14 +2794,14 @@ window.partyManager = partyManager;
     if (partyManager.isUserConnected()) {
       const state = partyManager.getCampaignState();
       this.showAlertDialog(
-        `You are currently connected to campaign "${state.campaignName || state.campaignId}" (ID: #${state.campaignId}).\n\nYou must disconnect from your current campaign before creating a new one.`,
-        { title: 'Already Connected' }
+        `You are currently connected to an active game session in campaign "${state.campaignName || state.campaignId}" (ID: #${state.campaignId}).\n\nYou must leave the active session before creating a new campaign.`,
+        { title: 'Active Session Connected' }
       );
       return;
     }
 
     this.showPromptDialog({
-      title: 'Create P2P Campaign Room (1/3)',
+      title: 'Create Campaign (1/2)',
       label: 'Campaign Title / Name:',
       defaultValue: (this.char.campaign || this.primaryChar?.campaign || '').trim() || 'New Campaign',
       placeholder: 'e.g. Justice League, Freedom City',
@@ -2811,221 +2811,367 @@ window.partyManager = partyManager;
 
       const defaultPL = this.char.powerLevel || 10;
       this.showPromptDialog({
-        title: 'Campaign Power Level (2/3)',
+        title: 'Campaign Power Level (2/2)',
         label: 'Enter Campaign Power Level (PL):',
         defaultValue: String(defaultPL),
         placeholder: 'e.g. 10',
-        confirmText: 'Next: Security PIN'
-      }).then(plStr => {
+        confirmText: 'Create Campaign'
+      }).then(async plStr => {
+        if (plStr === null) return;
         const campPL = parseInt(plStr, 10) || 10;
 
-        this.showPromptDialog({
-          title: 'Campaign Security PIN (3/3)',
-          label: 'Enter an optional 4-digit PIN to ensure privacy (identically named campaigns with different PINs will never collide):',
-          defaultValue: '',
-          placeholder: 'e.g. 1234 (or leave blank for open)',
-          confirmText: 'Create & Connect'
-        }).then(async pin => {
-          try {
-            // If logged into Supabase, create in cloud database (enforces unique campaign name & creator ownership)
-            if (supabaseService.isLoggedIn()) {
-              try {
-                await supabaseService.createCampaign({
-                  name: campName.trim(),
-                  powerLevel: campPL,
-                  dontEnforcePL: false
-                });
-              } catch (cloudErr) {
-                await this.showAlertDialog(cloudErr.message, { title: 'Cannot Create Campaign' });
-                return;
-              }
+        try {
+          if (supabaseService.isLoggedIn()) {
+            try {
+              await supabaseService.createCampaign({
+                name: campName.trim(),
+                powerLevel: campPL,
+                dontEnforcePL: false
+              });
+            } catch (cloudErr) {
+              await this.showAlertDialog(cloudErr.message, { title: 'Cannot Create Campaign' });
+              return;
             }
-
-            const created = partyManager.createCampaign({
-              name: campName.trim(),
-              pin: (pin || '').trim(),
-              powerLevel: campPL,
-              dontEnforcePL: false,
-              creatorName: supabaseService.getUsername() || this.char.playerName || this.char.name || 'GM'
-            });
-
-            this.showAlertDialog(
-              `Campaign "${created.campaignName}" created successfully!\n\nShare this with your players:\nCampaign ID #: #${created.campaignId}\nTarget PL: PL ${created.powerLevel}${created.pin ? `\nPIN: ${created.pin}` : ''}\n\nYour app is now connected as GM host. Use the "Start/End Session" button to control the game session.\n\nNote: Your loaded character has not been automatically added to the party. If you wish to attach a character, you can do so in the Campaign Manager.`,
-              { title: 'Campaign Created' }
-            );
-            partyManager.renderAllOpenViews();
-          } catch (err) {
-            this.showAlertDialog(err.message, { title: 'Cannot Create Campaign' });
           }
-        });
+
+          const created = partyManager.createCampaign({
+            name: campName.trim(),
+            pin: '',
+            powerLevel: campPL,
+            dontEnforcePL: false,
+            creatorName: supabaseService.getUsername() || this.char.playerName || this.char.name || 'GM'
+          });
+
+          const shareLink = partyManager.generateCampaignLink(created);
+          try {
+            if (typeof navigator !== 'undefined' && navigator.clipboard && navigator.clipboard.writeText) {
+              await navigator.clipboard.writeText(shareLink);
+            }
+          } catch {}
+
+          this.showAlertDialog(
+            `Campaign "${created.campaignName}" created!\n\nShare this Campaign Name or Link with your players:\n• Campaign Name: ${created.campaignName}\n• Campaign Link: ${shareLink}\n• Target PL: PL ${created.powerLevel}\n\n⚪ Session Status: No game session is currently running. Use the "▶️ Start Session" button in Your Participated Campaigns when you are ready to host a live game session.`,
+            { title: 'Campaign Created' }
+          );
+          partyManager.renderAllOpenViews();
+        } catch (err) {
+          this.showAlertDialog(err.message, { title: 'Cannot Create Campaign' });
+        }
       });
     });
   }
 
-  async openJoinCampaignDialog(prefilledCampIdOrName = '') {
-    if (campaignManager.isUserConnected()) {
-      const state = campaignManager.getCampaignState();
-      const currentName = state.campaignName || state.campaignId || 'current campaign';
-      const confirmed = await this.showConfirmDialog(
-        `You are currently connected to "${currentName}" (ID: #${state.campaignId}).\n\nDo you want to disconnect from this campaign to join another one?`,
-        {
-          title: 'Switch Campaigns?',
-          confirmText: 'Disconnect & Join New',
-          cancelText: 'Stay Connected'
-        }
-      );
-      if (!confirmed) return; // User chose to stay connected
-      campaignManager.leaveCampaign();
+  /**
+   * Distinct function for applying to / joining a campaign (membership) by Campaign Name or pasted Campaign Link.
+   * Does not require a game session to be running.
+   * Informs the user if they are already part of the campaign and whether a session is currently running,
+   * and if a session is running, asks if they want to join the session with their campaign character.
+   */
+  async openJoinCampaignDialog(prefilledCampLinkOrName = '') {
+    let rawInput = (prefilledCampLinkOrName || '').trim();
+    if (!rawInput && typeof document !== 'undefined') {
+      const linkField = document.querySelector('.input-join-campaign-link');
+      if (linkField && linkField.value.trim()) {
+        rawInput = linkField.value.trim();
+      }
     }
 
-    let defaultCampName = (prefilledCampIdOrName || this.char.lastCampaign || this.char.campaign || '').trim();
+    let defaultCampName = rawInput || (this.char.lastCampaign || this.char.campaign || '').trim();
     if (!defaultCampName && this.char.campaignId) {
       const info = campaignManager.getCampaignInfo(this.char.campaignId);
       if (info?.campaignName) defaultCampName = info.campaignName;
     }
 
-    const promptForId = async () => {
-      if (prefilledCampIdOrName) return prefilledCampIdOrName;
+    const promptForLinkOrName = async () => {
+      if (rawInput) return rawInput;
       return await this.showPromptDialog({
-        title: 'Join Campaign Room',
-        label: 'Enter Campaign Name or ID # (from your GM):',
+        title: 'Join / Apply to Campaign',
+        label: 'Enter the Campaign Name or paste the GM\'s Campaign Link:',
         defaultValue: defaultCampName,
-        placeholder: 'e.g. Freedom League or FREE-101',
-        confirmText: 'Next: Verify & PIN'
+        placeholder: 'e.g. Freedom League or paste ?campaign=... link',
+        confirmText: 'Check Campaign'
       });
     };
 
-    promptForId().then(async campInput => {
-      if (!campInput || !campInput.trim()) return;
+    const campInput = await promptForLinkOrName();
+    if (!campInput || !campInput.trim()) return;
 
-      const cleanInput = campInput.trim().replace(/^#+/, '');
-      const campInfo = campaignManager.getCampaignInfo(cleanInput);
-      const cleanCampId = campInfo?.campaignId || cleanInput.toUpperCase();
-      const campName = campInfo?.campaignName || cleanInput;
-      const campPL = campInfo?.powerLevel ?? 10;
-      const dontEnforcePL = !!campInfo?.dontEnforcePL;
+    const parsed = campaignManager.parseCampaignLinkOrName(campInput);
+    if (!parsed) return;
 
-      await this.checkOfferLoadAttachedCharacter(cleanCampId, campName);
+    // Clear the link input box if present
+    if (typeof document !== 'undefined') {
+      document.querySelectorAll('.input-join-campaign-link').forEach(el => { el.value = ''; });
+    }
 
-      let charName = (this.char.name || '').trim();
-      if (!charName) {
-        const enteredName = await this.showPromptDialog({
-          title: 'Hero Name Required',
-          label: 'Enter your Character / Hero Name before joining:',
-          defaultValue: 'Hero',
-          placeholder: 'e.g. Star Knight, Aegis',
-          confirmText: 'Continue'
-        });
-        if (!enteredName || !enteredName.trim()) return;
-        this.char.name = enteredName.trim();
-        charName = this.char.name;
-        const nameInput = document.getElementById('header-char-name');
-        if (nameInput) nameInput.value = charName;
-        this.saveAndAudit();
-      }
+    let cloudCamp = null;
+    if (supabaseService.client) {
+      try {
+        cloudCamp = await supabaseService.getCampaignByNameOrCode(parsed.campaignName) ||
+                    await supabaseService.getCampaignByNameOrCode(parsed.campaignId);
+      } catch {}
+    }
 
-      const charPL = parseInt(this.char.powerLevel, 10) || 10;
+    const localInfo = campaignManager.getCampaignInfo(parsed.campaignId) || campaignManager.getCampaignInfo(parsed.campaignName);
+    const cleanCampId = (localInfo?.campaignId || parsed.campaignId).toUpperCase().replace(/^#+/, '');
+    const campName = cloudCamp?.name || localInfo?.campaignName || parsed.campaignName;
+    const campPL = cloudCamp?.power_level ?? localInfo?.powerLevel ?? parsed.powerLevel ?? 10;
+    const dontEnforcePL = !!(cloudCamp?.dont_enforce_pl ?? localInfo?.dontEnforcePL ?? parsed.dontEnforcePL);
 
-      // Check against campaign's PL: if character isn't of the same PL inform user this needs to be corrected
-      if (!dontEnforcePL && charPL !== campPL) {
-        await this.showAlertDialog(
-          `Cannot join campaign "${campName}":\n\n"${charName}" is Power Level ${charPL}, but the campaign requires Power Level ${campPL}.\n\nThis needs to be corrected before you can join the campaign (unless the GM has enabled the "Don't enforce PL" option in the campaign manager settings).`,
-          { title: 'Power Level Mismatch' }
-        );
-        return;
-      }
+    const alreadyMember = campaignManager.isUserMemberOfCampaign(cleanCampId, campName);
+    const isSessionRunning = campaignManager.isSessionActive(cleanCampId) || !!(cloudCamp && cloudCamp.is_session_active);
 
-      this.showPromptDialog({
-        title: 'Enter Campaign PIN',
-        label: 'Enter Campaign PIN (leave blank if none):',
-        defaultValue: '',
-        placeholder: '4-digit PIN',
-        confirmText: 'Next: Confirm Join'
-      }).then(async pin => {
-        // If campaign exists in Supabase:
-        let cloudCamp = null;
-        if (supabaseService.client) {
-          try {
-            cloudCamp = await supabaseService.getCampaignByNameOrCode(cleanInput);
-          } catch {}
-        }
-
-        const isCreator = cloudCamp && supabaseService.currentUser && (cloudCamp.creator_id === supabaseService.currentUser.id);
-
-        if (cloudCamp && !isCreator) {
-          if (!supabaseService.isLoggedIn()) {
-            await this.showAlertDialog(
-              `"${campName}" is hosted on the cloud server. Please sign in or register so the GM can identify your account and approve your request.`,
-              { title: 'Account Required' }
-            );
-            this.openAuthModal();
-            return;
-          }
-
-          const confirmed = await this.showConfirmDialog(
-            `Submit a request to join "${campName}" (#${cleanCampId}) with "${charName}" (PL ${charPL})?\n\nThe GM will review your hero sheet and approve your entry.`,
-            { title: 'Submit Join Request', confirmText: 'Request Join', confirmClass: 'btn-primary' }
-          );
-          if (!confirmed) return;
-
-          try {
-            await supabaseService.submitJoinRequest({
-              campaignId: cloudCamp.id,
-              character: this.char,
-              characterData: this.char
-            });
-            await this.showAlertDialog(
-              `Your join request for "${campName}" has been submitted to GM ${cloudCamp.creator_name}!\n\nOnce approved, you will be live-synced with the campaign party.`,
-              { title: 'Join Request Sent' }
-            );
-            return;
-          } catch (err) {
-            this.showAlertDialog(err.message, { title: 'Join Request Error' });
-            return;
-          }
-        }
-
-        // Always confirm before joining:
-        const confirmed = await this.showConfirmDialog(
-          `Are you sure you want to connect "${charName}" (PL ${charPL}) to campaign "${campName}" (ID: #${cleanCampId}, PL ${campPL})?\n\nYour character's conditions, toughness penalty, and active alt status will be live-synced with the campaign party.`,
+    // 1. If the user is ALREADY part of this campaign:
+    if (alreadyMember) {
+      if (isSessionRunning) {
+        const wantJoinSession = await this.showConfirmDialog(
+          `You are already part of the campaign "${campName}" (#${cleanCampId}).\n\n🟢 Session Status: A game session is currently running!\n\nWould you like to join the active game session now with your campaign character?`,
           {
-            title: 'Confirm Join Campaign',
-            confirmText: 'Join Campaign',
+            title: 'Already in Campaign — Session Running!',
+            confirmText: 'Join Game Session',
+            cancelText: 'Not Now',
             confirmClass: 'btn-primary'
           }
         );
-        if (!confirmed) return;
+        if (wantJoinSession) {
+          await this.joinGameSession(cleanCampId);
+        }
+      } else {
+        await this.showAlertDialog(
+          `You are already part of the campaign "${campName}" (#${cleanCampId}).\n\n⚪ Session Status: No game session is currently running.\n\nWhen the GM starts a game session, you can join the live session from Your Participated Campaigns.`,
+          { title: 'Already Part of Campaign' }
+        );
+      }
+      return;
+    }
 
-        try {
-          this.char.campaign = campName;
-          this.char.lastCampaign = campName;
-          this.char.campaignId = cleanCampId;
-          const campInput = document.getElementById('header-campaign-name');
-          if (campInput) campInput.value = campName;
-          this.saveAndAudit();
+    // 2. User is NOT yet part of the campaign — apply / join membership (works without a session running):
+    await this.checkOfferLoadAttachedCharacter(cleanCampId, campName);
 
-          const joined = partyManager.joinCampaign({
-            campaignId: cleanCampId,
-            pin: (pin || '').trim(),
-            playerName: this.char.playerName || charName,
-            campaignName: campName,
-            powerLevel: campPL,
-            dontEnforcePL
-          });
+    let charName = (this.char.name || '').trim();
+    if (!charName) {
+      const enteredName = await this.showPromptDialog({
+        title: 'Hero Name Required',
+        label: 'Enter your Character / Hero Name before applying to the campaign:',
+        defaultValue: 'Hero',
+        placeholder: 'e.g. Star Knight, Aegis',
+        confirmText: 'Continue'
+      });
+      if (!enteredName || !enteredName.trim()) return;
+      this.char.name = enteredName.trim();
+      charName = this.char.name;
+      const nameInput = document.getElementById('header-char-name');
+      if (nameInput) nameInput.value = charName;
+      this.saveAndAudit();
+    }
 
-          partyManager.updateCurrentPlayer(this.char, this.primaryChar, this.activeAltId);
-          partyManager.broadcastLocalMemberData();
+    const charPL = parseInt(this.char.powerLevel, 10) || 10;
+    if (!dontEnforcePL && charPL !== campPL) {
+      await this.showAlertDialog(
+        `Cannot join campaign "${campName}":\n\n"${charName}" is Power Level ${charPL}, but the campaign requires Power Level ${campPL}.\n\nThis needs to be corrected before you can join the campaign (unless the GM has enabled the "Don't enforce PL" option).`,
+        { title: 'Power Level Mismatch' }
+      );
+      return;
+    }
 
-          await this.showAlertDialog(
-            `"${charName}" successfully connected to Campaign "${joined.campaignName}" (#${joined.campaignId})!\n\nYour hero conditions, toughness penalty, and active alt status are now live synced with the party.`,
-            { title: 'Connected to Campaign' }
-          );
-          partyManager.renderAllOpenViews();
-        } catch (err) {
-          this.showAlertDialog(err.message, { title: 'Connection Error' });
+    const isCreator = cloudCamp && supabaseService.currentUser && (cloudCamp.creator_id === supabaseService.currentUser.id);
+    if (cloudCamp && !isCreator && supabaseService.isLoggedIn()) {
+      try {
+        await supabaseService.submitJoinRequest({
+          campaignId: cloudCamp.id,
+          character: this.char,
+          characterData: this.char
+        });
+      } catch (err) {
+        console.warn('Cloud join request notice:', err.message);
+      }
+    }
+
+    // Attach character to the campaign and record campaign membership (without connecting to a room yet)
+    this.char.campaign = campName;
+    this.char.lastCampaign = campName;
+    this.char.campaignId = cleanCampId;
+    const campHeaderInput = document.getElementById('header-campaign-name');
+    if (campHeaderInput) campHeaderInput.value = campName;
+    this.saveAndAudit();
+
+    partyManager.joinCampaign({
+      campaignId: cleanCampId,
+      campaignName: campName,
+      playerName: this.char.playerName || charName,
+      powerLevel: campPL,
+      dontEnforcePL
+    });
+
+    partyManager.renderAllOpenViews();
+
+    // Inform user of membership and whether a session is currently running
+    if (isSessionRunning) {
+      const wantJoinSession = await this.showConfirmDialog(
+        `You have joined the campaign "${campName}" (#${cleanCampId}) with "${charName}"!\n\n🟢 Session Status: A game session is currently running!\n\nWould you like to join the active game session now with your campaign character "${charName}"?`,
+        {
+          title: 'Joined Campaign — Session Running!',
+          confirmText: 'Join Game Session',
+          cancelText: 'Join Later',
+          confirmClass: 'btn-primary'
+        }
+      );
+      if (wantJoinSession) {
+        await this.joinGameSession(cleanCampId);
+      }
+    } else {
+      await this.showAlertDialog(
+        `You have applied to and joined the campaign "${campName}" (#${cleanCampId}) with your character "${charName}"!\n\n⚪ Session Status: No game session is currently running.\n\nWhen the GM starts a game session, you can click "🎮 Join Game Session" next to the campaign in the Campaign Manager.`,
+        { title: 'Campaign Joined' }
+      );
+    }
+  }
+
+  /**
+   * Distinct function to connect to an actively running game session in a campaign.
+   * Refuses connection if no game session is currently running.
+   */
+  async joinGameSession(campIdOrName) {
+    const parsed = campaignManager.parseCampaignLinkOrName(campIdOrName);
+    if (!parsed) return;
+    const localInfo = campaignManager.getCampaignInfo(parsed.campaignId) || campaignManager.getCampaignInfo(parsed.campaignName);
+    const cleanCampId = (localInfo?.campaignId || parsed.campaignId).toUpperCase().replace(/^#+/, '');
+    const campName = localInfo?.campaignName || parsed.campaignName || cleanCampId;
+    const campPL = localInfo?.powerLevel ?? parsed.powerLevel ?? 10;
+    const dontEnforcePL = !!(localInfo?.dontEnforcePL ?? parsed.dontEnforcePL);
+
+    if (!campaignManager.isSessionActive(cleanCampId)) {
+      await this.showAlertDialog(
+        `Cannot connect to campaign room "${campName}" (#${cleanCampId}):\n\n⚪ No game session is currently running.\n\nYou can only connect to a campaign room when the GM has started an active game session.`,
+        { title: 'No Active Game Session' }
+      );
+      return;
+    }
+
+    if (campaignManager.isUserConnected()) {
+      const state = campaignManager.getCampaignState();
+      if (state.campaignId === cleanCampId) {
+        await this.showAlertDialog(`You are already connected to the active game session for "${campName}".`, { title: 'Already in Session' });
+        return;
+      }
+      const switchConfirmed = await this.showConfirmDialog(
+        `You are currently in the game session for "${state.campaignName || state.campaignId}".\n\nLeave that session and join the session for "${campName}"?`,
+        { title: 'Switch Game Sessions?', confirmText: 'Switch Session', cancelText: 'Stay' }
+      );
+      if (!switchConfirmed) return;
+      campaignManager.leaveCampaign();
+    }
+
+    await this.checkOfferLoadAttachedCharacter(cleanCampId, campName);
+
+    let charName = (this.char.name || 'Hero').trim();
+    const charPL = parseInt(this.char.powerLevel, 10) || 10;
+    if (!dontEnforcePL && charPL !== campPL) {
+      await this.showAlertDialog(
+        `Cannot join game session for "${campName}":\n\n"${charName}" is Power Level ${charPL}, but the campaign requires Power Level ${campPL}.`,
+        { title: 'Power Level Mismatch' }
+      );
+      return;
+    }
+
+    try {
+      this.char.campaign = campName;
+      this.char.lastCampaign = campName;
+      this.char.campaignId = cleanCampId;
+      const campInput = document.getElementById('header-campaign-name');
+      if (campInput) campInput.value = campName;
+      this.saveAndAudit();
+
+      const joined = partyManager.joinGameSession({
+        campaignId: cleanCampId,
+        campaignName: campName,
+        playerName: this.char.playerName || charName,
+        powerLevel: campPL,
+        dontEnforcePL
+      });
+
+      partyManager.updateCurrentPlayer(this.char, this.primaryChar, this.activeAltId);
+      partyManager.broadcastLocalMemberData();
+
+      await this.showAlertDialog(
+        `"${charName}" is now connected to the live game session for "${joined.campaignName}" (#${joined.campaignId})!\n\nYour hero conditions, toughness penalty, and active alt status are now live-synced with the party.`,
+        { title: 'Joined Game Session' }
+      );
+      partyManager.renderAllOpenViews();
+    } catch (err) {
+      await this.showAlertDialog(err.message, { title: 'Cannot Join Game Session' });
+    }
+  }
+
+  async copyCampaignLink(campId) {
+    const info = campaignManager.getCampaignInfo(campId) || campaignManager.getCampaignHistory().find(c => c.campaignId === campId) || campaignManager.getCampaignState();
+    const link = campaignManager.generateCampaignLink(info || { campaignId: campId, campaignName: campId, powerLevel: 10 });
+    try {
+      if (typeof navigator !== 'undefined' && navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(link);
+      }
+    } catch {}
+    await this.showAlertDialog(
+      `Shareable Campaign Link for "${info?.campaignName || campId}":\n\n${link}\n\n(Copied to clipboard! Players can paste this link into the field beside "Join Campaign" in the Campaign Manager, or simply enter the campaign name "${info?.campaignName || campId}".)`,
+      { title: 'Campaign Link' }
+    );
+  }
+
+  async confirmAndLeaveCampaign(campId, campName = '') {
+    const cleanId = String(campId || '').trim().toUpperCase().replace(/^#+/, '');
+    const info = campaignManager.getCampaignInfo(cleanId);
+    const displayCampName = campName || info?.campaignName || cleanId;
+    const cleanName = displayCampName.trim().toLowerCase();
+
+    const confirmed = await this.showConfirmDialog(
+      `Are you sure you want to leave the campaign "${displayCampName}"?\n\n⚠️ Please Note: Leaving a campaign means any characters you have attached to the campaign will no longer be attached to it.`,
+      {
+        title: 'Leave Campaign?',
+        confirmText: 'Leave Campaign',
+        cancelText: 'Cancel',
+        confirmClass: 'btn-danger'
+      }
+    );
+    if (!confirmed) return;
+
+    // Detach currently active character if attached to this campaign
+    const curCampId = String(this.char.campaignId || '').trim().toUpperCase().replace(/^#+/, '');
+    const curCampName = String(this.char.campaign || '').trim().toLowerCase();
+    if ((cleanId && curCampId === cleanId) || (cleanName && curCampName === cleanName)) {
+      this.char.campaign = '';
+      this.char.campaignId = '';
+      this.char.lastCampaign = '';
+      if (this.primaryChar) {
+        this.primaryChar.campaign = '';
+        this.primaryChar.campaignId = '';
+        this.primaryChar.lastCampaign = '';
+      }
+      const campInput = document.getElementById('header-campaign-name');
+      if (campInput) campInput.value = '';
+      this.saveAndAudit();
+    }
+
+    // Detach any saved characters in local storage attached to this campaign
+    try {
+      const chars = (typeof storageManager.getCharacters === 'function' ? storageManager.getCharacters() : storageManager.characters) || [];
+      chars.forEach(ch => {
+        const chId = String(ch.campaignId || '').trim().toUpperCase().replace(/^#+/, '');
+        const chName = String(ch.campaign || '').trim().toLowerCase();
+        if ((cleanId && chId === cleanId) || (cleanName && chName === cleanName)) {
+          ch.campaign = '';
+          ch.campaignId = '';
+          ch.lastCampaign = '';
+          if (typeof storageManager.saveCharacter === 'function') {
+            storageManager.saveCharacter(ch);
+          }
         }
       });
-    });
+    } catch (e) {
+      console.warn('Error detaching stored characters on campaign leave:', e);
+    }
+
+    campaignManager.leaveCampaignPermanent(cleanId, displayCampName);
+    campaignManager.renderAllOpenViews();
   }
 
   async openJoinRequestsModal() {
@@ -3425,6 +3571,13 @@ window.partyManager = partyManager;
 
   openCampaignTracker() {
     campaignManager.updateCurrentPlayer(this.char, this.primaryChar, this.activeAltId);
+    if (campaignManager.isPopoutOpen()) {
+      this.closeModal('modal-campaign-tracker');
+      this.closeModal('modal-party');
+      campaignManager.popoutWindow.focus();
+      campaignManager.renderAllOpenViews();
+      return;
+    }
     if (document.getElementById('modal-campaign-tracker')) {
       this.openModal('modal-campaign-tracker');
     } else {
@@ -9156,6 +9309,12 @@ window.partyManager = partyManager;
   }
 
   openModal(id) {
+    if ((id === 'modal-campaign-tracker' || id === 'modal-party') && campaignManager.isPopoutOpen()) {
+      this.closeModal('modal-campaign-tracker');
+      this.closeModal('modal-party');
+      campaignManager.popoutWindow.focus();
+      return;
+    }
     if (id === 'modal-hero-point') {
       this.updateHeroPointModal();
     }

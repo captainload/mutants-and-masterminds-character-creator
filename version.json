@@ -1,6 +1,6 @@
 {
-  "version": "3.67",
-  "updatedAt": "2026-10-30T10:50:00.000Z",
-  "releaseNotes": "Account & Settings UI Fixes: Resolved account button clickability by preventing flyout panel pointer interception, added User Settings flyout with email password reset & typed confirmation account deletion, enlarged account link text, removed redundant MM3 import/export menu actions, and aligned flyout styling.",
+  "version": "3.68",
+  "updatedAt": "2026-10-30T12:15:00.000Z",
+  "releaseNotes": "Unified Cloud Restoration Pop-Up: Combined cloud backup restoration confirmation directly inside the Cloud Restore modal dialog to eliminate overlapping stacked pop-up windows, added inline confirmation with cancel support, and streamlined cloud restore workflows.",
   "updated": "2026-10-30"
 }

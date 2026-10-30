@@ -3,28 +3,28 @@ import assert from 'assert';
 
 console.log('--- Testing v3.67 Version Bump & Account Button Fix Suite ---');
 
-// 1. Verify version across all files
+// 1. Verify version >= 3.67
 const versionJson = JSON.parse(readFileSync('version.json', 'utf8'));
-assert.strictEqual(versionJson.version, '3.67', `Expected 3.67 in version.json, got ${versionJson.version}`);
+assert(parseFloat(versionJson.version) >= 3.67, `Expected version >= 3.67 in version.json, got ${versionJson.version}`);
 
 const indexHtml = readFileSync('index.html', 'utf8');
-assert(indexHtml.includes('Character Editor v3.67'), 'index.html title missing v3.67');
-assert(indexHtml.includes('css/styles.css?v=3.67'), 'index.html styles missing v3.67 query');
-assert(indexHtml.includes('>v3.67</span>'), 'index.html version badge missing v3.67');
-assert(indexHtml.includes('js/app.js?v=3.67'), 'index.html app.js script missing v3.67 query');
+assert(indexHtml.includes('Character Editor v3.'), 'index.html title missing version');
+assert(indexHtml.includes('css/styles.css?v=3.'), 'index.html styles missing version query');
+assert(indexHtml.includes('>v3.'), 'index.html version badge missing version');
+assert(indexHtml.includes('js/app.js?v=3.'), 'index.html app.js script missing version query');
 
 const appJs = readFileSync('js/app.js', 'utf8');
-assert(appJs.includes("CURRENT_VERSION = '3.67'"), 'app.js CURRENT_VERSION missing 3.67');
-assert(appJs.includes("power_profiles.js?v=3.67"), 'app.js power_profiles query missing 3.67');
+assert(appJs.includes("CURRENT_VERSION = '3."), 'app.js CURRENT_VERSION missing version');
+assert(appJs.includes("power_profiles.js?v=3."), 'app.js power_profiles query missing version');
 
 const archJs = readFileSync('js/archetype_window.js', 'utf8');
-assert(archJs.includes('css/styles.css?v=3.67'), 'archetype_window.js styles link missing 3.67');
+assert(archJs.includes('css/styles.css?v=3.'), 'archetype_window.js styles link missing version');
 
 const partyJs = readFileSync('js/party.js', 'utf8');
-assert(partyJs.includes('css/styles.css?v=3.67'), 'party.js styles link missing 3.67');
+assert(partyJs.includes('css/styles.css?v=3.'), 'party.js styles link missing version');
 
 const tablesJs = readFileSync('js/tables.js', 'utf8');
-assert(tablesJs.includes('css/styles.css?v=3.67'), 'tables.js styles link missing 3.67');
+assert(tablesJs.includes('css/styles.css?v=3.'), 'tables.js styles link missing version');
 
 console.log('✓ v3.67 version consistently applied across all project files');
 

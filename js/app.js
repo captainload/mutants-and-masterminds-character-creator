@@ -41,7 +41,7 @@ import {
   tablesManager
 } from './tables.js';
 
-import { POWER_PROFILES_LIBRARY } from './power_profiles.js?v=3.67';
+import { POWER_PROFILES_LIBRARY } from './power_profiles.js?v=3.68';
 import { ARCHETYPES } from './archetypes.js';
 import { archetypeManager } from './archetype_window.js';
 import { campaignManager, partyManager, formatCharacterSheetHTML } from './party.js';
@@ -1958,11 +1958,7 @@ window.partyManager = partyManager;
     document.getElementById('menu-action-cloud-restore')?.addEventListener('click', async () => {
       closeDropdown();
       if (!supabaseService.isLoggedIn()) {
-        const doAuth = await this.showConfirmDialog(
-          'You need to be signed in to your Cloud Account to restore characters from the cloud database.\n\nWould you like to open the Sign In / Register dialog now?',
-          { title: 'Cloud Account Required', confirmText: 'Sign In / Register' }
-        );
-        if (doAuth) this.openAuthModal();
+        this.openAuthModal();
         return;
       }
       await this.openCloudRestoreModal();
@@ -2031,7 +2027,7 @@ window.partyManager = partyManager;
   }
 
   async checkForUpdates({ isManual = false } = {}) {
-    const CURRENT_VERSION = '3.67';
+    const CURRENT_VERSION = '3.68';
     const versionEl = document.getElementById('header-version-tag');
     const updateBtn = document.getElementById('btn-header-update-alert');
     if (typeof window === 'undefined' || !window.location || !window.location.href || window.location.href === 'about:blank') return;
@@ -3165,86 +3161,164 @@ window.partyManager = partyManager;
         return;
       }
 
-      container.innerHTML = backups.map(b => {
-        const dateStr = b.updated_at ? new Date(b.updated_at).toLocaleString() : 'Unknown';
-        const heroName = (b.name || 'Unnamed Hero').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-        const concept = (b.concept || 'No concept specified').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-        const pl = b.power_level ?? 10;
-        return `
-          <div class="card" style="margin-bottom: 0.75rem; padding: 0.85rem; border: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; gap: 0.85rem; background: var(--bg-card);">
-            <div style="flex: 1; min-width: 0;">
-              <div style="display: flex; align-items: baseline; gap: 0.5rem; margin-bottom: 0.25rem;">
-                <span style="font-weight: 800; font-size: 14px; color: var(--text-bright);">${heroName}</span>
-                <span class="badge" style="background: var(--hero-blue); color: #fff; font-size: 10px; padding: 1px 6px; border-radius: 3px; font-weight: 700;">PL ${pl}</span>
-              </div>
-              <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 0.25rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                ${concept}
-              </div>
-              <div style="font-size: 11px; color: var(--text-muted); opacity: 0.8;">
-                Last Backup: ${dateStr}
-              </div>
+      let activeNotice = '';
+
+      const renderBackups = (confirmingRestoreId = null, confirmingDeleteId = null) => {
+        let html = '';
+        if (activeNotice) {
+          html += `
+            <div style="padding: 0.5rem 0.75rem; margin-bottom: 0.75rem; border-radius: 4px; font-size: 12px; font-weight: 700; background: rgba(34, 197, 94, 0.15); border: 1px solid rgba(34, 197, 94, 0.4); color: #86efac; display: flex; align-items: center; justify-content: space-between;">
+              <span>${activeNotice}</span>
+              <button type="button" class="btn btn-outline" id="btn-dismiss-restore-notice" style="min-height: 20px; padding: 0 4px; font-size: 10px; border-color: rgba(34, 197, 94, 0.4); color: #86efac;">✕</button>
             </div>
-            <div style="display: flex; gap: 0.4rem; flex-shrink: 0;">
-              <button type="button" class="btn btn-primary btn-restore-cloud-char" data-backup-id="${b.id}" style="font-size: 11px; padding: 0.35rem 0.65rem; font-weight: 700;">
-                📥 Load / Restore
-              </button>
-              <button type="button" class="btn btn-outline btn-delete-cloud-char" data-backup-id="${b.id}" data-char-name="${heroName}" style="font-size: 11px; padding: 0.35rem 0.65rem; color: var(--hero-red); border-color: rgba(239, 68, 68, 0.4);">
-                🗑️ Delete
-              </button>
+          `;
+        }
+
+        html += backups.map(b => {
+          const dateStr = b.updated_at ? new Date(b.updated_at).toLocaleString() : 'Unknown';
+          const heroName = (b.name || 'Unnamed Hero').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+          const concept = (b.concept || 'No concept specified').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+          const pl = b.power_level ?? 10;
+          const isConfirmingRestore = String(b.id) === String(confirmingRestoreId);
+          const isConfirmingDelete = String(b.id) === String(confirmingDeleteId);
+
+          return `
+            <div class="card cloud-backup-card" style="margin-bottom: 0.75rem; padding: 0.85rem; border: 1px solid ${isConfirmingRestore ? 'var(--hero-blue)' : isConfirmingDelete ? 'var(--hero-red)' : 'var(--border-color)'}; background: ${isConfirmingRestore ? 'rgba(37,99,235,0.08)' : isConfirmingDelete ? 'rgba(239,68,68,0.08)' : 'var(--bg-card)'}; border-radius: 4px; transition: all 0.2s ease;">
+              <div style="display: flex; justify-content: space-between; align-items: center; gap: 0.85rem;">
+                <div style="flex: 1; min-width: 0;">
+                  <div style="display: flex; align-items: baseline; gap: 0.5rem; margin-bottom: 0.25rem;">
+                    <span style="font-weight: 800; font-size: 14px; color: var(--text-bright);">${heroName}</span>
+                    <span class="badge" style="background: var(--hero-blue); color: #fff; font-size: 10px; padding: 1px 6px; border-radius: 3px; font-weight: 700;">PL ${pl}</span>
+                  </div>
+                  <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 0.25rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                    ${concept}
+                  </div>
+                  <div style="font-size: 11px; color: var(--text-muted); opacity: 0.8;">
+                    Last Backup: ${dateStr}
+                  </div>
+                </div>
+                ${!isConfirmingRestore && !isConfirmingDelete ? `
+                  <div style="display: flex; gap: 0.4rem; flex-shrink: 0;">
+                    <button type="button" class="btn btn-primary btn-restore-cloud-char" data-backup-id="${b.id}" style="font-size: 12px; padding: 0.35rem 0.75rem; font-weight: 700;">
+                      📥 Restore
+                    </button>
+                    <button type="button" class="btn btn-outline btn-delete-cloud-char" data-backup-id="${b.id}" style="font-size: 12px; padding: 0.35rem 0.65rem; color: var(--hero-red); border-color: rgba(239, 68, 68, 0.4);">
+                      🗑️
+                    </button>
+                  </div>
+                ` : ''}
+              </div>
+
+              ${isConfirmingRestore ? `
+                <div style="margin-top: 0.75rem; padding-top: 0.65rem; border-top: 1px solid rgba(37,99,235,0.3); display: flex; align-items: center; justify-content: space-between; gap: 0.65rem; flex-wrap: wrap;">
+                  <div style="font-size: 12.5px; color: #fff; font-weight: 700;">
+                    ⚠️ Replace active hero in workspace with "${heroName}"?
+                  </div>
+                  <div style="display: flex; gap: 0.45rem;">
+                    <button type="button" class="btn btn-primary btn-confirm-restore-now" data-backup-id="${b.id}" style="font-size: 11px; padding: 0.35rem 0.75rem; font-weight: 800;">
+                      ✓ Yes, Load Hero
+                    </button>
+                    <button type="button" class="btn btn-outline btn-cancel-confirm" style="font-size: 11px; padding: 0.35rem 0.6rem;">
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              ` : ''}
+
+              ${isConfirmingDelete ? `
+                <div style="margin-top: 0.75rem; padding-top: 0.65rem; border-top: 1px solid rgba(239,68,68,0.3); display: flex; align-items: center; justify-content: space-between; gap: 0.65rem; flex-wrap: wrap;">
+                  <div style="font-size: 12.5px; color: #fff; font-weight: 700;">
+                    ⚠️ Permanently delete cloud backup for "${heroName}"?
+                  </div>
+                  <div style="display: flex; gap: 0.45rem;">
+                    <button type="button" class="btn btn-danger btn-confirm-delete-now" data-backup-id="${b.id}" style="font-size: 11px; padding: 0.35rem 0.75rem; font-weight: 800;">
+                      🗑️ Delete
+                    </button>
+                    <button type="button" class="btn btn-outline btn-cancel-confirm" style="font-size: 11px; padding: 0.35rem 0.6rem;">
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              ` : ''}
             </div>
-          </div>
-        `;
-      }).join('');
+          `;
+        }).join('');
 
-      // Wire Restore buttons
-      container.querySelectorAll('.btn-restore-cloud-char').forEach(btn => {
-        btn.addEventListener('click', async (e) => {
-          const bId = e.currentTarget.dataset.backupId;
-          const backup = backups.find(x => String(x.id) === String(bId));
-          if (!backup || !backup.character_data) return;
+        container.innerHTML = html;
 
-          const confirmed = await this.showConfirmDialog(
-            `Restore "${backup.name}" (PL ${backup.power_level}) from cloud backup?\n\nThis will load the character into your editor workspace. Any unsaved local edits will be replaced.`,
-            { title: 'Confirm Cloud Restore', confirmText: 'Load Hero', confirmClass: 'btn-primary' }
-          );
-          if (!confirmed) return;
-
-          const loadedChar = backup.character_data;
-          this.char = loadedChar;
-          this.primaryChar = loadedChar;
-          this.activeAltId = null;
-          if (!this.char.alts) this.char.alts = [];
-          this.currentFileHandle = null;
-          this.saveAndAudit();
-          this.loadCharacterToUI();
-          partyManager.updateCurrentPlayer(this.char, this.primaryChar, this.activeAltId);
-          partyManager.broadcastLocalMemberData();
-
-          this.closeModal('modal-cloud-restore');
-          await this.showAlertDialog(`Successfully loaded "${backup.name}" from cloud backup!`, { title: 'Restore Complete' });
+        document.getElementById('btn-dismiss-restore-notice')?.addEventListener('click', () => {
+          activeNotice = '';
+          renderBackups(null, null);
         });
-      });
 
-      // Wire Delete buttons
-      container.querySelectorAll('.btn-delete-cloud-char').forEach(btn => {
-        btn.addEventListener('click', async (e) => {
-          const bId = e.currentTarget.dataset.backupId;
-          const charName = e.currentTarget.dataset.charName || 'Hero';
-          const confirmed = await this.showConfirmDialog(
-            `Are you sure you want to delete the cloud backup for "${charName}"?\n\nThis cannot be undone.`,
-            { title: 'Delete Cloud Backup', confirmText: 'Delete', confirmClass: 'btn-danger' }
-          );
-          if (!confirmed) return;
-
-          try {
-            await supabaseService.deleteCharacterBackup(bId);
-            await this.showAlertDialog(`Deleted cloud backup for "${charName}".`, { title: 'Backup Deleted' });
-            this.openCloudRestoreModal();
-          } catch (err) {
-            await this.showAlertDialog('Failed to delete backup: ' + err.message, { title: 'Delete Error' });
-          }
+        // Wire events
+        container.querySelectorAll('.btn-restore-cloud-char').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            renderBackups(e.currentTarget.dataset.backupId, null);
+          });
         });
-      });
+
+        container.querySelectorAll('.btn-delete-cloud-char').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            renderBackups(null, e.currentTarget.dataset.backupId);
+          });
+        });
+
+        container.querySelectorAll('.btn-cancel-confirm').forEach(btn => {
+          btn.addEventListener('click', () => {
+            renderBackups(null, null);
+          });
+        });
+
+        container.querySelectorAll('.btn-confirm-restore-now').forEach(btn => {
+          btn.addEventListener('click', async (e) => {
+            const bId = e.currentTarget.dataset.backupId;
+            const backup = backups.find(x => String(x.id) === String(bId));
+            if (!backup || !backup.character_data) return;
+
+            const loadedChar = backup.character_data;
+            this.char = loadedChar;
+            this.primaryChar = loadedChar;
+            this.activeAltId = null;
+            if (!this.char.alts) this.char.alts = [];
+            this.currentFileHandle = null;
+            this.saveAndAudit();
+            this.loadCharacterToUI();
+            partyManager.updateCurrentPlayer(this.char, this.primaryChar, this.activeAltId);
+            partyManager.broadcastLocalMemberData();
+
+            this.closeModal('modal-cloud-restore');
+            await this.showAlertDialog(`Successfully loaded "${backup.name}" from cloud backup!`, { title: 'Restore Complete' });
+          });
+        });
+
+        container.querySelectorAll('.btn-confirm-delete-now').forEach(btn => {
+          btn.addEventListener('click', async (e) => {
+            const bId = e.currentTarget.dataset.backupId;
+            const bIdx = backups.findIndex(x => String(x.id) === String(bId));
+            const charName = bIdx >= 0 ? backups[bIdx].name : 'Hero';
+            try {
+              await supabaseService.deleteCharacterBackup(bId);
+              if (bIdx >= 0) backups.splice(bIdx, 1);
+              activeNotice = `Deleted cloud backup for "${charName}".`;
+              if (backups.length === 0) {
+                container.innerHTML = `
+                  <div style="text-align: center; color: var(--text-muted); font-size: 12px; font-style: italic; padding: 2rem 0;">
+                    No cloud backups found for your account.<br>
+                    Use <strong>Menu &gt; Backup to Cloud Database</strong> to save characters to the cloud.
+                  </div>
+                `;
+              } else {
+                renderBackups(null, null);
+              }
+            } catch (err) {
+              await this.showAlertDialog('Failed to delete backup: ' + err.message, { title: 'Delete Error' });
+            }
+          });
+        });
+      };
+
+      renderBackups(null, null);
 
     } catch (err) {
       container.innerHTML = `<div style="text-align: center; color: var(--hero-red); font-size: 12px; padding: 1.5rem 0;">Error fetching backups: ${err.message}</div>`;

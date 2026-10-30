@@ -20,19 +20,9 @@ class SupabaseService {
 
   initClient() {
     if (typeof window !== 'undefined') {
-      if (window.supabase && typeof window.supabase.createClient === 'function') {
-        this.client = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-          auth: {
-            persistSession: true,
-            autoRefreshToken: true,
-            detectSessionInUrl: true
-          }
-        });
-        this.setupAuthListener();
-      } else {
-        // Wait briefly for CDN script if needed
-        window.addEventListener('DOMContentLoaded', () => {
-          if (window.supabase && typeof window.supabase.createClient === 'function' && !this.client) {
+      const tryInit = () => {
+        if (window.supabase && typeof window.supabase.createClient === 'function' && !this.client) {
+          try {
             this.client = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
               auth: {
                 persistSession: true,
@@ -41,10 +31,45 @@ class SupabaseService {
               }
             });
             this.setupAuthListener();
+            return true;
+          } catch (e) {
+            console.warn('Supabase client initialization error:', e);
           }
-        });
+        }
+        return false;
+      };
+
+      if (!tryInit()) {
+        if (document.readyState === 'loading') {
+          window.addEventListener('DOMContentLoaded', () => {
+            if (!tryInit()) {
+              setTimeout(tryInit, 200);
+            }
+          });
+        } else {
+          setTimeout(tryInit, 100);
+          setTimeout(tryInit, 500);
+        }
       }
     }
+  }
+
+  ensureClient() {
+    if (!this.client && typeof window !== 'undefined' && window.supabase && typeof window.supabase.createClient === 'function') {
+      try {
+        this.client = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+          auth: {
+            persistSession: true,
+            autoRefreshToken: true,
+            detectSessionInUrl: true
+          }
+        });
+        this.setupAuthListener();
+      } catch (e) {
+        console.warn('Supabase ensureClient error:', e);
+      }
+    }
+    return this.client;
   }
 
   setupAuthListener() {
@@ -124,7 +149,8 @@ class SupabaseService {
   }
 
   async signUp({ email, password, username }) {
-    if (!this.client) throw new Error('Supabase client is not available.');
+    this.ensureClient();
+    if (!this.client) throw new Error('Supabase client is not available. Please check your internet connection.');
     const cleanUser = String(username || '').trim();
     if (!cleanUser) throw new Error('Username is required.');
     
@@ -153,7 +179,8 @@ class SupabaseService {
   }
 
   async signIn({ email, password }) {
-    if (!this.client) throw new Error('Supabase client is not available.');
+    this.ensureClient();
+    if (!this.client) throw new Error('Supabase client is not available. Please check your internet connection.');
     const { data, error } = await this.client.auth.signInWithPassword({
       email: email.trim(),
       password

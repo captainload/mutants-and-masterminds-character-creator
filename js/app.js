@@ -41,7 +41,7 @@ import {
   tablesManager
 } from './tables.js';
 
-import { POWER_PROFILES_LIBRARY } from './power_profiles.js?v=3.66';
+import { POWER_PROFILES_LIBRARY } from './power_profiles.js?v=3.67';
 import { ARCHETYPES } from './archetypes.js';
 import { archetypeManager } from './archetype_window.js';
 import { campaignManager, partyManager, formatCharacterSheetHTML } from './party.js';
@@ -2031,7 +2031,7 @@ window.partyManager = partyManager;
   }
 
   async checkForUpdates({ isManual = false } = {}) {
-    const CURRENT_VERSION = '3.66';
+    const CURRENT_VERSION = '3.67';
     const versionEl = document.getElementById('header-version-tag');
     const updateBtn = document.getElementById('btn-header-update-alert');
     if (typeof window === 'undefined' || !window.location || !window.location.href || window.location.href === 'about:blank') return;
@@ -2500,8 +2500,9 @@ window.partyManager = partyManager;
 
     if (authBtn) {
       authBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
         if (supabaseService.isLoggedIn()) {
-          e.stopPropagation();
           if (userDropdown) {
             userDropdown.style.display = userDropdown.style.display === 'none' ? 'block' : 'none';
           }

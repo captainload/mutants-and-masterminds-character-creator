@@ -210,6 +210,29 @@ body {
   filter: brightness(1.2);
 }
 
+.header-account-area {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  min-width: 140px;
+  flex-shrink: 0;
+  pointer-events: auto;
+}
+
+#btn-header-auth {
+  position: relative;
+  z-index: 11;
+  pointer-events: auto;
+}
+
+#header-auth-icon,
+#header-auth-label {
+  pointer-events: none;
+}
+
 .btn-header-update-alert.out-of-date {
   display: inline-flex !important;
   border-color: rgba(239, 68, 68, 0.8);
@@ -917,7 +940,11 @@ html[data-theme="light"] .btn-header-user-link:hover {
 
 #modal-alert-dialog,
 #modal-confirm-dialog,
-#modal-prompt-dialog {
+#modal-prompt-dialog,
+#modal-auth,
+#modal-cloud-restore,
+#modal-join-requests,
+#modal-character-inspector {
   z-index: 2500;
 }
 
@@ -1245,22 +1272,30 @@ textarea {
   display: flex;
   flex-direction: column;
   transform: translateX(100%);
-  transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.28s ease;
+  pointer-events: none;
+  visibility: hidden;
 }
 
 .flyout-panel.open {
   transform: translateX(0);
+  pointer-events: auto;
+  visibility: visible;
 }
 
 #flyout-settings-panel {
   transform: translateX(-20px);
   opacity: 0;
-  transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease;
+  pointer-events: none;
+  visibility: hidden;
+  transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease, visibility 0.2s ease;
 }
 
 #flyout-settings-panel.open {
   transform: translateX(0);
   opacity: 1;
+  pointer-events: auto;
+  visibility: visible;
 }
 
 .flyout-header {

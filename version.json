@@ -1,6 +1,6 @@
 {
-  "version": "3.66",
-  "updatedAt": "2026-10-29T23:05:00.000Z",
-  "releaseNotes": "Cloud Backups & Storage: Added Supabase character sheet cloud backups and restore modal dialog, upgraded Menu with Import / Export & Cloud Backup options, enabled local-only editing for offline users, enhanced auth tab active styling, and configured email verification redirect URLs.",
-  "updated": "2026-10-29"
+  "version": "3.67",
+  "updatedAt": "2026-10-30T10:50:00.000Z",
+  "releaseNotes": "Account & Settings UI Fixes: Resolved account button clickability by preventing flyout panel pointer interception, added User Settings flyout with email password reset & typed confirmation account deletion, enlarged account link text, removed redundant MM3 import/export menu actions, and aligned flyout styling.",
+  "updated": "2026-10-30"
 }

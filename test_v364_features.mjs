@@ -40,11 +40,11 @@ const camp = mgr.createCampaign({
   powerLevel: 10
 });
 
-assert.strictEqual(mgr.isSessionActive('SENT-202'), true, 'Session is active after creation');
+assert.strictEqual(mgr.isSessionActive('SENT-202'), false, 'Session is NOT automatically started on creation');
+mgr.startSession('SENT-202');
+assert.strictEqual(mgr.isSessionActive('SENT-202'), true, 'Session is active after GM starts it');
 mgr.endSession('SENT-202');
 assert.strictEqual(mgr.isSessionActive('SENT-202'), false, 'Session is inactive after GM ends it');
-mgr.startSession('SENT-202');
-assert.strictEqual(mgr.isSessionActive('SENT-202'), true, 'Session is active after GM restarts it');
 console.log('✓ GM Start/End Game Session controls verified');
 
 // 4. GM loaded characters do NOT automatically join campaign party

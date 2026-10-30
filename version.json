@@ -1,6 +1,6 @@
 {
-  "version": "3.68",
-  "updatedAt": "2026-10-30T12:15:00.000Z",
-  "releaseNotes": "Unified Cloud Restoration Pop-Up: Combined cloud backup restoration confirmation directly inside the Cloud Restore modal dialog to eliminate overlapping stacked pop-up windows, added inline confirmation with cancel support, and streamlined cloud restore workflows.",
+  "version": "3.69",
+  "updatedAt": "2026-10-30T13:30:00.000Z",
+  "releaseNotes": "Campaign GM character sync on disconnect/app close, change detection alerting with dual timestamps, manual session start, enlarged campaign tracker (.25in margins), 1-3 row auto-expanding power notes, cloud restore with timestamps and local save prompt, minimum 10pt font size.",
   "updated": "2026-10-30"
 }

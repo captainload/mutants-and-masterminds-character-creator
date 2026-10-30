@@ -312,7 +312,7 @@ class SupabaseService {
       creator_name: creatorName,
       power_level: parseInt(powerLevel, 10) || 10,
       dont_enforce_pl: !!dontEnforcePL,
-      is_session_active: true
+      is_session_active: false
     };
 
     const { data, error } = await this.client
@@ -394,6 +394,21 @@ class SupabaseService {
 
     if (error) throw error;
     return data;
+  }
+
+  async getMyCreatedCampaigns() {
+    if (!this.client || !this.currentUser) return [];
+    const { data, error } = await this.client
+      .from('campaigns')
+      .select('*')
+      .eq('creator_id', this.currentUser.id)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.warn('Error fetching created campaigns:', error);
+      return [];
+    }
+    return data || [];
   }
 
   async getJoinRequests(campaignId) {
@@ -542,6 +557,44 @@ class SupabaseService {
         .eq('campaign_id', campaignId)
         .eq('user_id', this.currentUser.id);
     } catch {}
+  }
+
+  async saveCampaignCharacterSnapshot({ campaignId, characterId, characterName, playerName, characterData, timestamp }) {
+    if (!this.client || !campaignId) return;
+    try {
+      const payload = {
+        campaign_id: campaignId,
+        user_id: this.currentUser?.id || 'offline_gm',
+        character_id: characterId || 'hero',
+        character_name: characterName || 'Hero',
+        player_name: playerName || 'Player',
+        power_level: parseInt(characterData?.powerLevel || 10, 10),
+        character_data: characterData || {},
+        is_online: false,
+        last_seen: timestamp || new Date().toISOString()
+      };
+      await this.client
+        .from('campaign_members')
+        .upsert([payload], { onConflict: 'campaign_id,character_id' });
+    } catch (e) {
+      try {
+        if (this.currentUser) {
+          await this.client
+            .from('campaign_members')
+            .upsert([{
+              campaign_id: campaignId,
+              user_id: this.currentUser.id,
+              character_id: characterId || 'hero',
+              character_name: characterName || 'Hero',
+              player_name: playerName || 'Player',
+              power_level: parseInt(characterData?.powerLevel || 10, 10),
+              character_data: characterData || {},
+              is_online: false,
+              last_seen: timestamp || new Date().toISOString()
+            }], { onConflict: 'campaign_id,user_id' });
+        }
+      } catch {}
+    }
   }
 
   // =======================================================

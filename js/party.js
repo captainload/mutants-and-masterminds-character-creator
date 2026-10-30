@@ -20,37 +20,37 @@ export function formatCharacterSheetHTML(char) {
   const abilityNames = { str: 'Strength', sta: 'Stamina', agi: 'Agility', dex: 'Dexterity', fgt: 'Fighting', int: 'Intellect', awe: 'Awareness', pre: 'Presence' };
 
   return `
-    <div class="sheet-inspector-body" style="font-size: 13px; color: var(--text-main); display: flex; flex-direction: column; gap: 1rem;">
+    <div class="sheet-inspector-body" style="font-size: 10pt; color: var(--text-main); display: flex; flex-direction: column; gap: 1rem;">
       <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 6px; padding: 0.75rem 1rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;">
         <div>
           <div style="font-size: 1.25rem; font-weight: 800; color: var(--text-bright);">${char.name || 'Unnamed Hero'}</div>
-          <div style="font-size: 11px; color: var(--text-muted);">${char.concept || 'Custom Superhero'} • Player: <strong>${char.playerName || char.player || 'Player'}</strong></div>
+          <div style="font-size: 10pt; color: var(--text-muted);">${char.concept || 'Custom Superhero'} • Player: <strong>${char.playerName || char.player || 'Player'}</strong></div>
         </div>
         <div style="display: flex; gap: 0.5rem; align-items: center;">
-          <span style="font-size: 12px; font-weight: 800; background: rgba(59, 130, 246, 0.15); color: var(--hero-blue); padding: 3px 8px; border-radius: 4px; border: 1px solid var(--hero-blue);">PL ${char.powerLevel || 10}</span>
-          <span style="font-size: 12px; font-weight: 800; background: rgba(234, 179, 8, 0.15); color: var(--hero-gold); padding: 3px 8px; border-radius: 4px; border: 1px solid var(--hero-gold);">${char.totalSpentPP || char.powerPointsBudget || 150} PP</span>
+          <span style="font-size: 10pt; font-weight: 800; background: rgba(59, 130, 246, 0.15); color: var(--hero-blue); padding: 3px 8px; border-radius: 4px; border: 1px solid var(--hero-blue);">PL ${char.powerLevel || 10}</span>
+          <span style="font-size: 10pt; font-weight: 800; background: rgba(234, 179, 8, 0.15); color: var(--hero-gold); padding: 3px 8px; border-radius: 4px; border: 1px solid var(--hero-gold);">${char.totalSpentPP || char.powerPointsBudget || 150} PP</span>
         </div>
       </div>
 
       <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 6px; padding: 0.75rem 1rem;">
-        <div style="font-weight: 800; color: var(--hero-gold); font-size: 12px; text-transform: uppercase; margin-bottom: 0.5rem;">Abilities</div>
+        <div style="font-weight: 800; color: var(--hero-gold); font-size: 10pt; text-transform: uppercase; margin-bottom: 0.5rem;">Abilities</div>
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(90px, 1fr)); gap: 0.5rem; text-align: center;">
           ${abilityKeys.map(k => `
             <div style="background: var(--bg-input); border: 1px solid var(--border-color); border-radius: 4px; padding: 0.35rem;">
-              <div style="font-size: 10px; color: var(--text-muted); font-weight: 700; text-transform: uppercase;">${k}</div>
+              <div style="font-size: 10pt; color: var(--text-muted); font-weight: 700; text-transform: uppercase;">${k}</div>
               <div style="font-size: 1.15rem; font-weight: 800; color: var(--text-bright);">${abilities[k] ?? 0}</div>
-              <div style="font-size: 9px; color: var(--text-muted);">${abilityNames[k]}</div>
+              <div style="font-size: 10pt; color: var(--text-muted);">${abilityNames[k]}</div>
             </div>
           `).join('')}
         </div>
       </div>
 
       <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 6px; padding: 0.75rem 1rem;">
-        <div style="font-weight: 800; color: var(--hero-blue); font-size: 12px; text-transform: uppercase; margin-bottom: 0.5rem;">Defenses</div>
+        <div style="font-weight: 800; color: var(--hero-blue); font-size: 10pt; text-transform: uppercase; margin-bottom: 0.5rem;">Defenses</div>
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 0.5rem; text-align: center;">
           ${Object.entries({ Dodge: defenses.dodge ?? 0, Parry: defenses.parry ?? 0, Fortitude: defenses.fortitude ?? 0, Toughness: defenses.toughness ?? 0, Will: defenses.will ?? 0 }).map(([name, val]) => `
             <div style="background: var(--bg-input); border: 1px solid var(--border-color); border-radius: 4px; padding: 0.35rem;">
-              <div style="font-size: 10px; color: var(--text-muted); font-weight: 700; text-transform: uppercase;">${name}</div>
+              <div style="font-size: 10pt; color: var(--text-muted); font-weight: 700; text-transform: uppercase;">${name}</div>
               <div style="font-size: 1.15rem; font-weight: 800; color: var(--text-bright);">${val}</div>
             </div>
           `).join('')}
@@ -58,25 +58,25 @@ export function formatCharacterSheetHTML(char) {
       </div>
 
       <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 6px; padding: 0.75rem 1rem;">
-        <div style="font-weight: 800; color: var(--hero-purple); font-size: 12px; text-transform: uppercase; margin-bottom: 0.5rem;">Powers (${powers.length})</div>
-        ${powers.length === 0 ? '<div style="color:var(--text-muted);font-style:italic;font-size:11px;">No powers recorded.</div>' : powers.map(p => `
+        <div style="font-weight: 800; color: var(--hero-purple); font-size: 10pt; text-transform: uppercase; margin-bottom: 0.5rem;">Powers (${powers.length})</div>
+        ${powers.length === 0 ? '<div style="color:var(--text-muted);font-style:italic;font-size: 10pt;">No powers recorded.</div>' : powers.map(p => `
           <div style="background: var(--bg-input); border: 1px solid var(--border-color); border-radius: 4px; padding: 0.45rem 0.65rem; margin-bottom: 0.4rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.4rem;">
             <div>
-              <strong style="color: var(--text-bright); font-size: 12px;">${p.name || 'Power'}</strong>
-              <span style="font-size: 11px; color: var(--hero-gold); font-weight: 700;">Rank ${p.rank ?? 0}</span>
-              ${p.descriptors ? `<span style="font-size: 10px; color: var(--text-muted);">[${p.descriptors}]</span>` : ''}
-              ${p.cost ? `<span style="font-size: 10px; color: var(--hero-green); font-weight: 700;">(${p.cost} PP)</span>` : ''}
+              <strong style="color: var(--text-bright); font-size: 10pt;">${p.name || 'Power'}</strong>
+              <span style="font-size: 10pt; color: var(--hero-gold); font-weight: 700;">Rank ${p.rank ?? 0}</span>
+              ${p.descriptors ? `<span style="font-size: 10pt; color: var(--text-muted);">[${p.descriptors}]</span>` : ''}
+              ${p.cost ? `<span style="font-size: 10pt; color: var(--hero-green); font-weight: 700;">(${p.cost} PP)</span>` : ''}
             </div>
-            ${p.summary ? `<div style="font-size: 11px; color: var(--text-muted); width: 100%;">${p.summary}</div>` : ''}
+            ${p.summary ? `<div style="font-size: 10pt; color: var(--text-muted); width: 100%;">${p.summary}</div>` : ''}
           </div>
         `).join('')}
       </div>
 
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 0.75rem;">
         <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 6px; padding: 0.75rem 1rem;">
-          <div style="font-weight: 800; color: var(--hero-green); font-size: 12px; text-transform: uppercase; margin-bottom: 0.5rem;">Skills (${skills.length})</div>
-          ${skills.length === 0 ? '<div style="color:var(--text-muted);font-style:italic;font-size:11px;">No skills recorded.</div>' : skills.map(s => `
-            <div style="display: flex; justify-content: space-between; font-size: 11px; padding: 2px 0; border-bottom: 1px dashed rgba(255,255,255,0.08);">
+          <div style="font-weight: 800; color: var(--hero-green); font-size: 10pt; text-transform: uppercase; margin-bottom: 0.5rem;">Skills (${skills.length})</div>
+          ${skills.length === 0 ? '<div style="color:var(--text-muted);font-style:italic;font-size: 10pt;">No skills recorded.</div>' : skills.map(s => `
+            <div style="display: flex; justify-content: space-between; font-size: 10pt; padding: 2px 0; border-bottom: 1px dashed rgba(255,255,255,0.08);">
               <span>${s.name || s.id} ${s.specialization ? `(${s.specialization})` : ''}</span>
               <strong style="color: var(--text-bright);">+${s.totalBonus ?? (s.ranks ?? 0)}</strong>
             </div>
@@ -84,11 +84,11 @@ export function formatCharacterSheetHTML(char) {
         </div>
 
         <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 6px; padding: 0.75rem 1rem;">
-          <div style="font-weight: 800; color: var(--hero-blue); font-size: 12px; text-transform: uppercase; margin-bottom: 0.5rem;">Advantages (${advantages.length})</div>
-          ${advantages.length === 0 ? '<div style="color:var(--text-muted);font-style:italic;font-size:11px;">No advantages recorded.</div>' : `
+          <div style="font-weight: 800; color: var(--hero-blue); font-size: 10pt; text-transform: uppercase; margin-bottom: 0.5rem;">Advantages (${advantages.length})</div>
+          ${advantages.length === 0 ? '<div style="color:var(--text-muted);font-style:italic;font-size: 10pt;">No advantages recorded.</div>' : `
             <div style="display: flex; flex-wrap: wrap; gap: 0.35rem;">
               ${advantages.map(a => `
-                <span style="font-size: 11px; background: var(--bg-input); border: 1px solid var(--border-color); padding: 2px 6px; border-radius: 4px; color: var(--text-bright);">
+                <span style="font-size: 10pt; background: var(--bg-input); border: 1px solid var(--border-color); padding: 2px 6px; border-radius: 4px; color: var(--text-bright);">
                   ${typeof a === 'string' ? a : (a.name + (a.rank > 1 ? ` ${a.rank}` : ''))}
                 </span>
               `).join('')}
@@ -99,9 +99,9 @@ export function formatCharacterSheetHTML(char) {
 
       ${gear.length > 0 ? `
         <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 6px; padding: 0.75rem 1rem;">
-          <div style="font-weight: 800; color: var(--hero-gold); font-size: 12px; text-transform: uppercase; margin-bottom: 0.5rem;">Equipment & Gear (${gear.length})</div>
+          <div style="font-weight: 800; color: var(--hero-gold); font-size: 10pt; text-transform: uppercase; margin-bottom: 0.5rem;">Equipment & Gear (${gear.length})</div>
           <div style="display: flex; flex-wrap: wrap; gap: 0.35rem;">
-            ${gear.map(g => `<span style="font-size: 11px; background: var(--bg-input); border: 1px solid var(--border-color); padding: 2px 6px; border-radius: 4px;">${typeof g === 'string' ? g : g.name}</span>`).join('')}
+            ${gear.map(g => `<span style="font-size: 10pt; background: var(--bg-input); border: 1px solid var(--border-color); padding: 2px 6px; border-radius: 4px;">${typeof g === 'string' ? g : g.name}</span>`).join('')}
           </div>
         </div>
       ` : ''}
@@ -403,6 +403,16 @@ export class CampaignTrackerManager {
     const cleanId = String(campaignId || current.campaignId || '').trim().toUpperCase().replace(/^#+/, '');
     if (!cleanId) return;
     this.stopSessionHeartbeat();
+    if (current.isHost) {
+      // Save copies of all connected campaign characters as they were at the end of the session
+      const members = this.getPartyMembers();
+      const sessionEndTimestamp = new Date().toISOString();
+      members.forEach(m => {
+        if (m.characterData) {
+          this.saveCampaignSavedCharacter(cleanId, m.characterData, m.playerName, sessionEndTimestamp);
+        }
+      });
+    }
     this.broadcastMessage({
       type: 'SESSION_ENDED',
       campaignId: cleanId
@@ -417,6 +427,229 @@ export class CampaignTrackerManager {
       }
     } catch (e) {}
     this.renderAllOpenViews();
+  }
+
+
+  // =======================================================
+  // GM CAMPAIGN SAVED CHARACTERS & CHANGE DETECTION
+  // =======================================================
+  getCampaignSavedCharacters(campaignId) {
+    if (!campaignId) return {};
+    const clean = String(campaignId).trim().toUpperCase().replace(/^#+/, '');
+    const key = `mm3e_campaign_saved_chars_${clean}`;
+    try {
+      const raw = typeof localStorage !== 'undefined' ? localStorage.getItem(key) : this._memoryFallback[key];
+      return raw ? JSON.parse(raw) : {};
+    } catch {
+      return {};
+    }
+  }
+
+  saveCampaignSavedCharacter(campaignId, charData, playerName = '', timestamp = null) {
+    if (!campaignId || !charData) return;
+    const clean = String(campaignId).trim().toUpperCase().replace(/^#+/, '');
+    const key = `mm3e_campaign_saved_chars_${clean}`;
+    const chars = this.getCampaignSavedCharacters(clean);
+    const charId = String(charData.id || charData.name || 'hero').trim();
+    const charKey = charId.toLowerCase();
+    const nowIso = timestamp || new Date().toISOString();
+
+    const record = {
+      characterId: charId,
+      characterName: charData.name || 'Hero',
+      playerName: playerName || charData.playerName || '',
+      timestamp: nowIso,
+      characterData: JSON.parse(JSON.stringify(charData))
+    };
+
+    chars[charKey] = record;
+    try {
+      const serialized = JSON.stringify(chars);
+      if (typeof localStorage !== 'undefined') {
+        localStorage.setItem(key, serialized);
+      }
+      this._memoryFallback[key] = serialized;
+    } catch (e) {
+      console.warn('Failed to save campaign character locally:', e);
+    }
+
+    if (typeof supabaseService !== 'undefined' && supabaseService && supabaseService.isLoggedIn()) {
+      supabaseService.saveCampaignCharacterSnapshot({
+        campaignId: clean,
+        characterId: charId,
+        characterName: record.characterName,
+        playerName: record.playerName,
+        characterData: record.characterData,
+        timestamp: nowIso
+      }).catch(() => {});
+    }
+  }
+
+  getCampaignSavedCharacter(campaignId, charId, charName = '') {
+    const chars = this.getCampaignSavedCharacters(campaignId);
+    if (charId && chars[String(charId).toLowerCase()]) {
+      return chars[String(charId).toLowerCase()];
+    }
+    if (charName) {
+      const targetName = String(charName).trim().toLowerCase();
+      const match = Object.values(chars).find(c => String(c.characterName || '').trim().toLowerCase() === targetName);
+      if (match) return match;
+    }
+    return null;
+  }
+
+  compareCharacterCopies(saved, incoming) {
+    if (!saved || !incoming) return [];
+    const diffs = [];
+
+    // 1. Power Level
+    const sPL = parseInt(saved.powerLevel || 10, 10);
+    const iPL = parseInt(incoming.powerLevel || 10, 10);
+    if (sPL !== iPL) {
+      diffs.push(`Power Level: PL ${sPL} → PL ${iPL}`);
+    }
+
+    // 2. Abilities
+    const abilities = ['str', 'sta', 'agi', 'dex', 'fgt', 'int', 'awe', 'pre'];
+    const abilityLabels = { str: 'Strength', sta: 'Stamina', agi: 'Agility', dex: 'Dexterity', fgt: 'Fighting', int: 'Intellect', awe: 'Awareness', pre: 'Presence' };
+    const sAb = saved.abilities || {};
+    const iAb = incoming.abilities || {};
+    abilities.forEach(k => {
+      const sVal = parseInt(sAb[k] ?? 0, 10);
+      const iVal = parseInt(iAb[k] ?? 0, 10);
+      if (sVal !== iVal) {
+        diffs.push(`${abilityLabels[k] || k.toUpperCase()}: ${sVal} → ${iVal}`);
+      }
+    });
+
+    // 3. Defenses
+    const defenses = ['dodge', 'parry', 'fortitude', 'toughness', 'will'];
+    const sDef = saved.defenses || {};
+    const iDef = incoming.defenses || {};
+    defenses.forEach(k => {
+      const sVal = parseInt(sDef[k]?.ranks ?? sDef[k] ?? 0, 10);
+      const iVal = parseInt(iDef[k]?.ranks ?? iDef[k] ?? 0, 10);
+      if (sVal !== iVal) {
+        const dName = k.charAt(0).toUpperCase() + k.slice(1);
+        diffs.push(`${dName} Defense: ${sVal} → ${iVal}`);
+      }
+    });
+
+    // 4. Powers
+    const sPowers = Array.isArray(saved.powers) ? saved.powers : [];
+    const iPowers = Array.isArray(incoming.powers) ? incoming.powers : [];
+    const sPowerMap = new Map();
+    sPowers.forEach(p => sPowerMap.set(String(p.name || '').trim().toLowerCase(), p));
+    const iPowerMap = new Map();
+    iPowers.forEach(p => iPowerMap.set(String(p.name || '').trim().toLowerCase(), p));
+
+    iPowers.forEach(ip => {
+      const pName = String(ip.name || '').trim();
+      const pKey = pName.toLowerCase();
+      if (!sPowerMap.has(pKey)) {
+        diffs.push(`New Power Added: "${pName}" (Rank ${ip.rank || 1})`);
+      } else {
+        const sp = sPowerMap.get(pKey);
+        if (parseInt(sp.rank ?? 0, 10) !== parseInt(ip.rank ?? 0, 10)) {
+          diffs.push(`Power "${pName}" Rank: ${sp.rank} → ${ip.rank}`);
+        }
+      }
+    });
+
+    sPowers.forEach(sp => {
+      const pName = String(sp.name || '').trim();
+      if (!iPowerMap.has(pName.toLowerCase())) {
+        diffs.push(`Power Removed: "${pName}"`);
+      }
+    });
+
+    // 5. Advantages
+    const sAdv = (Array.isArray(saved.advantages) ? saved.advantages : []).map(a => typeof a === 'string' ? a : (a.name || '')).filter(Boolean);
+    const iAdv = (Array.isArray(incoming.advantages) ? incoming.advantages : []).map(a => typeof a === 'string' ? a : (a.name || '')).filter(Boolean);
+    const addedAdv = iAdv.filter(a => !sAdv.includes(a));
+    const removedAdv = sAdv.filter(a => !iAdv.includes(a));
+    if (addedAdv.length > 0) diffs.push(`Added Advantage(s): ${addedAdv.join(', ')}`);
+    if (removedAdv.length > 0) diffs.push(`Removed Advantage(s): ${removedAdv.join(', ')}`);
+
+    // 6. Skills
+    const sSkills = Array.isArray(saved.skills) ? saved.skills : [];
+    const iSkills = Array.isArray(incoming.skills) ? incoming.skills : [];
+    const sSkillMap = new Map();
+    sSkills.forEach(s => sSkillMap.set(String(s.name || '').toLowerCase(), parseInt(s.ranks ?? 0, 10)));
+    iSkills.forEach(is => {
+      const sName = String(is.name || '').trim();
+      const sRanks = sSkillMap.get(sName.toLowerCase()) ?? 0;
+      const iRanks = parseInt(is.ranks ?? 0, 10);
+      if (sRanks !== iRanks && (sRanks > 0 || iRanks > 0)) {
+        diffs.push(`Skill "${sName}" Ranks: ${sRanks} → ${iRanks}`);
+      }
+    });
+
+    return diffs;
+  }
+
+  async handleGMIncomingCharacterCheck(campaignId, incomingChar, playerName, clientTimestamp) {
+    if (!campaignId || !incomingChar) return;
+    const clean = String(campaignId).trim().toUpperCase().replace(/^#+/, '');
+    const current = this.getCampaignState();
+    if (!current.isHost) return;
+
+    const charId = incomingChar.id || incomingChar.name;
+    const savedRecord = this.getCampaignSavedCharacter(clean, charId, incomingChar.name);
+
+    if (!savedRecord || !savedRecord.characterData) {
+      // First time connecting to GM's campaign: save initial snapshot
+      this.saveCampaignSavedCharacter(clean, incomingChar, playerName, clientTimestamp || new Date().toISOString());
+      return;
+    }
+
+    const diffs = this.compareCharacterCopies(savedRecord.characterData, incomingChar);
+    if (!diffs || diffs.length === 0) return;
+
+    const savedTime = savedRecord.timestamp ? new Date(savedRecord.timestamp).toLocaleString() : 'Last Session Snapshot';
+    const incomingTime = clientTimestamp ? new Date(clientTimestamp).toLocaleString() : new Date().toLocaleString();
+
+    const charName = incomingChar.name || 'Hero';
+    const player = playerName || incomingChar.playerName || 'Player';
+
+    // Store diff status on member card for campaign tracker
+    const members = this.getPartyMembers();
+    const mem = members.find(m => (m.characterName || '').toLowerCase() === charName.toLowerCase());
+    if (mem) {
+      mem.hasDiffAlert = true;
+      mem.diffSummary = diffs;
+      mem.savedTimestamp = savedTime;
+      mem.incomingTimestamp = incomingTime;
+      this.savePartyMembers(members);
+    }
+
+    const alertKey = `${clean}_${charId}_${diffs.join('|')}`;
+    if (this._lastAlertedDiffKey === alertKey) return;
+    this._lastAlertedDiffKey = alertKey;
+
+    if (typeof window !== 'undefined' && window.appController && window.appController.showConfirmDialog) {
+      const message = `Player "${player}" connected to campaign #${clean} with character "${charName}".\r\n\r\nChanges were detected compared to your campaign's saved copy from the end of the last session:\r\n\r\n` +
+        `📅 GM Saved Copy Timestamp: ${savedTime}\r\n` +
+        `📅 Player Local Copy Timestamp: ${incomingTime}\r\n\r\n` +
+        `Detected Differences:\r\n• ${diffs.join('\r\n• ')}\r\n\r\n` +
+        `Would you like to accept these changes and update your campaign records?`;
+
+      const accepted = await window.appController.showConfirmDialog(message, {
+        title: `⚠️ Character Changes: ${charName}`,
+        confirmText: 'Accept Changes',
+        cancelText: 'Keep GM Copy'
+      });
+
+      if (accepted) {
+        this.saveCampaignSavedCharacter(clean, incomingChar, player, clientTimestamp || new Date().toISOString());
+        if (mem) {
+          delete mem.hasDiffAlert;
+          delete mem.diffSummary;
+          this.savePartyMembers(members);
+        }
+        this.renderAllOpenViews();
+      }
+    }
   }
 
   getCampaignInfo(idOrName) {
@@ -509,7 +742,7 @@ export class CampaignTrackerManager {
     this.saveCampaignState(newState);
     this.registerCampaignInfo(newState);
     this.saveToCampaignHistory(newState);
-    this.startSession(assignedId);
+    // Note: Do not automatically start game session on campaign creation. GM starts session via Start Session button.
 
     // Announce creation to network
     this.broadcastMessage({
@@ -583,9 +816,6 @@ export class CampaignTrackerManager {
 
     this.saveCampaignState(newState);
     this.saveToCampaignHistory(newState);
-    if (isCreator) {
-      this.startSession(cleanId);
-    }
 
     // Request full roster from peers in this room, sending our local member if registered
     this.broadcastMessage({
@@ -604,12 +834,29 @@ export class CampaignTrackerManager {
     const current = this.getCampaignState();
     if (current && current.isConnected) {
       const cleanId = current.campaignId.replace(/^#+/, '');
+      const localMember = this.getLocalMember();
+      const localChar = this._lastLocalHero || (typeof window !== 'undefined' && window.appController ? window.appController.char : null);
+      const leaveTimestamp = new Date().toISOString();
+
       this.broadcastMessage({
         type: 'MEMBER_LEFT',
         campaignId: cleanId,
         pin: current.pin,
-        memberId: this._lastLocalHeroId || undefined
+        memberId: this._lastLocalHeroId || undefined,
+        characterId: localChar?.id || localMember?.characterId,
+        characterName: localChar?.name || localMember?.characterName,
+        playerName: current.playerName || localMember?.playerName,
+        timestamp: leaveTimestamp,
+        characterData: localChar ? JSON.parse(JSON.stringify(localChar)) : null
       });
+
+      if (typeof supabaseService !== 'undefined' && supabaseService && supabaseService.isLoggedIn() && localChar) {
+        supabaseService.upsertCampaignMember({
+          campaignId: cleanId,
+          character: localChar,
+          characterData: localChar
+        }).then(() => supabaseService.markMemberOffline(cleanId)).catch(() => {});
+      }
       this.broadcastMessage({
         type: 'SESSION_ENDED',
         campaignId: cleanId
@@ -731,6 +978,12 @@ export class CampaignTrackerManager {
         if (msg.member && msg.member.id) {
           this.ingestRemoteMember(msg.member);
         }
+        if (current.isHost) {
+          const incomingChar = msg.characterData || msg.member?.characterData;
+          if (incomingChar) {
+            this.handleGMIncomingCharacterCheck(cleanCurId, incomingChar, msg.playerName || msg.member?.playerName, msg.timestamp);
+          }
+        }
         // Send our local member data to welcome them
         this.broadcastLocalMemberData();
         break;
@@ -739,11 +992,21 @@ export class CampaignTrackerManager {
         if (msg.member && msg.member.id) {
           this.ingestRemoteMember(msg.member);
         }
+        if (current.isHost) {
+          const incomingChar = msg.characterData || msg.member?.characterData;
+          if (incomingChar) {
+            this.handleGMIncomingCharacterCheck(cleanCurId, incomingChar, msg.playerName || msg.member?.playerName, msg.timestamp);
+          }
+        }
         break;
 
       case 'MEMBER_LEFT':
         if (msg.memberId) {
           this.removeMember(msg.memberId);
+        }
+        // Automatically save disconnected player's character in GM's campaign data
+        if (current.isHost && msg.characterData) {
+          this.saveCampaignSavedCharacter(cleanCurId, msg.characterData, msg.playerName, msg.timestamp || new Date().toISOString());
         }
         break;
     }
@@ -893,11 +1156,18 @@ export class CampaignTrackerManager {
     const localMember = members.find(m => m.isLocal);
     const campaignState = this.getCampaignState();
     if (localMember && campaignState.isConnected) {
+      const localChar = this._lastLocalHero || (typeof window !== 'undefined' && window.appController ? window.appController.char : null);
       this.broadcastMessage({
         type: 'MEMBER_UPDATE',
         campaignId: campaignState.campaignId,
         pin: campaignState.pin,
-        member: localMember
+        member: {
+          ...localMember,
+          characterData: localChar ? JSON.parse(JSON.stringify(localChar)) : (localMember.characterData || null)
+        },
+        characterData: localChar ? JSON.parse(JSON.stringify(localChar)) : (localMember.characterData || null),
+        playerName: localMember.playerName,
+        timestamp: new Date().toISOString()
       });
     }
   }
@@ -966,7 +1236,7 @@ export class CampaignTrackerManager {
     const state = this.getCampaignState();
     if (state.isConnected && state.campaignId) {
       if (btn) {
-        btn.innerHTML = `🛡️ Campaigns <span style="font-size: 10px; font-weight: 900; background: #10b981; color: #fff; padding: 1px 5px; border-radius: 4px; margin-left: 2px;">#${state.campaignId}</span>`;
+        btn.innerHTML = `🛡️ Campaigns <span style="font-size: 10pt; font-weight: 900; background: #10b981; color: #fff; padding: 1px 5px; border-radius: 4px; margin-left: 2px;">#${state.campaignId}</span>`;
         btn.style.borderColor = '#10b981';
         btn.style.color = '#10b981';
       }
@@ -1060,37 +1330,37 @@ export class CampaignTrackerManager {
             <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
               <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #10b981; box-shadow: 0 0 6px #10b981;"></span>
               <strong style="color: var(--text-bright); font-size: 1.05rem;">${state.campaignName || 'Campaign Room'}</strong>
-              <span style="font-size: 11px; background: rgba(0,0,0,0.15); padding: 2px 7px; border-radius: 4px; font-weight: 800; color: var(--hero-blue);">ID: #${state.campaignId}</span>
-              <span style="font-size: 11px; background: rgba(234, 179, 8, 0.15); border: 1px solid var(--hero-gold); padding: 2px 7px; border-radius: 4px; font-weight: 800; color: var(--hero-gold);">PL ${state.powerLevel || 10}</span>
-              ${state.pin ? `<span style="font-size: 11px; color: var(--hero-gold); font-weight: 700;">🔒 PIN Protected</span>` : ''}
-              <span style="font-size: 11px; color: var(--text-muted); font-weight: 600;">(${state.isHost ? 'GM / Host' : 'Connected Player'})</span>
+              <span style="font-size: 10pt; background: rgba(0,0,0,0.15); padding: 2px 7px; border-radius: 4px; font-weight: 800; color: var(--hero-blue);">ID: #${state.campaignId}</span>
+              <span style="font-size: 10pt; background: rgba(234, 179, 8, 0.15); border: 1px solid var(--hero-gold); padding: 2px 7px; border-radius: 4px; font-weight: 800; color: var(--hero-gold);">PL ${state.powerLevel || 10}</span>
+              ${state.pin ? `<span style="font-size: 10pt; color: var(--hero-gold); font-weight: 700;">🔒 PIN Protected</span>` : ''}
+              <span style="font-size: 10pt; color: var(--text-muted); font-weight: 600;">(${state.isHost ? 'GM / Host' : 'Connected Player'})</span>
             </div>
-            <button type="button" class="btn btn-outline btn-leave-campaign-room" style="font-size: 11px; font-weight: 700; padding: 0.2rem 0.65rem; color: var(--hero-red); border-color: var(--hero-red);">🚪 Disconnect / Leave</button>
+            <button type="button" class="btn btn-outline btn-leave-campaign-room" style="font-size: 10pt; font-weight: 700; padding: 0.2rem 0.65rem; color: var(--hero-red); border-color: var(--hero-red);">🚪 Disconnect / Leave</button>
           </div>
           ${(state.isCreator || this.getCampaignHistory().find(c => c.campaignId === state.campaignId)?.isCreator) ? `
-            <div style="display: flex; align-items: center; gap: 0.6rem; margin-top: 0.45rem; padding-top: 0.45rem; border-top: 1px dashed rgba(255,255,255,0.15); font-size: 12px; flex-wrap: wrap;">
+            <div style="display: flex; align-items: center; gap: 0.6rem; margin-top: 0.45rem; padding-top: 0.45rem; border-top: 1px dashed rgba(255,255,255,0.15); font-size: 10pt; flex-wrap: wrap;">
               <span style="color: var(--hero-gold); font-weight: 800;">⚙️ GM Campaign Settings (Creator):</span>
               ${isLive ? `
-                <button type="button" class="btn btn-outline btn-gm-toggle-session" data-action="end" data-campid="${state.campaignId}" style="font-size: 11px; font-weight: 800; color: var(--hero-red); border-color: var(--hero-red); padding: 2px 9px; cursor: pointer;">⏹️ End Game Session</button>
-                <span style="color: #10b981; font-size: 11px; font-weight: 800;">🟢 Live Broadcasting</span>
+                <button type="button" class="btn btn-outline btn-gm-toggle-session" data-action="end" data-campid="${state.campaignId}" style="font-size: 10pt; font-weight: 800; color: var(--hero-red); border-color: var(--hero-red); padding: 2px 9px; cursor: pointer;">⏹️ End Game Session</button>
+                <span style="color: #10b981; font-size: 10pt; font-weight: 800;">🟢 Live Broadcasting</span>
               ` : `
-                <button type="button" class="btn btn-primary btn-gm-toggle-session" data-action="start" data-campid="${state.campaignId}" style="font-size: 11px; font-weight: 800; background: var(--hero-green); border-color: var(--hero-green); padding: 2px 9px; cursor: pointer;">▶️ Start Game Session</button>
-                <span style="color: var(--text-muted); font-size: 11px; font-weight: 700;">⚪ Inactive / Offline</span>
+                <button type="button" class="btn btn-primary btn-gm-toggle-session" data-action="start" data-campid="${state.campaignId}" style="font-size: 10pt; font-weight: 800; background: var(--hero-green); border-color: var(--hero-green); padding: 2px 9px; cursor: pointer;">▶️ Start Game Session</button>
+                <span style="color: var(--text-muted); font-size: 10pt; font-weight: 700;">⚪ Inactive / Offline</span>
               `}
               <label style="display: inline-flex; align-items: center; gap: 0.35rem; cursor: pointer; user-select: none; color: var(--text-bright); font-weight: 700; margin-left: 0.4rem;" title="When checked, characters of any Power Level can join without PL restrictions">
                 <input type="checkbox" class="chk-campaign-dont-enforce-pl" ${state.dontEnforcePL ? 'checked' : ''} style="cursor: pointer; width: 14px; height: 14px; accent-color: var(--hero-gold);">
                 <span>Don't enforce PL</span>
               </label>
               <div style="display: inline-flex; align-items: center; gap: 0.35rem; margin-left: 0.25rem;">
-                <span style="color: var(--text-muted); font-size: 11px; font-weight: 700;">PL:</span>
-                <select class="sel-campaign-target-pl" style="background: var(--bg-input); color: var(--text-bright); border: 1px solid var(--border-color); border-radius: 3px; padding: 1px 6px; font-size: 11px; font-weight: 800;">
+                <span style="color: var(--text-muted); font-size: 10pt; font-weight: 700;">PL:</span>
+                <select class="sel-campaign-target-pl" style="background: var(--bg-input); color: var(--text-bright); border: 1px solid var(--border-color); border-radius: 3px; padding: 1px 6px; font-size: 10pt; font-weight: 800;">
                   ${[6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20].map(pl => `<option value="${pl}" ${(state.powerLevel || 10) === pl ? 'selected' : ''}>PL ${pl}</option>`).join('')}
                 </select>
               </div>
-              <button type="button" class="btn btn-outline btn-open-join-requests" style="font-size: 11px; font-weight: 700; color: var(--hero-blue); border-color: var(--hero-blue); padding: 1px 8px; margin-left: 0.35rem; cursor: pointer;">🔔 Join Requests</button>
+              <button type="button" class="btn btn-outline btn-open-join-requests" style="font-size: 10pt; font-weight: 700; color: var(--hero-blue); border-color: var(--hero-blue); padding: 1px 8px; margin-left: 0.35rem; cursor: pointer;">🔔 Join Requests</button>
             </div>
           ` : `
-            <div style="margin-top: 0.35rem; font-size: 11px; color: var(--text-muted);">
+            <div style="margin-top: 0.35rem; font-size: 10pt; color: var(--text-muted);">
               ${state.dontEnforcePL ? '⚠️ PL Enforcement is disabled by GM (any character PL permitted)' : '🛡️ Strict PL Enforcement is active (characters must match campaign PL)'}
             </div>
           `}
@@ -1101,11 +1371,11 @@ export class CampaignTrackerManager {
         <div style="background: var(--bg-card); border: 1px dashed var(--border-color); border-radius: 6px; padding: 0.75rem 0.85rem; margin-bottom: 0.75rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
           <div>
             <div style="font-weight: 800; color: var(--text-bright); font-size: var(--font-size-sm);">P2P Campaign Sync: Disconnected</div>
-            <div style="font-size: 11px; color: var(--text-muted);">Create or join a Campaign ID room to sync conditions and alts in real-time.</div>
+            <div style="font-size: 10pt; color: var(--text-muted);">Create or join a Campaign ID room to sync conditions and alts in real-time.</div>
           </div>
           <div style="display: flex; gap: 0.45rem;">
-            <button type="button" class="btn btn-primary btn-trigger-create-campaign" style="font-size: 11px; font-weight: 800; padding: 0.25rem 0.75rem;">➕ Create Campaign</button>
-            <button type="button" class="btn btn-outline btn-trigger-join-campaign" style="font-size: 11px; font-weight: 700; padding: 0.25rem 0.75rem;">🔗 Join Campaign</button>
+            <button type="button" class="btn btn-primary btn-trigger-create-campaign" style="font-size: 10pt; font-weight: 800; padding: 0.25rem 0.75rem;">➕ Create Campaign</button>
+            <button type="button" class="btn btn-outline btn-trigger-join-campaign" style="font-size: 10pt; font-weight: 700; padding: 0.25rem 0.75rem;">🔗 Join Campaign</button>
           </div>
         </div>
       `;
@@ -1125,19 +1395,19 @@ export class CampaignTrackerManager {
       if (!isCharAttached) {
         charAttachmentBar = `
           <div style="background: rgba(59, 130, 246, 0.08); border: 1px dashed var(--hero-blue); border-radius: 6px; padding: 0.5rem 0.85rem; margin-bottom: 0.65rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
-            <div style="font-size: 11px; color: var(--text-bright);">
+            <div style="font-size: 10pt; color: var(--text-bright);">
               <span>🦸 Loaded Character: <strong>${activeChar.name || 'Hero'}</strong> (PL ${activeChar.powerLevel || 10}) is not in this campaign's party.</span>
             </div>
-            <button type="button" class="btn btn-outline btn-attach-current-char" style="font-size: 11px; font-weight: 700; color: var(--hero-blue); border-color: var(--hero-blue); padding: 2px 8px;">➕ Attach to Campaign Party</button>
+            <button type="button" class="btn btn-outline btn-attach-current-char" style="font-size: 10pt; font-weight: 700; color: var(--hero-blue); border-color: var(--hero-blue); padding: 2px 8px;">➕ Attach to Campaign Party</button>
           </div>
         `;
       } else {
         charAttachmentBar = `
           <div style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: 6px; padding: 0.4rem 0.85rem; margin-bottom: 0.65rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
-            <div style="font-size: 11px; color: var(--text-bright);">
+            <div style="font-size: 10pt; color: var(--text-bright);">
               <span>🦸 Active Hero in Party: <strong>${activeChar.name || 'Hero'}</strong> (PL ${activeChar.powerLevel || 10})</span>
             </div>
-            <button type="button" class="btn btn-outline btn-detach-current-char" style="font-size: 10px; color: var(--text-muted); border-color: var(--border-color); padding: 1px 6px;">Detach from Party</button>
+            <button type="button" class="btn btn-outline btn-detach-current-char" style="font-size: 10pt; color: var(--text-muted); border-color: var(--border-color); padding: 1px 6px;">Detach from Party</button>
           </div>
         `;
       }
@@ -1156,28 +1426,28 @@ export class CampaignTrackerManager {
         const hasConditions = m.conditions && m.conditions.length > 0;
         
         const altBadge = m.isAlt && m.activeAltLabel ? `
-          <span style="font-size: 11px; font-weight: 800; background: rgba(139, 92, 246, 0.2); color: var(--hero-purple); padding: 2px 7px; border-radius: 4px; border: 1px solid var(--hero-purple);">
+          <span style="font-size: 10pt; font-weight: 800; background: rgba(139, 92, 246, 0.2); color: var(--hero-purple); padding: 2px 7px; border-radius: 4px; border: 1px solid var(--hero-purple);">
             ⚡ Active: ${m.activeAltLabel}
           </span>
         ` : `
-          <span style="font-size: 11px; font-weight: 700; color: var(--text-muted);">
+          <span style="font-size: 10pt; font-weight: 700; color: var(--text-muted);">
             [Primary Hero]
           </span>
         `;
 
         const conditionPills = hasConditions 
           ? m.conditions.map(c => `
-              <span style="display: inline-block; font-size: 11px; font-weight: 800; padding: 2px 6px; border-radius: 4px; background: rgba(239, 68, 68, 0.18); color: var(--hero-red); border: 1px solid rgba(239, 68, 68, 0.4);">
+              <span style="display: inline-block; font-size: 10pt; font-weight: 800; padding: 2px 6px; border-radius: 4px; background: rgba(239, 68, 68, 0.18); color: var(--hero-red); border: 1px solid rgba(239, 68, 68, 0.4);">
                 ⚠️ ${c}
               </span>
             `).join(' ')
-          : `<span style="font-size: 11px; font-weight: 700; color: var(--hero-green);">✅ Normal / Unimpaired</span>`;
+          : `<span style="font-size: 10pt; font-weight: 700; color: var(--hero-green);">✅ Normal / Unimpaired</span>`;
 
         const toughnessPill = isDamaged
-          ? `<span style="font-size: 12px; font-weight: 800; color: var(--hero-red); background: rgba(239, 68, 68, 0.15); padding: 3px 8px; border-radius: 4px; border: 1px solid var(--hero-red);">
+          ? `<span style="font-size: 10pt; font-weight: 800; color: var(--hero-red); background: rgba(239, 68, 68, 0.15); padding: 3px 8px; border-radius: 4px; border: 1px solid var(--hero-red);">
                💥 Toughness: -${m.bruises} Penalty
              </span>`
-          : `<span style="font-size: 12px; font-weight: 800; color: var(--hero-green); background: rgba(16, 185, 129, 0.15); padding: 3px 8px; border-radius: 4px; border: 1px solid var(--hero-green);">
+          : `<span style="font-size: 10pt; font-weight: 800; color: var(--hero-green); background: rgba(16, 185, 129, 0.15); padding: 3px 8px; border-radius: 4px; border: 1px solid var(--hero-green);">
                🛡️ Toughness: Normal (No Penalty)
              </span>`;
 
@@ -1190,19 +1460,30 @@ export class CampaignTrackerManager {
                 <span style="font-size: var(--font-size-xs); color: var(--text-muted); font-weight: 600;">Player: ${m.playerName}</span>
               </div>
               <div style="display: flex; align-items: center; gap: 0.5rem;">
-                <span style="font-size: 12px; font-weight: 800; color: var(--hero-gold);">⚡ ${m.heroPoints} HP</span>
-                <button type="button" class="btn btn-outline btn-inspect-member-sheet" data-memberid="${m.id}" title="Inspect full character sheet" style="font-size: 11px; font-weight: 700; color: var(--hero-blue); border-color: var(--hero-blue); padding: 1px 7px; cursor: pointer;">👁️ View Sheet</button>
-                ${!m.isLocal ? `<button type="button" class="btn-remove-party-member" data-id="${m.id}" title="Remove member" style="background: none; border: none; color: var(--hero-red); cursor: pointer; font-size: 12px; font-weight: 700;">✕</button>` : ''}
+                <span style="font-size: 10pt; font-weight: 800; color: var(--hero-gold);">⚡ ${m.heroPoints} HP</span>
+                <button type="button" class="btn btn-outline btn-inspect-member-sheet" data-memberid="${m.id}" title="Inspect full character sheet" style="font-size: 10pt; font-weight: 700; color: var(--hero-blue); border-color: var(--hero-blue); padding: 1px 7px; cursor: pointer;">👁️ View Sheet</button>
+                ${!m.isLocal ? `<button type="button" class="btn-remove-party-member" data-id="${m.id}" title="Remove member" style="background: none; border: none; color: var(--hero-red); cursor: pointer; font-size: 10pt; font-weight: 700;">✕</button>` : ''}
               </div>
             </div>
             
+            ${m.hasDiffAlert && state.isHost ? `
+              <div style="background: rgba(245, 158, 11, 0.12); border: 1px solid var(--hero-gold); border-radius: 4px; padding: 0.4rem 0.6rem; font-size: 10pt; color: var(--hero-gold); display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+                <div>
+                  <strong>⚠️ Local Copy Differs from Last Session Snapshot</strong>
+                  <div style="font-size: 10pt; color: var(--text-bright); margin-top: 2px;">
+                    GM Copy: ${m.savedTimestamp || 'Last Session'} | Player: ${m.incomingTimestamp || 'Now'}
+                  </div>
+                </div>
+                <button type="button" class="btn btn-primary btn-gm-review-diff" data-charname="${m.characterName}" style="font-size: 10pt; padding: 2px 8px; font-weight: 800;">Review Changes</button>
+              </div>
+            ` : ''}
             <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.6rem; padding-top: 0.2rem;">
               <div>${toughnessPill}</div>
               <div style="display: flex; align-items: center; gap: 0.35rem; flex-wrap: wrap;">
                 <span style="font-size: var(--font-size-xs); color: var(--text-muted); font-weight: 700;">Conditions:</span>
                 ${conditionPills}
               </div>
-              <div style="font-size: 11px; color: var(--text-muted);">
+              <div style="font-size: 10pt; color: var(--text-muted);">
                 Updated: ${m.lastUpdated}
               </div>
             </div>
@@ -1226,25 +1507,25 @@ export class CampaignTrackerManager {
         <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 4px; padding: 0.5rem 0.75rem; margin-bottom: 0.4rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.4rem;">
           <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
             <strong>${c.campaignName}</strong>
-            <span style="font-size: 11px; background: rgba(0,0,0,0.15); padding: 1px 6px; border-radius: 4px; font-weight: 800; color: var(--hero-blue);">ID: #${c.campaignId}</span>
-            <span style="font-size: 11px; color: var(--hero-gold); font-weight: 700;">PL ${c.powerLevel}</span>
-            ${c.isCreator ? '<span style="font-size: 10px; font-weight: 800; color: var(--hero-gold); background: rgba(234, 179, 8, 0.15); padding: 1px 5px; border-radius: 3px;">👑 GM</span>' : '<span style="font-size: 10px; font-weight: 700; color: var(--hero-blue); background: rgba(59, 130, 246, 0.15); padding: 1px 5px; border-radius: 3px;">Player</span>'}
-            <span style="font-size: 11px; color: var(--text-muted);">Attached: ${attachedStr}</span>
+            <span style="font-size: 10pt; background: rgba(0,0,0,0.15); padding: 1px 6px; border-radius: 4px; font-weight: 800; color: var(--hero-blue);">ID: #${c.campaignId}</span>
+            <span style="font-size: 10pt; color: var(--hero-gold); font-weight: 700;">PL ${c.powerLevel}</span>
+            ${c.isCreator ? '<span style="font-size: 10pt; font-weight: 800; color: var(--hero-gold); background: rgba(234, 179, 8, 0.15); padding: 1px 5px; border-radius: 3px;">👑 GM</span>' : '<span style="font-size: 10pt; font-weight: 700; color: var(--hero-blue); background: rgba(59, 130, 246, 0.15); padding: 1px 5px; border-radius: 3px;">Player</span>'}
+            <span style="font-size: 10pt; color: var(--text-muted);">Attached: ${attachedStr}</span>
           </div>
           <div style="display: flex; align-items: center; gap: 0.4rem;">
-            ${isLive ? '<span style="color: #10b981; font-weight: 800; font-size: 11px;">🟢 Session Running</span>' : '<span style="color: var(--text-muted); font-size: 11px;">⚪ Offline</span>'}
+            ${isLive ? '<span style="color: #10b981; font-weight: 800; font-size: 10pt;">🟢 Session Running</span>' : '<span style="color: var(--text-muted); font-size: 10pt;">⚪ Offline</span>'}
             ${c.isCreator ? (isLive ? `
-              <button type="button" class="btn btn-outline btn-gm-toggle-session" data-action="end" data-campid="${c.campaignId}" style="font-size: 11px; padding: 2px 7px; color: var(--hero-red); border-color: var(--hero-red); font-weight: 700;">⏹️ End Session</button>
+              <button type="button" class="btn btn-outline btn-gm-toggle-session" data-action="end" data-campid="${c.campaignId}" style="font-size: 10pt; padding: 2px 7px; color: var(--hero-red); border-color: var(--hero-red); font-weight: 700;">⏹️ End Session</button>
             ` : `
-              <button type="button" class="btn btn-outline btn-gm-toggle-session" data-action="start" data-campid="${c.campaignId}" style="font-size: 11px; padding: 2px 7px; color: var(--hero-green); border-color: var(--hero-green); font-weight: 700;">▶️ Start Session</button>
+              <button type="button" class="btn btn-outline btn-gm-toggle-session" data-action="start" data-campid="${c.campaignId}" style="font-size: 10pt; padding: 2px 7px; color: var(--hero-green); border-color: var(--hero-green); font-weight: 700;">▶️ Start Session</button>
             `) : ''}
-            ${isCur ? '<span style="font-size: 11px; font-weight: 800; color: var(--hero-green);">[Connected]</span>' : `
-              <button type="button" class="btn btn-outline btn-reconnect-campaign" data-campid="${c.campaignId}" style="font-size: 11px; padding: 2px 8px; font-weight: 700;">🔗 Connect</button>
+            ${isCur ? '<span style="font-size: 10pt; font-weight: 800; color: var(--hero-green);">[Connected]</span>' : `
+              <button type="button" class="btn btn-outline btn-reconnect-campaign" data-campid="${c.campaignId}" style="font-size: 10pt; padding: 2px 8px; font-weight: 700;">🔗 Connect</button>
             `}
             ${attached.length > 0 ? `
-              <button type="button" class="btn btn-outline btn-load-attached-char" data-campid="${c.campaignId}" style="font-size: 11px; padding: 2px 8px; color: var(--hero-purple); border-color: var(--hero-purple);">🦸 Load Hero</button>
+              <button type="button" class="btn btn-outline btn-load-attached-char" data-campid="${c.campaignId}" style="font-size: 10pt; padding: 2px 8px; color: var(--hero-purple); border-color: var(--hero-purple);">🦸 Load Hero</button>
             ` : ''}
-            <button type="button" class="btn-remove-campaign-history" data-campid="${c.campaignId}" title="Remove from list" style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 12px; font-weight: 700; padding: 0 4px;">✕</button>
+            <button type="button" class="btn-remove-campaign-history" data-campid="${c.campaignId}" title="Remove from list" style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 10pt; font-weight: 700; padding: 0 4px;">✕</button>
           </div>
         </div>
       `;
@@ -1254,10 +1535,10 @@ export class CampaignTrackerManager {
       <div style="margin-top: 1.25rem; border-top: 1px solid var(--border-color); padding-top: 0.75rem;">
         <div style="font-weight: 800; font-size: var(--font-size-sm); color: var(--text-bright); margin-bottom: 0.5rem; display: flex; justify-content: space-between; align-items: center;">
           <span>📜 Your Participated Campaigns (${history.length})</span>
-          <span style="font-size: 11px; color: var(--text-muted);">Persistent across sessions</span>
+          <span style="font-size: 10pt; color: var(--text-muted);">Persistent across sessions</span>
         </div>
         ${history.length === 0 ? `
-          <div style="padding: 1rem; text-align: center; color: var(--text-muted); font-size: 11px; font-style: italic;">
+          <div style="padding: 1rem; text-align: center; color: var(--text-muted); font-size: 10pt; font-style: italic;">
             No participated campaigns stored yet. When you create or join a campaign, it is saved here for quick reconnection.
           </div>
         ` : historyCards}
@@ -1359,6 +1640,18 @@ export class CampaignTrackerManager {
       });
     });
 
+    parentEl.querySelectorAll('.btn-gm-review-diff').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const charName = e.currentTarget.dataset.charname;
+        const member = this.getPartyMembers().find(m => (m.characterName || '').toLowerCase() === (charName || '').toLowerCase());
+        const state = this.getCampaignState();
+        if (member && member.characterData) {
+          delete this._lastAlertedDiffKey;
+          this.handleGMIncomingCharacterCheck(state.campaignId, member.characterData, member.playerName, new Date().toISOString());
+        }
+      });
+    });
+
     parentEl.querySelectorAll('.btn-inspect-member-sheet').forEach(btn => {
       btn.addEventListener('click', (e) => {
         const id = e.currentTarget.dataset.memberid;
@@ -1428,7 +1721,7 @@ export class CampaignTrackerManager {
 <head>
   <meta charset="UTF-8">
   <title>Mutants & Masterminds 3E - Party Conditions & Toughness Tracker</title>
-  <link rel="stylesheet" href="css/styles.css?v=3.68">
+  <link rel="stylesheet" href="css/styles.css?v=3.69">
   <style>
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -1436,7 +1729,7 @@ export class CampaignTrackerManager {
       color: var(--text-main, #f8fafc);
       margin: 0;
       padding: 1rem;
-      font-size: 13px;
+      font-size: 10pt;
       display: flex;
       flex-direction: column;
       min-height: 100vh;
@@ -1479,7 +1772,7 @@ export class CampaignTrackerManager {
   <div class="popout-top-bar">
     <h2 class="popout-title">🛡️ Party Conditions & Toughness Tracker</h2>
     <div style="display: flex; gap: 0.5rem;">
-      <button id="btn-popout-sync-discord" class="btn btn-outline" style="min-height: 28px; padding: 0.15rem 0.6rem; font-size: 11px; font-weight: 700;">📢 Broadcast to Discord</button>
+      <button id="btn-popout-sync-discord" class="btn btn-outline" style="min-height: 28px; padding: 0.15rem 0.6rem; font-size: 10pt; font-weight: 700;">📢 Broadcast to Discord</button>
       <button id="btn-popout-close" class="btn" style="background: #dc2626; color: #fff; border: none; padding: 5px 12px; border-radius: 4px; font-weight: 700; cursor: pointer;">✕ Close</button>
     </div>
   </div>
@@ -1487,9 +1780,9 @@ export class CampaignTrackerManager {
     ${this.generatePartyHTML()}
   </div>
   <div class="popout-footer-bar">
-    <span style="font-size: 11px; color: var(--text-muted);">Real-time P2P campaign sync & collision protection</span>
+    <span style="font-size: 10pt; color: var(--text-muted);">Real-time P2P campaign sync & collision protection</span>
     <div style="display: flex; gap: 0.45rem;">
-      <button class="btn btn-outline" id="btn-popout-clear-inactive" style="font-size: 11px; padding: 0.2rem 0.6rem;">Clear Inactive</button>
+      <button class="btn btn-outline" id="btn-popout-clear-inactive" style="font-size: 10pt; padding: 0.2rem 0.6rem;">Clear Inactive</button>
     </div>
   </div>
   <script>

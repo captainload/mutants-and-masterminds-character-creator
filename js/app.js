@@ -41,7 +41,7 @@ import {
   tablesManager
 } from './tables.js';
 
-import { POWER_PROFILES_LIBRARY } from './power_profiles.js?v=3.68';
+import { POWER_PROFILES_LIBRARY } from './power_profiles.js?v=3.69';
 import { ARCHETYPES } from './archetypes.js';
 import { archetypeManager } from './archetype_window.js';
 import { campaignManager, partyManager, formatCharacterSheetHTML } from './party.js';
@@ -596,7 +596,7 @@ class AppController {
           <div style="display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap;">
             <span style="color: ${typeColor}; font-weight: 800; font-size: var(--font-size-sm);">${typePrefix}</span>
             <strong style="color: var(--text-bright); font-size: var(--font-size-sm);">${alt.name || 'Unnamed Alt'}</strong>
-            ${isCurrentlyActive ? '<span class="badge-tag" style="background: var(--hero-green); color: #fff; font-weight: 800; font-size: 10px;">ACTIVE IN EDITOR</span>' : ''}
+            ${isCurrentlyActive ? '<span class="badge-tag" style="background: var(--hero-green); color: #fff; font-weight: 800; font-size: 10pt;">ACTIVE IN EDITOR</span>' : ''}
           </div>
           <div style="font-size: var(--font-size-xs); color: var(--text-muted); font-weight: 700; white-space: nowrap;">
             ${rankText}PL ${alt.powerLevel || 10} · ${alt.powerPointsBudget || 150} PP
@@ -1657,7 +1657,7 @@ class AppController {
             <span style="color: var(--text-muted); font-size: var(--font-size-xs);">[${formula}${dcText}]</span>
           </div>
           <div style="display: flex; align-items: center; gap: 0.45rem; white-space: nowrap; flex-shrink: 0;">
-            ${isNat20 ? '<span style="color: var(--hero-green); font-weight: 900; background: rgba(16, 185, 129, 0.2); padding: 1px 5px; border-radius: 3px; border: 1px solid var(--hero-green); font-size: 11px;">NAT 20</span>' : ''}
+            ${isNat20 ? '<span style="color: var(--hero-green); font-weight: 900; background: rgba(16, 185, 129, 0.2); padding: 1px 5px; border-radius: 3px; border: 1px solid var(--hero-green); font-size: 10pt;">NAT 20</span>' : ''}
             <strong style="font-size: var(--font-size-base); color: ${isNat20 ? 'var(--hero-green)' : 'var(--hero-gold)'}; font-weight: 900; min-width: 28px; text-align: right;">${r.total}</strong>
             ${outcomeLabel}
           </div>
@@ -1949,7 +1949,17 @@ window.partyManager = partyManager;
       }
       try {
         await supabaseService.backupCharacter(this.char);
-        await this.showAlertDialog(`Successfully backed up "${this.char.name || 'Hero'}" to your cloud account!`, { title: 'Cloud Backup Complete' });
+        const shouldUpdateLocal = await this.showConfirmDialog(
+          `Successfully backed up "${this.char.name || 'Hero'}" to your cloud database!\n\nWould you also like to update your local character save file?`,
+          {
+            title: 'Cloud Backup Complete',
+            confirmText: 'Update Local Save',
+            cancelText: 'Keep Cloud Only'
+          }
+        );
+        if (shouldUpdateLocal) {
+          await this.saveCharacterFile({ forceSaveAs: false });
+        }
       } catch (err) {
         await this.showAlertDialog('Cloud Backup Failed: ' + err.message, { title: 'Backup Error' });
       }
@@ -2027,7 +2037,7 @@ window.partyManager = partyManager;
   }
 
   async checkForUpdates({ isManual = false } = {}) {
-    const CURRENT_VERSION = '3.68';
+    const CURRENT_VERSION = '3.69';
     const versionEl = document.getElementById('header-version-tag');
     const updateBtn = document.getElementById('btn-header-update-alert');
     if (typeof window === 'undefined' || !window.location || !window.location.href || window.location.href === 'about:blank') return;
@@ -2458,7 +2468,7 @@ window.partyManager = partyManager;
     if (players.length > 1) {
       arrowBtn.style.display = 'inline-flex';
       menuEl.innerHTML = players.map(p => `
-        <div class="player-select-option" data-player="${encodeURIComponent(p)}" style="padding: 0.4rem 0.75rem; font-size: 12px; font-weight: 700; cursor: pointer; color: var(--text-bright); border-bottom: 1px solid var(--border-color); display: flex; align-items: center; gap: 0.35rem;">
+        <div class="player-select-option" data-player="${encodeURIComponent(p)}" style="padding: 0.4rem 0.75rem; font-size: 10pt; font-weight: 700; cursor: pointer; color: var(--text-bright); border-bottom: 1px solid var(--border-color); display: flex; align-items: center; gap: 0.35rem;">
           <span>👤</span> <span>${p}</span>
         </div>
       `).join('');
@@ -2660,7 +2670,7 @@ window.partyManager = partyManager;
           authIcon.setAttribute?.('title', 'Connected to Cloud Database');
         }
         if (authLabel) {
-          authLabel.innerHTML = `${uname} <span style="font-size: 8px; opacity: 0.8; margin-left: 2px;">▼</span>`;
+          authLabel.innerHTML = `${uname} <span style="font-size: 10pt; opacity: 0.8; margin-left: 2px;">▼</span>`;
           authLabel.style.textDecoration = 'underline';
           authLabel.style.cursor = 'pointer';
         }
@@ -3045,7 +3055,7 @@ window.partyManager = partyManager;
 
     if (requests.length === 0) {
       container.innerHTML = `
-        <div style="text-align: center; color: var(--text-muted); font-size: 12px; font-style: italic; padding: 1.5rem 0;">
+        <div style="text-align: center; color: var(--text-muted); font-size: 10pt; font-style: italic; padding: 1.5rem 0;">
           No pending join requests for "${state.campaignName || state.campaignId}".
         </div>
       `;
@@ -3055,14 +3065,14 @@ window.partyManager = partyManager;
     container.innerHTML = requests.map(req => `
       <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 6px; padding: 0.75rem 1rem; margin-bottom: 0.65rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
         <div>
-          <div style="font-size: 13px; font-weight: 800; color: var(--text-bright);">${req.character_name} <span style="font-size: 11px; color: var(--hero-blue); font-weight: 700;">(PL ${req.power_level})</span></div>
-          <div style="font-size: 11px; color: var(--text-muted);">Player: <strong>${req.username}</strong> • Status: <span style="font-weight: 700; color: ${req.status === 'approved' ? 'var(--hero-green)' : (req.status === 'rejected' ? 'var(--hero-red)' : 'var(--hero-gold)')};">${req.status.toUpperCase()}</span></div>
+          <div style="font-size: 10pt; font-weight: 800; color: var(--text-bright);">${req.character_name} <span style="font-size: 10pt; color: var(--hero-blue); font-weight: 700;">(PL ${req.power_level})</span></div>
+          <div style="font-size: 10pt; color: var(--text-muted);">Player: <strong>${req.username}</strong> • Status: <span style="font-weight: 700; color: ${req.status === 'approved' ? 'var(--hero-green)' : (req.status === 'rejected' ? 'var(--hero-red)' : 'var(--hero-gold)')};">${req.status.toUpperCase()}</span></div>
         </div>
         <div style="display: flex; gap: 0.4rem; align-items: center;">
-          <button type="button" class="btn btn-outline btn-req-inspect" data-reqid="${req.id}" style="font-size: 11px; padding: 2px 7px; color: var(--hero-blue); border-color: var(--hero-blue); cursor: pointer;">👁️ Inspect Sheet</button>
+          <button type="button" class="btn btn-outline btn-req-inspect" data-reqid="${req.id}" style="font-size: 10pt; padding: 2px 7px; color: var(--hero-blue); border-color: var(--hero-blue); cursor: pointer;">👁️ Inspect Sheet</button>
           ${req.status === 'pending' ? `
-            <button type="button" class="btn btn-primary btn-req-approve" data-reqid="${req.id}" style="font-size: 11px; padding: 2px 8px; background: var(--hero-green); border-color: var(--hero-green); font-weight: 800; cursor: pointer;">✅ Approve</button>
-            <button type="button" class="btn btn-outline btn-req-reject" data-reqid="${req.id}" style="font-size: 11px; padding: 2px 8px; color: var(--hero-red); border-color: var(--hero-red); font-weight: 800; cursor: pointer;">❌ Reject</button>
+            <button type="button" class="btn btn-primary btn-req-approve" data-reqid="${req.id}" style="font-size: 10pt; padding: 2px 8px; background: var(--hero-green); border-color: var(--hero-green); font-weight: 800; cursor: pointer;">✅ Approve</button>
+            <button type="button" class="btn btn-outline btn-req-reject" data-reqid="${req.id}" style="font-size: 10pt; padding: 2px 8px; color: var(--hero-red); border-color: var(--hero-red); font-weight: 800; cursor: pointer;">❌ Reject</button>
           ` : ''}
         </div>
       </div>
@@ -3147,13 +3157,13 @@ window.partyManager = partyManager;
     this.openModal('modal-cloud-restore');
     if (!container) return;
 
-    container.innerHTML = '<div style="text-align: center; color: var(--text-muted); font-size: 12px; padding: 1.5rem 0;">Fetching cloud backups...</div>';
+    container.innerHTML = '<div style="text-align: center; color: var(--text-muted); font-size: 10pt; padding: 1.5rem 0;">Fetching cloud backups...</div>';
 
     try {
       const backups = await supabaseService.getCharacterBackups();
       if (!backups || backups.length === 0) {
         container.innerHTML = `
-          <div style="text-align: center; color: var(--text-muted); font-size: 12px; font-style: italic; padding: 2rem 0;">
+          <div style="text-align: center; color: var(--text-muted); font-size: 10pt; font-style: italic; padding: 2rem 0;">
             No cloud backups found for your account.<br>
             Use <strong>Menu &gt; Backup to Cloud Database</strong> to save characters to the cloud.
           </div>
@@ -3164,12 +3174,22 @@ window.partyManager = partyManager;
       let activeNotice = '';
 
       const renderBackups = (confirmingRestoreId = null, confirmingDeleteId = null) => {
-        let html = '';
+        let html = `
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.85rem; padding-bottom: 0.4rem; border-bottom: 1px solid var(--border-color);">
+            <span style="font-size: 10pt; font-weight: 800; color: var(--hero-blue); text-transform: uppercase;">
+              ☁️ All Cloud Backups (${backups.length})
+            </span>
+            <span style="font-size: 10pt; color: var(--text-muted);">
+              Sorted newest first
+            </span>
+          </div>
+        `;
+
         if (activeNotice) {
           html += `
-            <div style="padding: 0.5rem 0.75rem; margin-bottom: 0.75rem; border-radius: 4px; font-size: 12px; font-weight: 700; background: rgba(34, 197, 94, 0.15); border: 1px solid rgba(34, 197, 94, 0.4); color: #86efac; display: flex; align-items: center; justify-content: space-between;">
+            <div style="padding: 0.5rem 0.75rem; margin-bottom: 0.75rem; border-radius: 4px; font-size: 10pt; font-weight: 700; background: rgba(34, 197, 94, 0.15); border: 1px solid rgba(34, 197, 94, 0.4); color: #86efac; display: flex; align-items: center; justify-content: space-between;">
               <span>${activeNotice}</span>
-              <button type="button" class="btn btn-outline" id="btn-dismiss-restore-notice" style="min-height: 20px; padding: 0 4px; font-size: 10px; border-color: rgba(34, 197, 94, 0.4); color: #86efac;">✕</button>
+              <button type="button" class="btn btn-outline" id="btn-dismiss-restore-notice" style="min-height: 20px; padding: 0 4px; font-size: 10pt; border-color: rgba(34, 197, 94, 0.4); color: #86efac;">✕</button>
             </div>
           `;
         }
@@ -3187,22 +3207,23 @@ window.partyManager = partyManager;
               <div style="display: flex; justify-content: space-between; align-items: center; gap: 0.85rem;">
                 <div style="flex: 1; min-width: 0;">
                   <div style="display: flex; align-items: baseline; gap: 0.5rem; margin-bottom: 0.25rem;">
-                    <span style="font-weight: 800; font-size: 14px; color: var(--text-bright);">${heroName}</span>
-                    <span class="badge" style="background: var(--hero-blue); color: #fff; font-size: 10px; padding: 1px 6px; border-radius: 3px; font-weight: 700;">PL ${pl}</span>
+                    <span style="font-weight: 800; font-size: 11pt; color: var(--text-bright);">${heroName}</span>
+                    <span class="badge" style="background: var(--hero-blue); color: #fff; font-size: 10pt; padding: 1px 6px; border-radius: 3px; font-weight: 700;">PL ${pl}</span>
                   </div>
-                  <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 0.25rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                  <div style="font-size: 10pt; color: var(--text-muted); margin-bottom: 0.25rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
                     ${concept}
                   </div>
-                  <div style="font-size: 11px; color: var(--text-muted); opacity: 0.8;">
-                    Last Backup: ${dateStr}
+                  <div style="font-size: 10pt; color: var(--hero-gold); font-weight: 700; margin-top: 0.2rem; display: flex; align-items: center; gap: 0.35rem;">
+                    <span>🕒 Backup Timestamp:</span>
+                    <span style="color: var(--text-bright); font-weight: 600;">${dateStr}</span>
                   </div>
                 </div>
                 ${!isConfirmingRestore && !isConfirmingDelete ? `
                   <div style="display: flex; gap: 0.4rem; flex-shrink: 0;">
-                    <button type="button" class="btn btn-primary btn-restore-cloud-char" data-backup-id="${b.id}" style="font-size: 12px; padding: 0.35rem 0.75rem; font-weight: 700;">
+                    <button type="button" class="btn btn-primary btn-restore-cloud-char" data-backup-id="${b.id}" style="font-size: 10pt; padding: 0.35rem 0.75rem; font-weight: 700;">
                       📥 Restore
                     </button>
-                    <button type="button" class="btn btn-outline btn-delete-cloud-char" data-backup-id="${b.id}" style="font-size: 12px; padding: 0.35rem 0.65rem; color: var(--hero-red); border-color: rgba(239, 68, 68, 0.4);">
+                    <button type="button" class="btn btn-outline btn-delete-cloud-char" data-backup-id="${b.id}" style="font-size: 10pt; padding: 0.35rem 0.65rem; color: var(--hero-red); border-color: rgba(239, 68, 68, 0.4);">
                       🗑️
                     </button>
                   </div>
@@ -3211,14 +3232,14 @@ window.partyManager = partyManager;
 
               ${isConfirmingRestore ? `
                 <div style="margin-top: 0.75rem; padding-top: 0.65rem; border-top: 1px solid rgba(37,99,235,0.3); display: flex; align-items: center; justify-content: space-between; gap: 0.65rem; flex-wrap: wrap;">
-                  <div style="font-size: 12.5px; color: #fff; font-weight: 700;">
+                  <div style="font-size: 10pt; color: #fff; font-weight: 700;">
                     ⚠️ Replace active hero in workspace with "${heroName}"?
                   </div>
                   <div style="display: flex; gap: 0.45rem;">
-                    <button type="button" class="btn btn-primary btn-confirm-restore-now" data-backup-id="${b.id}" style="font-size: 11px; padding: 0.35rem 0.75rem; font-weight: 800;">
+                    <button type="button" class="btn btn-primary btn-confirm-restore-now" data-backup-id="${b.id}" style="font-size: 10pt; padding: 0.35rem 0.75rem; font-weight: 800;">
                       ✓ Yes, Load Hero
                     </button>
-                    <button type="button" class="btn btn-outline btn-cancel-confirm" style="font-size: 11px; padding: 0.35rem 0.6rem;">
+                    <button type="button" class="btn btn-outline btn-cancel-confirm" style="font-size: 10pt; padding: 0.35rem 0.6rem;">
                       Cancel
                     </button>
                   </div>
@@ -3227,14 +3248,14 @@ window.partyManager = partyManager;
 
               ${isConfirmingDelete ? `
                 <div style="margin-top: 0.75rem; padding-top: 0.65rem; border-top: 1px solid rgba(239,68,68,0.3); display: flex; align-items: center; justify-content: space-between; gap: 0.65rem; flex-wrap: wrap;">
-                  <div style="font-size: 12.5px; color: #fff; font-weight: 700;">
+                  <div style="font-size: 10pt; color: #fff; font-weight: 700;">
                     ⚠️ Permanently delete cloud backup for "${heroName}"?
                   </div>
                   <div style="display: flex; gap: 0.45rem;">
-                    <button type="button" class="btn btn-danger btn-confirm-delete-now" data-backup-id="${b.id}" style="font-size: 11px; padding: 0.35rem 0.75rem; font-weight: 800;">
+                    <button type="button" class="btn btn-danger btn-confirm-delete-now" data-backup-id="${b.id}" style="font-size: 10pt; padding: 0.35rem 0.75rem; font-weight: 800;">
                       🗑️ Delete
                     </button>
-                    <button type="button" class="btn btn-outline btn-cancel-confirm" style="font-size: 11px; padding: 0.35rem 0.6rem;">
+                    <button type="button" class="btn btn-outline btn-cancel-confirm" style="font-size: 10pt; padding: 0.35rem 0.6rem;">
                       Cancel
                     </button>
                   </div>
@@ -3303,7 +3324,7 @@ window.partyManager = partyManager;
               activeNotice = `Deleted cloud backup for "${charName}".`;
               if (backups.length === 0) {
                 container.innerHTML = `
-                  <div style="text-align: center; color: var(--text-muted); font-size: 12px; font-style: italic; padding: 2rem 0;">
+                  <div style="text-align: center; color: var(--text-muted); font-size: 10pt; font-style: italic; padding: 2rem 0;">
                     No cloud backups found for your account.<br>
                     Use <strong>Menu &gt; Backup to Cloud Database</strong> to save characters to the cloud.
                   </div>
@@ -3321,7 +3342,7 @@ window.partyManager = partyManager;
       renderBackups(null, null);
 
     } catch (err) {
-      container.innerHTML = `<div style="text-align: center; color: var(--hero-red); font-size: 12px; padding: 1.5rem 0;">Error fetching backups: ${err.message}</div>`;
+      container.innerHTML = `<div style="text-align: center; color: var(--hero-red); font-size: 10pt; padding: 1.5rem 0;">Error fetching backups: ${err.message}</div>`;
     }
   }
 
@@ -8387,16 +8408,26 @@ window.partyManager = partyManager;
         const modCols = this.renderModifierColumns(p, p);
         mainBlock.appendChild(modCols);
 
-        // Primary Effect Notes Input
+        // Primary Effect Notes Input (defaults to 1 row, expands up to 3 rows)
         const notesRow = document.createElement('div');
         notesRow.style.cssText = 'margin-top: 0.25rem;';
         notesRow.innerHTML = `
-          <textarea class="input-power-notes" rows="2" placeholder="Power notes & mechanics (e.g. DC, special conditions)">${p.notes || ''}</textarea>
+          <textarea class="input-power-notes" rows="1" placeholder="Power notes & mechanics (e.g. DC, special conditions)">${p.notes || ''}</textarea>
         `;
-        notesRow.querySelector('.input-power-notes')?.addEventListener('input', (e) => {
-          p.notes = e.target.value;
-          this.saveAndAudit();
-        });
+        const powerNotesTextarea = notesRow.querySelector('.input-power-notes');
+        if (powerNotesTextarea) {
+          const autoResize = () => {
+            powerNotesTextarea.style.height = 'auto';
+            const h = Math.min(Math.max(powerNotesTextarea.scrollHeight, 28), 75);
+            powerNotesTextarea.style.height = `${h}px`;
+          };
+          autoResize();
+          powerNotesTextarea.addEventListener('input', (e) => {
+            p.notes = e.target.value;
+            autoResize();
+            this.saveAndAudit();
+          });
+        }
         mainBlock.appendChild(notesRow);
 
         body.appendChild(mainBlock);
@@ -8778,16 +8809,26 @@ window.partyManager = partyManager;
             const aeModifiersSection = this.renderModifierColumns(ae, p);
             aeBody.appendChild(aeModifiersSection);
 
-            // AE Notes Input
+            // AE Notes Input (defaults to 1 row, expands up to 3 rows)
             const aeNotesRow = document.createElement('div');
             aeNotesRow.style.cssText = 'margin-top: 0.25rem;';
             aeNotesRow.innerHTML = `
-              <textarea class="input-ae-notes" rows="2" placeholder="Alternate effect notes & mechanics (e.g. DC, special conditions)">${ae.notes || ''}</textarea>
+              <textarea class="input-ae-notes" rows="1" placeholder="Alternate effect notes & mechanics (e.g. DC, special conditions)">${ae.notes || ''}</textarea>
             `;
-            aeNotesRow.querySelector('.input-ae-notes')?.addEventListener('input', (e) => {
-              ae.notes = e.target.value;
-              this.saveAndAudit();
-            });
+            const aeNotesTextarea = aeNotesRow.querySelector('.input-ae-notes');
+            if (aeNotesTextarea) {
+              const autoResize = () => {
+                aeNotesTextarea.style.height = 'auto';
+                const h = Math.min(Math.max(aeNotesTextarea.scrollHeight, 28), 75);
+                aeNotesTextarea.style.height = `${h}px`;
+              };
+              autoResize();
+              aeNotesTextarea.addEventListener('input', (e) => {
+                ae.notes = e.target.value;
+                autoResize();
+                this.saveAndAudit();
+              });
+            }
             aeBody.appendChild(aeNotesRow);
 
             aeCard.appendChild(aeBody);
@@ -8970,10 +9011,10 @@ window.partyManager = partyManager;
           <span style="font-size: var(--font-size-xs); color: var(--text-muted); font-weight: 600;">${sess.date} • ${sess.time}</span>
         </div>
         <div style="display: flex; gap: 0.45rem; align-items: center; margin-bottom: 0.4rem; flex-wrap: wrap;">
-          <span style="display: inline-flex; align-items: center; gap: 0.25rem; background: rgba(147, 51, 234, 0.15); border: 1px solid #a855f7; color: #d8b4fe; font-size: 0.72rem; font-weight: 700; padding: 0.1rem 0.45rem; border-radius: 4px;">👤 <strong>${charName}</strong></span>
-          <span style="display: inline-block; background: rgba(255, 180, 0, 0.15); border: 1px solid var(--hero-gold); color: var(--hero-gold); font-size: 0.72rem; font-weight: 700; padding: 0.1rem 0.4rem; border-radius: 4px;">HP: ${sess.characterHP ?? '—'}${sess.hpAdjust ? ` (${sess.hpAdjust > 0 ? '+' : ''}${sess.hpAdjust})` : ''}</span>
-          <span style="display: inline-block; background: rgba(239, 68, 68, 0.15); border: 1px solid #f87171; color: #fca5a5; font-size: 0.72rem; font-weight: 700; padding: 0.1rem 0.4rem; border-radius: 4px;">PL: ${charPL}</span>
-          <span style="display: inline-block; background: rgba(56, 189, 248, 0.15); border: 1px solid var(--hero-cyan); color: var(--hero-cyan); font-size: 0.72rem; font-weight: 700; padding: 0.1rem 0.4rem; border-radius: 4px;">PP: ${sess.characterPP ?? '—'}${sess.ppAdjust ? ` (${sess.ppAdjust > 0 ? '+' : ''}${sess.ppAdjust})` : ''}</span>
+          <span style="display: inline-flex; align-items: center; gap: 0.25rem; background: rgba(147, 51, 234, 0.15); border: 1px solid #a855f7; color: #d8b4fe; font-size: 10pt; font-weight: 700; padding: 0.1rem 0.45rem; border-radius: 4px;">👤 <strong>${charName}</strong></span>
+          <span style="display: inline-block; background: rgba(255, 180, 0, 0.15); border: 1px solid var(--hero-gold); color: var(--hero-gold); font-size: 10pt; font-weight: 700; padding: 0.1rem 0.4rem; border-radius: 4px;">HP: ${sess.characterHP ?? '—'}${sess.hpAdjust ? ` (${sess.hpAdjust > 0 ? '+' : ''}${sess.hpAdjust})` : ''}</span>
+          <span style="display: inline-block; background: rgba(239, 68, 68, 0.15); border: 1px solid #f87171; color: #fca5a5; font-size: 10pt; font-weight: 700; padding: 0.1rem 0.4rem; border-radius: 4px;">PL: ${charPL}</span>
+          <span style="display: inline-block; background: rgba(56, 189, 248, 0.15); border: 1px solid var(--hero-cyan); color: var(--hero-cyan); font-size: 10pt; font-weight: 700; padding: 0.1rem 0.4rem; border-radius: 4px;">PP: ${sess.characterPP ?? '—'}${sess.ppAdjust ? ` (${sess.ppAdjust > 0 ? '+' : ''}${sess.ppAdjust})` : ''}</span>
           ${(() => {
             const altsList = sess.alts || (sess.characterSnapshot?.alts || []).map(a => ({ name: a.name, type: a.altType || a.type }));
             if (altsList && altsList.length > 0) {
@@ -8981,11 +9022,11 @@ window.partyManager = partyManager;
                 const prefix = a.type === 'alternate_form' ? '🎭 Alt form: ' : (a.type === 'minion' ? '🤖 Minion: ' : (a.type === 'sidekick' ? '🦸 Sidekick: ' : ''));
                 return `${prefix}${a.name || 'Unnamed Alt'}`;
               }).join(', ');
-              return `<span style="display: inline-flex; align-items: center; gap: 0.25rem; background: rgba(139, 92, 246, 0.15); border: 1px solid var(--hero-purple); color: #d8b4fe; font-size: 0.72rem; font-weight: 700; padding: 0.1rem 0.45rem; border-radius: 4px;" title="${altNamesStr}">👥 Alts: ${altNamesStr}</span>`;
+              return `<span style="display: inline-flex; align-items: center; gap: 0.25rem; background: rgba(139, 92, 246, 0.15); border: 1px solid var(--hero-purple); color: #d8b4fe; font-size: 10pt; font-weight: 700; padding: 0.1rem 0.45rem; border-radius: 4px;" title="${altNamesStr}">👥 Alts: ${altNamesStr}</span>`;
             }
             return '';
           })()}
-          ${sess.characterSnapshot ? '<span style="font-size: 0.7rem; color: var(--hero-green); font-weight: 600;">🔒 Backup Saved</span>' : ''}
+          ${sess.characterSnapshot ? '<span style="font-size: 10pt; color: var(--hero-green); font-weight: 600;">🔒 Backup Saved</span>' : ''}
         </div>
         <div style="font-size: var(--font-size-xs); color: var(--text-bright); line-height: 1.45; white-space: pre-line;">${sess.notes || '<span style="color: var(--text-muted); font-style: italic;">No session notes recorded.</span>'}</div>
         <div style="display: flex; justify-content: flex-end; gap: 0.4rem; margin-top: 0.5rem; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 0.4rem; flex-wrap: wrap;">

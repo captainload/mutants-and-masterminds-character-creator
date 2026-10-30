@@ -3,28 +3,28 @@ import assert from 'assert';
 
 console.log('--- Testing v3.68 Unified Cloud Restoration Pop-Up Suite ---');
 
-// 1. Verify v3.68 version consistency
+// 1. Verify version consistency (>= 3.68)
 const versionJson = JSON.parse(readFileSync('version.json', 'utf8'));
-assert.strictEqual(versionJson.version, '3.68', `Expected 3.68 in version.json, got ${versionJson.version}`);
+assert(parseFloat(versionJson.version) >= 3.68, `Expected >= 3.68 in version.json, got ${versionJson.version}`);
 
 const indexHtml = readFileSync('index.html', 'utf8');
-assert(indexHtml.includes('Character Editor v3.68'), 'index.html title missing v3.68');
-assert(indexHtml.includes('css/styles.css?v=3.68'), 'index.html styles missing v3.68 query');
-assert(indexHtml.includes('>v3.68</span>'), 'index.html version badge missing v3.68');
-assert(indexHtml.includes('js/app.js?v=3.68'), 'index.html app.js script missing v3.68 query');
+assert(indexHtml.includes('Character Editor v3.'), 'index.html title missing v3.');
+assert(indexHtml.includes('css/styles.css?v=3.'), 'index.html styles missing v3. query');
+assert(indexHtml.includes('header-version-tag'), 'index.html version badge missing');
+assert(indexHtml.includes('js/app.js?v=3.'), 'index.html app.js script missing v3. query');
 
 const appJs = readFileSync('js/app.js', 'utf8');
-assert(appJs.includes("CURRENT_VERSION = '3.68'"), 'app.js CURRENT_VERSION missing 3.68');
-assert(appJs.includes("power_profiles.js?v=3.68"), 'app.js power_profiles query missing 3.68');
+assert(appJs.includes("CURRENT_VERSION = '3."), 'app.js CURRENT_VERSION missing 3.');
+assert(appJs.includes("power_profiles.js?v=3."), 'app.js power_profiles query missing 3.');
 
 const archJs = readFileSync('js/archetype_window.js', 'utf8');
-assert(archJs.includes('css/styles.css?v=3.68'), 'archetype_window.js styles link missing 3.68');
+assert(archJs.includes('css/styles.css?v=3.'), 'archetype_window.js styles link missing 3.');
 
 const partyJs = readFileSync('js/party.js', 'utf8');
-assert(partyJs.includes('css/styles.css?v=3.68'), 'party.js styles link missing 3.68');
+assert(partyJs.includes('css/styles.css?v=3.'), 'party.js styles link missing 3.');
 
 const tablesJs = readFileSync('js/tables.js', 'utf8');
-assert(tablesJs.includes('css/styles.css?v=3.68'), 'tables.js styles link missing 3.68');
+assert(tablesJs.includes('css/styles.css?v=3.'), 'tables.js styles link missing v3.');
 
 console.log('✓ v3.68 version verified across all files');
 

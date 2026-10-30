@@ -6,8 +6,8 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Mutants & Masterminds 3E - Character Editor v3.68</title>
-  <link rel="stylesheet" href="css/styles.css?v=3.68">
+  <title>Mutants & Masterminds 3E - Character Editor v3.69</title>
+  <link rel="stylesheet" href="css/styles.css?v=3.69">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
@@ -93,7 +93,7 @@
 
           <div class="brand-title-centered">
             <span>Mutants & Masterminds 3E Character Editor</span>
-            <span id="header-version-tag" class="header-version-tag up-to-date" title="Current Version">v3.68</span>
+            <span id="header-version-tag" class="header-version-tag up-to-date" title="Current Version">v3.69</span>
             <button type="button" id="btn-header-update-alert" class="btn-header-update-alert" title="Check for updates / Update status" style="display: none;">!</button>
           </div>
 
@@ -108,20 +108,20 @@
               <span id="header-username-label">User</span>
             </div>
             <div id="header-user-dropdown" class="card-box" style="display: none; position: absolute; top: calc(100% + 4px); right: 0; min-width: 190px; z-index: 1000; box-shadow: 0 4px 14px rgba(0,0,0,0.5); padding: 0.35rem 0; border: 1px solid var(--border-color); background: var(--bg-card); border-radius: 4px;">
-              <div id="header-dropdown-user-info" style="padding: 0.4rem 0.75rem; font-size: 11px; color: var(--text-muted); border-bottom: 1px solid var(--border-color); margin-bottom: 0.25rem;">
-                <div style="font-weight: 700; color: var(--text-bright); display: flex; align-items: center; gap: 0.35rem; font-size: 12px;">
+              <div id="header-dropdown-user-info" style="padding: 0.4rem 0.75rem; font-size: 10pt; color: var(--text-muted); border-bottom: 1px solid var(--border-color); margin-bottom: 0.25rem;">
+                <div style="font-weight: 700; color: var(--text-bright); display: flex; align-items: center; gap: 0.35rem; font-size: 10pt;">
                   <span style="color: #22c55e;">●</span> <span id="header-dropdown-username">User</span>
                 </div>
-                <div style="font-size: 11px; opacity: 0.85; word-break: break-all;" id="header-dropdown-email">user@example.com</div>
+                <div style="font-size: 10pt; opacity: 0.85; word-break: break-all;" id="header-dropdown-email">user@example.com</div>
               </div>
-              <button type="button" class="menu-dropdown-item" id="btn-header-user-settings" style="width: 100%; text-align: left; padding: 0.45rem 0.75rem; font-size: 13px; font-weight: 700; color: var(--text-bright); background: none; border: none; cursor: pointer; display: flex; align-items: center; justify-content: space-between;">
+              <button type="button" class="menu-dropdown-item" id="btn-header-user-settings" style="width: 100%; text-align: left; padding: 0.45rem 0.75rem; font-size: 10pt; font-weight: 700; color: var(--text-bright); background: none; border: none; cursor: pointer; display: flex; align-items: center; justify-content: space-between;">
                 <span style="display: flex; align-items: center; gap: 0.45rem;">
                   <span>⚙️</span> User Settings
                 </span>
-                <span style="font-size: 10px; color: var(--text-muted); font-weight: normal;">Fly-out ▶</span>
+                <span style="font-size: 10pt; color: var(--text-muted); font-weight: normal;">Fly-out ▶</span>
               </button>
               <div class="menu-dropdown-separator" style="margin: 3px 0;"></div>
-              <button type="button" class="menu-dropdown-item" id="btn-header-logout" style="width: 100%; text-align: left; padding: 0.45rem 0.75rem; font-size: 13px; font-weight: 700; color: var(--hero-red); background: none; border: none; cursor: pointer; display: flex; align-items: center; gap: 0.45rem;">
+              <button type="button" class="menu-dropdown-item" id="btn-header-logout" style="width: 100%; text-align: left; padding: 0.45rem 0.75rem; font-size: 10pt; font-weight: 700; color: var(--hero-red); background: none; border: none; cursor: pointer; display: flex; align-items: center; gap: 0.45rem;">
                 <span>🚪</span> Sign Out
               </button>
             </div>
@@ -133,7 +133,7 @@
           <div class="header-field" id="header-player-box" style="position: relative;">
             <span class="header-field-label">Player:</span>
             <input type="text" id="header-player-name" class="header-field-input" placeholder="Player Name" style="width: 130px;">
-            <button type="button" id="btn-player-dropdown-arrow" title="Choose from stored players" style="display: none; background: none; border: none; color: var(--hero-gold); font-size: 11px; font-weight: 900; cursor: pointer; padding: 0 4px; line-height: 1;">▼</button>
+            <button type="button" id="btn-player-dropdown-arrow" title="Choose from stored players" style="display: none; background: none; border: none; color: var(--hero-gold); font-size: 10pt; font-weight: 900; cursor: pointer; padding: 0 4px; line-height: 1;">▼</button>
             <div id="player-dropdown-menu" class="card-box" style="display: none; position: absolute; top: calc(100% + 4px); left: 0; min-width: 170px; max-height: 200px; overflow-y: auto; z-index: 1000; box-shadow: 0 4px 14px rgba(0,0,0,0.5); padding: 0.25rem 0;">
             </div>
           </div>
@@ -144,7 +144,7 @@
           </div>
 
           <button type="button" class="btn btn-outline" id="btn-open-alts" title="Manage alternate forms, minions, and sidekicks" style="padding: 0.2rem 0.75rem; min-height: 38px; font-size: var(--font-size-xs); font-weight: 700; white-space: nowrap; color: var(--hero-blue); border-color: var(--hero-blue); display: inline-flex; align-items: center; gap: 0.35rem;">
-            👥 Alt Characters <span id="header-alts-count-badge" style="display:none; min-width: 22px; height: 22px; font-size: 13px; font-weight: 900; padding: 0 4px; margin-left: 0.4rem; background: var(--hero-blue); color: #fff; border-radius: 0; line-height: 22px; text-align: center; box-sizing: border-box;">0</span>
+            👥 Alt Characters <span id="header-alts-count-badge" style="display:none; min-width: 22px; height: 22px; font-size: 10pt; font-weight: 900; padding: 0 4px; margin-left: 0.4rem; background: var(--hero-blue); color: #fff; border-radius: 0; line-height: 22px; text-align: center; box-sizing: border-box;">0</span>
           </button>
 
           <div class="header-campaign-group" style="display: inline-flex; align-items: center; gap: 0.35rem; flex-shrink: 0;">
@@ -160,7 +160,7 @@
           <div id="header-active-alt-badge" style="display: none; align-items: center; gap: 0.35rem; background: rgba(139, 92, 246, 0.18); border: 1px solid var(--hero-purple); border-radius: var(--radius-sm); padding: 0.2rem 0.65rem; min-height: 38px; font-size: var(--font-size-xs); color: var(--hero-purple); font-weight: 700; white-space: nowrap;">
             <span id="header-active-alt-type" style="color: var(--hero-purple); font-weight: 800;">Alt form:</span>
             <strong id="header-active-alt-name" style="color: var(--hero-cyan);">Alt Name</strong>
-            <button type="button" id="btn-return-primary-char" title="Return to Primary Hero" style="background: none; border: none; color: var(--hero-gold); cursor: pointer; font-size: 11px; font-weight: 800; padding: 0 2px; text-decoration: underline; margin-left: 0.25rem;">↩ Main Hero</button>
+            <button type="button" id="btn-return-primary-char" title="Return to Primary Hero" style="background: none; border: none; color: var(--hero-gold); cursor: pointer; font-size: 10pt; font-weight: 800; padding: 0 2px; text-decoration: underline; margin-left: 0.25rem;">↩ Main Hero</button>
           </div>
         </div>
 
@@ -257,7 +257,7 @@
             <div id="action-dice-result" class="dice-result-badge" style="flex: 1; min-height: 38px; display: flex; align-items: center; padding: 0 2.2rem 0 0.75rem; border: 1px solid var(--border-color); border-radius: var(--radius-sm); font-size: var(--font-size-xs); color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
               Result: Ready to roll
             </div>
-            <button type="button" id="btn-toggle-dice-history" title="Show last 50 rolls" aria-label="Show last 50 rolls" style="position: absolute; right: 4px; top: 50%; transform: translateY(-50%); width: 28px; height: 28px; background: rgba(255, 255, 255, 0.06); border: 1px solid var(--border-color); color: var(--hero-cyan); border-radius: var(--radius-sm); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 800; transition: all 0.15s ease; z-index: 5;">
+            <button type="button" id="btn-toggle-dice-history" title="Show last 50 rolls" aria-label="Show last 50 rolls" style="position: absolute; right: 4px; top: 50%; transform: translateY(-50%); width: 28px; height: 28px; background: rgba(255, 255, 255, 0.06); border: 1px solid var(--border-color); color: var(--hero-cyan); border-radius: var(--radius-sm); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 10pt; font-weight: 800; transition: all 0.15s ease; z-index: 5;">
               <span id="dice-history-arrow-icon" style="transition: transform 0.2s ease;">▼</span>
             </button>
             <div id="dice-history-dropdown" class="dice-history-dropdown-panel" style="display: none; position: absolute; top: calc(100% + 4px); right: 0; left: 0; max-height: 510px; overflow-y: auto; background-color: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-sm); box-shadow: 0 12px 30px rgba(0, 0, 0, 0.75); z-index: 1500; padding: 0.35rem 0;">
@@ -921,7 +921,7 @@
           <div style="display: flex; justify-content: space-between; align-items: center;">
             <span style="color: var(--text-muted); font-weight: 600;">Cloud Status:</span>
             <span style="color: #22c55e; font-weight: 700; display: inline-flex; align-items: center; gap: 0.35rem; font-size: 14px;">
-              <span style="font-size: 11px;">●</span> Connected to Database
+              <span style="font-size: 10pt;">●</span> Connected to Database
             </span>
           </div>
         </div>
@@ -935,10 +935,10 @@
           </div>
         </div>
         <div style="padding: 0.9rem;">
-          <p style="font-size: 13.5px; color: var(--text-muted); margin-bottom: 0.9rem; line-height: 1.5;">
+          <p style="font-size: 10.5pt; color: var(--text-muted); margin-bottom: 0.9rem; line-height: 1.5;">
             Need to change or reset your password? Click below to send a secure password reset link to your registered email address.
           </p>
-          <button type="button" class="btn btn-primary" id="btn-user-settings-reset-password" style="font-size: 13px; font-weight: 700; padding: 0.5rem 1.1rem;">
+          <button type="button" class="btn btn-primary" id="btn-user-settings-reset-password" style="font-size: 10.5pt; font-weight: 700; padding: 0.5rem 1.1rem;">
             📧 Send Password Reset Email
           </button>
         </div>
@@ -952,10 +952,10 @@
           </div>
         </div>
         <div style="padding: 0.9rem;">
-          <p style="font-size: 13.5px; color: var(--text-muted); margin-bottom: 0.9rem; line-height: 1.5;">
+          <p style="font-size: 10.5pt; color: var(--text-muted); margin-bottom: 0.9rem; line-height: 1.5;">
             Permanently delete your user account from the cloud database. Any online character backups and campaign memberships will be lost. Locally saved characters on this device will be untouched.
           </p>
-          <button type="button" class="btn btn-outline" id="btn-user-settings-delete-account" style="color: var(--hero-red); border-color: var(--hero-red); font-size: 13px; font-weight: 700; padding: 0.5rem 1.1rem;">
+          <button type="button" class="btn btn-outline" id="btn-user-settings-delete-account" style="color: var(--hero-red); border-color: var(--hero-red); font-size: 10.5pt; font-weight: 700; padding: 0.5rem 1.1rem;">
             🗑️ Delete Account...
           </button>
         </div>
@@ -963,7 +963,7 @@
     </div>
 
     <div class="flyout-footer">
-      <button class="btn btn-primary" id="btn-close-user-settings-done" style="min-width: 90px; font-size: 13px;">Done</button>
+      <button class="btn btn-primary" id="btn-close-user-settings-done" style="min-width: 90px; font-size: 10.5pt;">Done</button>
     </div>
   </div>
 
@@ -1514,7 +1514,7 @@
               <input type="number" id="input-session-hp-adjust" value="0" style="width: 52px; text-align: center; font-weight: 800; background: transparent; border: none; color: #fff; font-size: var(--font-size-sm);">
               <button type="button" class="btn-stepper compact" id="btn-session-hp-plus">+</button>
             </div>
-            <span style="font-size: 11px; color: var(--text-muted); display: block; margin-top: 0.25rem;">Current: <strong id="session-hp-current-display" style="color: #fff;">1</strong> HP</span>
+            <span style="font-size: 10pt; color: var(--text-muted); display: block; margin-top: 0.25rem;">Current: <strong id="session-hp-current-display" style="color: #fff;">1</strong> HP</span>
           </div>
           <div>
             <label style="font-size: var(--font-size-xs); font-weight: 700; color: var(--hero-gold); display: block; margin-bottom: 0.35rem;">⭐ PP Adjust</label>
@@ -1523,14 +1523,14 @@
               <input type="number" id="input-session-pp-adjust" value="0" style="width: 52px; text-align: center; font-weight: 800; background: transparent; border: none; color: #fff; font-size: var(--font-size-sm);">
               <button type="button" class="btn-stepper compact" id="btn-session-pp-plus">+</button>
             </div>
-            <span style="font-size: 11px; color: var(--text-muted); display: block; margin-top: 0.25rem;">Current: <strong id="session-pp-current-display" style="color: var(--hero-gold);">150</strong> PP</span>
+            <span style="font-size: 10pt; color: var(--text-muted); display: block; margin-top: 0.25rem;">Current: <strong id="session-pp-current-display" style="color: var(--hero-gold);">150</strong> PP</span>
           </div>
         </div>
         <div>
           <label style="font-size: var(--font-size-xs); font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 0.35rem;">Recap & Campaign Notes</label>
           <textarea id="input-session-notes" rows="4" style="width: 100%; font-size: var(--font-size-xs);" placeholder="What happened in this session, villain encounters, PP awarded, key plot points..."></textarea>
         </div>
-        <div style="font-size: 11px; color: var(--text-muted); background: rgba(139, 92, 246, 0.1); border: 1px solid rgba(139, 92, 246, 0.25); border-radius: 4px; padding: 0.35rem 0.55rem; line-height: 1.4;">
+        <div style="font-size: 10pt; color: var(--text-muted); background: rgba(139, 92, 246, 0.1); border: 1px solid rgba(139, 92, 246, 0.25); border-radius: 4px; padding: 0.35rem 0.55rem; line-height: 1.4;">
           ℹ️ Session snapshots save a complete character backup. Restoring this entry will also roll back the state of any attached alts.
         </div>
       </div>
@@ -1612,7 +1612,7 @@
               <p style="font-size: var(--font-size-xs); color: var(--text-muted); margin: 0 0 0.55rem 0;">
                 Morph / Metamorph form with alternate traits. Built with full PL and PP budget of the main hero.
               </p>
-              <label for="input-create-alt-name-alternate_form" style="font-size: 11px; font-weight: 800; color: #d8b4fe; display: block; margin-bottom: 4px; text-transform: uppercase;">Name Alternate Form:</label>
+              <label for="input-create-alt-name-alternate_form" style="font-size: 10pt; font-weight: 800; color: #d8b4fe; display: block; margin-bottom: 4px; text-transform: uppercase;">Name Alternate Form:</label>
               <div style="display: flex; gap: 0.45rem; align-items: center;">
                 <input type="text" id="input-create-alt-name-alternate_form" class="alt-name-input" placeholder="e.g. Diamond Form, Werewolf" style="flex: 1; height: 32px; border: 1px solid #a855f7; border-radius: 4px; padding: 0.2rem 0.6rem; font-size: var(--font-size-xs); font-weight: 600;">
                 <button type="button" class="btn btn-primary btn-create-alt-action" data-alt-type="alternate_form" style="height: 32px; padding: 0.2rem 0.85rem; font-size: var(--font-size-xs); font-weight: 700; white-space: nowrap;">+ Create</button>
@@ -1628,7 +1628,7 @@
               <p style="font-size: var(--font-size-xs); color: var(--text-muted); margin: 0 0 0.55rem 0;">
                 Constructed via Minion Advantage. 15 PP per rank, subject to minion rules, PL capped by main hero.
               </p>
-              <label for="input-create-alt-name-minion" style="font-size: 11px; font-weight: 800; color: var(--hero-gold); display: block; margin-bottom: 4px; text-transform: uppercase;">Name Minion:</label>
+              <label for="input-create-alt-name-minion" style="font-size: 10pt; font-weight: 800; color: var(--hero-gold); display: block; margin-bottom: 4px; text-transform: uppercase;">Name Minion:</label>
               <div style="display: flex; gap: 0.45rem; align-items: center;">
                 <input type="text" id="input-create-alt-name-minion" class="alt-name-input" placeholder="e.g. Cyber Drone, War Wolf" style="flex: 1; height: 32px; border: 1px solid var(--hero-gold); border-radius: 4px; padding: 0.2rem 0.6rem; font-size: var(--font-size-xs); font-weight: 600;">
                 <button type="button" class="btn btn-primary btn-create-alt-action" data-alt-type="minion" style="height: 32px; padding: 0.2rem 0.85rem; font-size: var(--font-size-xs); font-weight: 700; white-space: nowrap; background: linear-gradient(135deg, #d97706 0%, #b45309 100%);">+ Create</button>
@@ -1644,7 +1644,7 @@
               <p style="font-size: var(--font-size-xs); color: var(--text-muted); margin: 0 0 0.55rem 0;">
                 Constructed via Sidekick Advantage. 5 PP per rank, independent companion, PL capped by main hero.
               </p>
-              <label for="input-create-alt-name-sidekick" style="font-size: 11px; font-weight: 800; color: var(--hero-cyan); display: block; margin-bottom: 4px; text-transform: uppercase;">Name Sidekick:</label>
+              <label for="input-create-alt-name-sidekick" style="font-size: 10pt; font-weight: 800; color: var(--hero-cyan); display: block; margin-bottom: 4px; text-transform: uppercase;">Name Sidekick:</label>
               <div style="display: flex; gap: 0.45rem; align-items: center;">
                 <input type="text" id="input-create-alt-name-sidekick" class="alt-name-input" placeholder="e.g. Cadet Shadow, Wonder Pup" style="flex: 1; height: 32px; border: 1px solid var(--hero-cyan); border-radius: 4px; padding: 0.2rem 0.6rem; font-size: var(--font-size-xs); font-weight: 600;">
                 <button type="button" class="btn btn-primary btn-create-alt-action" data-alt-type="sidekick" style="height: 32px; padding: 0.2rem 0.85rem; font-size: var(--font-size-xs); font-weight: 700; white-space: nowrap; background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);">+ Create</button>
@@ -1683,15 +1683,15 @@
   <!-- MODAL: CAMPAIGN TRACKER & CONDITIONS                    -->
   <!-- ======================================================= -->
   <div class="modal-overlay" id="modal-campaign-tracker">
-    <div class="modal-container" style="max-width: 780px;">
+    <div class="modal-container" style="width: calc(100vw - 0.5in); max-width: calc(100vw - 0.5in); height: calc(100vh - 0.5in); max-height: calc(100vh - 0.5in); margin: 0.25in; display: flex; flex-direction: column;">
       <div class="modal-header-bar">
         <div class="modal-header-title">🛡️ Campaign Tracker & Conditions</div>
         <div style="display: flex; gap: 0.4rem; align-items: center;">
-          <button class="btn btn-outline" id="btn-campaign-popout" title="Pop out into separate window" style="min-height: 28px; padding: 0.15rem 0.6rem; font-size: 11px; font-weight: 700;">↗ Pop-out</button>
+          <button class="btn btn-outline" id="btn-campaign-popout" title="Pop out into separate window" style="min-height: 28px; padding: 0.15rem 0.6rem; font-size: 10pt; font-weight: 700;">↗ Pop-out</button>
           <button class="btn btn-outline" id="btn-close-campaign-modal" style="min-height: 28px; padding: 0.1rem 0.5rem;">✕</button>
         </div>
       </div>
-      <div class="modal-scroll-body" style="max-height: 520px; overflow-y: auto;" id="campaign-tracker-content">
+      <div class="modal-scroll-body" style="flex: 1; max-height: none; overflow-y: auto;" id="campaign-tracker-content">
         <!-- Rendered dynamically -->
       </div>
       <div class="modal-footer-bar" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
@@ -1734,20 +1734,20 @@
       <div class="modal-scroll-body" style="padding: 1.25rem;">
         <!-- Auth Tabs: Sign In | Register | Forgot Password -->
         <div style="display: flex; gap: 0.5rem; margin-bottom: 1.15rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem;">
-          <button type="button" class="btn btn-outline auth-tab-btn active" id="tab-btn-signin" style="flex: 1; font-size: 11px; font-weight: 800;">Sign In</button>
-          <button type="button" class="btn btn-outline auth-tab-btn" id="tab-btn-signup" style="flex: 1; font-size: 11px; font-weight: 800;">Create Account</button>
-          <button type="button" class="btn btn-outline auth-tab-btn" id="tab-btn-forgot" style="flex: 1; font-size: 11px; font-weight: 800;">Forgot Password</button>
+          <button type="button" class="btn btn-outline auth-tab-btn active" id="tab-btn-signin" style="flex: 1; font-size: 10pt; font-weight: 800;">Sign In</button>
+          <button type="button" class="btn btn-outline auth-tab-btn" id="tab-btn-signup" style="flex: 1; font-size: 10pt; font-weight: 800;">Create Account</button>
+          <button type="button" class="btn btn-outline auth-tab-btn" id="tab-btn-forgot" style="flex: 1; font-size: 10pt; font-weight: 800;">Forgot Password</button>
         </div>
 
         <!-- Form: Sign In -->
         <div id="auth-form-signin" class="auth-subform">
           <div style="margin-bottom: 0.85rem;">
             <label class="field-label" style="display: block; margin-bottom: 0.3rem;">Email Address:</label>
-            <input type="email" id="auth-signin-email" class="header-field-input" placeholder="you@example.com" style="width: 100%; font-size: 13px;">
+            <input type="email" id="auth-signin-email" class="header-field-input" placeholder="you@example.com" style="width: 100%; font-size: 10pt;">
           </div>
           <div style="margin-bottom: 1rem;">
             <label class="field-label" style="display: block; margin-bottom: 0.3rem;">Password:</label>
-            <input type="password" id="auth-signin-password" class="header-field-input" placeholder="••••••••" style="width: 100%; font-size: 13px;">
+            <input type="password" id="auth-signin-password" class="header-field-input" placeholder="••••••••" style="width: 100%; font-size: 10pt;">
           </div>
           <button type="button" class="btn btn-primary" id="btn-submit-signin" style="width: 100%; font-weight: 800; padding: 0.45rem;">Sign In</button>
         </div>
@@ -1756,33 +1756,33 @@
         <div id="auth-form-signup" class="auth-subform" style="display: none;">
           <div style="margin-bottom: 0.85rem;">
             <label class="field-label" style="display: block; margin-bottom: 0.3rem;">Unique Username (visible to GM &amp; party):</label>
-            <input type="text" id="auth-signup-username" class="header-field-input" placeholder="e.g. CaptainCosmo" style="width: 100%; font-size: 13px;">
+            <input type="text" id="auth-signup-username" class="header-field-input" placeholder="e.g. CaptainCosmo" style="width: 100%; font-size: 10pt;">
           </div>
           <div style="margin-bottom: 0.85rem;">
             <label class="field-label" style="display: block; margin-bottom: 0.3rem;">Email Address:</label>
-            <input type="email" id="auth-signup-email" class="header-field-input" placeholder="you@example.com" style="width: 100%; font-size: 13px;">
+            <input type="email" id="auth-signup-email" class="header-field-input" placeholder="you@example.com" style="width: 100%; font-size: 10pt;">
           </div>
           <div style="margin-bottom: 1rem;">
             <label class="field-label" style="display: block; margin-bottom: 0.3rem;">Password (min 6 characters):</label>
-            <input type="password" id="auth-signup-password" class="header-field-input" placeholder="••••••••" style="width: 100%; font-size: 13px;">
+            <input type="password" id="auth-signup-password" class="header-field-input" placeholder="••••••••" style="width: 100%; font-size: 10pt;">
           </div>
           <button type="button" class="btn btn-primary" id="btn-submit-signup" style="width: 100%; font-weight: 800; padding: 0.45rem;">Create Account</button>
         </div>
 
         <!-- Form: Forgot Password -->
         <div id="auth-form-forgot" class="auth-subform" style="display: none;">
-          <p style="font-size: 12px; color: var(--text-muted); line-height: 1.4; margin-bottom: 0.85rem;">
+          <p style="font-size: 10pt; color: var(--text-muted); line-height: 1.4; margin-bottom: 0.85rem;">
             Enter your account email. We will send you an official password-reset link to securely regain access to your account and campaigns.
           </p>
           <div style="margin-bottom: 1rem;">
             <label class="field-label" style="display: block; margin-bottom: 0.3rem;">Registered Email Address:</label>
-            <input type="email" id="auth-forgot-email" class="header-field-input" placeholder="you@example.com" style="width: 100%; font-size: 13px;">
+            <input type="email" id="auth-forgot-email" class="header-field-input" placeholder="you@example.com" style="width: 100%; font-size: 10pt;">
           </div>
           <button type="button" class="btn btn-primary" id="btn-submit-forgot" style="width: 100%; font-weight: 800; padding: 0.45rem;">Send Password Reset Link</button>
         </div>
 
         <!-- Status / Error message display -->
-        <div id="auth-status-msg" style="display: none; margin-top: 0.85rem; font-size: 12px; font-weight: 700; padding: 0.45rem 0.65rem; border-radius: 4px;"></div>
+        <div id="auth-status-msg" style="display: none; margin-top: 0.85rem; font-size: 10pt; font-weight: 700; padding: 0.45rem 0.65rem; border-radius: 4px;"></div>
       </div>
     </div>
   </div>
@@ -1797,11 +1797,11 @@
         <button class="btn btn-outline" id="btn-close-join-requests" style="min-height: 28px; padding: 0.1rem 0.5rem;">✕</button>
       </div>
       <div class="modal-scroll-body" style="padding: 1.25rem;">
-        <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 0.85rem;">
+        <p style="font-size: 10pt; color: var(--text-muted); margin-bottom: 0.85rem;">
           As campaign creator, you have sole authority over membership. Players requesting to join appear below. Review their hero sheet and approve or decline their entry.
         </p>
         <div id="join-requests-list-container">
-          <div style="text-align: center; color: var(--text-muted); font-size: 12px; font-style: italic; padding: 1.5rem 0;">
+          <div style="text-align: center; color: var(--text-muted); font-size: 10pt; font-style: italic; padding: 1.5rem 0;">
             No pending join requests for this campaign.
           </div>
         </div>
@@ -1840,11 +1840,11 @@
         <button class="btn btn-outline" id="btn-close-cloud-restore" style="min-height: 28px; padding: 0.1rem 0.5rem;">✕</button>
       </div>
       <div class="modal-scroll-body" style="padding: 1.25rem; flex: 1; overflow-y: auto;">
-        <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 0.85rem;">
+        <p style="font-size: 10pt; color: var(--text-muted); margin-bottom: 0.85rem;">
           Select a character backed up to your Supabase cloud account to restore and load it into your active editor. You can also delete outdated backups.
         </p>
         <div id="cloud-restore-list">
-          <div style="text-align: center; color: var(--text-muted); font-size: 12px; font-style: italic; padding: 2rem 0;">
+          <div style="text-align: center; color: var(--text-muted); font-size: 10pt; font-style: italic; padding: 2rem 0;">
             Loading cloud backups...
           </div>
         </div>
@@ -1855,6 +1855,6 @@
     </div>
   </div>
 
-  <script type="module" src="js/app.js?v=3.68"></script>
+  <script type="module" src="js/app.js?v=3.69"></script>
 </body>
 </html>

@@ -234,7 +234,7 @@ export class TablesWindowManager {
       <head>
         <meta charset="UTF-8">
         <title>Mutants & Masterminds 3E - Official Reference Tables</title>
-        <link rel="stylesheet" href="css/styles.css?v=3.68">
+        <link rel="stylesheet" href="css/styles.css?v=3.69">
         <style>
           body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -242,7 +242,7 @@ export class TablesWindowManager {
             color: var(--text-main, #f8fafc);
             margin: 0;
             padding: 1rem;
-            font-size: 13px;
+            font-size: 10pt;
           }
           h2 { color: var(--hero-blue, #06b6d4); margin-top: 0; border-bottom: 2px solid var(--border-color, #334155); padding-bottom: 0.5rem; }
           .collapsible {
@@ -266,7 +266,7 @@ export class TablesWindowManager {
           .collapsible-header:hover { background: var(--bg-card-hover, #223049); }
           .collapsible-content { padding: 0.75rem; display: block; overflow-x: auto; color: var(--text-main); }
           .collapsible-content.collapsed { display: none; }
-          table { width: 100%; border-collapse: collapse; font-size: 12px; color: var(--text-main); }
+          table { width: 100%; border-collapse: collapse; font-size: 10pt; color: var(--text-main); }
           th { text-align: left; padding: 6px 8px; background: var(--bg-input, #0b1120); color: var(--text-muted, #94a3b8); border-bottom: 1px solid var(--border-color, #334155); }
           td { padding: 5px 8px; border-bottom: 1px solid var(--border-color, rgba(255,255,255,0.05)); color: var(--text-main); }
           tr:nth-child(even) td { background: rgba(0,0,0,0.03); }

@@ -191,7 +191,7 @@ body {
   width: 22px;
   height: 22px;
   border-radius: 50%;
-  font-size: 13px;
+  font-size: 10pt;
   font-weight: 900;
   display: none; /* Only show if update detected */
   align-items: center;
@@ -2276,7 +2276,7 @@ button.action-roll-card {
   justify-content: center;
   min-width: 22px;
   height: 22px;
-  font-size: 13px !important;
+  font-size: 10pt !important;
   font-weight: 900 !important;
   border-radius: 0px !important;
   background: var(--hero-blue) !important;
@@ -2855,15 +2855,18 @@ html[data-theme="light"] .lang-known-row {
 }
 
 /* =====================================================================
-   POWER EFFECT NOTES EXPANDABLE TO TWO VISIBLE ROWS (v3.48)
+   POWER EFFECT NOTES EXPANDABLE (v3.69)
+   Defaults to 1 visible row, dynamically expanding up to 3 rows
    ===================================================================== */
 .input-power-notes,
 .input-ae-notes {
   width: 100%;
-  min-height: 48px;
+  min-height: 28px;
+  max-height: 75px;
+  height: 28px;
   font-size: var(--font-size-xs);
   line-height: 1.35;
-  resize: vertical;
+  resize: none;
   box-sizing: border-box;
   font-family: inherit;
   padding: 0.35rem 0.55rem;
@@ -2872,6 +2875,8 @@ html[data-theme="light"] .lang-known-row {
   background-color: var(--bg-input);
   color: var(--text-bright);
   display: block;
+  overflow-y: auto;
+  transition: height 0.1s ease;
 }
 
 .power-profiles-card {
@@ -3069,4 +3074,25 @@ html[data-theme="light"] [style*="color: #64748b"] {
 html[data-theme="light"] .card-box-subtitle,
 html[data-theme="light"] .stat-summary-bar {
   color: #1f1b15 !important;
+}
+
+/* =====================================================================
+   CAMPAIGN TRACKER EXPANDED MODAL SIZE (v3.69)
+   Stretches to within 0.25 inches of tab margins
+   ===================================================================== */
+#modal-campaign-tracker .modal-container {
+  width: calc(100vw - 0.5in) !important;
+  max-width: calc(100vw - 0.5in) !important;
+  height: calc(100vh - 0.5in) !important;
+  max-height: calc(100vh - 0.5in) !important;
+  margin: 0.25in auto !important;
+  display: flex !important;
+  flex-direction: column !important;
+  box-sizing: border-box !important;
+}
+
+#modal-campaign-tracker #campaign-tracker-content {
+  flex: 1 1 auto !important;
+  max-height: none !important;
+  overflow-y: auto !important;
 }

@@ -615,10 +615,10 @@ html[data-theme="light"] .auth-tab-btn.active {
   cursor: pointer;
   display: inline-flex;
   align-items: center;
-  gap: 0.35rem;
-  font-size: 11px;
+  gap: 0.4rem;
+  font-size: 13px !important;
   font-weight: 700;
-  padding: 2px 6px !important;
+  padding: 3px 8px !important;
   border-radius: 4px;
   transition: all 0.2s ease;
   box-shadow: none !important;

@@ -93,6 +93,7 @@ class AppController {
     this.setupMenuDropdown();
     this.setupCharacterModals();
     this.setupSettingsFlyout();
+    this.setupUserSettingsFlyout();
     this.setupHelpModal();
     this.setupHeroPointModal();
     this.setupPointerPopup();
@@ -2531,6 +2532,11 @@ window.partyManager = partyManager;
     if (authCloseBtn) {
       authCloseBtn.addEventListener('click', () => this.closeModal('modal-auth'));
     }
+    document.getElementById('btn-header-user-settings')?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (userDropdown) userDropdown.style.display = 'none';
+      this.openUserSettingsFlyout();
+    });
     if (logoutBtn) {
       logoutBtn.addEventListener('click', async (e) => {
         e.stopPropagation();
@@ -2676,6 +2682,8 @@ window.partyManager = partyManager;
           authBtn.className = 'btn-header-user-link';
           authBtn.setAttribute?.('title', `Logged in as ${uname} (Connected). Click for options.`);
           authBtn.style.display = 'inline-flex';
+          authBtn.style.fontSize = '13px';
+          authBtn.style.padding = '3px 8px';
         }
         if (usernameLabel) usernameLabel.textContent = uname;
         if (dropdownUsername) dropdownUsername.textContent = uname;
@@ -2703,6 +2711,8 @@ window.partyManager = partyManager;
           authBtn.className = 'btn btn-outline';
           authBtn.setAttribute?.('title', 'Sign In / Register');
           authBtn.style.display = 'inline-flex';
+          authBtn.style.fontSize = '13px';
+          authBtn.style.padding = '3px 10px';
         }
         if (usernameLabel) usernameLabel.textContent = 'User';
       }
@@ -4363,6 +4373,93 @@ window.partyManager = partyManager;
     });
 
     this.renderDiscordConfigsList();
+  }
+
+  // =======================================================
+  // USER ACCOUNT SETTINGS FLYOUT
+  // =======================================================
+  setupUserSettingsFlyout() {
+    const backdrop = document.getElementById('flyout-user-settings-backdrop');
+    const panel = document.getElementById('flyout-user-settings-panel');
+    const closeBtn = document.getElementById('btn-close-user-settings-flyout');
+    const doneBtn = document.getElementById('btn-close-user-settings-done');
+
+    const closeFlyout = () => {
+      backdrop?.classList.remove('open');
+      panel?.classList.remove('open');
+    };
+
+    closeBtn?.addEventListener('click', closeFlyout);
+    doneBtn?.addEventListener('click', closeFlyout);
+    backdrop?.addEventListener('click', closeFlyout);
+
+    // Password reset button inside flyout
+    document.getElementById('btn-user-settings-reset-password')?.addEventListener('click', async () => {
+      const email = supabaseService.currentUser?.email;
+      if (!email) {
+        await this.showAlertDialog('No registered email found for this user account.', { title: 'Reset Error' });
+        return;
+      }
+      try {
+        await supabaseService.resetPasswordForEmail(email);
+        await this.showAlertDialog(
+          `A password reset confirmation link has been sent to ${email}!\n\nPlease check your email inbox to update your password.`,
+          { title: 'Password Reset Sent' }
+        );
+      } catch (err) {
+        await this.showAlertDialog('Failed to send reset link: ' + err.message, { title: 'Reset Error' });
+      }
+    });
+
+    // Delete account button inside flyout
+    document.getElementById('btn-user-settings-delete-account')?.addEventListener('click', async () => {
+      const confirmInput = await this.showPromptDialog({
+        title: 'Delete Cloud Account',
+        label: 'WARNING: Any online character backups and campaign memberships will be permanently lost from the database.\n\nCharacters saved locally on this device will be untouched.\n\nTo confirm permanent deletion, type "delete" below:',
+        defaultValue: '',
+        placeholder: 'type "delete" to confirm',
+        confirmText: 'Delete Account Permanently'
+      });
+
+      if (confirmInput === null) return; // User cancelled prompt
+
+      if (confirmInput.trim().toLowerCase() !== 'delete') {
+        await this.showAlertDialog('Account deletion cancelled. You must type "delete" exactly to confirm.', { title: 'Cancelled' });
+        return;
+      }
+
+      try {
+        await supabaseService.deleteCurrentUserAccount();
+        closeFlyout();
+        await this.showAlertDialog(
+          'Your cloud account and online backups have been deleted.\n\nYour locally saved characters remain safe on this device.',
+          { title: 'Account Deleted' }
+        );
+      } catch (err) {
+        await this.showAlertDialog('Failed to delete account: ' + err.message, { title: 'Delete Error' });
+      }
+    });
+  }
+
+  openUserSettingsFlyout() {
+    const backdrop = document.getElementById('flyout-user-settings-backdrop');
+    const panel = document.getElementById('flyout-user-settings-panel');
+    const displayUser = document.getElementById('user-settings-display-username');
+    const displayEmail = document.getElementById('user-settings-display-email');
+
+    if (!supabaseService.isLoggedIn()) {
+      this.openAuthModal();
+      return;
+    }
+
+    const uname = supabaseService.getUsername() || supabaseService.currentUser?.user_metadata?.username || 'User';
+    const email = supabaseService.currentUser?.email || '';
+
+    if (displayUser) displayUser.textContent = uname;
+    if (displayEmail) displayEmail.textContent = email;
+
+    backdrop?.classList.add('open');
+    panel?.classList.add('open');
   }
 
   renderDiscordConfigsList() {

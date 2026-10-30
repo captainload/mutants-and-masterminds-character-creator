@@ -107,8 +107,8 @@
           </div>
 
           <div class="header-account-area" style="display: flex; align-items: center; justify-content: flex-end; gap: 0.5rem; min-width: 140px; position: relative;">
-            <button type="button" id="btn-header-auth" class="btn btn-outline" style="font-size: 11px; padding: 2px 9px; font-weight: 700; border-color: var(--hero-blue); color: var(--hero-blue); display: inline-flex; align-items: center; gap: 0.35rem; cursor: pointer; text-decoration: none;">
-              <svg id="header-auth-icon" class="header-user-icon-disconnected" width="13" height="13" viewBox="0 0 24 24" fill="currentColor" style="vertical-align: -1px; display: inline-block;">
+            <button type="button" id="btn-header-auth" class="btn btn-outline" style="font-size: 13px; padding: 3px 10px; font-weight: 700; border-color: var(--hero-blue); color: var(--hero-blue); display: inline-flex; align-items: center; gap: 0.4rem; cursor: pointer; text-decoration: none;">
+              <svg id="header-auth-icon" class="header-user-icon-disconnected" width="15" height="15" viewBox="0 0 24 24" fill="currentColor" style="vertical-align: -1px; display: inline-block;">
                 <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
               </svg>
               <span id="header-auth-label">Sign In / Register</span>
@@ -116,14 +116,21 @@
             <div id="header-user-badge" style="display: none;">
               <span id="header-username-label">User</span>
             </div>
-            <div id="header-user-dropdown" class="card-box" style="display: none; position: absolute; top: calc(100% + 4px); right: 0; min-width: 175px; z-index: 1000; box-shadow: 0 4px 14px rgba(0,0,0,0.5); padding: 0.35rem 0; border: 1px solid var(--border-color); background: var(--bg-card); border-radius: 4px;">
-              <div id="header-dropdown-user-info" style="padding: 0.35rem 0.75rem; font-size: 11px; color: var(--text-muted); border-bottom: 1px solid var(--border-color); margin-bottom: 0.25rem;">
-                <div style="font-weight: 700; color: var(--text-bright); display: flex; align-items: center; gap: 0.35rem;">
+            <div id="header-user-dropdown" class="card-box" style="display: none; position: absolute; top: calc(100% + 4px); right: 0; min-width: 190px; z-index: 1000; box-shadow: 0 4px 14px rgba(0,0,0,0.5); padding: 0.35rem 0; border: 1px solid var(--border-color); background: var(--bg-card); border-radius: 4px;">
+              <div id="header-dropdown-user-info" style="padding: 0.4rem 0.75rem; font-size: 11px; color: var(--text-muted); border-bottom: 1px solid var(--border-color); margin-bottom: 0.25rem;">
+                <div style="font-weight: 700; color: var(--text-bright); display: flex; align-items: center; gap: 0.35rem; font-size: 12px;">
                   <span style="color: #22c55e;">●</span> <span id="header-dropdown-username">User</span>
                 </div>
-                <div style="font-size: 10px; opacity: 0.8; word-break: break-all;" id="header-dropdown-email">user@example.com</div>
+                <div style="font-size: 11px; opacity: 0.85; word-break: break-all;" id="header-dropdown-email">user@example.com</div>
               </div>
-              <button type="button" class="menu-dropdown-item" id="btn-header-logout" style="width: 100%; text-align: left; padding: 0.45rem 0.75rem; font-size: 11px; font-weight: 700; color: var(--hero-red); background: none; border: none; cursor: pointer; display: flex; align-items: center; gap: 0.45rem;">
+              <button type="button" class="menu-dropdown-item" id="btn-header-user-settings" style="width: 100%; text-align: left; padding: 0.45rem 0.75rem; font-size: 12px; font-weight: 700; color: var(--text-bright); background: none; border: none; cursor: pointer; display: flex; align-items: center; justify-content: space-between;">
+                <span style="display: flex; align-items: center; gap: 0.45rem;">
+                  <span>⚙️</span> User Settings
+                </span>
+                <span style="font-size: 10px; color: var(--text-muted); font-weight: normal;">Fly-out ▶</span>
+              </button>
+              <div class="menu-dropdown-separator" style="margin: 3px 0;"></div>
+              <button type="button" class="menu-dropdown-item" id="btn-header-logout" style="width: 100%; text-align: left; padding: 0.45rem 0.75rem; font-size: 12px; font-weight: 700; color: var(--hero-red); background: none; border: none; cursor: pointer; display: flex; align-items: center; gap: 0.45rem;">
                 <span>🚪</span> Sign Out
               </button>
             </div>
@@ -888,6 +895,84 @@
 
     <div class="flyout-footer">
       <button class="btn btn-primary" id="btn-close-settings-done" style="min-width: 100px;">Done</button>
+    </div>
+  </div>
+
+  <!-- ======================================================= -->
+  <!-- FLY-OUT: USER ACCOUNT SETTINGS                          -->
+  <!-- ======================================================= -->
+  <div class="flyout-backdrop" id="flyout-user-settings-backdrop"></div>
+  <div class="flyout-panel" id="flyout-user-settings-panel" style="max-width: 520px;">
+    <div class="flyout-header">
+      <div class="flyout-title">
+        <span>👤</span> User Account Settings
+      </div>
+      <button class="btn btn-outline" id="btn-close-user-settings-flyout" style="min-height: 30px; padding: 0.1rem 0.6rem;">✕</button>
+    </div>
+
+    <div class="flyout-body">
+      <!-- Profile Information Card -->
+      <div class="card-box" style="margin-bottom: 1.25rem;">
+        <div class="card-box-header">
+          <div class="card-box-title">
+            <span>🛡️</span> Account Identity
+          </div>
+        </div>
+        <div style="padding: 0.85rem; font-size: 13px;">
+          <div style="margin-bottom: 0.65rem; display: flex; justify-content: space-between; align-items: center;">
+            <span style="color: var(--text-muted); font-weight: 600;">Username:</span>
+            <span id="user-settings-display-username" style="font-weight: 800; color: var(--text-bright); font-size: 14px;">User</span>
+          </div>
+          <div style="margin-bottom: 0.65rem; display: flex; justify-content: space-between; align-items: center;">
+            <span style="color: var(--text-muted); font-weight: 600;">Email Address:</span>
+            <span id="user-settings-display-email" style="color: var(--text-bright);">user@example.com</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span style="color: var(--text-muted); font-weight: 600;">Cloud Status:</span>
+            <span style="color: #22c55e; font-weight: 700; display: inline-flex; align-items: center; gap: 0.35rem;">
+              <span style="font-size: 10px;">●</span> Connected to Database
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Password & Security Card -->
+      <div class="card-box" style="margin-bottom: 1.25rem;">
+        <div class="card-box-header">
+          <div class="card-box-title">
+            <span>🔑</span> Password &amp; Security
+          </div>
+        </div>
+        <div style="padding: 0.85rem;">
+          <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 0.85rem; line-height: 1.45;">
+            Need to change or reset your password? Click below to send a secure password reset link to your registered email address.
+          </p>
+          <button type="button" class="btn btn-primary" id="btn-user-settings-reset-password" style="font-size: 12px; font-weight: 700; padding: 0.45rem 1rem;">
+            📧 Send Password Reset Email
+          </button>
+        </div>
+      </div>
+
+      <!-- Danger Zone / Delete Account Card -->
+      <div class="card-box" style="border: 1px solid rgba(239, 68, 68, 0.45); background: rgba(239, 68, 68, 0.04); margin-bottom: 1.25rem;">
+        <div class="card-box-header" style="border-bottom: 1px solid rgba(239, 68, 68, 0.25);">
+          <div class="card-box-title" style="color: var(--hero-red);">
+            <span>⚠️</span> Danger Zone: Delete Account
+          </div>
+        </div>
+        <div style="padding: 0.85rem;">
+          <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 0.85rem; line-height: 1.45;">
+            Permanently delete your user account from the cloud database. Any online character backups and campaign memberships will be lost. Locally saved characters on this device will be untouched.
+          </p>
+          <button type="button" class="btn btn-outline" id="btn-user-settings-delete-account" style="color: var(--hero-red); border-color: var(--hero-red); font-size: 12px; font-weight: 700; padding: 0.45rem 1rem;">
+            🗑️ Delete Account...
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="flyout-footer">
+      <button class="btn btn-primary" id="btn-close-user-settings-done" style="min-width: 90px;">Done</button>
     </div>
   </div>
 

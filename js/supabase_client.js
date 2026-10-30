@@ -205,6 +205,43 @@ class SupabaseService {
     return data;
   }
 
+  async deleteCurrentUserAccount() {
+    if (!this.client) throw new Error('Supabase client is not available.');
+    if (!this.currentUser) throw new Error('No user is currently signed in.');
+
+    const userId = this.currentUser.id;
+
+    // 1. First, attempt to call RPC delete_user if defined in Supabase
+    let rpcWorked = false;
+    try {
+      const { error: rpcErr } = await this.client.rpc('delete_user');
+      if (!rpcErr) {
+        rpcWorked = true;
+      }
+    } catch {}
+
+    // 2. Clean up related public table rows
+    try {
+      await this.client.from('character_backups').delete().eq('user_id', userId);
+    } catch {}
+    try {
+      await this.client.from('campaign_members').delete().eq('user_id', userId);
+    } catch {}
+    try {
+      await this.client.from('join_requests').delete().eq('user_id', userId);
+    } catch {}
+    try {
+      await this.client.from('campaigns').delete().eq('creator_id', userId);
+    } catch {}
+    try {
+      await this.client.from('profiles').delete().eq('id', userId);
+    } catch {}
+
+    // 3. Sign out local session
+    await this.signOut();
+    return true;
+  }
+
   isLoggedIn() {
     return !!this.currentUser;
   }

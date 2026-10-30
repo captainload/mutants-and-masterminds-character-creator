@@ -18,6 +18,11 @@ assert(indexHtml.includes('auth-tab-btn'), 'auth-tab-btn class missing in index.
 assert(indexHtml.includes('id="header-auth-icon"'), 'header-auth-icon missing in index.html');
 assert(indexHtml.includes('id="header-auth-label"'), 'header-auth-label missing in index.html');
 assert(indexHtml.includes('id="header-user-dropdown"'), 'header-user-dropdown missing in index.html');
+assert(indexHtml.includes('id="btn-header-user-settings"'), 'btn-header-user-settings missing in index.html');
+assert(indexHtml.includes('id="flyout-user-settings-panel"'), 'flyout-user-settings-panel missing in index.html');
+assert(indexHtml.includes('id="btn-user-settings-reset-password"'), 'btn-user-settings-reset-password missing in index.html');
+assert(indexHtml.includes('id="btn-user-settings-delete-account"'), 'btn-user-settings-delete-account missing in index.html');
+assert(indexHtml.includes('font-size: 13px;'), '13px font size used on login button in index.html');
 console.log('✓ UI elements and modals verified in index.html');
 
 // 2. Verify styles.css
@@ -33,6 +38,7 @@ import { supabaseService } from './js/supabase_client.js';
 assert(typeof supabaseService.backupCharacter === 'function', 'backupCharacter method missing');
 assert(typeof supabaseService.getCharacterBackups === 'function', 'getCharacterBackups method missing');
 assert(typeof supabaseService.deleteCharacterBackup === 'function', 'deleteCharacterBackup method missing');
+assert(typeof supabaseService.deleteCurrentUserAccount === 'function', 'deleteCurrentUserAccount method missing');
 
 // Mock client to test backupCharacter & getCharacterBackups
 let capturedUpsert = null;

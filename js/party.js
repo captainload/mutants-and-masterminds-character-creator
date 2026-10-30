@@ -235,6 +235,8 @@ export class CampaignTrackerManager {
       const existing = history.find(c => c.campaignId === cleanId) || {};
 
       const isCreator = campaignData.isCreator !== undefined ? !!campaignData.isCreator : (campaignData.isHost !== undefined ? !!campaignData.isHost : !!existing.isCreator);
+      const isOnHiatus = campaignData.isOnHiatus !== undefined ? !!campaignData.isOnHiatus : !!existing.isOnHiatus;
+      const pendingTransfer = campaignData.pendingTransfer !== undefined ? campaignData.pendingTransfer : (existing.pendingTransfer || null);
       const entry = {
         campaignId: cleanId,
         campaignName: (campaignData.campaignName || existing.campaignName || cleanId).trim(),
@@ -243,6 +245,8 @@ export class CampaignTrackerManager {
         dontEnforcePL: campaignData.dontEnforcePL !== undefined ? !!campaignData.dontEnforcePL : !!existing.dontEnforcePL,
         creatorName: campaignData.creatorName || existing.creatorName || '',
         isCreator,
+        isOnHiatus,
+        pendingTransfer,
         lastJoined: new Date().toLocaleDateString(),
         lastJoinedMs: Date.now()
       };
@@ -370,13 +374,17 @@ export class CampaignTrackerManager {
     try {
       const reg = this.getCampaignRegistry();
       const id = String(info.campaignId).trim().toUpperCase().replace(/^#+/, "");
+      const prev = reg[id] || {};
       reg[id] = {
         campaignId: id,
-        campaignName: (info.campaignName || id).trim(),
-        pin: (info.pin || '').trim(),
-        powerLevel: parseInt(info.powerLevel, 10) || 10,
-        dontEnforcePL: !!info.dontEnforcePL,
-        isHost: !!info.isHost,
+        campaignName: (info.campaignName || prev.campaignName || id).trim(),
+        pin: info.pin !== undefined ? (info.pin || '').trim() : (prev.pin || ''),
+        powerLevel: parseInt(info.powerLevel, 10) || prev.powerLevel || 10,
+        dontEnforcePL: info.dontEnforcePL !== undefined ? !!info.dontEnforcePL : !!prev.dontEnforcePL,
+        creatorName: info.creatorName || prev.creatorName || '',
+        isHost: info.isHost !== undefined ? !!info.isHost : !!prev.isHost,
+        isOnHiatus: info.isOnHiatus !== undefined ? !!info.isOnHiatus : !!prev.isOnHiatus,
+        pendingTransfer: info.pendingTransfer !== undefined ? info.pendingTransfer : (prev.pendingTransfer || null),
         lastUpdated: Date.now()
       };
       const serialized = JSON.stringify(reg);
@@ -397,6 +405,9 @@ export class CampaignTrackerManager {
 
     const info = this.getCampaignInfo(cleanId) || current;
     const histMatch = this.getCampaignHistory().find(c => c.campaignId === cleanId);
+    if (info?.isOnHiatus || histMatch?.isOnHiatus) {
+      throw new Error(`Campaign "${info?.campaignName || histMatch?.campaignName || cleanId}" is currently on hiatus. Resume the campaign from hiatus before starting a game session.`);
+    }
     const campName = info?.campaignName || histMatch?.campaignName || current.campaignName || cleanId;
     const campPL = parseInt(info?.powerLevel ?? histMatch?.powerLevel ?? current.powerLevel ?? 10, 10) || 10;
     const dontEnforce = !!(info?.dontEnforcePL ?? histMatch?.dontEnforcePL ?? current.dontEnforcePL);
@@ -1102,6 +1113,764 @@ export class CampaignTrackerManager {
     this.renderAllOpenViews();
   }
 
+  // =======================================================
+  // GM HIATUS, CAMPAIGN DELETION & OWNERSHIP TRANSFER
+  // =======================================================
+  getCurrentUsername() {
+    if (typeof supabaseService !== 'undefined' && supabaseService && supabaseService.isLoggedIn()) {
+      return supabaseService.getUsername();
+    }
+    if (typeof window !== 'undefined' && window.appController?.char?.playerName) {
+      return window.appController.char.playerName.trim();
+    }
+    const state = this.getCampaignState();
+    return (state.creatorName || state.playerName || 'Player').trim();
+  }
+
+  ownsAnyCampaign() {
+    return this.getCampaignHistory().some(c => !!c.isCreator);
+  }
+
+  /**
+   * Puts a GM-owned campaign on hiatus or resumes it from hiatus.
+   * The GM still owns the campaign and it is not deleted.
+   */
+  setCampaignHiatus(campaignId, isOnHiatus = true, gmName = '') {
+    const cleanId = String(campaignId || '').trim().toUpperCase().replace(/^#+/, '');
+    if (!cleanId) return null;
+
+    if (isOnHiatus && this.isSessionActive(cleanId)) {
+      this.endSession(cleanId);
+    }
+
+    const hist = this.getCampaignHistory();
+    const match = hist.find(c => c.campaignId === cleanId);
+    const info = this.getCampaignInfo(cleanId) || match || {};
+    const campName = match?.campaignName || info.campaignName || cleanId;
+    const effectiveGM = gmName || match?.creatorName || info.creatorName || this.getCurrentUsername() || 'GM';
+
+    const updatedEntry = {
+      ...info,
+      ...(match || {}),
+      campaignId: cleanId,
+      campaignName: campName,
+      creatorName: effectiveGM,
+      isCreator: match ? !!match.isCreator : true,
+      isOnHiatus: !!isOnHiatus
+    };
+
+    this.registerCampaignInfo(updatedEntry);
+    this.saveToCampaignHistory(updatedEntry);
+
+    this.sendCampaignMessage({
+      type: isOnHiatus ? 'CAMPAIGN_ON_HIATUS' : 'CAMPAIGN_RESUMED',
+      recipientRole: 'PARTICIPANTS',
+      campaignId: cleanId,
+      campaignName: campName,
+      gmName: effectiveGM,
+      playerName: 'All Campaign Players',
+      text: isOnHiatus
+        ? `Campaign "${campName}" (#${cleanId}) has been placed on hiatus by GM ${effectiveGM}.`
+        : `Campaign "${campName}" (#${cleanId}) has resumed from hiatus by GM ${effectiveGM}.`
+    });
+
+    this.broadcastMessage({
+      type: 'CAMPAIGN_HIATUS_CHANGED',
+      campaignId: cleanId,
+      campaignName: campName,
+      gmName: effectiveGM,
+      isOnHiatus: !!isOnHiatus
+    });
+
+    this.renderAllOpenViews();
+    return updatedEntry;
+  }
+
+  /**
+   * Specifically deletes/cancels a campaign owned by the GM and notifies all participants.
+   */
+  deleteCampaignByGM(campaignId, gmName = '') {
+    const cleanId = String(campaignId || '').trim().toUpperCase().replace(/^#+/, '');
+    if (!cleanId) return false;
+
+    if (this.isSessionActive(cleanId)) {
+      this.endSession(cleanId);
+    }
+
+    const hist = this.getCampaignHistory();
+    const match = hist.find(c => c.campaignId === cleanId);
+    const info = this.getCampaignInfo(cleanId) || match || {};
+    const campName = match?.campaignName || info.campaignName || cleanId;
+    const effectiveGM = gmName || match?.creatorName || info.creatorName || this.getCurrentUsername() || 'GM';
+
+    this.sendCampaignMessage({
+      type: 'CAMPAIGN_CANCELLED',
+      recipientRole: 'PARTICIPANTS',
+      campaignId: cleanId,
+      campaignName: campName,
+      gmName: effectiveGM,
+      playerName: 'All Campaign Players',
+      text: `Campaign "${campName}" (#${cleanId}) has been cancelled and deleted by GM ${effectiveGM}.`
+    });
+
+    this.broadcastMessage({
+      type: 'CAMPAIGN_DELETED',
+      campaignId: cleanId,
+      campaignName: campName,
+      gmName: effectiveGM
+    });
+
+    // Remove from registry and history
+    try {
+      const reg = this.getCampaignRegistry();
+      delete reg[cleanId];
+      const serializedReg = JSON.stringify(reg);
+      if (typeof localStorage !== 'undefined') {
+        localStorage.setItem('mm3e_campaign_registry', serializedReg);
+      } else {
+        this._sharedFallback['mm3e_campaign_registry'] = serializedReg;
+      }
+    } catch (e) {}
+
+    this.leaveCampaignPermanent(cleanId, campName);
+    return true;
+  }
+
+  /**
+   * Initiates a campaign ownership transfer offer to another user.
+   * Sends the target user a message asking if they want to take ownership (Accept / Refuse).
+   * The GM can withdraw the offer at any time until the target responds.
+   */
+  initiateOwnershipTransfer(campaignId, targetUser, gmName = '') {
+    const cleanId = String(campaignId || '').trim().toUpperCase().replace(/^#+/, '');
+    const cleanTarget = String(targetUser || '').trim();
+    if (!cleanId || !cleanTarget) {
+      throw new Error('Please specify both a campaign and a target user to transfer ownership.');
+    }
+
+    const hist = this.getCampaignHistory();
+    const match = hist.find(c => c.campaignId === cleanId);
+    const info = this.getCampaignInfo(cleanId) || match || {};
+    const campName = match?.campaignName || info.campaignName || cleanId;
+    const effectiveGM = gmName || match?.creatorName || info.creatorName || this.getCurrentUsername() || 'GM';
+    const isDuringHiatus = !!(match?.isOnHiatus || info.isOnHiatus);
+
+    const offer = {
+      offerId: 'xfer_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
+      campaignId: cleanId,
+      campaignName: campName,
+      fromGM: effectiveGM,
+      targetUser: cleanTarget,
+      isDuringHiatus,
+      status: 'pending',
+      createdAt: new Date().toISOString()
+    };
+
+    const updated = {
+      ...info,
+      ...(match || {}),
+      campaignId: cleanId,
+      campaignName: campName,
+      creatorName: effectiveGM,
+      isCreator: true,
+      pendingTransfer: offer
+    };
+
+    this.registerCampaignInfo(updated);
+    this.saveToCampaignHistory(updated);
+
+    const msg = this.sendCampaignMessage({
+      id: offer.offerId,
+      type: 'OWNERSHIP_TRANSFER_OFFER',
+      offerId: offer.offerId,
+      offerStatus: 'pending',
+      recipientRole: 'USER',
+      recipientUser: cleanTarget,
+      campaignId: cleanId,
+      campaignName: campName,
+      gmName: effectiveGM,
+      playerName: cleanTarget,
+      text: `GM ${effectiveGM} has offered to transfer ownership of campaign "${campName}" (#${cleanId})${isDuringHiatus ? ' (currently on hiatus)' : ''} to you (${cleanTarget}). Would you like to accept or refuse ownership of this campaign?`
+    });
+
+    this.broadcastMessage({
+      type: 'CAMPAIGN_TRANSFER_OFFERED',
+      campaignId: cleanId,
+      campaignName: campName,
+      offer,
+      message: msg
+    });
+
+    this.renderAllOpenViews();
+    return offer;
+  }
+
+  /**
+   * Allows the GM to withdraw a pending ownership transfer offer at any time before the target user responds.
+   */
+  withdrawOwnershipTransfer(campaignId, gmName = '') {
+    const cleanId = String(campaignId || '').trim().toUpperCase().replace(/^#+/, '');
+    if (!cleanId) return false;
+
+    const hist = this.getCampaignHistory();
+    const match = hist.find(c => c.campaignId === cleanId);
+    const info = this.getCampaignInfo(cleanId) || match || {};
+    const pending = match?.pendingTransfer || info.pendingTransfer;
+    if (!pending || pending.status !== 'pending') {
+      throw new Error('There is no pending ownership transfer offer to withdraw for this campaign.');
+    }
+
+    const campName = match?.campaignName || info.campaignName || cleanId;
+    const effectiveGM = gmName || pending.fromGM || match?.creatorName || this.getCurrentUsername() || 'GM';
+    const targetUser = pending.targetUser;
+
+    const updated = {
+      ...info,
+      ...(match || {}),
+      campaignId: cleanId,
+      campaignName: campName,
+      pendingTransfer: null
+    };
+    this.registerCampaignInfo(updated);
+    this.saveToCampaignHistory(updated);
+
+    // Mark the offer message as withdrawn so the target user can no longer accept it
+    this.updateCampaignMessageOfferStatus(pending.offerId, cleanId, 'withdrawn');
+
+    this.sendCampaignMessage({
+      type: 'OWNERSHIP_TRANSFER_WITHDRAWN',
+      recipientRole: 'USER',
+      recipientUser: targetUser,
+      campaignId: cleanId,
+      campaignName: campName,
+      gmName: effectiveGM,
+      playerName: targetUser,
+      text: `GM ${effectiveGM} withdrew the offer to transfer ownership of campaign "${campName}" (#${cleanId}).`
+    });
+
+    this.broadcastMessage({
+      type: 'CAMPAIGN_TRANSFER_WITHDRAWN',
+      campaignId: cleanId,
+      offerId: pending.offerId,
+      gmName: effectiveGM,
+      targetUser
+    });
+
+    this.renderAllOpenViews();
+    return true;
+  }
+
+  /**
+   * Allows the target user to accept or refuse a pending campaign ownership transfer offer.
+   */
+  respondToOwnershipTransfer(campaignId, accept, responderName = '') {
+    const cleanId = String(campaignId || '').trim().toUpperCase().replace(/^#+/, '');
+    if (!cleanId) return null;
+
+    const info = this.getCampaignInfo(cleanId) || {};
+    const hist = this.getCampaignHistory();
+    const match = hist.find(c => c.campaignId === cleanId);
+    const pending = info.pendingTransfer || match?.pendingTransfer;
+
+    if (!pending || pending.status !== 'pending') {
+      throw new Error('This ownership transfer offer is no longer active or has been withdrawn by the GM.');
+    }
+
+    const campName = info.campaignName || match?.campaignName || pending.campaignName || cleanId;
+    const previousGM = pending.fromGM || info.creatorName || 'GM';
+    const newOwner = (responderName || pending.targetUser || this.getCurrentUsername() || 'New GM').trim();
+
+    this.updateCampaignMessageOfferStatus(pending.offerId, cleanId, accept ? 'accepted' : 'refused');
+
+    if (accept) {
+      // Transfer ownership to newOwner
+      const updatedReg = {
+        ...info,
+        campaignId: cleanId,
+        campaignName: campName,
+        creatorName: newOwner,
+        isCreator: true,
+        isHost: true,
+        pendingTransfer: null
+      };
+      this.registerCampaignInfo(updatedReg);
+
+      this.saveToCampaignHistory({
+        ...(match || info),
+        campaignId: cleanId,
+        campaignName: campName,
+        creatorName: newOwner,
+        isCreator: true,
+        isHost: true,
+        pendingTransfer: null
+      });
+
+      this.sendCampaignMessage({
+        type: 'OWNERSHIP_TRANSFERRED',
+        recipientRole: 'ALL',
+        campaignId: cleanId,
+        campaignName: campName,
+        gmName: newOwner,
+        previousGmName: previousGM,
+        playerName: newOwner,
+        text: `Ownership of campaign "${campName}" (#${cleanId}) has been transferred from ${previousGM} to new GM ${newOwner}.`
+      });
+
+      this.broadcastMessage({
+        type: 'CAMPAIGN_OWNERSHIP_TRANSFERRED',
+        campaignId: cleanId,
+        campaignName: campName,
+        previousGM,
+        newGM: newOwner,
+        offerId: pending.offerId
+      });
+
+      this.renderAllOpenViews();
+      return { status: 'accepted', newGM: newOwner, previousGM, campaignId: cleanId, campaignName: campName };
+    } else {
+      // Refused transfer offer
+      const updatedReg = {
+        ...info,
+        campaignId: cleanId,
+        campaignName: campName,
+        pendingTransfer: null
+      };
+      this.registerCampaignInfo(updatedReg);
+      if (match) {
+        this.saveToCampaignHistory({
+          ...match,
+          pendingTransfer: null
+        });
+      }
+
+      this.sendCampaignMessage({
+        type: 'OWNERSHIP_TRANSFER_REFUSED',
+        recipientRole: 'GM',
+        recipientUser: previousGM,
+        campaignId: cleanId,
+        campaignName: campName,
+        gmName: previousGM,
+        playerName: newOwner,
+        text: `Player "${newOwner}" refused the offer to take ownership of campaign "${campName}" (#${cleanId}).`
+      });
+
+      this.broadcastMessage({
+        type: 'CAMPAIGN_TRANSFER_REFUSED',
+        campaignId: cleanId,
+        campaignName: campName,
+        previousGM,
+        refusedBy: newOwner,
+        offerId: pending.offerId
+      });
+
+      this.renderAllOpenViews();
+      return { status: 'refused', refusedBy: newOwner, previousGM, campaignId: cleanId, campaignName: campName };
+    }
+  }
+
+  // =======================================================
+  // OFFLINE & ONLINE JOIN REQUESTS (VIEWABLE WITHOUT SESSION)
+  // =======================================================
+  getAllJoinRequestsStore() {
+    try {
+      const raw = typeof localStorage !== 'undefined'
+        ? localStorage.getItem('mm3e_campaign_join_requests')
+        : this._sharedFallback['mm3e_campaign_join_requests'];
+      return raw ? JSON.parse(raw) : [];
+    } catch {
+      return [];
+    }
+  }
+
+  saveAllJoinRequestsStore(requests) {
+    try {
+      const serialized = JSON.stringify(requests);
+      if (typeof localStorage !== 'undefined') {
+        localStorage.setItem('mm3e_campaign_join_requests', serialized);
+      } else {
+        this._sharedFallback['mm3e_campaign_join_requests'] = serialized;
+      }
+    } catch (e) {}
+  }
+
+  submitCampaignJoinRequest({ campaignId, campaignName = '', gmName = '', playerName = 'Player', character = {} } = {}) {
+    const cleanId = String(campaignId || '').trim().toUpperCase().replace(/^#+/, '');
+    if (!cleanId) return null;
+
+    const info = this.getCampaignInfo(cleanId) || {};
+    const effCampName = campaignName || info.campaignName || cleanId;
+    const effGM = gmName || info.creatorName || 'GM';
+    const charName = (character.name || 'Hero').trim();
+    const charPL = parseInt(character.powerLevel, 10) || 10;
+
+    const requests = this.getAllJoinRequestsStore();
+    const reqId = 'req_' + cleanId + '_' + (playerName || 'player').toLowerCase().replace(/[^a-z0-9]/g, '') + '_' + (character.id || charName).toLowerCase().replace(/[^a-z0-9]/g, '');
+
+    const record = {
+      id: reqId,
+      campaignId: cleanId,
+      campaign_id: cleanId,
+      campaignName: effCampName,
+      gmName: effGM,
+      username: playerName,
+      character_id: character.id || 'hero',
+      character_name: charName,
+      power_level: charPL,
+      character_data: JSON.parse(JSON.stringify(character)),
+      status: 'pending',
+      created_at: new Date().toISOString()
+    };
+
+    const existingIdx = requests.findIndex(r => r.id === reqId);
+    if (existingIdx >= 0) {
+      requests[existingIdx] = record;
+    } else {
+      requests.unshift(record);
+    }
+    this.saveAllJoinRequestsStore(requests);
+
+    // Notify GM via campaign messaging (noting Campaign, GM, and Player)
+    this.sendCampaignMessage({
+      type: 'JOIN_REQUEST',
+      recipientRole: 'GM',
+      recipientUser: effGM,
+      campaignId: cleanId,
+      campaignName: effCampName,
+      gmName: effGM,
+      playerName,
+      characterName: charName,
+      requestId: reqId,
+      text: `Player "${playerName}" requested to join campaign "${effCampName}" (#${cleanId}) with character "${charName}" (PL ${charPL}).`
+    });
+
+    this.broadcastMessage({
+      type: 'JOIN_REQUEST_SUBMITTED',
+      campaignId: cleanId,
+      request: record
+    });
+
+    this.renderAllOpenViews();
+    return record;
+  }
+
+  /**
+   * Returns join requests viewable by the campaign owner even when no campaign session is running.
+   */
+  getJoinRequestsForGM(campaignId = '') {
+    const cleanId = String(campaignId || '').trim().toUpperCase().replace(/^#+/, '');
+    const all = this.getAllJoinRequestsStore();
+    if (cleanId) {
+      return all.filter(r => String(r.campaignId || r.campaign_id || '').toUpperCase().replace(/^#+/, '') === cleanId);
+    }
+    const ownedIds = new Set(
+      this.getCampaignHistory()
+        .filter(c => !!c.isCreator)
+        .map(c => c.campaignId)
+    );
+    return all.filter(r => ownedIds.has(String(r.campaignId || r.campaign_id || '').toUpperCase().replace(/^#+/, '')));
+  }
+
+  respondToCampaignJoinRequest(requestId, status, gmName = '') {
+    if (status !== 'approved' && status !== 'rejected') return null;
+    const requests = this.getAllJoinRequestsStore();
+    const req = requests.find(r => r.id === requestId);
+    if (!req) return null;
+
+    req.status = status;
+    req.updated_at = new Date().toISOString();
+    this.saveAllJoinRequestsStore(requests);
+
+    const effGM = gmName || req.gmName || this.getCurrentUsername() || 'GM';
+
+    if (status === 'rejected') {
+      this.sendCampaignMessage({
+        type: 'JOIN_REQUEST_REJECTED',
+        recipientRole: 'PLAYER',
+        recipientUser: req.username,
+        campaignId: req.campaignId,
+        campaignName: req.campaignName,
+        gmName: effGM,
+        playerName: req.username,
+        characterName: req.character_name,
+        text: `GM ${effGM} rejected your request to join campaign "${req.campaignName}" (#${req.campaignId}) with character "${req.character_name}".`
+      });
+    } else if (status === 'approved') {
+      if (req.character_data) {
+        this.saveCampaignSavedCharacter(req.campaignId, req.character_data, req.username);
+      }
+      this.sendCampaignMessage({
+        type: 'PLAYER_CHARACTER_JOINED',
+        recipientRole: 'PARTICIPANTS',
+        campaignId: req.campaignId,
+        campaignName: req.campaignName,
+        gmName: effGM,
+        playerName: req.username,
+        characterName: req.character_name,
+        text: `New player/character joined: Player "${req.username}" with character "${req.character_name}" (PL ${req.power_level}) has joined campaign "${req.campaignName}" (#${req.campaignId}, GM: ${effGM}).`
+      });
+    }
+
+    this.broadcastMessage({
+      type: 'JOIN_REQUEST_RESPONDED',
+      campaignId: req.campaignId,
+      requestId,
+      status,
+      gmName: effGM
+    });
+
+    this.renderAllOpenViews();
+    return req;
+  }
+
+  // =======================================================
+  // CAMPAIGN & GM / PLAYER MESSAGING SYSTEM
+  // =======================================================
+  getAllCampaignMessages() {
+    try {
+      const raw = typeof localStorage !== 'undefined'
+        ? localStorage.getItem('mm3e_campaign_messages')
+        : this._sharedFallback['mm3e_campaign_messages'];
+      return raw ? JSON.parse(raw) : [];
+    } catch {
+      return [];
+    }
+  }
+
+  saveAllCampaignMessages(messages) {
+    try {
+      const serialized = JSON.stringify(messages);
+      if (typeof localStorage !== 'undefined') {
+        localStorage.setItem('mm3e_campaign_messages', serialized);
+      } else {
+        this._sharedFallback['mm3e_campaign_messages'] = serialized;
+      }
+    } catch (e) {}
+  }
+
+  /**
+   * Creates and dispatches a structured campaign message.
+   * Every message records Campaign, GM, and Player involved so GMs running multiple campaigns never confuse events.
+   */
+  sendCampaignMessage({
+    id = '',
+    type = 'INFO',
+    recipientRole = 'ALL',
+    recipientUser = '',
+    campaignId = '',
+    campaignName = '',
+    gmName = '',
+    previousGmName = '',
+    playerName = '',
+    characterName = '',
+    offerId = '',
+    offerStatus = '',
+    requestId = '',
+    text = ''
+  } = {}) {
+    const cleanId = String(campaignId || '').trim().toUpperCase().replace(/^#+/, '');
+    const info = this.getCampaignInfo(cleanId) || {};
+    const histMatch = this.getCampaignHistory().find(c => c.campaignId === cleanId) || {};
+
+    const resolvedCampName = (campaignName || histMatch.campaignName || info.campaignName || cleanId || 'Campaign').trim();
+    const resolvedGM = (gmName || histMatch.creatorName || info.creatorName || 'GM').trim();
+    const resolvedPlayer = (playerName || this.getCurrentUsername() || 'Player').trim();
+
+    const msg = {
+      id: id || ('msg_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7)),
+      type,
+      recipientRole,
+      recipientUser: (recipientUser || '').trim(),
+      campaignId: cleanId,
+      campaignName: resolvedCampName,
+      gmName: resolvedGM,
+      previousGmName: previousGmName || '',
+      playerName: resolvedPlayer,
+      characterName: (characterName || '').trim(),
+      offerId: offerId || '',
+      offerStatus: offerStatus || '',
+      requestId: requestId || '',
+      text: text || `Campaign "${resolvedCampName}" (GM: ${resolvedGM}, Player: ${resolvedPlayer})`,
+      timestamp: new Date().toISOString(),
+      displayTime: new Date().toLocaleString(),
+      read: false,
+      readBy: []
+    };
+
+    const messages = this.getAllCampaignMessages();
+    messages.unshift(msg);
+    this.saveAllCampaignMessages(messages.slice(0, 200));
+
+    this.broadcastMessage({
+      type: 'CAMPAIGN_MESSAGE_DISPATCH',
+      message: msg
+    });
+
+    this.updateHeaderBadge();
+    return msg;
+  }
+
+  updateCampaignMessageOfferStatus(offerId, campaignId, newStatus) {
+    const cleanId = String(campaignId || '').trim().toUpperCase().replace(/^#+/, '');
+    const messages = this.getAllCampaignMessages();
+    messages.forEach(m => {
+      if (m.type === 'OWNERSHIP_TRANSFER_OFFER' && ((offerId && m.offerId === offerId) || (cleanId && m.campaignId === cleanId && m.offerStatus === 'pending'))) {
+        m.offerStatus = newStatus;
+        if (newStatus !== 'pending') m.read = true;
+      }
+    });
+    this.saveAllCampaignMessages(messages);
+    this.updateHeaderBadge();
+  }
+
+  /**
+   * Filters messages relevant to the current user (either as GM of their campaigns, participant in their campaigns, or direct recipient).
+   */
+  getMessagesForCurrentUser() {
+    const all = this.getAllCampaignMessages();
+    const history = this.getCampaignHistory();
+    const ownedIds = new Set(history.filter(c => !!c.isCreator).map(c => c.campaignId));
+    const participatedIds = new Set(history.map(c => c.campaignId));
+    const currentUser = (this.getCurrentUsername() || '').toLowerCase();
+
+    return all.filter(m => {
+      const mCampId = String(m.campaignId || '').toUpperCase().replace(/^#+/, '');
+      const recUser = (m.recipientUser || '').toLowerCase();
+
+      if (recUser && currentUser && recUser === currentUser) return true;
+      if (m.recipientRole === 'GM') {
+        return ownedIds.has(mCampId) || (currentUser && (m.gmName || '').toLowerCase() === currentUser);
+      }
+      if (m.recipientRole === 'USER') {
+        // Direct user message (e.g. ownership transfer offer): show to target user or if in local single-browser testing
+        return !recUser || !currentUser || recUser === currentUser || participatedIds.has(mCampId);
+      }
+      if (m.recipientRole === 'PLAYER') {
+        return !recUser || !currentUser || recUser === currentUser || (participatedIds.has(mCampId) && !ownedIds.has(mCampId));
+      }
+      // PARTICIPANTS or ALL
+      return participatedIds.has(mCampId) || ownedIds.has(mCampId);
+    });
+  }
+
+  getUnreadMessageCount() {
+    const readerKey = this.getTabSessionId();
+    return this.getMessagesForCurrentUser().filter(m => !m.read && !(Array.isArray(m.readBy) && m.readBy.includes(readerKey))).length;
+  }
+
+  markMessageRead(msgId) {
+    const readerKey = this.getTabSessionId();
+    const messages = this.getAllCampaignMessages();
+    const target = messages.find(m => m.id === msgId);
+    if (target) {
+      target.read = true;
+      if (!Array.isArray(target.readBy)) target.readBy = [];
+      if (!target.readBy.includes(readerKey)) target.readBy.push(readerKey);
+      this.saveAllCampaignMessages(messages);
+      this.updateHeaderBadge();
+    }
+  }
+
+  markAllMessagesRead() {
+    const readerKey = this.getTabSessionId();
+    const userMsgIds = new Set(this.getMessagesForCurrentUser().map(m => m.id));
+    const messages = this.getAllCampaignMessages();
+    messages.forEach(m => {
+      if (userMsgIds.has(m.id)) {
+        m.read = true;
+        if (!Array.isArray(m.readBy)) m.readBy = [];
+        if (!m.readBy.includes(readerKey)) m.readBy.push(readerKey);
+      }
+    });
+    this.saveAllCampaignMessages(messages);
+    this.updateHeaderBadge();
+  }
+
+  clearReadMessages() {
+    const readerKey = this.getTabSessionId();
+    const userMsgIds = new Set(this.getMessagesForCurrentUser().map(m => m.id));
+    const remaining = this.getAllCampaignMessages().filter(m => {
+      if (!userMsgIds.has(m.id)) return true;
+      const isRead = m.read || (Array.isArray(m.readBy) && m.readBy.includes(readerKey));
+      return !isRead;
+    });
+    this.saveAllCampaignMessages(remaining);
+    this.updateHeaderBadge();
+  }
+
+  // Event Notification Helpers (always noting Campaign, GM, and Player)
+  notifyCharacterDetached({ campaignId, campaignName = '', gmName = '', playerName = '', characterName = 'Hero' } = {}) {
+    const cleanId = String(campaignId || '').trim().toUpperCase().replace(/^#+/, '');
+    const info = this.getCampaignInfo(cleanId) || {};
+    const effCamp = campaignName || info.campaignName || cleanId;
+    const effGM = gmName || info.creatorName || 'GM';
+    const effPlayer = playerName || this.getCurrentUsername() || 'Player';
+    return this.sendCampaignMessage({
+      type: 'CHARACTER_DETACHED',
+      recipientRole: 'ALL',
+      campaignId: cleanId,
+      campaignName: effCamp,
+      gmName: effGM,
+      playerName: effPlayer,
+      characterName,
+      text: `Player "${effPlayer}" detached character "${characterName}" from campaign "${effCamp}" (#${cleanId}, GM: ${effGM}).`
+    });
+  }
+
+  notifyPlayerLeftCampaign({ campaignId, campaignName = '', gmName = '', playerName = '', characterNames = [] } = {}) {
+    const cleanId = String(campaignId || '').trim().toUpperCase().replace(/^#+/, '');
+    const info = this.getCampaignInfo(cleanId) || {};
+    const effCamp = campaignName || info.campaignName || cleanId;
+    const effGM = gmName || info.creatorName || 'GM';
+    const effPlayer = playerName || this.getCurrentUsername() || 'Player';
+    const charDesc = characterNames && characterNames.length > 0 ? ` (detached character(s): ${characterNames.join(', ')})` : '';
+    return this.sendCampaignMessage({
+      type: 'PLAYER_LEFT_CAMPAIGN',
+      recipientRole: 'ALL',
+      campaignId: cleanId,
+      campaignName: effCamp,
+      gmName: effGM,
+      playerName: effPlayer,
+      characterName: characterNames.join(', '),
+      text: `Player "${effPlayer}" left campaign "${effCamp}" (#${cleanId}, GM: ${effGM})${charDesc}.`
+    });
+  }
+
+  notifyCharacterRollback({ campaignId, campaignName = '', gmName = '', playerName = '', characterName = 'Hero', details = '' } = {}) {
+    const cleanId = String(campaignId || '').trim().toUpperCase().replace(/^#+/, '');
+    const info = this.getCampaignInfo(cleanId) || {};
+    const effCamp = campaignName || info.campaignName || cleanId;
+    const effGM = gmName || info.creatorName || 'GM';
+    const effPlayer = playerName || this.getCurrentUsername() || 'Player';
+    return this.sendCampaignMessage({
+      type: 'CHARACTER_ROLLBACK',
+      recipientRole: 'GM',
+      campaignId: cleanId,
+      campaignName: effCamp,
+      gmName: effGM,
+      playerName: effPlayer,
+      characterName,
+      text: `Player "${effPlayer}" rolled back / restored an earlier save of campaign character "${characterName}" in campaign "${effCamp}" (#${cleanId}, GM: ${effGM})${details ? ': ' + details : '.'}`
+    });
+  }
+
+  notifyNewPlayerOrCharacterJoined({ campaignId, campaignName = '', gmName = '', playerName = '', characterName = 'Hero' } = {}) {
+    const cleanId = String(campaignId || '').trim().toUpperCase().replace(/^#+/, '');
+    const info = this.getCampaignInfo(cleanId) || {};
+    const effCamp = campaignName || info.campaignName || cleanId;
+    const effGM = gmName || info.creatorName || 'GM';
+    const effPlayer = playerName || this.getCurrentUsername() || 'Player';
+    return this.sendCampaignMessage({
+      type: 'PLAYER_CHARACTER_JOINED',
+      recipientRole: 'ALL',
+      campaignId: cleanId,
+      campaignName: effCamp,
+      gmName: effGM,
+      playerName: effPlayer,
+      characterName,
+      text: `Player "${effPlayer}" with character "${characterName}" joined campaign "${effCamp}" (#${cleanId}, GM: ${effGM}).`
+    });
+  }
+
   leaveCampaign() {
     this.stopSessionHeartbeat();
     const current = this.getCampaignState();
@@ -1201,6 +1970,51 @@ export class CampaignTrackerManager {
 
     if (msg.type === 'CAMPAIGN_ANNOUNCE' || msg.type === 'CAMPAIGN_UPDATE') {
       this.registerCampaignInfo(msg);
+    }
+
+    if (msg.type === 'CAMPAIGN_MESSAGE_DISPATCH') {
+      this.updateHeaderBadge();
+      if (typeof window !== 'undefined' && window.appController?.renderCampaignMessagesModalIfOpen) {
+        window.appController.renderCampaignMessagesModalIfOpen();
+      }
+      return;
+    }
+
+    if (msg.type === 'CAMPAIGN_HIATUS_CHANGED' && msg.campaignId) {
+      const cleanId = String(msg.campaignId).trim().toUpperCase().replace(/^#+/, '');
+      const hist = this.getCampaignHistory();
+      const match = hist.find(c => c.campaignId === cleanId);
+      if (match) {
+        this.saveToCampaignHistory({ ...match, isOnHiatus: !!msg.isOnHiatus });
+      }
+      this.registerCampaignInfo({ campaignId: cleanId, campaignName: msg.campaignName, isOnHiatus: !!msg.isOnHiatus });
+      this.renderAllOpenViews();
+      return;
+    }
+
+    if (msg.type === 'CAMPAIGN_DELETED' && msg.campaignId) {
+      const cleanId = String(msg.campaignId).trim().toUpperCase().replace(/^#+/, '');
+      this.leaveCampaignPermanent(cleanId, msg.campaignName || '');
+      this.renderAllOpenViews();
+      return;
+    }
+
+    if (msg.type === 'CAMPAIGN_OWNERSHIP_TRANSFERRED' && msg.campaignId) {
+      const cleanId = String(msg.campaignId).trim().toUpperCase().replace(/^#+/, '');
+      const hist = this.getCampaignHistory();
+      const match = hist.find(c => c.campaignId === cleanId);
+      if (match) {
+        const myName = (this.getCurrentUsername() || '').toLowerCase();
+        const isNowCreator = !!(myName && msg.newGM && myName === msg.newGM.toLowerCase());
+        this.saveToCampaignHistory({
+          ...match,
+          creatorName: msg.newGM,
+          isCreator: isNowCreator,
+          pendingTransfer: null
+        });
+      }
+      this.renderAllOpenViews();
+      return;
     }
 
     if (msg.type === 'SESSION_HEARTBEAT' && msg.campaignId) {
@@ -1535,6 +2349,22 @@ export class CampaignTrackerManager {
         labelBtn.title = 'Click to open Campaign Tracker & Settings';
       }
     }
+
+    // Update new message count next to the user icon (viewable by users who own campaigns or have messages)
+    const msgBtn = document.getElementById('btn-header-messages');
+    const msgCountEl = document.getElementById('header-message-count-badge');
+    if (msgBtn && msgCountEl) {
+      const unreadCount = this.getUnreadMessageCount();
+      const totalMsgs = this.getMessagesForCurrentUser().length;
+      const ownsCamp = this.ownsAnyCampaign();
+      if (ownsCamp || totalMsgs > 0) {
+        msgBtn.style.display = 'inline-flex';
+        msgCountEl.textContent = String(unreadCount);
+        msgCountEl.style.background = unreadCount > 0 ? 'var(--hero-red)' : 'rgba(148, 163, 184, 0.35)';
+      } else {
+        msgBtn.style.display = 'none';
+      }
+    }
   }
 
   // =======================================================
@@ -1780,24 +2610,29 @@ export class CampaignTrackerManager {
     const storedChars = (typeof window !== 'undefined' && window.appController?.storage?.getCharacters()) || [];
 
     const historyCards = history.map(c => {
-      const isLive = this.isSessionActive(c.campaignId);
+      const regInfo = this.getCampaignInfo(c.campaignId) || {};
+      const isOnHiatus = !!(c.isOnHiatus || regInfo.isOnHiatus);
+      const pendingTransfer = c.pendingTransfer || regInfo.pendingTransfer || null;
+      const isLive = !isOnHiatus && this.isSessionActive(c.campaignId);
       const isCur = state.isConnected && isLive && state.campaignId === c.campaignId;
       const attached = storedChars.filter(ch => (ch.campaignId && ch.campaignId.toUpperCase().replace(/^#+/, '') === c.campaignId) || (ch.campaign && ch.campaign.trim().toLowerCase() === c.campaignName.toLowerCase()));
       const attachedStr = attached.map(ch => ch.name || 'Hero').join(', ') || 'None';
+      const pendingReqCount = c.isCreator ? this.getJoinRequestsForGM(c.campaignId).filter(r => r.status === 'pending').length : 0;
 
       return `
-        <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 4px; padding: 0.6rem 0.75rem; margin-bottom: 0.45rem; display: flex; flex-direction: column; gap: 0.4rem;">
+        <div style="background: var(--bg-card); border: 1px solid ${isOnHiatus ? 'rgba(245, 158, 11, 0.45)' : 'var(--border-color)'}; border-radius: 4px; padding: 0.6rem 0.75rem; margin-bottom: 0.45rem; display: flex; flex-direction: column; gap: 0.4rem;">
           <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.4rem;">
             <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
               <strong>${c.campaignName}</strong>
               <span style="font-size: 10pt; background: rgba(0,0,0,0.15); padding: 1px 6px; border-radius: 4px; font-weight: 800; color: var(--hero-blue);">ID: #${c.campaignId}</span>
               <span style="font-size: 10pt; color: var(--hero-gold); font-weight: 700;">PL ${c.powerLevel}</span>
-              ${c.isCreator ? '<span style="font-size: 10pt; font-weight: 800; color: var(--hero-gold); background: rgba(234, 179, 8, 0.15); padding: 1px 5px; border-radius: 3px;">👑 GM</span>' : '<span style="font-size: 10pt; font-weight: 700; color: var(--hero-blue); background: rgba(59, 130, 246, 0.15); padding: 1px 5px; border-radius: 3px;">Player</span>'}
+              ${c.isCreator ? '<span style="font-size: 10pt; font-weight: 800; color: var(--hero-gold); background: rgba(234, 179, 8, 0.15); padding: 1px 5px; border-radius: 3px;">👑 GM (Owner)</span>' : '<span style="font-size: 10pt; font-weight: 700; color: var(--hero-blue); background: rgba(59, 130, 246, 0.15); padding: 1px 5px; border-radius: 3px;">Player</span>'}
+              ${c.creatorName ? `<span style="font-size: 10pt; color: var(--text-muted);">GM: ${c.creatorName}</span>` : ''}
               <span style="font-size: 10pt; color: var(--text-muted);">Attached: ${attachedStr}</span>
             </div>
             <div style="display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap;">
-              ${isLive ? '<span style="color: #10b981; font-weight: 800; font-size: 10pt;">🟢 Session Running</span>' : '<span style="color: var(--text-muted); font-size: 10pt;">⚪ No Session Running</span>'}
-              ${c.isCreator ? (isLive ? `
+              ${isOnHiatus ? '<span style="color: var(--hero-gold); font-weight: 800; font-size: 10pt;">⏸️ On Hiatus</span>' : (isLive ? '<span style="color: #10b981; font-weight: 800; font-size: 10pt;">🟢 Session Running</span>' : '<span style="color: var(--text-muted); font-size: 10pt;">⚪ No Session Running</span>')}
+              ${c.isCreator && !isOnHiatus ? (isLive ? `
                 <button type="button" class="btn btn-outline btn-gm-toggle-session" data-action="end" data-campid="${c.campaignId}" style="font-size: 10pt; padding: 2px 7px; color: var(--hero-red); border-color: var(--hero-red); font-weight: 700;">⏹️ End Session</button>
               ` : `
                 <button type="button" class="btn btn-outline btn-gm-toggle-session" data-action="start" data-campid="${c.campaignId}" style="font-size: 10pt; padding: 2px 7px; color: var(--hero-green); border-color: var(--hero-green); font-weight: 700;">▶️ Start Session</button>
@@ -1809,23 +2644,42 @@ export class CampaignTrackerManager {
               ${attached.length > 0 ? `
                 <button type="button" class="btn btn-outline btn-load-attached-char" data-campid="${c.campaignId}" style="font-size: 10pt; padding: 2px 8px; color: var(--hero-purple); border-color: var(--hero-purple);">🦸 Load Hero</button>
               ` : ''}
-              <button type="button" class="btn btn-outline btn-leave-campaign-membership" data-campid="${c.campaignId}" data-campname="${(c.campaignName || '').replace(/"/g, '&quot;')}" title="Leave this campaign and detach characters" style="font-size: 10pt; padding: 2px 8px; color: var(--hero-red); border-color: rgba(239, 68, 68, 0.5); font-weight: 700;">🚪 Leave Campaign</button>
+              ${c.isCreator ? `
+                ${isOnHiatus ? `
+                  <button type="button" class="btn btn-outline btn-gm-toggle-hiatus" data-action="resume" data-campid="${c.campaignId}" style="font-size: 10pt; padding: 2px 8px; color: var(--hero-green); border-color: var(--hero-green); font-weight: 700;">▶️ Resume Campaign</button>
+                ` : `
+                  <button type="button" class="btn btn-outline btn-gm-toggle-hiatus" data-action="hiatus" data-campid="${c.campaignId}" title="Put campaign on hiatus (you still own the campaign)" style="font-size: 10pt; padding: 2px 8px; color: var(--hero-gold); border-color: var(--hero-gold); font-weight: 700;">⏸️ Put on Hiatus</button>
+                `}
+              ` : `
+                <button type="button" class="btn btn-outline btn-leave-campaign-membership" data-campid="${c.campaignId}" data-campname="${(c.campaignName || '').replace(/"/g, '&quot;')}" title="Leave this campaign and detach characters" style="font-size: 10pt; padding: 2px 8px; color: var(--hero-red); border-color: rgba(239, 68, 68, 0.5); font-weight: 700;">🚪 Leave Campaign</button>
+              `}
             </div>
           </div>
-          ${c.isCreator && !isCur ? `
-            <div style="display: flex; align-items: center; gap: 0.6rem; padding-top: 0.35rem; border-top: 1px dashed rgba(255,255,255,0.1); font-size: 10pt; flex-wrap: wrap;">
-              <span style="color: var(--hero-gold); font-weight: 800;">⚙️ GM Campaign Settings (Creator):</span>
-              <label style="display: inline-flex; align-items: center; gap: 0.35rem; cursor: pointer; user-select: none; color: var(--text-bright); font-weight: 700;" title="When checked, characters of any Power Level can join without PL restrictions">
-                <input type="checkbox" class="chk-campaign-dont-enforce-pl" data-campid="${c.campaignId}" ${c.dontEnforcePL ? 'checked' : ''} style="cursor: pointer; width: 14px; height: 14px; accent-color: var(--hero-gold);">
-                <span>Don't enforce PL</span>
-              </label>
-              <div style="display: inline-flex; align-items: center; gap: 0.35rem;">
-                <span style="color: var(--text-muted); font-size: 10pt; font-weight: 700;">PL:</span>
-                <select class="sel-campaign-target-pl" data-campid="${c.campaignId}" style="background: var(--bg-input); color: var(--text-bright); border: 1px solid var(--border-color); border-radius: 3px; padding: 1px 6px; font-size: 10pt; font-weight: 800;">
-                  ${[6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20].map(pl => `<option value="${pl}" ${(c.powerLevel || 10) === pl ? 'selected' : ''}>PL ${pl}</option>`).join('')}
-                </select>
+          ${c.isCreator ? `
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; padding-top: 0.35rem; border-top: 1px dashed rgba(255,255,255,0.1); font-size: 10pt; flex-wrap: wrap;">
+              <div style="display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap;">
+                <span style="color: var(--hero-gold); font-weight: 800;">⚙️ GM Campaign Settings (Owner):</span>
+                <label style="display: inline-flex; align-items: center; gap: 0.35rem; cursor: pointer; user-select: none; color: var(--text-bright); font-weight: 700;" title="When checked, characters of any Power Level can join without PL restrictions">
+                  <input type="checkbox" class="chk-campaign-dont-enforce-pl" data-campid="${c.campaignId}" ${c.dontEnforcePL ? 'checked' : ''} style="cursor: pointer; width: 14px; height: 14px; accent-color: var(--hero-gold);">
+                  <span>Don't enforce PL</span>
+                </label>
+                <div style="display: inline-flex; align-items: center; gap: 0.35rem;">
+                  <span style="color: var(--text-muted); font-size: 10pt; font-weight: 700;">PL:</span>
+                  <select class="sel-campaign-target-pl" data-campid="${c.campaignId}" style="background: var(--bg-input); color: var(--text-bright); border: 1px solid var(--border-color); border-radius: 3px; padding: 1px 6px; font-size: 10pt; font-weight: 800;">
+                    ${[6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20].map(pl => `<option value="${pl}" ${(c.powerLevel || 10) === pl ? 'selected' : ''}>PL ${pl}</option>`).join('')}
+                  </select>
+                </div>
+                <button type="button" class="btn btn-outline btn-open-join-requests" data-campid="${c.campaignId}" style="font-size: 10pt; font-weight: 700; color: var(--hero-blue); border-color: var(--hero-blue); padding: 1px 8px; cursor: pointer;">🔔 Join Requests${pendingReqCount > 0 ? ` (${pendingReqCount})` : ''}</button>
               </div>
-              <button type="button" class="btn btn-outline btn-open-join-requests" style="font-size: 10pt; font-weight: 700; color: var(--hero-blue); border-color: var(--hero-blue); padding: 1px 8px; cursor: pointer;">🔔 Join Requests</button>
+              <div style="display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap;">
+                ${pendingTransfer && pendingTransfer.status === 'pending' ? `
+                  <span style="font-size: 10pt; color: var(--hero-gold); font-weight: 700;">⏳ Transfer Offered to ${pendingTransfer.targetUser}</span>
+                  <button type="button" class="btn btn-outline btn-gm-withdraw-transfer" data-campid="${c.campaignId}" style="font-size: 10pt; padding: 1px 8px; color: var(--hero-gold); border-color: var(--hero-gold); font-weight: 700; cursor: pointer;">↩️ Withdraw Offer</button>
+                ` : `
+                  <button type="button" class="btn btn-outline btn-gm-transfer-ownership" data-campid="${c.campaignId}" data-campname="${(c.campaignName || '').replace(/"/g, '&quot;')}" style="font-size: 10pt; padding: 1px 8px; color: var(--hero-gold); border-color: var(--hero-gold); font-weight: 700; cursor: pointer;">👑 Transfer Ownership</button>
+                `}
+                <button type="button" class="btn btn-outline btn-gm-delete-campaign" data-campid="${c.campaignId}" data-campname="${(c.campaignName || '').replace(/"/g, '&quot;')}" style="font-size: 10pt; padding: 1px 8px; color: var(--hero-red); border-color: rgba(239, 68, 68, 0.5); font-weight: 700; cursor: pointer;">🗑️ Delete Campaign</button>
+              </div>
             </div>
           ` : ''}
         </div>
@@ -1953,9 +2807,55 @@ export class CampaignTrackerManager {
     });
 
     parentEl.querySelectorAll('.btn-open-join-requests').forEach(btn => {
-      btn.addEventListener('click', () => {
+      btn.addEventListener('click', (e) => {
+        const campId = e.currentTarget.dataset.campid || '';
         if (typeof window !== 'undefined' && window.appController) {
-          window.appController.openJoinRequestsModal();
+          window.appController.openJoinRequestsModal(campId);
+        }
+      });
+    });
+
+    parentEl.querySelectorAll('.btn-gm-toggle-hiatus').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const campId = e.currentTarget.dataset.campid;
+        const action = e.currentTarget.dataset.action;
+        if (campId && typeof window !== 'undefined' && window.appController) {
+          window.appController.toggleCampaignHiatus(campId, action === 'hiatus');
+        } else if (campId) {
+          this.setCampaignHiatus(campId, action === 'hiatus');
+        }
+      });
+    });
+
+    parentEl.querySelectorAll('.btn-gm-transfer-ownership').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const campId = e.currentTarget.dataset.campid;
+        const campName = e.currentTarget.dataset.campname || '';
+        if (campId && typeof window !== 'undefined' && window.appController) {
+          window.appController.openTransferOwnershipDialog(campId, campName);
+        }
+      });
+    });
+
+    parentEl.querySelectorAll('.btn-gm-withdraw-transfer').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const campId = e.currentTarget.dataset.campid;
+        if (campId && typeof window !== 'undefined' && window.appController) {
+          window.appController.withdrawCampaignTransferOffer(campId);
+        } else if (campId) {
+          this.withdrawOwnershipTransfer(campId);
+        }
+      });
+    });
+
+    parentEl.querySelectorAll('.btn-gm-delete-campaign').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const campId = e.currentTarget.dataset.campid;
+        const campName = e.currentTarget.dataset.campname || '';
+        if (campId && typeof window !== 'undefined' && window.appController) {
+          window.appController.confirmAndDeleteCampaignByGM(campId, campName);
+        } else if (campId) {
+          this.deleteCampaignByGM(campId);
         }
       });
     });
@@ -2062,7 +2962,7 @@ export class CampaignTrackerManager {
 <head>
   <meta charset="UTF-8">
   <title>Mutants & Masterminds 3E - Party Conditions & Toughness Tracker</title>
-  <link rel="stylesheet" href="css/styles.css?v=3.70">
+  <link rel="stylesheet" href="css/styles.css?v=3.71">
   <style>
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;

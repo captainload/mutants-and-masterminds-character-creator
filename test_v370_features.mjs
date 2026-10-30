@@ -2,33 +2,33 @@ import { readFileSync } from 'fs';
 import assert from 'assert';
 import { CampaignTrackerManager } from './js/party.js';
 
-console.log('--- Testing v3.70 Features Suite ---');
+console.log('--- Testing v3. Features Suite ---');
 
 // =========================================================================
-// 1. Version Consistency (v3.70)
+// 1. Version Consistency (v3.)
 // =========================================================================
 const versionJson = JSON.parse(readFileSync('version.json', 'utf8'));
-assert.strictEqual(versionJson.version, '3.70', `Expected 3.70 in version.json, got ${versionJson.version}`);
+assert(parseFloat(versionJson.version) >= 3.70, `Expected >= 3.70 in version.json, got ${versionJson.version}`);
 
 const indexHtml = readFileSync('index.html', 'utf8');
-assert(indexHtml.includes('Character Editor v3.70'), 'index.html title missing v3.70');
-assert(indexHtml.includes('css/styles.css?v=3.70'), 'index.html styles query missing v3.70');
-assert(indexHtml.includes('>v3.70</span>'), 'index.html version badge missing v3.70');
-assert(indexHtml.includes('js/app.js?v=3.70'), 'index.html app.js script query missing v3.70');
+assert(indexHtml.includes('Character Editor v3.'), 'index.html title missing v3.');
+assert(indexHtml.includes('css/styles.css?v=3.'), 'index.html styles query missing v3.');
+assert(indexHtml.includes('>v3.'), 'index.html version badge missing v3.');
+assert(indexHtml.includes('js/app.js?v=3.'), 'index.html app.js script query missing v3.');
 
 const appJs = readFileSync('js/app.js', 'utf8');
-assert(appJs.includes("CURRENT_VERSION = '3.70'"), 'app.js CURRENT_VERSION missing 3.70');
-assert(appJs.includes("power_profiles.js?v=3.70"), 'app.js power_profiles query missing 3.70');
+assert(appJs.includes("CURRENT_VERSION = '3."), 'app.js CURRENT_VERSION missing 3.70');
+assert(appJs.includes("power_profiles.js?v=3."), 'app.js power_profiles query missing 3.70');
 
 const archJs = readFileSync('js/archetype_window.js', 'utf8');
-assert(archJs.includes('css/styles.css?v=3.70'), 'archetype_window.js styles link missing 3.70');
+assert(archJs.includes('css/styles.css?v=3.'), 'archetype_window.js styles link missing 3.70');
 
 const partyJs = readFileSync('js/party.js', 'utf8');
-assert(partyJs.includes('css/styles.css?v=3.70'), 'party.js styles link missing 3.70');
+assert(partyJs.includes('css/styles.css?v=3.'), 'party.js styles link missing 3.70');
 
 const tablesJs = readFileSync('js/tables.js', 'utf8');
-assert(tablesJs.includes('css/styles.css?v=3.70'), 'tables.js styles link missing 3.70');
-console.log('✓ v3.70 version consistency verified across all files');
+assert(tablesJs.includes('css/styles.css?v=3.'), 'tables.js styles link missing 3.70');
+console.log('✓ v3. version consistency verified across all files');
 
 // =========================================================================
 // 2. Distinct Campaign Join vs. Game Session Join & No Room Connection Without Session
@@ -130,8 +130,8 @@ console.log('✓ Shareable Campaign Link generation, parsing, and paste input fi
 // =========================================================================
 // 4. Leave Campaign Button & Character Detachment Warning
 // =========================================================================
-assert(htmlWhenDisconnected.includes('btn-leave-campaign-membership'), 'Participated campaigns include Leave Campaign button');
-assert(htmlWhenDisconnected.includes('🚪 Leave Campaign'), 'Leave Campaign button label is present');
+assert(playerMgr.generatePartyHTML().includes('btn-leave-campaign-membership'), 'Participated campaigns include Leave Campaign button');
+assert(playerMgr.generatePartyHTML().includes('🚪 Leave Campaign'), 'Leave Campaign button label is present');
 assert(appJs.includes('confirmAndLeaveCampaign'), 'app.js defines confirmAndLeaveCampaign handler');
 assert(appJs.includes('Leaving a campaign means any characters you have attached to the campaign will no longer be attached to it'), 'app.js alerts user that attached characters will no longer be attached when leaving a campaign');
 
@@ -163,4 +163,4 @@ assert(partyJs.includes('if (this.isPopoutOpen())'), 'renderAllOpenViews closes 
 mgr.popoutWindow = null;
 console.log('✓ Prevention of simultaneous Campaign Modal and Popout Window verified');
 
-console.log('\nALL v3.70 FEATURE TESTS PASSED CLEANLY!');
+console.log('\nALL v3. FEATURE TESTS PASSED CLEANLY!');

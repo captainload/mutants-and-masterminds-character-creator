@@ -41,7 +41,7 @@ import {
   tablesManager
 } from './tables.js';
 
-import { POWER_PROFILES_LIBRARY } from './power_profiles.js?v=3.70';
+import { POWER_PROFILES_LIBRARY } from './power_profiles.js?v=3.71';
 import { ARCHETYPES } from './archetypes.js';
 import { archetypeManager } from './archetype_window.js';
 import { campaignManager, partyManager, formatCharacterSheetHTML } from './party.js';
@@ -2037,7 +2037,7 @@ window.partyManager = partyManager;
   }
 
   async checkForUpdates({ isManual = false } = {}) {
-    const CURRENT_VERSION = '3.70';
+    const CURRENT_VERSION = '3.71';
     const versionEl = document.getElementById('header-version-tag');
     const updateBtn = document.getElementById('btn-header-update-alert');
     if (typeof window === 'undefined' || !window.location || !window.location.href || window.location.href === 'about:blank') return;
@@ -2528,6 +2528,25 @@ window.partyManager = partyManager;
     if (authCloseBtn) {
       authCloseBtn.addEventListener('click', () => this.closeModal('modal-auth'));
     }
+    document.getElementById('btn-header-messages')?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      this.openCampaignMessagesModal();
+    });
+    document.getElementById('btn-header-user-messages')?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (userDropdown) userDropdown.style.display = 'none';
+      this.openCampaignMessagesModal();
+    });
+    document.getElementById('btn-close-campaign-messages')?.addEventListener('click', () => this.closeModal('modal-campaign-messages'));
+    document.getElementById('btn-close-campaign-messages-footer')?.addEventListener('click', () => this.closeModal('modal-campaign-messages'));
+    document.getElementById('btn-mark-all-messages-read')?.addEventListener('click', () => {
+      campaignManager.markAllMessagesRead();
+      this.renderCampaignMessagesModalIfOpen();
+    });
+    document.getElementById('btn-clear-read-messages')?.addEventListener('click', () => {
+      campaignManager.clearReadMessages();
+      this.renderCampaignMessagesModalIfOpen();
+    });
     document.getElementById('btn-header-user-settings')?.addEventListener('click', (e) => {
       e.stopPropagation();
       if (userDropdown) userDropdown.style.display = 'none';
@@ -2995,10 +3014,21 @@ window.partyManager = partyManager;
     if (campHeaderInput) campHeaderInput.value = campName;
     this.saveAndAudit();
 
+    const effectivePlayerName = this.char.playerName || supabaseService.getUsername() || charName;
+    const effectiveGMName = cloudCamp?.creator_name || localInfo?.creatorName || 'GM';
+
+    partyManager.submitCampaignJoinRequest({
+      campaignId: cleanCampId,
+      campaignName: campName,
+      gmName: effectiveGMName,
+      playerName: effectivePlayerName,
+      character: this.char
+    });
+
     partyManager.joinCampaign({
       campaignId: cleanCampId,
       campaignName: campName,
-      playerName: this.char.playerName || charName,
+      playerName: effectivePlayerName,
       powerLevel: campPL,
       dontEnforcePL
     });
@@ -3134,10 +3164,12 @@ window.partyManager = partyManager;
     );
     if (!confirmed) return;
 
+    const detachedNames = [];
     // Detach currently active character if attached to this campaign
     const curCampId = String(this.char.campaignId || '').trim().toUpperCase().replace(/^#+/, '');
     const curCampName = String(this.char.campaign || '').trim().toLowerCase();
     if ((cleanId && curCampId === cleanId) || (cleanName && curCampName === cleanName)) {
+      if (this.char.name) detachedNames.push(this.char.name);
       this.char.campaign = '';
       this.char.campaignId = '';
       this.char.lastCampaign = '';
@@ -3158,6 +3190,7 @@ window.partyManager = partyManager;
         const chId = String(ch.campaignId || '').trim().toUpperCase().replace(/^#+/, '');
         const chName = String(ch.campaign || '').trim().toLowerCase();
         if ((cleanId && chId === cleanId) || (cleanName && chName === cleanName)) {
+          if (ch.name && !detachedNames.includes(ch.name)) detachedNames.push(ch.name);
           ch.campaign = '';
           ch.campaignId = '';
           ch.lastCampaign = '';
@@ -3170,14 +3203,239 @@ window.partyManager = partyManager;
       console.warn('Error detaching stored characters on campaign leave:', e);
     }
 
+    const playerName = this.char.playerName || supabaseService.getUsername() || 'Player';
+    campaignManager.notifyPlayerLeftCampaign({
+      campaignId: cleanId,
+      campaignName: displayCampName,
+      gmName: info?.creatorName || 'GM',
+      playerName,
+      characterNames: detachedNames
+    });
+
     campaignManager.leaveCampaignPermanent(cleanId, displayCampName);
     campaignManager.renderAllOpenViews();
   }
 
-  async openJoinRequestsModal() {
+  async toggleCampaignHiatus(campId, putOnHiatus = true) {
+    const cleanId = String(campId || '').trim().toUpperCase().replace(/^#+/, '');
+    const info = campaignManager.getCampaignInfo(cleanId) || campaignManager.getCampaignHistory().find(c => c.campaignId === cleanId);
+    const campName = info?.campaignName || cleanId;
+
+    if (putOnHiatus) {
+      const confirmed = await this.showConfirmDialog(
+        `Put campaign "${campName}" (#${cleanId}) on hiatus?\n\n• You still own the campaign and it will not be deleted.\n• Any running game session will be ended.\n• Campaign players will be notified via messaging that the campaign is on hiatus.`,
+        {
+          title: 'Put Campaign on Hiatus?',
+          confirmText: '⏸️ Put on Hiatus',
+          cancelText: 'Cancel',
+          confirmClass: 'btn-primary'
+        }
+      );
+      if (!confirmed) return;
+    }
+
+    campaignManager.setCampaignHiatus(cleanId, putOnHiatus, supabaseService.getUsername() || this.char.playerName || 'GM');
+    await this.showAlertDialog(
+      putOnHiatus
+        ? `Campaign "${campName}" is now on hiatus. All campaign players have been notified.`
+        : `Campaign "${campName}" has been resumed from hiatus! All campaign players have been notified.`,
+      { title: putOnHiatus ? 'Campaign on Hiatus' : 'Campaign Resumed' }
+    );
+  }
+
+  async confirmAndDeleteCampaignByGM(campId, campName = '') {
+    const cleanId = String(campId || '').trim().toUpperCase().replace(/^#+/, '');
+    const info = campaignManager.getCampaignInfo(cleanId);
+    const displayCampName = campName || info?.campaignName || cleanId;
+
+    const confirmed = await this.showConfirmDialog(
+      `Are you sure you want to permanently cancel and delete your campaign "${displayCampName}" (#${cleanId})?\n\n⚠️ All campaign participants will be notified via messaging that this campaign has been cancelled.`,
+      {
+        title: 'Delete Campaign?',
+        confirmText: '🗑️ Delete Campaign',
+        cancelText: 'Keep Campaign',
+        confirmClass: 'btn-danger'
+      }
+    );
+    if (!confirmed) return;
+
+    campaignManager.deleteCampaignByGM(cleanId, supabaseService.getUsername() || this.char.playerName || 'GM');
+    await this.showAlertDialog(`Campaign "${displayCampName}" has been cancelled and deleted.`, { title: 'Campaign Deleted' });
+  }
+
+  async openTransferOwnershipDialog(campId, campName = '') {
+    const cleanId = String(campId || '').trim().toUpperCase().replace(/^#+/, '');
+    const info = campaignManager.getCampaignInfo(cleanId) || campaignManager.getCampaignHistory().find(c => c.campaignId === cleanId);
+    const displayCampName = campName || info?.campaignName || cleanId;
+    const isHiatus = !!info?.isOnHiatus;
+
+    const targetUser = await this.showPromptDialog({
+      title: `Transfer Campaign Ownership: ${displayCampName}`,
+      label: `Enter the username / player name to offer ownership of "${displayCampName}" (#${cleanId}):`,
+      defaultValue: '',
+      placeholder: 'e.g. Player2, StarKnight',
+      confirmText: 'Send Ownership Offer'
+    });
+    if (!targetUser || !targetUser.trim()) return;
+
+    try {
+      const offer = campaignManager.initiateOwnershipTransfer(
+        cleanId,
+        targetUser.trim(),
+        supabaseService.getUsername() || this.char.playerName || info?.creatorName || 'GM'
+      );
+      await this.showAlertDialog(
+        `Ownership transfer offer for "${displayCampName}" (#${cleanId}) has been sent to "${offer.targetUser}"!${isHiatus ? '\n\n(Initiated during campaign hiatus)' : ''}\n\n"${offer.targetUser}" will receive a message asking if they want to accept or refuse ownership of the campaign. You can withdraw this offer at any time in the Campaign Manager until they respond.`,
+        { title: 'Ownership Offer Sent' }
+      );
+    } catch (err) {
+      await this.showAlertDialog(err.message, { title: 'Transfer Error' });
+    }
+  }
+
+  async withdrawCampaignTransferOffer(campId) {
+    const cleanId = String(campId || '').trim().toUpperCase().replace(/^#+/, '');
+    const info = campaignManager.getCampaignInfo(cleanId) || campaignManager.getCampaignHistory().find(c => c.campaignId === cleanId);
+    const displayCampName = info?.campaignName || cleanId;
+    const targetUser = info?.pendingTransfer?.targetUser || 'the target user';
+
+    const confirmed = await this.showConfirmDialog(
+      `Withdraw your pending ownership transfer offer for "${displayCampName}" (#${cleanId}) to "${targetUser}"?`,
+      {
+        title: 'Withdraw Ownership Offer?',
+        confirmText: 'Withdraw Offer',
+        cancelText: 'Keep Offer Pending',
+        confirmClass: 'btn-primary'
+      }
+    );
+    if (!confirmed) return;
+
+    try {
+      campaignManager.withdrawOwnershipTransfer(cleanId, supabaseService.getUsername() || this.char.playerName || 'GM');
+      await this.showAlertDialog(`Ownership transfer offer for "${displayCampName}" has been withdrawn.`, { title: 'Offer Withdrawn' });
+    } catch (err) {
+      await this.showAlertDialog(err.message, { title: 'Withdraw Error' });
+    }
+  }
+
+  openCampaignMessagesModal() {
+    this.openModal('modal-campaign-messages');
+    this.renderCampaignMessagesModalIfOpen();
+  }
+
+  renderCampaignMessagesModalIfOpen() {
+    const modal = document.getElementById('modal-campaign-messages');
+    const container = document.getElementById('campaign-messages-list-container');
+    if (!modal || !container) return;
+
+    const readerKey = campaignManager.getTabSessionId();
+    const messages = campaignManager.getMessagesForCurrentUser();
+
+    if (messages.length === 0) {
+      container.innerHTML = `
+        <div style="text-align: center; color: var(--text-muted); font-size: 10pt; font-style: italic; padding: 2rem 0;">
+          No campaign messages yet. Notifications about join requests, character changes, hiatuses, and ownership transfers appear here.
+        </div>
+      `;
+      return;
+    }
+
+    container.innerHTML = messages.map(m => {
+      const isUnread = !m.read && !(Array.isArray(m.readBy) && m.readBy.includes(readerKey));
+      const isPendingOffer = m.type === 'OWNERSHIP_TRANSFER_OFFER' && m.offerStatus === 'pending';
+
+      return `
+        <div class="campaign-message-card" style="background: ${isUnread ? 'rgba(59, 130, 246, 0.1)' : 'var(--bg-card)'}; border: 1px solid ${isUnread ? 'var(--hero-blue)' : 'var(--border-color)'}; border-radius: 6px; padding: 0.75rem 1rem; margin-bottom: 0.65rem; display: flex; flex-direction: column; gap: 0.45rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.4rem; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 0.35rem;">
+            <div style="display: flex; align-items: center; gap: 0.45rem; flex-wrap: wrap;">
+              ${isUnread ? '<span style="background: var(--hero-blue); color: #fff; font-size: 10pt; font-weight: 800; padding: 1px 6px; border-radius: 4px;">NEW</span>' : ''}
+              <span style="font-size: 10pt; font-weight: 800; color: var(--hero-gold); background: rgba(234, 179, 8, 0.14); padding: 1px 7px; border-radius: 4px;">🛡️ Campaign: ${m.campaignName} (#${m.campaignId})</span>
+              <span style="font-size: 10pt; font-weight: 700; color: var(--hero-blue); background: rgba(59, 130, 246, 0.14); padding: 1px 7px; border-radius: 4px;">👑 GM: ${m.gmName || 'GM'}</span>
+              <span style="font-size: 10pt; font-weight: 700; color: var(--text-bright); background: rgba(255, 255, 255, 0.08); padding: 1px 7px; border-radius: 4px;">👤 Player: ${m.playerName || 'Player'}</span>
+            </div>
+            <span style="font-size: 10pt; color: var(--text-muted);">${m.displayTime || ''}</span>
+          </div>
+          <div style="font-size: 10pt; color: var(--text-bright); line-height: 1.4;">
+            ${m.text}
+          </div>
+          <div style="display: flex; justify-content: flex-end; align-items: center; gap: 0.45rem; flex-wrap: wrap;">
+            ${isPendingOffer ? `
+              <button type="button" class="btn btn-primary btn-msg-accept-transfer" data-campid="${m.campaignId}" data-msgid="${m.id}" style="font-size: 10pt; padding: 2px 9px; font-weight: 800; background: var(--hero-green); border-color: var(--hero-green);">✅ Accept Ownership</button>
+              <button type="button" class="btn btn-outline btn-msg-refuse-transfer" data-campid="${m.campaignId}" data-msgid="${m.id}" style="font-size: 10pt; padding: 2px 9px; font-weight: 800; color: var(--hero-red); border-color: var(--hero-red);">❌ Refuse Ownership</button>
+            ` : (m.type === 'OWNERSHIP_TRANSFER_OFFER' && m.offerStatus ? `
+              <span style="font-size: 10pt; font-weight: 800; color: var(--text-muted);">[Offer ${m.offerStatus.toUpperCase()}]</span>
+            ` : '')}
+            ${m.type === 'JOIN_REQUEST' ? `
+              <button type="button" class="btn btn-outline btn-msg-open-requests" data-campid="${m.campaignId}" data-msgid="${m.id}" style="font-size: 10pt; padding: 2px 8px; color: var(--hero-blue); border-color: var(--hero-blue); font-weight: 700;">🛡️ Review Join Requests</button>
+            ` : ''}
+            ${isUnread ? `
+              <button type="button" class="btn btn-outline btn-msg-mark-read" data-msgid="${m.id}" style="font-size: 10pt; padding: 2px 8px;">Mark Read</button>
+            ` : ''}
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    container.querySelectorAll('.btn-msg-mark-read').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        campaignManager.markMessageRead(e.currentTarget.dataset.msgid);
+        this.renderCampaignMessagesModalIfOpen();
+      });
+    });
+
+    container.querySelectorAll('.btn-msg-open-requests').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const msgId = e.currentTarget.dataset.msgid;
+        const campId = e.currentTarget.dataset.campid;
+        if (msgId) campaignManager.markMessageRead(msgId);
+        this.closeModal('modal-campaign-messages');
+        this.openJoinRequestsModal(campId);
+      });
+    });
+
+    container.querySelectorAll('.btn-msg-accept-transfer').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        const campId = e.currentTarget.dataset.campid;
+        const msgId = e.currentTarget.dataset.msgid;
+        try {
+          const res = campaignManager.respondToOwnershipTransfer(campId, true, supabaseService.getUsername() || this.char.playerName || 'New GM');
+          if (msgId) campaignManager.markMessageRead(msgId);
+          this.renderCampaignMessagesModalIfOpen();
+          await this.showAlertDialog(`You have accepted ownership of campaign "${res.campaignName}" (#${res.campaignId})! You are now its GM.`, { title: 'Ownership Accepted' });
+        } catch (err) {
+          await this.showAlertDialog(err.message, { title: 'Transfer Error' });
+        }
+      });
+    });
+
+    container.querySelectorAll('.btn-msg-refuse-transfer').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        const campId = e.currentTarget.dataset.campid;
+        const msgId = e.currentTarget.dataset.msgid;
+        try {
+          const res = campaignManager.respondToOwnershipTransfer(campId, false, supabaseService.getUsername() || this.char.playerName || 'Player');
+          if (msgId) campaignManager.markMessageRead(msgId);
+          this.renderCampaignMessagesModalIfOpen();
+          await this.showAlertDialog(`You have refused ownership of campaign "${res.campaignName}". The GM has been notified.`, { title: 'Ownership Refused' });
+        } catch (err) {
+          await this.showAlertDialog(err.message, { title: 'Transfer Error' });
+        }
+      });
+    });
+  }
+
+  /**
+   * Opens the GM Join Requests Modal.
+   * Viewable by the campaign owner even when no campaign session is running!
+   */
+  async openJoinRequestsModal(campId = '') {
+    const cleanTargetId = String(campId || '').trim().toUpperCase().replace(/^#+/, '');
+    const ownedCampaigns = campaignManager.getCampaignHistory().filter(c => !!c.isCreator);
     const state = campaignManager.getCampaignState();
-    if (!state.campaignId) {
-      await this.showAlertDialog('You are not currently connected to any campaign.', { title: 'No Campaign' });
+    const effectiveCampId = cleanTargetId || (state.isCreator ? state.campaignId : '') || (ownedCampaigns[0]?.campaignId || '');
+
+    if (!effectiveCampId && ownedCampaigns.length === 0) {
+      await this.showAlertDialog('You do not currently own any campaigns to review join requests for.', { title: 'No Owned Campaigns' });
       return;
     }
 
@@ -3185,24 +3443,44 @@ window.partyManager = partyManager;
     this.openModal('modal-join-requests');
 
     if (!container) return;
-    container.innerHTML = '<div style="text-align: center; color: var(--text-muted); padding: 1.5rem 0;">Loading pending join requests...</div>';
+    container.innerHTML = '<div style="text-align: center; color: var(--text-muted); padding: 1.5rem 0;">Loading join requests...</div>';
 
-    let requests = [];
+    // Gather requests from local/P2P store (works even when offline or no session is running)
+    const localRequests = campaignManager.getJoinRequestsForGM(cleanTargetId);
+    const mergedMap = new Map();
+    localRequests.forEach(r => mergedMap.set(String(r.id), r));
+
+    // Also merge from Supabase if available
     if (supabaseService.client) {
       try {
-        const campInfo = await supabaseService.getCampaignByNameOrCode(state.campaignId);
-        if (campInfo) {
-          requests = await supabaseService.getJoinRequests(campInfo.id);
+        const targetIdsToQuery = cleanTargetId ? [cleanTargetId] : ownedCampaigns.map(c => c.campaignId);
+        for (const cCode of targetIdsToQuery) {
+          const campInfo = await supabaseService.getCampaignByNameOrCode(cCode);
+          if (campInfo) {
+            const cloudReqs = await supabaseService.getJoinRequests(campInfo.id);
+            cloudReqs.forEach(cr => {
+              mergedMap.set(String(cr.id), {
+                ...cr,
+                campaignId: cCode,
+                campaignName: campInfo.campaign_name || cCode,
+                gmName: campInfo.creator_name || 'GM'
+              });
+            });
+          }
         }
       } catch (e) {
-        console.warn('Error fetching requests:', e);
+        console.warn('Error fetching cloud requests:', e);
       }
     }
+
+    const requests = Array.from(mergedMap.values());
+    const targetInfo = effectiveCampId ? campaignManager.getCampaignInfo(effectiveCampId) : null;
+    const labelName = cleanTargetId ? (targetInfo?.campaignName || cleanTargetId) : 'your owned campaigns';
 
     if (requests.length === 0) {
       container.innerHTML = `
         <div style="text-align: center; color: var(--text-muted); font-size: 10pt; font-style: italic; padding: 1.5rem 0;">
-          No pending join requests for "${state.campaignName || state.campaignId}".
+          No join requests found for ${labelName}.
         </div>
       `;
       return;
@@ -3211,8 +3489,11 @@ window.partyManager = partyManager;
     container.innerHTML = requests.map(req => `
       <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 6px; padding: 0.75rem 1rem; margin-bottom: 0.65rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
         <div>
-          <div style="font-size: 10pt; font-weight: 800; color: var(--text-bright);">${req.character_name} <span style="font-size: 10pt; color: var(--hero-blue); font-weight: 700;">(PL ${req.power_level})</span></div>
-          <div style="font-size: 10pt; color: var(--text-muted);">Player: <strong>${req.username}</strong> • Status: <span style="font-weight: 700; color: ${req.status === 'approved' ? 'var(--hero-green)' : (req.status === 'rejected' ? 'var(--hero-red)' : 'var(--hero-gold)')};">${req.status.toUpperCase()}</span></div>
+          <div style="font-size: 10pt; font-weight: 800; color: var(--text-bright);">
+            ${req.character_name} <span style="font-size: 10pt; color: var(--hero-blue); font-weight: 700;">(PL ${req.power_level})</span>
+            <span style="font-size: 10pt; color: var(--hero-gold); font-weight: 700; margin-left: 0.35rem;">• Campaign: ${req.campaignName || req.campaignId || effectiveCampId}</span>
+          </div>
+          <div style="font-size: 10pt; color: var(--text-muted);">Player: <strong>${req.username}</strong> • GM: <strong>${req.gmName || 'GM'}</strong> • Status: <span style="font-weight: 700; color: ${req.status === 'approved' ? 'var(--hero-green)' : (req.status === 'rejected' ? 'var(--hero-red)' : 'var(--hero-gold)')};">${(req.status || 'pending').toUpperCase()}</span></div>
         </div>
         <div style="display: flex; gap: 0.4rem; align-items: center;">
           <button type="button" class="btn btn-outline btn-req-inspect" data-reqid="${req.id}" style="font-size: 10pt; padding: 2px 7px; color: var(--hero-blue); border-color: var(--hero-blue); cursor: pointer;">👁️ Inspect Sheet</button>
@@ -3226,7 +3507,7 @@ window.partyManager = partyManager;
 
     container.querySelectorAll('.btn-req-inspect').forEach(btn => {
       btn.addEventListener('click', (e) => {
-        const req = requests.find(r => r.id === e.currentTarget.dataset.reqid);
+        const req = requests.find(r => String(r.id) === String(e.currentTarget.dataset.reqid));
         if (req && req.character_data) {
           this.openCharacterInspectorModal(req.character_data);
         }
@@ -3236,20 +3517,23 @@ window.partyManager = partyManager;
     container.querySelectorAll('.btn-req-approve').forEach(btn => {
       btn.addEventListener('click', async (e) => {
         const reqId = e.currentTarget.dataset.reqid;
-        const req = requests.find(r => r.id === reqId);
+        const req = requests.find(r => String(r.id) === String(reqId));
         try {
-          await supabaseService.respondToJoinRequest(reqId, 'approved');
+          campaignManager.respondToCampaignJoinRequest(reqId, 'approved', supabaseService.getUsername() || this.char.playerName || 'GM');
+          if (supabaseService.client && !String(reqId).startsWith('req_')) {
+            await supabaseService.respondToJoinRequest(reqId, 'approved');
+          }
           if (req) {
             partyManager.ingestRemoteMember({
-              id: req.character_id + '_' + req.user_id,
+              id: (req.character_id || 'hero') + '_' + (req.user_id || req.username),
               characterName: req.character_name,
               playerName: req.username,
               powerLevel: req.power_level,
               characterData: req.character_data
             });
           }
-          await this.showAlertDialog(`Approved "${req.character_name}" for campaign party!`, { title: 'Player Approved' });
-          this.openJoinRequestsModal();
+          await this.showAlertDialog(`Approved "${req?.character_name || 'Hero'}" for campaign "${req?.campaignName || effectiveCampId}"!`, { title: 'Player Approved' });
+          this.openJoinRequestsModal(cleanTargetId);
         } catch (err) {
           this.showAlertDialog(err.message, { title: 'Approval Error' });
         }
@@ -3259,10 +3543,14 @@ window.partyManager = partyManager;
     container.querySelectorAll('.btn-req-reject').forEach(btn => {
       btn.addEventListener('click', async (e) => {
         const reqId = e.currentTarget.dataset.reqid;
+        const req = requests.find(r => String(r.id) === String(reqId));
         try {
-          await supabaseService.respondToJoinRequest(reqId, 'rejected');
-          await this.showAlertDialog('Join request rejected.', { title: 'Request Rejected' });
-          this.openJoinRequestsModal();
+          campaignManager.respondToCampaignJoinRequest(reqId, 'rejected', supabaseService.getUsername() || this.char.playerName || 'GM');
+          if (supabaseService.client && !String(reqId).startsWith('req_')) {
+            await supabaseService.respondToJoinRequest(reqId, 'rejected');
+          }
+          await this.showAlertDialog(`Join request from "${req?.username || 'Player'}" rejected. The player has been notified via messaging.`, { title: 'Request Rejected' });
+          this.openJoinRequestsModal(cleanTargetId);
         } catch (err) {
           this.showAlertDialog(err.message, { title: 'Rejection Error' });
         }
@@ -3444,6 +3732,17 @@ window.partyManager = partyManager;
             if (!backup || !backup.character_data) return;
 
             const loadedChar = backup.character_data;
+            const prevCampId = loadedChar.campaignId || this.char?.campaignId || '';
+            const prevCampName = loadedChar.campaign || this.char?.campaign || '';
+            if (prevCampId || prevCampName) {
+              partyManager.notifyCharacterRollback({
+                campaignId: prevCampId || prevCampName,
+                campaignName: prevCampName || prevCampId,
+                playerName: loadedChar.playerName || supabaseService.getUsername() || 'Player',
+                characterName: loadedChar.name || backup.name || 'Hero',
+                details: `Restored cloud backup from ${backup.updated_at ? new Date(backup.updated_at).toLocaleString() : 'earlier save'}`
+              });
+            }
             this.char = loadedChar;
             this.primaryChar = loadedChar;
             this.activeAltId = null;
@@ -3558,6 +3857,17 @@ window.partyManager = partyManager;
       }
     );
     if (!confirmed) return;
+
+    const prevCampId = this.char.campaignId || campaignManager.getCampaignState().campaignId || '';
+    const prevCampName = this.char.campaign || campaignManager.getCampaignState().campaignName || '';
+    if (prevCampId || prevCampName) {
+      partyManager.notifyCharacterDetached({
+        campaignId: prevCampId || prevCampName,
+        campaignName: prevCampName || prevCampId,
+        playerName: this.char.playerName || supabaseService.getUsername() || 'Player',
+        characterName: charName
+      });
+    }
 
     this.char.campaign = '';
     this.char.campaignId = '';

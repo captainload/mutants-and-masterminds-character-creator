@@ -234,7 +234,7 @@ export class TablesWindowManager {
       <head>
         <meta charset="UTF-8">
         <title>Mutants & Masterminds 3E - Official Reference Tables</title>
-        <link rel="stylesheet" href="css/styles.css?v=3.73">
+        <link rel="stylesheet" href="css/styles.css?v=3.74">
         <style>
           body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;

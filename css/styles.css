@@ -3143,3 +3143,140 @@ html[data-theme="light"] .stat-summary-bar {
   overflow-y: auto;
   box-sizing: border-box;
 }
+
+
+/* =====================================================================
+   v3.74: CAMPAIGN TRACKER SECTION DIVISION & TRADITIONAL MESSAGE CLIENT
+   ===================================================================== */
+.tracker-section-session-monitor {
+  background: rgba(15, 23, 42, 0.45);
+  border: 2px solid var(--border-color);
+  border-radius: 8px;
+  padding: 0.85rem 1rem;
+  margin-bottom: 0.5rem;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.22);
+}
+
+.tracker-section-session-monitor.session-live {
+  border-color: var(--hero-green);
+  background: rgba(16, 185, 129, 0.05);
+}
+
+.tracker-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding-bottom: 0.6rem;
+  margin-bottom: 0.75rem;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+}
+
+.tracker-section-divider {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  margin: 1.25rem 0;
+  user-select: none;
+}
+
+.tracker-section-divider-line {
+  flex: 1;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--hero-blue), var(--hero-gold), var(--hero-blue), transparent);
+  opacity: 0.75;
+}
+
+.tracker-section-divider-badge {
+  font-size: 10pt;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--hero-gold);
+  background: var(--bg-card);
+  border: 1px solid var(--hero-gold);
+  border-radius: 999px;
+  padding: 3px 14px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.tracker-section-campaign-browser {
+  background: rgba(15, 23, 42, 0.45);
+  border: 2px solid rgba(59, 130, 246, 0.55);
+  border-radius: 8px;
+  padding: 0.85rem 1rem;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.22);
+}
+
+/* Traditional Messaging Client Layout */
+.msg-client-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  padding: 0.45rem 0.65rem;
+  margin-bottom: 0.65rem;
+}
+
+.msg-client-inbox-pane {
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  background: rgba(15, 23, 42, 0.35);
+  display: flex;
+  flex-direction: column;
+  min-height: 200px;
+  max-height: 360px;
+  overflow: hidden;
+}
+
+.msg-client-list-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.4rem 0.85rem;
+  background: rgba(0, 0, 0, 0.28);
+  border-bottom: 1px solid var(--border-color);
+  font-size: 10pt;
+  font-weight: 800;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.campaign-message-card.selected {
+  outline: 2px solid var(--hero-gold);
+  background: rgba(234, 179, 8, 0.08) !important;
+}
+
+.msg-client-compose-pane {
+  margin-top: 0.75rem;
+  background: var(--bg-card);
+  border: 2px solid var(--hero-blue);
+  border-radius: 6px;
+  padding: 0.75rem 0.9rem;
+  box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.25);
+}
+
+/* 3 blank rows by default (72px), expands up to 8 visible rows (172px) before scrolling */
+.textarea-msg-compose {
+  width: 100%;
+  min-height: 72px;
+  max-height: 172px;
+  line-height: 20px;
+  padding: 6px 10px;
+  font-size: 10pt;
+  font-family: inherit;
+  background: var(--bg-input);
+  color: var(--text-bright);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  resize: none;
+  overflow-y: auto;
+  box-sizing: border-box;
+  display: block;
+}

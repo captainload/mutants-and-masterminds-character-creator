@@ -41,7 +41,7 @@ import {
   tablesManager
 } from './tables.js';
 
-import { POWER_PROFILES_LIBRARY } from './power_profiles.js?v=3.73';
+import { POWER_PROFILES_LIBRARY } from './power_profiles.js?v=3.74';
 import { ARCHETYPES } from './archetypes.js';
 import { archetypeManager } from './archetype_window.js';
 import { campaignManager, partyManager, formatCharacterSheetHTML } from './party.js';
@@ -2059,7 +2059,7 @@ window.partyManager = partyManager;
   }
 
   async checkForUpdates({ isManual = false } = {}) {
-    const CURRENT_VERSION = '3.73';
+    const CURRENT_VERSION = '3.74';
     const versionEl = document.getElementById('header-version-tag');
     const updateBtn = document.getElementById('btn-header-update-alert');
     if (typeof window === 'undefined' || !window.location || !window.location.href || window.location.href === 'about:blank') return;
@@ -2569,6 +2569,47 @@ window.partyManager = partyManager;
       campaignManager.clearReadMessages();
       this.renderCampaignMessagesModalIfOpen();
     });
+    const syncComposeTextareaHeight = () => {
+      const ta = document.getElementById('msg-compose-text-input');
+      if (!ta) return;
+      ta.style.height = 'auto';
+      const nextHeight = Math.min(Math.max(ta.scrollHeight || 72, 72), 172);
+      ta.style.height = nextHeight + 'px';
+    };
+
+    document.getElementById('msg-compose-text-input')?.addEventListener('input', syncComposeTextareaHeight);
+
+    document.getElementById('btn-msg-toolbar-new')?.addEventListener('click', () => {
+      this.openMessageComposePane();
+    });
+
+    document.getElementById('btn-msg-toolbar-reply')?.addEventListener('click', () => {
+      const selectedCard = document.querySelector('#campaign-messages-list-container .campaign-message-card.selected') ||
+                           document.querySelector('#campaign-messages-list-container .campaign-message-card');
+      const replyUser = selectedCard?.dataset?.replyuser || '';
+      const campId = selectedCard?.dataset?.campid || '';
+      this.openMessageComposePane(replyUser, campId, replyUser ? `↩️ Reply to ${replyUser}` : '✉️ New Message');
+    });
+
+    document.getElementById('btn-msg-toolbar-address-book')?.addEventListener('click', () => {
+      const drawer = document.getElementById('msg-client-address-book-drawer');
+      if (drawer) {
+        drawer.style.display = drawer.style.display === 'none' ? 'block' : 'none';
+      }
+    });
+
+    document.getElementById('btn-close-address-book-drawer')?.addEventListener('click', () => {
+      const drawer = document.getElementById('msg-client-address-book-drawer');
+      if (drawer) drawer.style.display = 'none';
+    });
+
+    const closeComposePane = () => {
+      const pane = document.getElementById('msg-client-compose-pane');
+      if (pane) pane.style.display = 'none';
+    };
+    document.getElementById('btn-close-compose-pane')?.addEventListener('click', closeComposePane);
+    document.getElementById('btn-cancel-compose-pane')?.addEventListener('click', closeComposePane);
+
     document.getElementById('msg-compose-recipient-select')?.addEventListener('change', (e) => {
       const val = e.target.value;
       const recInput = document.getElementById('msg-compose-recipient-input');
@@ -2596,7 +2637,10 @@ window.partyManager = partyManager;
           campaignId,
           text
         });
-        if (textInput) textInput.value = '';
+        if (textInput) {
+          textInput.value = '';
+          textInput.style.height = '72px';
+        }
         this.renderCampaignMessagesModalIfOpen();
       } catch (err) {
         await this.showAlertDialog(err.message, { title: 'Cannot Send Message' });
@@ -3373,22 +3417,47 @@ window.partyManager = partyManager;
     }
   }
 
-  openCampaignMessagesModal(prefillRecipient = '', prefillCampId = '') {
-    this.openModal('modal-campaign-messages');
-    this.renderCampaignMessagesModalIfOpen();
+  openMessageComposePane(prefillRecipient = '', prefillCampId = '', customTitle = '✉️ New Message') {
+    const pane = document.getElementById('msg-client-compose-pane');
+    if (pane) pane.style.display = 'block';
+    const titleEl = document.getElementById('msg-compose-pane-title');
+    if (titleEl) titleEl.textContent = customTitle || '✉️ New Message';
+
+    const recInput = document.getElementById('msg-compose-recipient-input');
+    const recSelect = document.getElementById('msg-compose-recipient-select');
+    const campSelect = document.getElementById('msg-compose-campaign-select');
+    const textInput = document.getElementById('msg-compose-text-input');
+
     if (prefillRecipient) {
-      const recInput = document.getElementById('msg-compose-recipient-input');
-      const recSelect = document.getElementById('msg-compose-recipient-select');
       if (recInput) recInput.value = prefillRecipient;
       if (recSelect) {
         const matchingOpt = Array.from(recSelect.options || []).find(o => o.value.toLowerCase() === String(prefillRecipient).toLowerCase());
-        if (matchingOpt) recSelect.value = matchingOpt.value;
+        recSelect.value = matchingOpt ? matchingOpt.value : '';
       }
-      document.getElementById('msg-compose-text-input')?.focus();
     }
-    if (prefillCampId) {
-      const campSelect = document.getElementById('msg-compose-campaign-select');
-      if (campSelect) campSelect.value = prefillCampId;
+    if (prefillCampId && campSelect) {
+      campSelect.value = prefillCampId;
+    }
+    if (textInput) {
+      textInput.style.height = 'auto';
+      textInput.style.height = Math.min(Math.max(textInput.scrollHeight || 72, 72), 172) + 'px';
+      if (prefillRecipient) {
+        textInput.focus();
+      } else {
+        recInput?.focus();
+      }
+    }
+  }
+
+  openCampaignMessagesModal(prefillRecipient = '', prefillCampId = '') {
+    this.openModal('modal-campaign-messages');
+    this.renderCampaignMessagesModalIfOpen();
+    if (prefillRecipient || prefillCampId) {
+      this.openMessageComposePane(
+        prefillRecipient,
+        prefillCampId,
+        prefillRecipient ? `✉️ Message to ${prefillRecipient}` : '✉️ New Message'
+      );
     }
   }
 
@@ -3459,13 +3528,7 @@ window.partyManager = partyManager;
             e.stopPropagation();
             const uname = e.currentTarget.dataset.username;
             const cid = e.currentTarget.dataset.campid;
-            const rInput = document.getElementById('msg-compose-recipient-input');
-            const rSelect = document.getElementById('msg-compose-recipient-select');
-            const cSelect = document.getElementById('msg-compose-campaign-select');
-            if (rInput) rInput.value = uname;
-            if (rSelect) rSelect.value = uname;
-            if (cid && cSelect) cSelect.value = cid;
-            document.getElementById('msg-compose-text-input')?.focus();
+            this.openMessageComposePane(uname, cid, `✉️ Message to ${uname}`);
           });
         });
       }
@@ -3473,6 +3536,11 @@ window.partyManager = partyManager;
 
     const readerKey = campaignManager.getTabSessionId();
     const messages = campaignManager.getMessagesForCurrentUser();
+    const unreadTotal = campaignManager.getUnreadMessageCount();
+    const summaryEl = document.getElementById('msg-client-inbox-summary');
+    if (summaryEl) {
+      summaryEl.textContent = `Inbox: ${messages.length} message${messages.length === 1 ? '' : 's'} (${unreadTotal} unread)`;
+    }
 
     if (messages.length === 0) {
       container.innerHTML = `
@@ -3493,7 +3561,7 @@ window.partyManager = partyManager;
         : ((m.gmName && m.gmName.toLowerCase() !== myNameLower && m.gmName !== 'GM') ? m.gmName : ((m.playerName && m.playerName !== 'All Campaign Players' && m.playerName.toLowerCase() !== myNameLower) ? m.playerName : ''));
 
       return `
-        <div class="campaign-message-card" style="background: ${isUnread ? 'rgba(59, 130, 246, 0.1)' : 'var(--bg-card)'}; border: 1px solid ${isUnread ? 'var(--hero-blue)' : 'var(--border-color)'}; border-radius: 6px; padding: 0.75rem 1rem; margin-bottom: 0.65rem; display: flex; flex-direction: column; gap: 0.45rem;">
+        <div class="campaign-message-card" data-msgid="${m.id}" data-replyuser="${replyTarget}" data-campid="${m.campaignId !== 'DIRECT' ? m.campaignId : ''}" style="background: ${isUnread ? 'rgba(59, 130, 246, 0.1)' : 'var(--bg-card)'}; border: 1px solid ${isUnread ? 'var(--hero-blue)' : 'var(--border-color)'}; border-radius: 6px; padding: 0.75rem 1rem; margin-bottom: 0.65rem; display: flex; flex-direction: column; gap: 0.45rem; cursor: pointer;">
           <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.4rem; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 0.35rem;">
             <div style="display: flex; align-items: center; gap: 0.45rem; flex-wrap: wrap;">
               ${isUnread ? '<span style="background: var(--hero-blue); color: #fff; font-size: 10pt; font-weight: 800; padding: 1px 6px; border-radius: 4px;">NEW</span>' : ''}
@@ -3527,17 +3595,20 @@ window.partyManager = partyManager;
       `;
     }).join('');
 
+    container.querySelectorAll('.campaign-message-card').forEach((card, idx) => {
+      if (idx === 0) card.classList.add('selected');
+      card.addEventListener('click', () => {
+        container.querySelectorAll('.campaign-message-card').forEach(c => c.classList.remove('selected'));
+        card.classList.add('selected');
+      });
+    });
+
     container.querySelectorAll('.btn-msg-reply-user').forEach(btn => {
       btn.addEventListener('click', (e) => {
+        e.stopPropagation();
         const replyUser = e.currentTarget.dataset.replyuser;
         const cid = e.currentTarget.dataset.campid;
-        const rInput = document.getElementById('msg-compose-recipient-input');
-        const rSelect = document.getElementById('msg-compose-recipient-select');
-        const cSelect = document.getElementById('msg-compose-campaign-select');
-        if (rInput) rInput.value = replyUser;
-        if (rSelect) rSelect.value = replyUser;
-        if (cid && cSelect) cSelect.value = cid;
-        document.getElementById('msg-compose-text-input')?.focus();
+        this.openMessageComposePane(replyUser, cid, `↩️ Reply to ${replyUser}`);
       });
     });
 

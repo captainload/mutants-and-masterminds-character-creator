@@ -59,11 +59,11 @@ globalThis.window = {
 
 const { partyManager } = await import('./js/party.js');
 
-console.log('=== Testing v3.73 Features ===');
+console.log('=== Testing v3.74 Features ===');
 
-// 1. Verify Version 3.73 & Static HTML/CSS Requirements
+// 1. Verify Version 3.74 & Static HTML/CSS Requirements
 const versionJson = JSON.parse(fs.readFileSync(path.join(__dirname, 'version.json'), 'utf8'));
-assert.equal(versionJson.version, '3.73', 'version.json should be 3.73');
+assert.equal(versionJson.version, '3.74', 'version.json should be 3.74');
 
 const indexHtml = fs.readFileSync(path.join(__dirname, 'index.html'), 'utf8');
 assert.ok(indexHtml.includes('id="dropdown-message-count-badge"'), 'index.html should have #dropdown-message-count-badge next to Campaign Messages menu item');
@@ -74,7 +74,7 @@ const stylesCss = fs.readFileSync(path.join(__dirname, 'css', 'styles.css'), 'ut
 assert.ok(stylesCss.includes('@keyframes unreadMessagePulse') && stylesCss.includes('.unread-badge-pulse'), 'styles.css should define pulsing animation for unread message counts');
 assert.ok(stylesCss.includes('.textarea-campaign-notes') && stylesCss.includes('max-height: 75px'), 'styles.css should define 1-to-3 row expanding GM campaign notes');
 
-console.log('✓ 1. Version 3.73, HTML structure, and CSS classes verified.');
+console.log('✓ 1. Version 3.74, HTML structure, and CSS classes verified.');
 
 // 2. Test Pulsing Unread Message Count & Dropdown Badge
 localStorage.clear();
@@ -252,4 +252,4 @@ const nightwingEntry = refreshedKnown.find(u => u.username === 'Nightwing99');
 assert.equal(nightwingEntry.notes, 'Acrobatic vigilante player, available weekends.', 'Known Users entries should expose the user notes for the "i" info button');
 
 console.log('✓ 5. Direct Player/GM messaging, automatic Known Users addition, and 256-char User Notes verified.');
-console.log('ALL v3.73 TESTS PASSED SUCCESSFULLY!');
+console.log('ALL v3.74 TESTS PASSED SUCCESSFULLY!');

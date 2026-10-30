@@ -1,6 +1,6 @@
 {
-  "version": "3.73",
+  "version": "3.74",
   "updatedAt": "2026-10-30T13:30:00.000Z",
-  "releaseNotes": "Pulsing unread message badge and dropdown count, campaign link Copy button, full Campaign Browser with Joined/Created first and Make Public advertising, 1-to-3 row GM campaign notes, Campaign Browser search/filter/sort with legal PL range stepper and hiatus filter, Player/GM direct messaging with Known Users address book, and 256-char User Notes with info button.",
+  "releaseNotes": "Clear visual division between Game Session Monitor and Campaign Browser in Campaign Tracker; traditional Messaging Client window with top toolbar (New Message, Reply, Address Book, Mark All Read, Clear Read), no public user search/index, and bottom 3-to-8 row auto-expanding New Message compose pane.",
   "updated": "2026-10-30"
 }

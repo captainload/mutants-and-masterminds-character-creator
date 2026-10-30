@@ -6,8 +6,8 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Mutants & Masterminds 3E - Character Editor v3.73</title>
-  <link rel="stylesheet" href="css/styles.css?v=3.73">
+  <title>Mutants & Masterminds 3E - Character Editor v3.74</title>
+  <link rel="stylesheet" href="css/styles.css?v=3.74">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
@@ -93,7 +93,7 @@
 
           <div class="brand-title-centered">
             <span>Mutants & Masterminds 3E Character Editor</span>
-            <span id="header-version-tag" class="header-version-tag up-to-date" title="Current Version">v3.73</span>
+            <span id="header-version-tag" class="header-version-tag up-to-date" title="Current Version">v3.74</span>
             <button type="button" id="btn-header-update-alert" class="btn-header-update-alert" title="Check for updates / Update status" style="display: none;">!</button>
           </div>
 
@@ -1889,54 +1889,82 @@
   <!-- MODAL: CAMPAIGN MESSAGES & KNOWN USERS ADDRESS BOOK      -->
   <!-- ======================================================= -->
   <div class="modal-overlay" id="modal-campaign-messages">
-    <div class="modal-container" style="max-width: 860px; width: 95%; max-height: 90vh; display: flex; flex-direction: column;">
+    <div class="modal-container" style="max-width: 900px; width: 95%; max-height: 92vh; display: flex; flex-direction: column;">
       <div class="modal-header-bar">
-        <div class="modal-header-title">📬 Campaign Messages &amp; Known Users</div>
+        <div class="modal-header-title">📬 Campaign Messaging Client</div>
         <button class="btn btn-outline" id="btn-close-campaign-messages" style="min-height: 28px; padding: 0.1rem 0.5rem;">✕</button>
       </div>
-      <div class="modal-scroll-body" style="padding: 1rem 1.25rem; flex: 1; overflow-y: auto;">
-        <!-- Compose Direct Message & Known Users Address Book Pane -->
-        <div style="display: grid; grid-template-columns: 1.35fr 1fr; gap: 0.85rem; margin-bottom: 1rem; padding-bottom: 0.85rem; border-bottom: 1px solid var(--border-color);">
-          <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 6px; padding: 0.75rem;">
-            <div style="font-size: 10pt; font-weight: 800; color: var(--hero-gold); margin-bottom: 0.5rem;">✉️ Send Direct Message (Players &amp; GMs)</div>
-            <div style="display: flex; gap: 0.45rem; margin-bottom: 0.45rem; flex-wrap: wrap;">
-              <select id="msg-compose-recipient-select" style="flex: 1; min-width: 140px; background: var(--bg-input); color: var(--text-bright); border: 1px solid var(--border-color); border-radius: 4px; padding: 0.3rem 0.5rem; font-size: 10pt;">
-                <option value="">-- Select Known User --</option>
-              </select>
-              <input type="text" id="msg-compose-recipient-input" placeholder="Or enter username..." style="flex: 1; min-width: 130px; background: var(--bg-input); color: var(--text-bright); border: 1px solid var(--border-color); border-radius: 4px; padding: 0.3rem 0.5rem; font-size: 10pt;" />
-              <select id="msg-compose-campaign-select" style="flex: 1; min-width: 140px; background: var(--bg-input); color: var(--text-bright); border: 1px solid var(--border-color); border-radius: 4px; padding: 0.3rem 0.5rem; font-size: 10pt;">
-                <option value="">General / All Campaigns</option>
-              </select>
-            </div>
-            <div style="display: flex; gap: 0.45rem; align-items: center;">
-              <input type="text" id="msg-compose-text-input" placeholder="Write a message to GM or player..." style="flex: 1; background: var(--bg-input); color: var(--text-bright); border: 1px solid var(--border-color); border-radius: 4px; padding: 0.35rem 0.6rem; font-size: 10pt;" />
-              <button type="button" class="btn btn-primary" id="btn-send-direct-message" style="font-size: 10pt; font-weight: 800; padding: 0.35rem 0.85rem;">📨 Send</button>
-            </div>
-          </div>
-
-          <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 6px; padding: 0.75rem; display: flex; flex-direction: column;">
-            <div style="font-size: 10pt; font-weight: 800; color: var(--hero-blue); margin-bottom: 0.4rem; display: flex; justify-content: space-between; align-items: center;">
-              <span>📖 Known Users Address Book</span>
-              <span style="font-size: 10pt; color: var(--text-muted); font-weight: 600;">Click "i" for User Notes</span>
-            </div>
-            <div id="known-users-address-book-list" style="max-height: 110px; overflow-y: auto; display: flex; flex-direction: column; gap: 0.3rem;">
-              <div style="font-size: 10pt; color: var(--text-muted); font-style: italic;">No known users yet.</div>
-            </div>
-          </div>
-        </div>
-
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; flex-wrap: wrap; gap: 0.5rem;">
-          <p style="font-size: 10pt; color: var(--text-muted); margin: 0;">
-            All messages note the Campaign, GM, and Player involved.
-          </p>
-          <div style="display: flex; gap: 0.4rem;">
+      <div class="modal-scroll-body" style="padding: 0.85rem 1.15rem; flex: 1; overflow-y: auto; display: flex; flex-direction: column;">
+        <!-- Top Messaging Client Toolbar -->
+        <div class="msg-client-toolbar" id="msg-client-toolbar">
+          <div style="display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap;">
+            <button type="button" class="btn btn-primary" id="btn-msg-toolbar-new" style="font-size: 10pt; font-weight: 800; padding: 0.28rem 0.75rem;">✉️ New Message</button>
+            <button type="button" class="btn btn-outline" id="btn-msg-toolbar-reply" style="font-size: 10pt; font-weight: 700; padding: 0.28rem 0.65rem; color: var(--hero-gold); border-color: var(--hero-gold);">↩️ Reply</button>
+            <button type="button" class="btn btn-outline" id="btn-msg-toolbar-address-book" style="font-size: 10pt; font-weight: 700; padding: 0.28rem 0.65rem; color: var(--hero-blue); border-color: var(--hero-blue);">📖 Address Book</button>
+            <span style="color: var(--border-color); padding: 0 0.15rem;">|</span>
             <button type="button" class="btn btn-outline" id="btn-mark-all-messages-read" style="font-size: 10pt; padding: 0.25rem 0.65rem;">✓ Mark All Read</button>
             <button type="button" class="btn btn-outline" id="btn-clear-read-messages" style="font-size: 10pt; padding: 0.25rem 0.65rem;">🗑️ Clear Read</button>
           </div>
+          <div id="msg-client-inbox-summary" style="font-size: 10pt; color: var(--text-muted); font-weight: 700;">
+            Inbox
+          </div>
         </div>
-        <div id="campaign-messages-list-container">
-          <div style="text-align: center; color: var(--text-muted); font-size: 10pt; font-style: italic; padding: 2rem 0;">
-            No campaign messages yet.
+
+        <!-- Collapsible Known Users Address Book Drawer (toggled via Toolbar "Address Book" button) -->
+        <div id="msg-client-address-book-drawer" style="display: none; background: var(--bg-card); border: 1px solid var(--hero-blue); border-radius: 6px; padding: 0.65rem 0.85rem; margin-bottom: 0.65rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem; flex-wrap: wrap; gap: 0.4rem;">
+            <div>
+              <strong style="font-size: 10pt; color: var(--hero-blue);">📖 Personal Address Book (Known Users)</strong>
+              <span style="font-size: 10pt; color: var(--text-muted); margin-left: 0.4rem;">• Click <strong>i</strong> to read User Notes or <strong>✉️ Message</strong> to compose (No public user index or search)</span>
+            </div>
+            <button type="button" class="btn btn-outline" id="btn-close-address-book-drawer" style="font-size: 10pt; padding: 1px 7px; min-height: 22px;">✕ Close</button>
+          </div>
+          <div id="known-users-address-book-list" style="max-height: 130px; overflow-y: auto; display: flex; flex-direction: column; gap: 0.3rem;">
+            <div style="font-size: 10pt; color: var(--text-muted); font-style: italic;">No known users yet. Anyone you message is added automatically.</div>
+          </div>
+        </div>
+
+        <!-- Upper Pane: Message List (Inbox) -->
+        <div class="msg-client-inbox-pane" id="msg-client-inbox-pane">
+          <div class="msg-client-list-header">
+            <span>📬 Message List (Campaign, GM &amp; Player Notifications &amp; Direct Messages)</span>
+            <span>Click a message to select</span>
+          </div>
+          <div id="campaign-messages-list-container" style="padding: 0.65rem; overflow-y: auto; flex: 1;">
+            <div style="text-align: center; color: var(--text-muted); font-size: 10pt; font-style: italic; padding: 2rem 0;">
+              No campaign messages yet.
+            </div>
+          </div>
+        </div>
+
+        <!-- Second Pane Below Message List: New Message Compose Pane (3 rows default, expands up to 8 rows before scrolling) -->
+        <div class="msg-client-compose-pane" id="msg-client-compose-pane" style="display: none;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; padding-bottom: 0.35rem; border-bottom: 1px solid var(--border-color);">
+            <strong id="msg-compose-pane-title" style="font-size: 10pt; color: var(--hero-gold); font-weight: 800;">✉️ New Message</strong>
+            <button type="button" class="btn btn-outline" id="btn-close-compose-pane" style="font-size: 10pt; padding: 1px 7px; min-height: 22px;" title="Close New Message Pane">✕</button>
+          </div>
+          <div style="display: flex; gap: 0.45rem; margin-bottom: 0.5rem; flex-wrap: wrap; align-items: center;">
+            <label style="font-size: 10pt; font-weight: 800; color: var(--text-muted);">To:</label>
+            <input type="text" id="msg-compose-recipient-input" placeholder="Enter exact recipient username..." style="flex: 1.2; min-width: 160px; background: var(--bg-input); color: var(--text-bright); border: 1px solid var(--border-color); border-radius: 4px; padding: 0.3rem 0.55rem; font-size: 10pt;" />
+            <select id="msg-compose-recipient-select" title="Select from your Known Users Address Book" style="flex: 1; min-width: 150px; background: var(--bg-input); color: var(--text-bright); border: 1px solid var(--border-color); border-radius: 4px; padding: 0.3rem 0.5rem; font-size: 10pt;">
+              <option value="">-- Known Users --</option>
+            </select>
+            <label style="font-size: 10pt; font-weight: 800; color: var(--text-muted); margin-left: 0.25rem;">Campaign:</label>
+            <select id="msg-compose-campaign-select" style="flex: 1; min-width: 140px; background: var(--bg-input); color: var(--text-bright); border: 1px solid var(--border-color); border-radius: 4px; padding: 0.3rem 0.5rem; font-size: 10pt;">
+              <option value="">General / All Campaigns</option>
+            </select>
+          </div>
+          <div style="margin-bottom: 0.5rem;">
+            <textarea id="msg-compose-text-input" class="textarea-msg-compose" rows="3" placeholder="Type your message here (shows 3 rows by default, expands up to 8 visible rows before scrolling)..."></textarea>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
+            <span style="font-size: 10pt; color: var(--text-muted);">
+              🔒 Any user can be messaged if you know their username. No public user directory or search exists.
+            </span>
+            <div style="display: flex; gap: 0.4rem;">
+              <button type="button" class="btn btn-outline" id="btn-cancel-compose-pane" style="font-size: 10pt; padding: 0.3rem 0.7rem;">Cancel</button>
+              <button type="button" class="btn btn-primary" id="btn-send-direct-message" style="font-size: 10pt; font-weight: 800; padding: 0.3rem 0.9rem;">📨 Send Message</button>
+            </div>
           </div>
         </div>
       </div>
@@ -1946,6 +1974,6 @@
     </div>
   </div>
 
-  <script type="module" src="js/app.js?v=3.73"></script>
+  <script type="module" src="js/app.js?v=3.74"></script>
 </body>
 </html>

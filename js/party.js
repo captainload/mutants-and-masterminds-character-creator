@@ -3182,11 +3182,40 @@ export class CampaignTrackerManager {
       `;
     }).join('');
 
+    const sessionMonitorSection = `
+      <div class="tracker-section-session-monitor ${isConnectedToLiveSession ? 'session-live' : ''}">
+        <div class="tracker-section-header">
+          <div style="display: flex; align-items: center; gap: 0.55rem; flex-wrap: wrap;">
+            <span style="font-size: 1.15rem; font-weight: 900; color: var(--text-bright); text-transform: uppercase; letter-spacing: 0.03em;">🎮 Game Session Monitor</span>
+            ${isConnectedToLiveSession
+              ? `<span style="font-size: 10pt; font-weight: 800; color: #10b981; background: rgba(16, 185, 129, 0.16); border: 1px solid #10b981; padding: 2px 9px; border-radius: 999px;">🟢 Live Session Active • ${members.length} Hero${members.length === 1 ? '' : 'es'} in Room</span>`
+              : `<span style="font-size: 10pt; font-weight: 800; color: var(--text-muted); background: rgba(255,255,255,0.06); border: 1px solid var(--border-color); padding: 2px 9px; border-radius: 999px;">⚪ Standby — Not Connected to a Live Session</span>`
+            }
+          </div>
+          <span style="font-size: 10pt; color: var(--text-muted); font-weight: 600;">Real-time party conditions, toughness penalties &amp; active hero forms</span>
+        </div>
+        ${connectionBar}
+        ${charAttachmentBar}
+        ${memberCards}
+      </div>
+    `;
+
+    const sectionDivider = `
+      <div class="tracker-section-divider">
+        <div class="tracker-section-divider-line"></div>
+        <div class="tracker-section-divider-badge">🌐 Campaign Browser &amp; Membership Directory</div>
+        <div class="tracker-section-divider-line"></div>
+      </div>
+    `;
+
     const browserSection = `
-      <div style="margin-top: 1.25rem; border-top: 1px solid var(--border-color); padding-top: 0.75rem;">
-        <div style="font-weight: 800; font-size: var(--font-size-sm); color: var(--text-bright); margin-bottom: 0.55rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.4rem;">
-          <span>🌐 Campaign Browser (${browserCampaigns.length})</span>
-          <span style="font-size: 10pt; color: var(--text-muted);">🌟 Joined &amp; created campaigns are shown first by default • Browse &amp; apply to public campaigns</span>
+      <div class="tracker-section-campaign-browser">
+        <div class="tracker-section-header">
+          <div style="display: flex; align-items: center; gap: 0.55rem; flex-wrap: wrap;">
+            <span style="font-size: 1.15rem; font-weight: 900; color: var(--hero-cyan); text-transform: uppercase; letter-spacing: 0.03em;">🌐 Campaign Browser (${browserCampaigns.length})</span>
+            <span style="font-size: 10pt; font-weight: 800; color: var(--hero-gold); background: rgba(234, 179, 8, 0.14); border: 1px solid rgba(234, 179, 8, 0.4); padding: 2px 8px; border-radius: 999px;">🌟 Joined &amp; Created First</span>
+          </div>
+          <span style="font-size: 10pt; color: var(--text-muted);">Browse all campaigns you are eligible to join, manage your campaigns, or advertise public campaigns</span>
         </div>
 
         <!-- Campaign Browser Search, Checked Filters, Legal # to # PL Stepper, Sort & On Hiatus Filter Bar -->
@@ -3248,7 +3277,7 @@ export class CampaignTrackerManager {
       </div>
     `;
 
-    return connectionBar + charAttachmentBar + memberCards + browserSection;
+    return sessionMonitorSection + sectionDivider + browserSection;
   }
 
   renderAllOpenViews() {
@@ -3668,7 +3697,7 @@ export class CampaignTrackerManager {
 <head>
   <meta charset="UTF-8">
   <title>Mutants & Masterminds 3E - Party Conditions & Toughness Tracker</title>
-  <link rel="stylesheet" href="css/styles.css?v=3.73">
+  <link rel="stylesheet" href="css/styles.css?v=3.74">
   <style>
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;

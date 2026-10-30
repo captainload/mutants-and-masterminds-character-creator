@@ -2,33 +2,33 @@ import { readFileSync } from 'fs';
 import assert from 'assert';
 import { CampaignTrackerManager } from './js/party.js';
 
-console.log('--- Testing v3.75 Features Suite ---');
+console.log('--- Testing v3.76 Features Suite ---');
 
 // =========================================================================
-// 1. Version Consistency (v3.75)
+// 1. Version Consistency (v3.76)
 // =========================================================================
 const versionJson = JSON.parse(readFileSync('version.json', 'utf8'));
-assert(parseFloat(versionJson.version) >= 3.75, `Expected >= 3.75 in version.json, got ${versionJson.version}`);
+assert(parseFloat(versionJson.version) >= 3.76, `Expected >= 3.76 in version.json, got ${versionJson.version}`);
 
 const indexHtml = readFileSync('index.html', 'utf8');
-assert(indexHtml.includes('Character Editor v3.75'), 'index.html title missing v3.75');
-assert(indexHtml.includes('css/styles.css?v=3.75'), 'index.html styles query missing v3.75');
-assert(indexHtml.includes('>v3.75</span>'), 'index.html version badge missing v3.75');
-assert(indexHtml.includes('js/app.js?v=3.75'), 'index.html app.js script query missing v3.75');
+assert(indexHtml.includes('Character Editor v3.76'), 'index.html title missing v3.76');
+assert(indexHtml.includes('css/styles.css?v=3.76'), 'index.html styles query missing v3.76');
+assert(indexHtml.includes('>v3.76</span>'), 'index.html version badge missing v3.76');
+assert(indexHtml.includes('js/app.js?v=3.76'), 'index.html app.js script query missing v3.76');
 
 const appJs = readFileSync('js/app.js', 'utf8');
-assert(appJs.includes("CURRENT_VERSION = '3.75'"), 'app.js CURRENT_VERSION missing 3.75');
-assert(appJs.includes("power_profiles.js?v=3.75"), 'app.js power_profiles query missing 3.75');
+assert(appJs.includes("CURRENT_VERSION = '3.76'"), 'app.js CURRENT_VERSION missing 3.76');
+assert(appJs.includes("power_profiles.js?v=3.76"), 'app.js power_profiles query missing 3.76');
 
 const archJs = readFileSync('js/archetype_window.js', 'utf8');
-assert(archJs.includes('css/styles.css?v=3.75'), 'archetype_window.js styles link missing 3.75');
+assert(archJs.includes('css/styles.css?v=3.76'), 'archetype_window.js styles link missing 3.76');
 
 const partyJs = readFileSync('js/party.js', 'utf8');
-assert(partyJs.includes('css/styles.css?v=3.75'), 'party.js styles link missing 3.75');
+assert(partyJs.includes('css/styles.css?v=3.76'), 'party.js styles link missing 3.76');
 
 const tablesJs = readFileSync('js/tables.js', 'utf8');
-assert(tablesJs.includes('css/styles.css?v=3.75'), 'tables.js styles link missing 3.75');
-console.log('✓ v3.75 version consistency verified across all files');
+assert(tablesJs.includes('css/styles.css?v=3.76'), 'tables.js styles link missing 3.76');
+console.log('✓ v3.76 version consistency verified across all files');
 
 // =========================================================================
 // 2. GM Campaign Controls: No "Leave Campaign" for GM; Hiatus & Delete Options
@@ -214,4 +214,4 @@ assert(appJs.includes('syncBodyScrollLock()'), 'app.js syncs body scroll lock on
 assert(appJs.includes("campaignModalEl.addEventListener('wheel'"), 'app.js isolates wheel events inside #modal-campaign-tracker');
 console.log('✓ Campaign tracker scroll isolation (no background window scroll) verified');
 
-console.log('\nALL v3.75 FEATURE TESTS PASSED CLEANLY!');
+console.log('\nALL v3.76 FEATURE TESTS PASSED CLEANLY!');

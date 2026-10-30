@@ -1878,6 +1878,10 @@ export class CampaignTrackerManager {
     requestId = '',
     excludedUser = '',
     recipientUsers = [],
+    ccUsers = [],
+    isMassMail = false,
+    selfIncludedBySender = false,
+    recipientScopeLabel = '',
     text = ''
   } = {}) {
     const cleanId = String(campaignId || '').trim().toUpperCase().replace(/^#+/, '');
@@ -1905,6 +1909,10 @@ export class CampaignTrackerManager {
       requestId: requestId || '',
       excludedUser: (excludedUser || '').trim(),
       recipientUsers: Array.isArray(recipientUsers) ? recipientUsers : [],
+      ccUsers: Array.isArray(ccUsers) ? ccUsers : [],
+      isMassMail: !!isMassMail,
+      selfIncludedBySender: !!selfIncludedBySender,
+      recipientScopeLabel: (recipientScopeLabel || '').trim(),
       text: text || `Campaign "${resolvedCampName}" (GM: ${resolvedGM}, Player: ${resolvedPlayer})`,
       timestamp: new Date().toISOString(),
       displayTime: new Date().toLocaleString(),
@@ -1952,15 +1960,34 @@ export class CampaignTrackerManager {
       const mCampId = String(m.campaignId || '').toUpperCase().replace(/^#+/, '');
       const recUser = (m.recipientUser || '').toLowerCase();
       const sndUser = (m.senderUser || '').toLowerCase();
+      const exclUser = (m.excludedUser || '').toLowerCase();
 
-      if (recUser && currentUser && recUser === currentUser) return true;
-      if (sndUser && currentUser && sndUser === currentUser) return true;
+      const isExplicitlyNamedRecipient = !!(
+        currentUser && (
+          recUser === currentUser ||
+          (Array.isArray(m.recipientUsers) && m.recipientUsers.some(u => String(u).toLowerCase() === currentUser)) ||
+          (Array.isArray(m.ccUsers) && m.ccUsers.some(u => String(u).toLowerCase() === currentUser))
+        )
+      );
+
+      // Sender should NOT receive copies of messages they mass-mailed (or where they are excludedUser)
+      // unless they specifically added themselves as a recipient
+      if (currentUser && (exclUser === currentUser || (sndUser === currentUser && (m.isMassMail || m.type === 'CAMPAIGN_PARTICIPANTS_MESSAGE')))) {
+        return !!m.selfIncludedBySender || isExplicitlyNamedRecipient;
+      }
+
+      if (isExplicitlyNamedRecipient) return true;
+      if (sndUser && currentUser && sndUser === currentUser) {
+        if (m.type === 'DIRECT_MESSAGE' && recUser && recUser !== currentUser) {
+          return false;
+        }
+        return true;
+      }
       if (m.recipientRole === 'GM') {
         return ownedIds.has(mCampId) || (currentUser && (m.gmName || '').toLowerCase() === currentUser);
       }
       if (m.recipientRole === 'USER') {
-        // Direct user message (e.g. ownership transfer offer): show to target user or if in local single-browser testing
-        return !recUser || !currentUser || recUser === currentUser || participatedIds.has(mCampId);
+        return !recUser || !currentUser || recUser === currentUser;
       }
       if (m.recipientRole === 'PLAYER') {
         return !recUser || !currentUser || recUser === currentUser || (participatedIds.has(mCampId) && !ownedIds.has(mCampId));
@@ -2189,9 +2216,36 @@ export class CampaignTrackerManager {
     } catch (e) {}
   }
 
+  /**
+   * Returns true if a string is a mailing list description, group scope label, or generic role placeholder
+   * rather than an individual user's username. Mailing lists must NEVER be added to Address Books.
+   */
+  isMailingListName(name) {
+    const clean = String(name || '').trim();
+    if (!clean) return true;
+    const lower = clean.toLowerCase();
+    if (
+      lower === 'all campaign players' ||
+      lower === 'campaign participants' ||
+      lower === 'player' ||
+      lower === 'gm' ||
+      lower === 'user' ||
+      lower === 'known user' ||
+      lower.startsWith('participants of ') ||
+      lower.includes('participants of ') ||
+      lower.startsWith('all participants') ||
+      clean.includes(',') ||
+      clean.includes('(') ||
+      clean.includes(')')
+    ) {
+      return true;
+    }
+    return false;
+  }
+
   addKnownUser(username, meta = {}) {
     const clean = String(username || '').trim();
-    if (!clean || clean === 'All Campaign Players') return null;
+    if (this.isMailingListName(clean)) return null;
     const myName = (this.getCurrentUsername() || '').trim().toLowerCase();
     if (myName && clean.toLowerCase() === myName) return null;
 
@@ -2211,19 +2265,30 @@ export class CampaignTrackerManager {
   }
 
   /**
-   * Returns all known users for the current user:
-   * - Anyone the user has ever sent a message to (added automatically)
+   * Returns all individual known users for the current user (never mailing lists):
+   * - Anyone the user has ever sent a direct message to (added automatically)
    * - Anyone who has messaged the user
    * - GMs of campaigns the user participates in & players in campaigns the user GMs
    */
   getKnownUsers() {
     const myName = (this.getCurrentUsername() || '').trim().toLowerCase();
     const store = this.getKnownUsersStore();
+    let storeModified = false;
+    Object.keys(store).forEach(k => {
+      if (this.isMailingListName(k) || this.isMailingListName(store[k]?.username)) {
+        delete store[k];
+        storeModified = true;
+      }
+    });
+    if (storeModified) {
+      this.saveKnownUsersStore(store);
+    }
+
     const map = new Map();
 
     const upsert = (uname, info = {}) => {
       const clean = String(uname || '').trim();
-      if (!clean || clean === 'All Campaign Players' || clean === 'GM' || clean === 'Player') return;
+      if (this.isMailingListName(clean)) return;
       if (myName && clean.toLowerCase() === myName) return;
       const key = clean.toLowerCase();
       const existing = map.get(key) || {};
@@ -2236,7 +2301,7 @@ export class CampaignTrackerManager {
       });
     };
 
-    // 1. Explicitly stored known users (e.g. anyone messaged)
+    // 1. Explicitly stored known users (e.g. anyone individually messaged)
     Object.values(store).forEach(u => upsert(u.username, u));
 
     // 2. Campaign GMs and Players from participated/owned campaigns
@@ -2256,17 +2321,20 @@ export class CampaignTrackerManager {
       }
     });
 
-    // 3. Message history (anyone sent a message to or received a message from)
+    // 3. Message history (individual senders/recipients only — never mailing lists)
     this.getAllCampaignMessages().forEach(m => {
       const sender = (m.senderUser || '').trim();
       const recip = (m.recipientUser || '').trim();
-      if (sender && (!myName || sender.toLowerCase() === myName) && recip) {
+      if (sender && (!myName || sender.toLowerCase() === myName) && recip && !this.isMailingListName(recip)) {
         upsert(recip, { role: 'Messaged', campaignId: m.campaignId, campaignName: m.campaignName });
-      } else if (recip && (!myName || recip.toLowerCase() === myName) && sender) {
+      } else if (recip && (!myName || recip.toLowerCase() === myName) && sender && !this.isMailingListName(sender)) {
         upsert(sender, { role: 'Messaged You', campaignId: m.campaignId, campaignName: m.campaignName });
       }
-      if (m.gmName) upsert(m.gmName, { role: 'GM', campaignId: m.campaignId, campaignName: m.campaignName });
-      if (m.playerName) upsert(m.playerName, { role: 'Player', campaignId: m.campaignId, campaignName: m.campaignName });
+      if (Array.isArray(m.ccUsers)) {
+        m.ccUsers.forEach(cc => upsert(cc, { role: 'CC', campaignId: m.campaignId, campaignName: m.campaignName }));
+      }
+      if (m.gmName && !this.isMailingListName(m.gmName)) upsert(m.gmName, { role: 'GM', campaignId: m.campaignId, campaignName: m.campaignName });
+      if (m.playerName && !this.isMailingListName(m.playerName)) upsert(m.playerName, { role: 'Player', campaignId: m.campaignId, campaignName: m.campaignName });
     });
 
     return Array.from(map.values()).sort((a, b) => a.username.localeCompare(b.username));
@@ -2298,7 +2366,7 @@ export class CampaignTrackerManager {
 
     const addParticipant = (uname) => {
       const clean = String(uname || '').trim();
-      if (!clean || clean === 'All Campaign Players' || clean === 'Player' || clean === 'GM') return;
+      if (this.isMailingListName(clean)) return;
       const lower = clean.toLowerCase();
       if (excludeLower && lower === excludeLower) return;
       if (!participants.has(lower)) participants.set(lower, clean);
@@ -2392,7 +2460,7 @@ export class CampaignTrackerManager {
    * - "CAMP:<id>": Participants of that specific campaign (excludes the user themselves)
    * - Or specific individual recipient(s) selected via Known Users checkboxes or typed in To:
    */
-  sendDirectUserMessage({ toUser = '', toUsers = [], recipientScope = '', senderUser = '', campaignId = '', campaignName = '', gmName = '', text = '' } = {}) {
+  sendDirectUserMessage({ toUser = '', toUsers = [], ccUsers = [], recipientScope = '', senderUser = '', campaignId = '', campaignName = '', gmName = '', text = '' } = {}) {
     const cleanText = String(text || '').trim();
     if (!cleanText) {
       throw new Error('Please enter a message to send.');
@@ -2407,7 +2475,7 @@ export class CampaignTrackerManager {
       this.setUserNotes(myNotes, effSender);
     }
 
-    // Collect explicit user recipients from toUsers array and comma-separated toUser string
+    // Collect explicit user recipients from toUsers array and comma-separated toUser string (ignoring mailing list labels)
     const explicitRecipients = [];
     const seenRecip = new Set();
     const rawUserList = [
@@ -2416,7 +2484,7 @@ export class CampaignTrackerManager {
     ];
     rawUserList.forEach(u => {
       const clean = String(u || '').trim();
-      if (!clean) return;
+      if (!clean || this.isMailingListName(clean)) return;
       const lower = clean.toLowerCase();
       if (!seenRecip.has(lower)) {
         seenRecip.add(lower);
@@ -2424,10 +2492,29 @@ export class CampaignTrackerManager {
       }
     });
 
+    // Collect CC recipients (from checkboxed CC Known Users list)
+    const ccRecipientList = [];
+    const seenCC = new Set();
+    (Array.isArray(ccUsers) ? ccUsers : String(ccUsers || '').split(',')).forEach(u => {
+      const clean = String(u || '').trim();
+      if (!clean || this.isMailingListName(clean)) return;
+      const lower = clean.toLowerCase();
+      if (!seenCC.has(lower) && !seenRecip.has(lower)) {
+        seenCC.add(lower);
+        ccRecipientList.push(clean);
+      }
+    });
+
+    // Check if the sender specifically added themselves as a recipient in To: or CC:
+    const selfIncludedBySender =
+      explicitRecipients.some(u => u.toLowerCase() === senderLower) ||
+      ccRecipientList.some(u => u.toLowerCase() === senderLower);
+
     const rawScope = String(recipientScope || campaignId || '').trim();
     const dispatchedMessages = [];
 
-    // Helper to dispatch a campaign-participants scoped message (excluding the sender themselves)
+    // Helper to dispatch a campaign-participants scoped message.
+    // Mailing lists are NEVER added to Known Users / Address Book, and sender does NOT receive a copy unless they specifically added themselves.
     const dispatchToCampaignParticipants = (targetCampId) => {
       const cleanId = String(targetCampId || '').trim().toUpperCase().replace(/^#+/, '');
       if (!cleanId) return;
@@ -2435,34 +2522,74 @@ export class CampaignTrackerManager {
       const histMatch = this.getCampaignHistory().find(c => c.campaignId === cleanId) || {};
       const effCampName = (campaignName || histMatch.campaignName || info.campaignName || cleanId).trim();
       const effGM = (gmName || histMatch.creatorName || info.creatorName || (histMatch.isCreator ? effSender : 'GM')).trim();
-      const participants = this.getCampaignParticipants(cleanId, effSender);
+      const participants = this.getCampaignParticipants(cleanId, selfIncludedBySender ? '' : effSender);
+      if (selfIncludedBySender && !participants.some(p => p.toLowerCase() === senderLower)) {
+        participants.push(effSender);
+      }
 
-      participants.forEach(p => {
-        this.addKnownUser(p, {
-          role: effGM.toLowerCase() === p.toLowerCase() ? 'GM' : 'Player',
-          campaignId: cleanId,
-          campaignName: effCampName
-        });
-      });
-
-      const recipSummary = participants.length > 0
-        ? `Participants of ${effCampName} (excluding ${effSender}: ${participants.join(', ')})`
-        : `Participants of ${effCampName} (excluding ${effSender})`;
+      const ccSuffix = ccRecipientList.length > 0 ? ` (CC: ${ccRecipientList.join(', ')})` : '';
 
       const msg = this.sendCampaignMessage({
         type: 'CAMPAIGN_PARTICIPANTS_MESSAGE',
         recipientRole: 'PARTICIPANTS',
         recipientUser: participants.length === 1 ? participants[0] : '',
         recipientUsers: participants,
-        excludedUser: effSender,
+        ccUsers: ccRecipientList,
+        isMassMail: true,
+        selfIncludedBySender,
+        recipientScopeLabel: `Participants of ${effCampName}`,
+        excludedUser: selfIncludedBySender ? '' : effSender,
         senderUser: effSender,
         campaignId: cleanId,
         campaignName: effCampName,
         gmName: effGM,
-        playerName: recipSummary,
-        text: `📢 Message from ${effSender} to Participants of "${effCampName}" (#${cleanId}): "${cleanText}"`
+        playerName: effSender,
+        text: `📢 Message from ${effSender} to Participants of "${effCampName}" (#${cleanId})${ccSuffix}: "${cleanText}"`
       });
       dispatchedMessages.push(msg);
+    };
+
+    const dispatchDirectMessages = (targetCampId = '') => {
+      const cleanCampId = String(targetCampId || '').trim().toUpperCase().replace(/^#+/, '');
+      const info = cleanCampId ? (this.getCampaignInfo(cleanCampId) || {}) : {};
+      const histMatch = cleanCampId ? (this.getCampaignHistory().find(c => c.campaignId === cleanCampId) || {}) : {};
+      const effCampName = (campaignName || histMatch.campaignName || info.campaignName || (cleanCampId ? cleanCampId : 'Direct Message')).trim();
+      const isMultiRecipient = (explicitRecipients.length + ccRecipientList.length) > 1;
+      const ccSuffix = ccRecipientList.length > 0 ? ` (CC: ${ccRecipientList.join(', ')})` : '';
+
+      explicitRecipients.forEach(cleanTo => {
+        const effGM = (gmName || histMatch.creatorName || info.creatorName || (this.ownsAnyCampaign() ? effSender : cleanTo)).trim();
+        this.addKnownUser(cleanTo, {
+          role: (effGM.toLowerCase() === cleanTo.toLowerCase()) ? 'GM' : 'Known User',
+          campaignId: cleanCampId,
+          campaignName: effCampName
+        });
+        ccRecipientList.forEach(ccUser => {
+          this.addKnownUser(ccUser, {
+            role: 'Known User',
+            campaignId: cleanCampId,
+            campaignName: effCampName
+          });
+        });
+
+        const msg = this.sendCampaignMessage({
+          type: 'DIRECT_MESSAGE',
+          recipientRole: 'USER',
+          recipientUser: cleanTo,
+          recipientUsers: [cleanTo, ...ccRecipientList],
+          ccUsers: ccRecipientList,
+          isMassMail: isMultiRecipient,
+          selfIncludedBySender,
+          excludedUser: selfIncludedBySender ? '' : effSender,
+          senderUser: effSender,
+          campaignId: cleanCampId || 'DIRECT',
+          campaignName: effCampName,
+          gmName: effGM,
+          playerName: effSender,
+          text: `✉️ Direct Message from ${effSender} to ${cleanTo}${ccSuffix}: "${cleanText}"`
+        });
+        dispatchedMessages.push(msg);
+      });
     };
 
     if (rawScope === 'CURRENT_CONNECTED') {
@@ -2482,35 +2609,9 @@ export class CampaignTrackerManager {
       if (explicitRecipients.length === 0) {
         dispatchToCampaignParticipants(targetCampId);
       } else {
-        // Explicit user(s) also specified alongside a campaign context
-        const info = this.getCampaignInfo(targetCampId) || {};
-        const histMatch = this.getCampaignHistory().find(c => c.campaignId === targetCampId) || {};
-        const effCampName = (campaignName || histMatch.campaignName || info.campaignName || targetCampId).trim();
-        const effGM = (gmName || histMatch.creatorName || info.creatorName || (this.ownsAnyCampaign() ? effSender : explicitRecipients[0])).trim();
-
-        explicitRecipients.forEach(cleanTo => {
-          if (explicitRecipients.length > 1 && cleanTo.toLowerCase() === senderLower) return;
-          this.addKnownUser(cleanTo, {
-            role: (effGM.toLowerCase() === cleanTo.toLowerCase()) ? 'GM' : 'Known User',
-            campaignId: targetCampId,
-            campaignName: effCampName
-          });
-          const msg = this.sendCampaignMessage({
-            type: 'DIRECT_MESSAGE',
-            recipientRole: 'USER',
-            recipientUser: cleanTo,
-            senderUser: effSender,
-            campaignId: targetCampId,
-            campaignName: effCampName,
-            gmName: effGM,
-            playerName: effSender,
-            text: `✉️ Direct Message from ${effSender} to ${cleanTo}: "${cleanText}"`
-          });
-          dispatchedMessages.push(msg);
-        });
+        dispatchDirectMessages(targetCampId);
       }
     } else {
-      // Direct recipient(s) mode (with optional legacy campaignId)
       if (explicitRecipients.length === 0) {
         if (rawScope) {
           dispatchToCampaignParticipants(rawScope);
@@ -2518,32 +2619,7 @@ export class CampaignTrackerManager {
           throw new Error('Please select or enter at least one recipient username or choose a Campaign Participants scope.');
         }
       } else {
-        const cleanCampId = rawScope.toUpperCase().replace(/^#+/, '');
-        const info = cleanCampId ? (this.getCampaignInfo(cleanCampId) || {}) : {};
-        const histMatch = cleanCampId ? (this.getCampaignHistory().find(c => c.campaignId === cleanCampId) || {}) : {};
-        const effCampName = (campaignName || histMatch.campaignName || info.campaignName || (cleanCampId ? cleanCampId : 'Direct Message')).trim();
-
-        explicitRecipients.forEach(cleanTo => {
-          if (explicitRecipients.length > 1 && cleanTo.toLowerCase() === senderLower) return;
-          const effGM = (gmName || histMatch.creatorName || info.creatorName || (this.ownsAnyCampaign() ? effSender : cleanTo)).trim();
-          this.addKnownUser(cleanTo, {
-            role: (effGM.toLowerCase() === cleanTo.toLowerCase()) ? 'GM' : 'Known User',
-            campaignId: cleanCampId,
-            campaignName: effCampName
-          });
-          const msg = this.sendCampaignMessage({
-            type: 'DIRECT_MESSAGE',
-            recipientRole: 'USER',
-            recipientUser: cleanTo,
-            senderUser: effSender,
-            campaignId: cleanCampId || 'DIRECT',
-            campaignName: effCampName,
-            gmName: effGM,
-            playerName: effSender,
-            text: `✉️ Direct Message from ${effSender} to ${cleanTo}: "${cleanText}"`
-          });
-          dispatchedMessages.push(msg);
-        });
+        dispatchDirectMessages(rawScope);
       }
     }
 
@@ -3939,7 +4015,7 @@ export class CampaignTrackerManager {
 <head>
   <meta charset="UTF-8">
   <title>Mutants & Masterminds 3E - Party Conditions & Toughness Tracker</title>
-  <link rel="stylesheet" href="css/styles.css?v=3.75">
+  <link rel="stylesheet" href="css/styles.css?v=3.76">
   <style>
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;

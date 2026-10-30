@@ -6,8 +6,8 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Mutants & Masterminds 3E - Character Editor v3.75</title>
-  <link rel="stylesheet" href="css/styles.css?v=3.75">
+  <title>Mutants & Masterminds 3E - Character Editor v3.76</title>
+  <link rel="stylesheet" href="css/styles.css?v=3.76">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
@@ -93,7 +93,7 @@
 
           <div class="brand-title-centered">
             <span>Mutants & Masterminds 3E Character Editor</span>
-            <span id="header-version-tag" class="header-version-tag up-to-date" title="Current Version">v3.75</span>
+            <span id="header-version-tag" class="header-version-tag up-to-date" title="Current Version">v3.76</span>
             <button type="button" id="btn-header-update-alert" class="btn-header-update-alert" title="Check for updates / Update status" style="display: none;">!</button>
           </div>
 
@@ -1899,7 +1899,8 @@
         <div class="msg-client-toolbar" id="msg-client-toolbar">
           <div style="display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap;">
             <button type="button" class="btn btn-primary" id="btn-msg-toolbar-new" style="font-size: 10pt; font-weight: 800; padding: 0.28rem 0.75rem;">✉️ New Message</button>
-            <button type="button" class="btn btn-outline" id="btn-msg-toolbar-reply" style="font-size: 10pt; font-weight: 700; padding: 0.28rem 0.65rem; color: var(--hero-gold); border-color: var(--hero-gold);">↩️ Reply</button>
+            <button type="button" class="btn btn-outline" id="btn-msg-toolbar-reply" title="Reply only to the original sender" style="font-size: 10pt; font-weight: 700; padding: 0.28rem 0.65rem; color: var(--hero-gold); border-color: var(--hero-gold);">↩️ Reply</button>
+            <button type="button" class="btn btn-outline" id="btn-msg-toolbar-cc" title="Copy reply/message to Known Users via checkboxes" style="font-size: 10pt; font-weight: 700; padding: 0.28rem 0.65rem; color: var(--hero-cyan); border-color: var(--hero-cyan);">📋 CC</button>
             <button type="button" class="btn btn-outline" id="btn-msg-toolbar-address-book" style="font-size: 10pt; font-weight: 700; padding: 0.28rem 0.65rem; color: var(--hero-blue); border-color: var(--hero-blue);">📖 Address Book</button>
             <span style="color: var(--border-color); padding: 0 0.15rem;">|</span>
             <button type="button" class="btn btn-outline" id="btn-mark-all-messages-read" style="font-size: 10pt; padding: 0.25rem 0.65rem;">✓ Mark All Read</button>
@@ -1959,6 +1960,17 @@
               <select id="msg-compose-recipient-select" multiple style="display: none;"></select>
             </div>
 
+            <!-- CC Known Users Checkbox Dropdown (for copying replies/messages to additional known users) -->
+            <div class="known-users-multiselect-dropdown" id="msg-cc-dropdown-container" style="min-width: 185px; flex: 0.85;">
+              <button type="button" class="btn btn-outline" id="btn-toggle-cc-dropdown" title="Select Known Users to CC on this message/reply" style="width: 100%; display: flex; justify-content: space-between; align-items: center; font-size: 10pt; padding: 0.28rem 0.6rem; background: var(--bg-input); color: var(--hero-cyan); border: 1px solid var(--hero-cyan); font-weight: 700;">
+                <span id="cc-users-dropdown-label">📋 CC: None</span>
+                <span style="font-size: 10pt; opacity: 0.8;">▼</span>
+              </button>
+              <div class="known-users-checkbox-menu" id="msg-cc-checkbox-menu">
+                <div style="font-size: 10pt; color: var(--text-muted); font-style: italic; padding: 0.25rem;">No known users yet.</div>
+              </div>
+            </div>
+
             <label style="font-size: 10pt; font-weight: 800; color: var(--text-muted); margin-left: 0.25rem;">Recipient Scope:</label>
             <select id="msg-compose-campaign-select" style="flex: 1.4; min-width: 240px; background: var(--bg-input); color: var(--text-bright); border: 1px solid var(--border-color); border-radius: 4px; padding: 0.3rem 0.5rem; font-size: 10pt; font-weight: 700;">
               <option value="">Direct Recipient(s) Only (To: / Known Users)</option>
@@ -1986,6 +1998,6 @@
     </div>
   </div>
 
-  <script type="module" src="js/app.js?v=3.75"></script>
+  <script type="module" src="js/app.js?v=3.76"></script>
 </body>
 </html>

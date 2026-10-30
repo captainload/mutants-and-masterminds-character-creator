@@ -41,7 +41,7 @@ import {
   tablesManager
 } from './tables.js';
 
-import { POWER_PROFILES_LIBRARY } from './power_profiles.js?v=3.75';
+import { POWER_PROFILES_LIBRARY } from './power_profiles.js?v=3.76';
 import { ARCHETYPES } from './archetypes.js';
 import { archetypeManager } from './archetype_window.js';
 import { campaignManager, partyManager, formatCharacterSheetHTML } from './party.js';
@@ -2075,7 +2075,7 @@ window.partyManager = partyManager;
   }
 
   async checkForUpdates({ isManual = false } = {}) {
-    const CURRENT_VERSION = '3.75';
+    const CURRENT_VERSION = '3.76';
     const versionEl = document.getElementById('header-version-tag');
     const updateBtn = document.getElementById('btn-header-update-alert');
     if (typeof window === 'undefined' || !window.location || !window.location.href || window.location.href === 'about:blank') return;
@@ -2603,8 +2603,21 @@ window.partyManager = partyManager;
       const selectedCard = document.querySelector('#campaign-messages-list-container .campaign-message-card.selected') ||
                            document.querySelector('#campaign-messages-list-container .campaign-message-card');
       const replyUser = selectedCard?.dataset?.replyuser || '';
-      const campId = selectedCard?.dataset?.campid || '';
-      this.openMessageComposePane(replyUser, campId, replyUser ? `↩️ Reply to ${replyUser}` : '✉️ New Message');
+      // Replies go ONLY to the original sender unless the user explicitly selects CC users
+      this.openMessageComposePane(replyUser, '', replyUser ? `↩️ Reply to ${replyUser}` : '✉️ New Message', { isReply: true });
+    });
+
+    document.getElementById('btn-msg-toolbar-cc')?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const pane = document.getElementById('msg-client-compose-pane');
+      if (!pane || pane.style.display === 'none') {
+        const selectedCard = document.querySelector('#campaign-messages-list-container .campaign-message-card.selected') ||
+                             document.querySelector('#campaign-messages-list-container .campaign-message-card');
+        const replyUser = selectedCard?.dataset?.replyuser || '';
+        this.openMessageComposePane(replyUser, '', replyUser ? `↩️ Reply to ${replyUser} (with CC)` : '✉️ New Message', { isReply: true });
+      }
+      const ccMenu = document.getElementById('msg-cc-checkbox-menu');
+      ccMenu?.classList.add('open');
     });
 
     document.getElementById('btn-msg-toolbar-address-book')?.addEventListener('click', () => {
@@ -2630,14 +2643,28 @@ window.partyManager = partyManager;
     const knownMenuEl = document.getElementById('msg-known-users-checkbox-menu');
     const knownDropContainer = document.getElementById('msg-known-users-dropdown-container');
 
+    const toggleCcBtn = document.getElementById('btn-toggle-cc-dropdown');
+    const ccMenuEl = document.getElementById('msg-cc-checkbox-menu');
+    const ccDropContainer = document.getElementById('msg-cc-dropdown-container');
+
     toggleKnownBtn?.addEventListener('click', (e) => {
       e.stopPropagation();
+      ccMenuEl?.classList.remove('open');
       knownMenuEl?.classList.toggle('open');
+    });
+
+    toggleCcBtn?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      knownMenuEl?.classList.remove('open');
+      ccMenuEl?.classList.toggle('open');
     });
 
     document.addEventListener('click', (e) => {
       if (knownMenuEl && knownMenuEl.classList.contains('open') && knownDropContainer && !knownDropContainer.contains(e.target)) {
         knownMenuEl.classList.remove('open');
+      }
+      if (ccMenuEl && ccMenuEl.classList.contains('open') && ccDropContainer && !ccDropContainer.contains(e.target)) {
+        ccMenuEl.classList.remove('open');
       }
     });
 
@@ -2647,6 +2674,8 @@ window.partyManager = partyManager;
       const textInput = document.getElementById('msg-compose-text-input');
       const checkedBoxes = Array.from(document.querySelectorAll('#msg-known-users-checkbox-menu .chk-known-user-recipient:checked'));
       const checkedUsers = checkedBoxes.map(cb => cb.value);
+      const checkedCcBoxes = Array.from(document.querySelectorAll('#msg-cc-checkbox-menu .chk-cc-user-recipient:checked'));
+      const checkedCcUsers = checkedCcBoxes.map(cb => cb.value);
       const toUser = (recInput?.value || '').trim();
       const recipientScope = (campSelect?.value || '').trim();
       const text = (textInput?.value || '').trim();
@@ -2654,6 +2683,7 @@ window.partyManager = partyManager;
         campaignManager.sendDirectUserMessage({
           toUser,
           toUsers: checkedUsers,
+          ccUsers: checkedCcUsers,
           recipientScope,
           senderUser: supabaseService.getUsername() || this.char.playerName || 'Player',
           text
@@ -2664,7 +2694,9 @@ window.partyManager = partyManager;
         }
         if (recInput) recInput.value = '';
         checkedBoxes.forEach(cb => { cb.checked = false; });
+        checkedCcBoxes.forEach(cb => { cb.checked = false; });
         this.updateKnownUsersDropdownSummary();
+        this.updateCcUsersDropdownSummary();
         this.renderCampaignMessagesModalIfOpen();
       } catch (err) {
         await this.showAlertDialog(err.message, { title: 'Cannot Send Message' });
@@ -3464,7 +3496,23 @@ window.partyManager = partyManager;
     }
   }
 
-  openMessageComposePane(prefillRecipient = '', prefillCampId = '', customTitle = '✉️ New Message') {
+  updateCcUsersDropdownSummary() {
+    const labelEl = document.getElementById('cc-users-dropdown-label');
+    const checkedCcBoxes = Array.from(document.querySelectorAll('#msg-cc-checkbox-menu .chk-cc-user-recipient:checked'));
+    const names = checkedCcBoxes.map(cb => cb.value);
+
+    if (labelEl) {
+      if (names.length === 0) {
+        labelEl.textContent = '📋 CC: None';
+      } else if (names.length <= 2) {
+        labelEl.textContent = `📋 CC: ${names.join(', ')}`;
+      } else {
+        labelEl.textContent = `📋 CC: ${names.length} Users (${names.slice(0, 2).join(', ')}...)`;
+      }
+    }
+  }
+
+  openMessageComposePane(prefillRecipient = '', prefillCampId = '', customTitle = '✉️ New Message', { isReply = false } = {}) {
     const pane = document.getElementById('msg-client-compose-pane');
     if (pane) pane.style.display = 'block';
     const titleEl = document.getElementById('msg-compose-pane-title');
@@ -3482,7 +3530,39 @@ window.partyManager = partyManager;
       });
       this.updateKnownUsersDropdownSummary();
     }
-    if (prefillCampId && campSelect) {
+
+    const ccMenuEl = document.getElementById('msg-cc-checkbox-menu');
+    const prevCcChecked = new Set(
+      Array.from(document.querySelectorAll('#msg-cc-checkbox-menu .chk-cc-user-recipient:checked')).map(cb => cb.value.toLowerCase())
+    );
+    if (ccMenuEl) {
+      if (knownUsers.length === 0) {
+        ccMenuEl.innerHTML = '<div style="font-size: 10pt; color: var(--text-muted); font-style: italic; padding: 0.3rem;">No known users yet.</div>';
+      } else {
+        ccMenuEl.innerHTML = knownUsers.map(u => `
+          <label class="known-user-checkbox-item">
+            <input type="checkbox" class="chk-cc-user-recipient" value="${u.username}" ${prevCcChecked.has(u.username.toLowerCase()) ? 'checked' : ''} style="cursor: pointer; width: 15px; height: 15px; accent-color: var(--hero-cyan);" />
+            <span style="font-weight: 700;">${u.username}</span>
+            <span style="color: var(--text-muted); font-size: 10pt;">(${u.role})</span>
+          </label>
+        `).join('');
+
+        ccMenuEl.querySelectorAll('.chk-cc-user-recipient').forEach(cb => {
+          cb.addEventListener('change', () => {
+            this.updateCcUsersDropdownSummary();
+          });
+        });
+      }
+      this.updateCcUsersDropdownSummary();
+    }
+    if (isReply) {
+      // Replies go ONLY to the original sender unless the user explicitly checks Known Users in the CC menu
+      if (campSelect) campSelect.value = '';
+      document.querySelectorAll('#msg-cc-checkbox-menu .chk-cc-user-recipient').forEach(cb => {
+        cb.checked = false;
+      });
+      this.updateCcUsersDropdownSummary();
+    } else if (prefillCampId && campSelect) {
       const cleanId = String(prefillCampId).trim().toUpperCase().replace(/^#+/, '').replace(/^CAMP:/, '');
       const scopedVal = `CAMP:${cleanId}`;
       const hasScoped = Array.from(campSelect.options || []).some(o => o.value === scopedVal);
@@ -3646,9 +3726,12 @@ window.partyManager = partyManager;
       const isPendingOffer = m.type === 'OWNERSHIP_TRANSFER_OFFER' && m.offerStatus === 'pending';
       const cleanMCampId = String(m.campaignId || '').toUpperCase().replace(/^#+/, '');
       const isUserGMForCampaign = ownedCampIds.has(cleanMCampId) || (myNameLower && (m.gmName || '').toLowerCase() === myNameLower);
-      const replyTarget = (m.senderUser && m.senderUser.toLowerCase() !== myNameLower)
+      const rawSender = !campaignManager.isMailingListName(m.senderUser)
         ? m.senderUser
-        : ((m.gmName && m.gmName.toLowerCase() !== myNameLower && m.gmName !== 'GM') ? m.gmName : ((m.playerName && m.playerName !== 'All Campaign Players' && m.playerName.toLowerCase() !== myNameLower) ? m.playerName : ''));
+        : (!campaignManager.isMailingListName(m.gmName) && (m.gmName || '').toLowerCase() !== myNameLower
+          ? m.gmName
+          : (!campaignManager.isMailingListName(m.playerName) && (m.playerName || '').toLowerCase() !== myNameLower ? m.playerName : ''));
+      const replyTarget = (rawSender && rawSender.toLowerCase() !== myNameLower) ? rawSender : '';
 
       return `
         <div class="campaign-message-card" data-msgid="${m.id}" data-replyuser="${replyTarget}" data-campid="${m.campaignId !== 'DIRECT' ? m.campaignId : ''}" style="background: ${isUnread ? 'rgba(59, 130, 246, 0.1)' : 'var(--bg-card)'}; border: 1px solid ${isUnread ? 'var(--hero-blue)' : 'var(--border-color)'}; border-radius: 6px; padding: 0.75rem 1rem; margin-bottom: 0.65rem; display: flex; flex-direction: column; gap: 0.45rem; cursor: pointer;">
@@ -3666,7 +3749,7 @@ window.partyManager = partyManager;
           </div>
           <div style="display: flex; justify-content: flex-end; align-items: center; gap: 0.45rem; flex-wrap: wrap;">
             ${replyTarget ? `
-              <button type="button" class="btn btn-outline btn-msg-reply-user" data-replyuser="${replyTarget}" data-campid="${m.campaignId !== 'DIRECT' ? m.campaignId : ''}" style="font-size: 10pt; padding: 2px 8px; color: var(--hero-gold); border-color: var(--hero-gold); font-weight: 700;">↩️ Message ${replyTarget}</button>
+              <button type="button" class="btn btn-outline btn-msg-reply-user" data-replyuser="${replyTarget}" title="Reply only to original sender ${replyTarget} (use CC to copy other known users)" style="font-size: 10pt; padding: 2px 8px; color: var(--hero-gold); border-color: var(--hero-gold); font-weight: 700;">↩️ Reply to ${replyTarget}</button>
             ` : ''}
             ${isPendingOffer ? `
               <button type="button" class="btn btn-primary btn-msg-accept-transfer" data-campid="${m.campaignId}" data-msgid="${m.id}" style="font-size: 10pt; padding: 2px 9px; font-weight: 800; background: var(--hero-green); border-color: var(--hero-green);">✅ Accept Ownership</button>
@@ -3697,8 +3780,7 @@ window.partyManager = partyManager;
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
         const replyUser = e.currentTarget.dataset.replyuser;
-        const cid = e.currentTarget.dataset.campid;
-        this.openMessageComposePane(replyUser, cid, `↩️ Reply to ${replyUser}`);
+        this.openMessageComposePane(replyUser, '', `↩️ Reply to ${replyUser}`, { isReply: true });
       });
     });
 

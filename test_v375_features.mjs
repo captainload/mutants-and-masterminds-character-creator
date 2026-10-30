@@ -33,11 +33,11 @@ globalThis.window = {
 
 const { partyManager } = await import('./js/party.js');
 
-console.log('=== Testing v3.75 Features ===');
+console.log('=== Testing v3.76 Features ===');
 
-// 1. Verify Version 3.75 & Messaging Client Size (matches Campaign Tracker .25in margins)
+// 1. Verify Version 3.76 & Messaging Client Size (matches Campaign Tracker .25in margins)
 const versionJson = JSON.parse(fs.readFileSync(path.join(__dirname, 'version.json'), 'utf8'));
-assert.equal(versionJson.version, '3.75', 'version.json should be 3.75');
+assert.equal(versionJson.version, '3.76', 'version.json should be 3.76');
 
 const indexHtml = fs.readFileSync(path.join(__dirname, 'index.html'), 'utf8');
 const stylesCss = fs.readFileSync(path.join(__dirname, 'css', 'styles.css'), 'utf8');
@@ -204,4 +204,4 @@ assert.ok(Array.isArray(multiMsgs) && multiMsgs.length === 3, 'Selecting 3 users
 partyManager.endSession(gmCamp1.campaignId);
 
 console.log('✓ 4. Scoped messaging (CURRENT_CONNECTED, ALL_OWNED, CAMP:<id>) and multi-user checkbox messaging verified.');
-console.log('ALL v3.75 TESTS PASSED SUCCESSFULLY!');
+console.log('ALL v3.76 TESTS PASSED SUCCESSFULLY!');

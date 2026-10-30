@@ -284,7 +284,7 @@ class SupabaseService {
   // =======================================================
   // CAMPAIGNS (CREATION, OWNERSHIP & SETTINGS)
   // =======================================================
-  async createCampaign({ name, campaignCode, powerLevel = 10, dontEnforcePL = false }) {
+  async createCampaign({ name, campaignCode, powerLevel = 10, dontEnforcePL = false, isPublic = false, notes = '' }) {
     if (!this.client) throw new Error('Supabase client is not available.');
     if (!this.currentUser) throw new Error('You must be signed in to create a campaign.');
 
@@ -312,6 +312,8 @@ class SupabaseService {
       creator_name: creatorName,
       power_level: parseInt(powerLevel, 10) || 10,
       dont_enforce_pl: !!dontEnforcePL,
+      is_public: !!isPublic,
+      description: String(notes || '').trim(),
       is_session_active: false
     };
 
@@ -323,6 +325,52 @@ class SupabaseService {
 
     if (error) throw error;
     return data;
+  }
+
+  async getPublicCampaigns() {
+    if (!this.client) return [];
+    try {
+      const { data, error } = await this.client
+        .from('campaigns')
+        .select('*')
+        .eq('is_public', true)
+        .order('created_at', { ascending: false });
+      if (error) return [];
+      return data || [];
+    } catch {
+      return [];
+    }
+  }
+
+  async saveUserNotes(notesText) {
+    const cleanNotes = String(notesText || '').slice(0, 256);
+    if (!this.client || !this.currentUser) return cleanNotes;
+    try {
+      await this.client.auth.updateUser({
+        data: { user_notes: cleanNotes }
+      });
+    } catch {}
+    try {
+      await this.client
+        .from('profiles')
+        .update({ user_notes: cleanNotes, updated_at: new Date().toISOString() })
+        .eq('id', this.currentUser.id);
+    } catch {}
+    return cleanNotes;
+  }
+
+  async getUserNotes(username) {
+    if (!this.client || !username) return '';
+    try {
+      const { data } = await this.client
+        .from('profiles')
+        .select('user_notes')
+        .ilike('username', String(username).trim())
+        .maybeSingle();
+      return data?.user_notes ? String(data.user_notes).slice(0, 256) : '';
+    } catch {
+      return '';
+    }
   }
 
   async getCampaignByNameOrCode(query) {
@@ -348,12 +396,14 @@ class SupabaseService {
     return byName || null;
   }
 
-  async updateCampaignSettings(campaignId, { powerLevel, dontEnforcePL, isSessionActive }) {
+  async updateCampaignSettings(campaignId, { powerLevel, dontEnforcePL, isSessionActive, isPublic, notes }) {
     if (!this.client || !campaignId) return null;
     const updates = { updated_at: new Date().toISOString() };
     if (powerLevel !== undefined) updates.power_level = parseInt(powerLevel, 10);
     if (dontEnforcePL !== undefined) updates.dont_enforce_pl = !!dontEnforcePL;
     if (isSessionActive !== undefined) updates.is_session_active = !!isSessionActive;
+    if (isPublic !== undefined) updates.is_public = !!isPublic;
+    if (notes !== undefined) updates.description = String(notes || '');
 
     const { data, error } = await this.client
       .from('campaigns')

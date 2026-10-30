@@ -152,6 +152,16 @@ export class CampaignTrackerManager {
     }
 
     this._heartbeatInterval = null;
+    this.browserFilters = {
+      query: '',
+      searchName: true,
+      searchDesc: true,
+      searchPL: false,
+      plMin: 1,
+      plMax: 20,
+      sortBy: 'default',
+      hideHiatus: false
+    };
 
     // Ensure users and GM start in disconnected campaign state on fresh app startup
     try {
@@ -237,6 +247,9 @@ export class CampaignTrackerManager {
       const isCreator = campaignData.isCreator !== undefined ? !!campaignData.isCreator : (campaignData.isHost !== undefined ? !!campaignData.isHost : !!existing.isCreator);
       const isOnHiatus = campaignData.isOnHiatus !== undefined ? !!campaignData.isOnHiatus : !!existing.isOnHiatus;
       const pendingTransfer = campaignData.pendingTransfer !== undefined ? campaignData.pendingTransfer : (existing.pendingTransfer || null);
+      const isPublic = campaignData.isPublic !== undefined ? !!campaignData.isPublic : !!existing.isPublic;
+      const notes = campaignData.notes !== undefined ? String(campaignData.notes) : (existing.notes || '');
+      const createdAtMs = campaignData.createdAtMs || existing.createdAtMs || Date.now();
       const entry = {
         campaignId: cleanId,
         campaignName: (campaignData.campaignName || existing.campaignName || cleanId).trim(),
@@ -246,6 +259,9 @@ export class CampaignTrackerManager {
         creatorName: campaignData.creatorName || existing.creatorName || '',
         isCreator,
         isOnHiatus,
+        isPublic,
+        notes,
+        createdAtMs,
         pendingTransfer,
         lastJoined: new Date().toLocaleDateString(),
         lastJoinedMs: Date.now()
@@ -384,6 +400,9 @@ export class CampaignTrackerManager {
         creatorName: info.creatorName || prev.creatorName || '',
         isHost: info.isHost !== undefined ? !!info.isHost : !!prev.isHost,
         isOnHiatus: info.isOnHiatus !== undefined ? !!info.isOnHiatus : !!prev.isOnHiatus,
+        isPublic: info.isPublic !== undefined ? !!info.isPublic : !!prev.isPublic,
+        notes: info.notes !== undefined ? String(info.notes) : (prev.notes || ''),
+        createdAtMs: info.createdAtMs || prev.createdAtMs || Date.now(),
         pendingTransfer: info.pendingTransfer !== undefined ? info.pendingTransfer : (prev.pendingTransfer || null),
         lastUpdated: Date.now()
       };
@@ -880,7 +899,7 @@ export class CampaignTrackerManager {
    * Creates a new campaign.
    * Does NOT automatically start a session or connect to a live campaign room until startSession() is called.
    */
-  createCampaign({ name, campaignId, pin, creatorName = 'GM', powerLevel = 10, dontEnforcePL = false }) {
+  createCampaign({ name, campaignId, pin, creatorName = 'GM', powerLevel = 10, dontEnforcePL = false, isPublic = false, notes = '' }) {
     if (this.isUserConnected()) {
       const current = this.getCampaignState();
       throw new Error(`You are currently connected to an active session in campaign "${current.campaignName || current.campaignId}" (ID: #${current.campaignId}). You must disconnect from your current session before creating a new campaign.`);
@@ -890,6 +909,8 @@ export class CampaignTrackerManager {
     const cleanPin = (pin || '').trim();
     const pl = parseInt(powerLevel, 10) || 10;
     const noEnforce = !!dontEnforcePL;
+    const cleanNotes = String(notes || '');
+    const createdAtMs = Date.now();
 
     const newState = {
       isConnected: false,
@@ -898,6 +919,9 @@ export class CampaignTrackerManager {
       pin: cleanPin,
       powerLevel: pl,
       dontEnforcePL: noEnforce,
+      isPublic: !!isPublic,
+      notes: cleanNotes,
+      createdAtMs,
       isHost: true,
       isCreator: true,
       creatorName,
@@ -918,38 +942,221 @@ export class CampaignTrackerManager {
       pin: cleanPin,
       powerLevel: pl,
       dontEnforcePL: noEnforce,
+      isPublic: !!isPublic,
+      notes: cleanNotes,
+      createdAtMs,
       creatorName
     });
 
     return newState;
   }
 
-  updateCampaignSettings({ campaignId, powerLevel, dontEnforcePL }) {
+  updateCampaignSettings({ campaignId, powerLevel, dontEnforcePL, isPublic, notes }) {
     const current = this.getCampaignState();
     const targetId = String(campaignId || current.campaignId || '').trim().toUpperCase().replace(/^#+/, '');
     const histMatch = this.getCampaignHistory().find(c => c.campaignId === targetId);
+    const regInfo = this.getCampaignInfo(targetId) || {};
     if (!current.isHost && !current.isCreator && !histMatch?.isCreator) return;
 
-    if (powerLevel !== undefined) current.powerLevel = parseInt(powerLevel, 10) || 10;
-    if (dontEnforcePL !== undefined) current.dontEnforcePL = !!dontEnforcePL;
-    this.saveCampaignState(current);
-    this.registerCampaignInfo({ ...current, campaignId: targetId || current.campaignId });
+    const effPL = powerLevel !== undefined ? (parseInt(powerLevel, 10) || 10) : (histMatch?.powerLevel ?? regInfo.powerLevel ?? current.powerLevel ?? 10);
+    const effDontEnforce = dontEnforcePL !== undefined ? !!dontEnforcePL : !!(histMatch?.dontEnforcePL ?? regInfo.dontEnforcePL ?? current.dontEnforcePL);
+    const effPublic = isPublic !== undefined ? !!isPublic : !!(histMatch?.isPublic ?? regInfo.isPublic ?? current.isPublic);
+    const effNotes = notes !== undefined ? String(notes) : (histMatch?.notes ?? regInfo.notes ?? current.notes ?? '');
+
+    if (!campaignId || current.campaignId === targetId) {
+      current.powerLevel = effPL;
+      current.dontEnforcePL = effDontEnforce;
+      current.isPublic = effPublic;
+      current.notes = effNotes;
+      this.saveCampaignState(current);
+    }
+
+    const updatedPayload = {
+      ...regInfo,
+      ...(histMatch || {}),
+      campaignId: targetId || current.campaignId,
+      campaignName: histMatch?.campaignName || regInfo.campaignName || current.campaignName || targetId,
+      powerLevel: effPL,
+      dontEnforcePL: effDontEnforce,
+      isPublic: effPublic,
+      notes: effNotes
+    };
+
+    this.registerCampaignInfo(updatedPayload);
     if (histMatch) {
-      this.saveToCampaignHistory({
-        ...histMatch,
-        powerLevel: current.powerLevel,
-        dontEnforcePL: current.dontEnforcePL
-      });
+      this.saveToCampaignHistory(updatedPayload);
     }
     this.broadcastMessage({
       type: 'CAMPAIGN_UPDATE',
-      campaignId: targetId || current.campaignId,
-      campaignName: current.campaignName || histMatch?.campaignName,
-      pin: current.pin,
-      powerLevel: current.powerLevel,
-      dontEnforcePL: current.dontEnforcePL
+      campaignId: updatedPayload.campaignId,
+      campaignName: updatedPayload.campaignName,
+      pin: updatedPayload.pin || current.pin,
+      powerLevel: effPL,
+      dontEnforcePL: effDontEnforce,
+      isPublic: effPublic,
+      notes: effNotes
     });
     this.renderAllOpenViews();
+    return updatedPayload;
+  }
+
+  /**
+   * Advertises a GM-owned campaign publicly in the Campaign Browser or unlists it.
+   */
+  setCampaignPublic(campaignId, isPublic = true) {
+    return this.updateCampaignSettings({ campaignId, isPublic: !!isPublic });
+  }
+
+  /**
+   * Updates the GM's campaign notes / description field.
+   */
+  setCampaignNotes(campaignId, notes = '') {
+    return this.updateCampaignSettings({ campaignId, notes: String(notes || '') });
+  }
+
+  // =======================================================
+  // CAMPAIGN BROWSER: SEARCH, LEGAL PL RANGE, SORT & FILTER
+  // =======================================================
+  setBrowserPLRange(minVal, maxVal, changedSide = 'min') {
+    if (!this.browserFilters) {
+      this.browserFilters = { query: '', searchName: true, searchDesc: true, searchPL: false, plMin: 1, plMax: 20, sortBy: 'default', hideHiatus: false };
+    }
+    let cleanMin = Math.max(1, Math.min(20, parseInt(minVal, 10) || 1));
+    let cleanMax = Math.max(1, Math.min(20, parseInt(maxVal, 10) || 20));
+    if (changedSide === 'min' && cleanMin > cleanMax) {
+      cleanMax = cleanMin;
+    } else if (changedSide === 'max' && cleanMax < cleanMin) {
+      cleanMin = cleanMax;
+    } else if (cleanMin > cleanMax) {
+      cleanMax = cleanMin;
+    }
+    this.browserFilters.plMin = cleanMin;
+    this.browserFilters.plMax = cleanMax;
+    return { plMin: cleanMin, plMax: cleanMax };
+  }
+
+  setBrowserFilter(updates = {}) {
+    if (!this.browserFilters) {
+      this.browserFilters = { query: '', searchName: true, searchDesc: true, searchPL: false, plMin: 1, plMax: 20, sortBy: 'default', hideHiatus: false };
+    }
+    const prevMin = this.browserFilters.plMin;
+    const prevMax = this.browserFilters.plMax;
+    Object.assign(this.browserFilters, updates);
+    const changedSide = updates.plMin !== undefined && updates.plMin !== prevMin ? 'min' : (updates.plMax !== undefined && updates.plMax !== prevMax ? 'max' : 'min');
+    this.setBrowserPLRange(this.browserFilters.plMin, this.browserFilters.plMax, changedSide);
+    return this.browserFilters;
+  }
+
+  getBrowsableCampaigns() {
+    if (!this.browserFilters) {
+      this.browserFilters = { query: '', searchName: true, searchDesc: true, searchPL: false, plMin: 1, plMax: 20, sortBy: 'default', hideHiatus: false };
+    }
+    const history = this.getCampaignHistory();
+    const reg = this.getCampaignRegistry();
+    const mergedMap = new Map();
+
+    // 1. Add user's joined or created campaigns from history
+    history.forEach(h => {
+      const cleanId = String(h.campaignId || '').trim().toUpperCase().replace(/^#+/, '');
+      if (!cleanId) return;
+      const regEntry = reg[cleanId] || {};
+      mergedMap.set(cleanId, {
+        ...regEntry,
+        ...h,
+        campaignId: cleanId,
+        isPublic: !!(h.isPublic ?? regEntry.isPublic),
+        notes: String(h.notes ?? regEntry.notes ?? ''),
+        isOnHiatus: !!(h.isOnHiatus ?? regEntry.isOnHiatus),
+        createdAtMs: h.createdAtMs || regEntry.createdAtMs || h.lastJoinedMs || 0,
+        isJoinedOrCreated: true
+      });
+    });
+
+    // 2. Add all public advertised campaigns from the registry
+    Object.values(reg).forEach(r => {
+      const cleanId = String(r.campaignId || '').trim().toUpperCase().replace(/^#+/, '');
+      if (!cleanId) return;
+      if (mergedMap.has(cleanId)) return;
+      const isMember = this.isUserMemberOfCampaign(cleanId, r.campaignName);
+      if (r.isPublic || isMember) {
+        mergedMap.set(cleanId, {
+          ...r,
+          campaignId: cleanId,
+          isCreator: false,
+          isPublic: !!r.isPublic,
+          notes: String(r.notes || ''),
+          isOnHiatus: !!r.isOnHiatus,
+          createdAtMs: r.createdAtMs || r.lastUpdated || 0,
+          isJoinedOrCreated: !!isMember
+        });
+      }
+    });
+
+    let list = Array.from(mergedMap.values());
+    const f = this.browserFilters;
+
+    // Filter out on-hiatus campaigns if checked
+    if (f.hideHiatus) {
+      list = list.filter(c => !c.isOnHiatus);
+    }
+
+    // Filter by Power Level range if checked
+    if (f.searchPL) {
+      const minPL = Math.min(f.plMin, f.plMax);
+      const maxPL = Math.max(f.plMin, f.plMax);
+      list = list.filter(c => {
+        const pl = parseInt(c.powerLevel, 10) || 10;
+        return pl >= minPL && pl <= maxPL;
+      });
+    }
+
+    // Filter by search query across checked fields (campaign name, description/notes)
+    const q = String(f.query || '').trim().toLowerCase();
+    if (q) {
+      list = list.filter(c => {
+        const nameMatch = f.searchName && (
+          String(c.campaignName || '').toLowerCase().includes(q) ||
+          String(c.campaignId || '').toLowerCase().includes(q)
+        );
+        const descMatch = f.searchDesc && String(c.notes || '').toLowerCase().includes(q);
+        if (!f.searchName && !f.searchDesc) {
+          return String(c.campaignName || '').toLowerCase().includes(q) || String(c.notes || '').toLowerCase().includes(q);
+        }
+        return nameMatch || descMatch;
+      });
+    }
+
+    // Sort results
+    const sortMode = f.sortBy || 'default';
+    list.sort((a, b) => {
+      if (sortMode === 'default') {
+        const aJoined = a.isJoinedOrCreated ? 1 : 0;
+        const bJoined = b.isJoinedOrCreated ? 1 : 0;
+        if (bJoined !== aJoined) return bJoined - aJoined;
+        return (b.lastJoinedMs || b.createdAtMs || 0) - (a.lastJoinedMs || a.createdAtMs || 0);
+      }
+      if (sortMode === 'name_asc') {
+        return String(a.campaignName || '').localeCompare(String(b.campaignName || ''));
+      }
+      if (sortMode === 'gm_asc') {
+        return String(a.creatorName || 'GM').localeCompare(String(b.creatorName || 'GM'));
+      }
+      if (sortMode === 'age_desc') {
+        return (b.createdAtMs || 0) - (a.createdAtMs || 0);
+      }
+      if (sortMode === 'age_asc') {
+        return (a.createdAtMs || 0) - (b.createdAtMs || 0);
+      }
+      if (sortMode === 'pl_asc') {
+        return (parseInt(a.powerLevel, 10) || 10) - (parseInt(b.powerLevel, 10) || 10);
+      }
+      if (sortMode === 'pl_desc') {
+        return (parseInt(b.powerLevel, 10) || 10) - (parseInt(a.powerLevel, 10) || 10);
+      }
+      return 0;
+    });
+
+    return list;
   }
 
   /**
@@ -1662,6 +1869,7 @@ export class CampaignTrackerManager {
     previousGmName = '',
     playerName = '',
     characterName = '',
+    senderUser = '',
     offerId = '',
     offerStatus = '',
     requestId = '',
@@ -1680,6 +1888,7 @@ export class CampaignTrackerManager {
       type,
       recipientRole,
       recipientUser: (recipientUser || '').trim(),
+      senderUser: (senderUser || this.getCurrentUsername() || '').trim(),
       campaignId: cleanId,
       campaignName: resolvedCampName,
       gmName: resolvedGM,
@@ -1735,8 +1944,10 @@ export class CampaignTrackerManager {
     return all.filter(m => {
       const mCampId = String(m.campaignId || '').toUpperCase().replace(/^#+/, '');
       const recUser = (m.recipientUser || '').toLowerCase();
+      const sndUser = (m.senderUser || '').toLowerCase();
 
       if (recUser && currentUser && recUser === currentUser) return true;
+      if (sndUser && currentUser && sndUser === currentUser) return true;
       if (m.recipientRole === 'GM') {
         return ownedIds.has(mCampId) || (currentUser && (m.gmName || '').toLowerCase() === currentUser);
       }
@@ -1871,6 +2082,238 @@ export class CampaignTrackerManager {
     });
   }
 
+  // =======================================================
+  // USER NOTES (256 CHARS) & KNOWN USERS / DIRECT MESSAGING
+  // =======================================================
+  getUserNotesDirectory() {
+    try {
+      const raw = typeof localStorage !== 'undefined'
+        ? localStorage.getItem('mm3e_user_notes_directory')
+        : this._sharedFallback['mm3e_user_notes_directory'];
+      return raw ? JSON.parse(raw) : {};
+    } catch {
+      return {};
+    }
+  }
+
+  saveUserNotesDirectory(dir) {
+    try {
+      const serialized = JSON.stringify(dir || {});
+      if (typeof localStorage !== 'undefined') {
+        localStorage.setItem('mm3e_user_notes_directory', serialized);
+      } else {
+        this._sharedFallback['mm3e_user_notes_directory'] = serialized;
+      }
+    } catch (e) {}
+  }
+
+  /**
+   * Saves up to 256 characters of user notes in account settings.
+   * Anyone the user has messaged can read these notes via the "i" button in the Known Users address book.
+   */
+  setUserNotes(notesText, username = '') {
+    const cleanNotes = String(notesText || '').slice(0, 256);
+    const effUser = String(username || this.getCurrentUsername() || 'Player').trim();
+    if (effUser) {
+      const dir = this.getUserNotesDirectory();
+      dir[effUser.toLowerCase()] = {
+        username: effUser,
+        notes: cleanNotes,
+        updatedAt: new Date().toISOString()
+      };
+      this.saveUserNotesDirectory(dir);
+    }
+    try {
+      if (typeof localStorage !== 'undefined') {
+        localStorage.setItem('mm3e_my_user_notes', cleanNotes);
+      } else {
+        this._memoryFallback['mm3e_my_user_notes'] = cleanNotes;
+      }
+    } catch (e) {}
+
+    this.broadcastMessage({
+      type: 'USER_NOTES_UPDATED',
+      username: effUser,
+      notes: cleanNotes
+    });
+
+    return cleanNotes;
+  }
+
+  getUserNotes(username = '') {
+    const targetUser = String(username || this.getCurrentUsername() || '').trim();
+    if (targetUser) {
+      const dir = this.getUserNotesDirectory();
+      const entry = dir[targetUser.toLowerCase()];
+      if (entry && entry.notes !== undefined) {
+        return String(entry.notes).slice(0, 256);
+      }
+    }
+    if (!username || targetUser.toLowerCase() === (this.getCurrentUsername() || '').toLowerCase()) {
+      try {
+        const own = typeof localStorage !== 'undefined'
+          ? localStorage.getItem('mm3e_my_user_notes')
+          : this._memoryFallback['mm3e_my_user_notes'];
+        if (own) return String(own).slice(0, 256);
+      } catch {}
+    }
+    return '';
+  }
+
+  getKnownUsersStore() {
+    try {
+      const raw = typeof localStorage !== 'undefined'
+        ? localStorage.getItem('mm3e_known_users')
+        : this._memoryFallback['mm3e_known_users'];
+      return raw ? JSON.parse(raw) : {};
+    } catch {
+      return {};
+    }
+  }
+
+  saveKnownUsersStore(store) {
+    try {
+      const serialized = JSON.stringify(store || {});
+      if (typeof localStorage !== 'undefined') {
+        localStorage.setItem('mm3e_known_users', serialized);
+      } else {
+        this._memoryFallback['mm3e_known_users'] = serialized;
+      }
+    } catch (e) {}
+  }
+
+  addKnownUser(username, meta = {}) {
+    const clean = String(username || '').trim();
+    if (!clean || clean === 'All Campaign Players') return null;
+    const myName = (this.getCurrentUsername() || '').trim().toLowerCase();
+    if (myName && clean.toLowerCase() === myName) return null;
+
+    const store = this.getKnownUsersStore();
+    const key = clean.toLowerCase();
+    const prev = store[key] || {};
+    store[key] = {
+      username: clean,
+      role: meta.role || prev.role || 'User',
+      campaignId: meta.campaignId || prev.campaignId || '',
+      campaignName: meta.campaignName || prev.campaignName || '',
+      addedAt: prev.addedAt || new Date().toISOString(),
+      lastInteractionMs: Date.now()
+    };
+    this.saveKnownUsersStore(store);
+    return store[key];
+  }
+
+  /**
+   * Returns all known users for the current user:
+   * - Anyone the user has ever sent a message to (added automatically)
+   * - Anyone who has messaged the user
+   * - GMs of campaigns the user participates in & players in campaigns the user GMs
+   */
+  getKnownUsers() {
+    const myName = (this.getCurrentUsername() || '').trim().toLowerCase();
+    const store = this.getKnownUsersStore();
+    const map = new Map();
+
+    const upsert = (uname, info = {}) => {
+      const clean = String(uname || '').trim();
+      if (!clean || clean === 'All Campaign Players' || clean === 'GM' || clean === 'Player') return;
+      if (myName && clean.toLowerCase() === myName) return;
+      const key = clean.toLowerCase();
+      const existing = map.get(key) || {};
+      map.set(key, {
+        username: existing.username || clean,
+        role: info.role || existing.role || 'Known User',
+        campaignId: info.campaignId || existing.campaignId || '',
+        campaignName: info.campaignName || existing.campaignName || '',
+        notes: this.getUserNotes(clean)
+      });
+    };
+
+    // 1. Explicitly stored known users (e.g. anyone messaged)
+    Object.values(store).forEach(u => upsert(u.username, u));
+
+    // 2. Campaign GMs and Players from participated/owned campaigns
+    this.getCampaignHistory().forEach(c => {
+      if (c.creatorName) {
+        upsert(c.creatorName, { role: 'GM', campaignId: c.campaignId, campaignName: c.campaignName });
+      }
+      if (c.isCreator) {
+        const reqs = this.getJoinRequestsForGM(c.campaignId);
+        reqs.forEach(r => {
+          if (r.username) upsert(r.username, { role: 'Player', campaignId: c.campaignId, campaignName: c.campaignName });
+        });
+        const savedChars = this.getCampaignSavedCharacters(c.campaignId);
+        Object.values(savedChars).forEach(sc => {
+          if (sc.playerName) upsert(sc.playerName, { role: 'Player', campaignId: c.campaignId, campaignName: c.campaignName });
+        });
+      }
+    });
+
+    // 3. Message history (anyone sent a message to or received a message from)
+    this.getAllCampaignMessages().forEach(m => {
+      const sender = (m.senderUser || '').trim();
+      const recip = (m.recipientUser || '').trim();
+      if (sender && (!myName || sender.toLowerCase() === myName) && recip) {
+        upsert(recip, { role: 'Messaged', campaignId: m.campaignId, campaignName: m.campaignName });
+      } else if (recip && (!myName || recip.toLowerCase() === myName) && sender) {
+        upsert(sender, { role: 'Messaged You', campaignId: m.campaignId, campaignName: m.campaignName });
+      }
+      if (m.gmName) upsert(m.gmName, { role: 'GM', campaignId: m.campaignId, campaignName: m.campaignName });
+      if (m.playerName) upsert(m.playerName, { role: 'Player', campaignId: m.campaignId, campaignName: m.campaignName });
+    });
+
+    return Array.from(map.values()).sort((a, b) => a.username.localeCompare(b.username));
+  }
+
+  /**
+   * Sends a direct message between a Player and a GM or Known User without exposing email addresses.
+   * Automatically adds the recipient to the sender's Known Users list and ensures the sender's User Notes are available to the recipient.
+   */
+  sendDirectUserMessage({ toUser, senderUser = '', campaignId = '', campaignName = '', gmName = '', text = '' } = {}) {
+    const cleanTo = String(toUser || '').trim();
+    const cleanText = String(text || '').trim();
+    if (!cleanTo) {
+      throw new Error('Please select or enter a recipient username.');
+    }
+    if (!cleanText) {
+      throw new Error('Please enter a message to send.');
+    }
+
+    const effSender = String(senderUser || this.getCurrentUsername() || 'Player').trim();
+    const cleanCampId = String(campaignId || '').trim().toUpperCase().replace(/^#+/, '');
+    const info = cleanCampId ? (this.getCampaignInfo(cleanCampId) || {}) : {};
+    const histMatch = cleanCampId ? (this.getCampaignHistory().find(c => c.campaignId === cleanCampId) || {}) : {};
+    const effCampName = (campaignName || histMatch.campaignName || info.campaignName || (cleanCampId ? cleanCampId : 'Direct Message')).trim();
+    const effGM = (gmName || histMatch.creatorName || info.creatorName || (this.ownsAnyCampaign() ? effSender : cleanTo)).trim();
+
+    // Automatically add recipient to Known Users
+    this.addKnownUser(cleanTo, {
+      role: (effGM.toLowerCase() === cleanTo.toLowerCase()) ? 'GM' : 'Known User',
+      campaignId: cleanCampId,
+      campaignName: effCampName
+    });
+
+    // Ensure sender's current user notes are synced in the shared directory so recipient can view them via "i" button
+    const myNotes = this.getUserNotes(effSender);
+    if (myNotes) {
+      this.setUserNotes(myNotes, effSender);
+    }
+
+    const msg = this.sendCampaignMessage({
+      type: 'DIRECT_MESSAGE',
+      recipientRole: 'USER',
+      recipientUser: cleanTo,
+      senderUser: effSender,
+      campaignId: cleanCampId || 'DIRECT',
+      campaignName: effCampName,
+      gmName: effGM,
+      playerName: effSender,
+      text: `✉️ Direct Message from ${effSender} to ${cleanTo}: "${cleanText}"`
+    });
+
+    return msg;
+  }
+
   leaveCampaign() {
     this.stopSessionHeartbeat();
     const current = this.getCampaignState();
@@ -1970,6 +2413,21 @@ export class CampaignTrackerManager {
 
     if (msg.type === 'CAMPAIGN_ANNOUNCE' || msg.type === 'CAMPAIGN_UPDATE') {
       this.registerCampaignInfo(msg);
+      this.renderAllOpenViews();
+    }
+
+    if (msg.type === 'USER_NOTES_UPDATED' && msg.username) {
+      const dir = this.getUserNotesDirectory();
+      dir[String(msg.username).trim().toLowerCase()] = {
+        username: String(msg.username).trim(),
+        notes: String(msg.notes || '').slice(0, 256),
+        updatedAt: new Date().toISOString()
+      };
+      this.saveUserNotesDirectory(dir);
+      if (typeof window !== 'undefined' && window.appController?.renderCampaignMessagesModalIfOpen) {
+        window.appController.renderCampaignMessagesModalIfOpen();
+      }
+      return;
     }
 
     if (msg.type === 'CAMPAIGN_MESSAGE_DISPATCH') {
@@ -2350,20 +2808,29 @@ export class CampaignTrackerManager {
       }
     }
 
-    // Update new message count next to the user icon (viewable by users who own campaigns or have messages)
+    // Update new message count next to the user icon AND next to the Campaign Messages dropdown menu item (with pulsing effect when unread > 0)
+    const unreadCount = this.getUnreadMessageCount();
+    const totalMsgs = this.getMessagesForCurrentUser().length;
+    const ownsCamp = this.ownsAnyCampaign();
     const msgBtn = document.getElementById('btn-header-messages');
     const msgCountEl = document.getElementById('header-message-count-badge');
     if (msgBtn && msgCountEl) {
-      const unreadCount = this.getUnreadMessageCount();
-      const totalMsgs = this.getMessagesForCurrentUser().length;
-      const ownsCamp = this.ownsAnyCampaign();
       if (ownsCamp || totalMsgs > 0) {
         msgBtn.style.display = 'inline-flex';
         msgCountEl.textContent = String(unreadCount);
         msgCountEl.style.background = unreadCount > 0 ? 'var(--hero-red)' : 'rgba(148, 163, 184, 0.35)';
+        msgCountEl.classList.toggle('unread-badge-pulse', unreadCount > 0);
       } else {
         msgBtn.style.display = 'none';
+        msgCountEl.classList.remove('unread-badge-pulse');
       }
+    }
+    const dropdownMsgBadge = document.getElementById('dropdown-message-count-badge');
+    if (dropdownMsgBadge) {
+      dropdownMsgBadge.textContent = String(unreadCount);
+      dropdownMsgBadge.style.display = 'inline-flex';
+      dropdownMsgBadge.style.background = unreadCount > 0 ? 'var(--hero-red)' : 'rgba(148, 163, 184, 0.35)';
+      dropdownMsgBadge.classList.toggle('unread-badge-pulse', unreadCount > 0);
     }
   }
 
@@ -2449,7 +2916,10 @@ export class CampaignTrackerManager {
               <span style="font-size: 10pt; color: var(--text-muted); font-weight: 600;">(${state.isHost ? 'GM / Host' : 'Connected Player'})</span>
             </div>
             <div style="display: flex; align-items: center; gap: 0.4rem;">
-              <button type="button" class="btn btn-outline btn-copy-campaign-link" data-campid="${state.campaignId}" style="font-size: 10pt; font-weight: 700; padding: 0.2rem 0.6rem; color: var(--hero-blue); border-color: var(--hero-blue);">🔗 Copy Campaign Link</button>
+              <div style="display: inline-flex; align-items: center; gap: 0.3rem; background: rgba(0,0,0,0.2); border: 1px solid var(--border-color); border-radius: 4px; padding: 2px 6px;">
+                <span style="font-size: 10pt; color: var(--text-muted); max-width: 190px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${this.generateCampaignLink(state)}">🔗 ${this.generateCampaignLink(state)}</span>
+                <button type="button" class="btn btn-outline btn-copy-campaign-link" data-campid="${state.campaignId}" style="font-size: 10pt; font-weight: 800; padding: 1px 7px; min-height: 24px; color: var(--hero-blue); border-color: var(--hero-blue);">📋 Copy</button>
+              </div>
               <button type="button" class="btn btn-outline btn-leave-campaign-room" style="font-size: 10pt; font-weight: 700; padding: 0.2rem 0.65rem; color: var(--hero-red); border-color: var(--hero-red);">🚪 Leave Session</button>
             </div>
           </div>
@@ -2605,30 +3075,37 @@ export class CampaignTrackerManager {
     }
 
 
-    // Participated Campaigns History List
-    const history = this.getCampaignHistory();
+    // Upgraded Campaign Browser (shows user's joined/created campaigns first with special icon + all public advertised campaigns)
+    const browserCampaigns = this.getBrowsableCampaigns();
     const storedChars = (typeof window !== 'undefined' && window.appController?.storage?.getCharacters()) || [];
+    const bf = this.browserFilters || { query: '', searchName: true, searchDesc: true, searchPL: false, plMin: 1, plMax: 20, sortBy: 'default', hideHiatus: false };
 
-    const historyCards = history.map(c => {
+    const browserCards = browserCampaigns.map(c => {
       const regInfo = this.getCampaignInfo(c.campaignId) || {};
       const isOnHiatus = !!(c.isOnHiatus || regInfo.isOnHiatus);
+      const isPublic = !!(c.isPublic || regInfo.isPublic);
+      const notesText = String(c.notes ?? regInfo.notes ?? '');
       const pendingTransfer = c.pendingTransfer || regInfo.pendingTransfer || null;
       const isLive = !isOnHiatus && this.isSessionActive(c.campaignId);
       const isCur = state.isConnected && isLive && state.campaignId === c.campaignId;
-      const attached = storedChars.filter(ch => (ch.campaignId && ch.campaignId.toUpperCase().replace(/^#+/, '') === c.campaignId) || (ch.campaign && ch.campaign.trim().toLowerCase() === c.campaignName.toLowerCase()));
+      const isJoinedOrCreated = !!c.isJoinedOrCreated;
+      const attached = storedChars.filter(ch => (ch.campaignId && ch.campaignId.toUpperCase().replace(/^#+/, '') === c.campaignId) || (ch.campaign && ch.campaign.trim().toLowerCase() === (c.campaignName || '').toLowerCase()));
       const attachedStr = attached.map(ch => ch.name || 'Hero').join(', ') || 'None';
       const pendingReqCount = c.isCreator ? this.getJoinRequestsForGM(c.campaignId).filter(r => r.status === 'pending').length : 0;
+      const shareLink = this.generateCampaignLink(c);
 
       return `
-        <div style="background: var(--bg-card); border: 1px solid ${isOnHiatus ? 'rgba(245, 158, 11, 0.45)' : 'var(--border-color)'}; border-radius: 4px; padding: 0.6rem 0.75rem; margin-bottom: 0.45rem; display: flex; flex-direction: column; gap: 0.4rem;">
-          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.4rem;">
-            <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
-              <strong>${c.campaignName}</strong>
+        <div class="campaign-browser-card" data-campid="${c.campaignId}" style="background: var(--bg-card); border: 1px solid ${isOnHiatus ? 'rgba(245, 158, 11, 0.45)' : (isJoinedOrCreated ? 'rgba(59, 130, 246, 0.5)' : 'var(--border-color)')}; border-radius: 6px; padding: 0.65rem 0.85rem; margin-bottom: 0.55rem; display: flex; flex-direction: column; gap: 0.45rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.45rem;">
+            <div style="display: flex; align-items: center; gap: 0.45rem; flex-wrap: wrap;">
+              ${isJoinedOrCreated ? `<span class="badge-joined-campaign" title="Campaign you have joined or created" style="font-size: 10pt; font-weight: 800; color: var(--hero-gold); background: rgba(234, 179, 8, 0.16); border: 1px solid rgba(234, 179, 8, 0.45); padding: 1px 6px; border-radius: 4px;">🌟 Joined</span>` : `<span style="font-size: 10pt; font-weight: 700; color: var(--hero-green); background: rgba(16, 185, 129, 0.14); border: 1px solid rgba(16, 185, 129, 0.4); padding: 1px 6px; border-radius: 4px;">🌐 Open to Join</span>`}
+              <strong style="font-size: 10.5pt; color: var(--text-bright);">${c.campaignName}</strong>
               <span style="font-size: 10pt; background: rgba(0,0,0,0.15); padding: 1px 6px; border-radius: 4px; font-weight: 800; color: var(--hero-blue);">ID: #${c.campaignId}</span>
-              <span style="font-size: 10pt; color: var(--hero-gold); font-weight: 700;">PL ${c.powerLevel}</span>
-              ${c.isCreator ? '<span style="font-size: 10pt; font-weight: 800; color: var(--hero-gold); background: rgba(234, 179, 8, 0.15); padding: 1px 5px; border-radius: 3px;">👑 GM (Owner)</span>' : '<span style="font-size: 10pt; font-weight: 700; color: var(--hero-blue); background: rgba(59, 130, 246, 0.15); padding: 1px 5px; border-radius: 3px;">Player</span>'}
-              ${c.creatorName ? `<span style="font-size: 10pt; color: var(--text-muted);">GM: ${c.creatorName}</span>` : ''}
-              <span style="font-size: 10pt; color: var(--text-muted);">Attached: ${attachedStr}</span>
+              <span style="font-size: 10pt; color: var(--hero-gold); font-weight: 800;">PL ${c.powerLevel || 10}</span>
+              ${isPublic ? '<span style="font-size: 10pt; font-weight: 700; color: #10b981; background: rgba(16, 185, 129, 0.12); padding: 1px 5px; border-radius: 3px;">🌐 Public</span>' : '<span style="font-size: 10pt; color: var(--text-muted); background: rgba(255,255,255,0.05); padding: 1px 5px; border-radius: 3px;">🔒 Private</span>'}
+              ${c.isCreator ? '<span style="font-size: 10pt; font-weight: 800; color: var(--hero-gold); background: rgba(234, 179, 8, 0.15); padding: 1px 5px; border-radius: 3px;">👑 GM (Owner)</span>' : (isJoinedOrCreated ? '<span style="font-size: 10pt; font-weight: 700; color: var(--hero-blue); background: rgba(59, 130, 246, 0.15); padding: 1px 5px; border-radius: 3px;">Player</span>' : '')}
+              ${c.creatorName ? `<span style="font-size: 10pt; color: var(--text-muted);">GM: <strong>${c.creatorName}</strong></span>` : ''}
+              ${isJoinedOrCreated ? `<span style="font-size: 10pt; color: var(--text-muted);">Attached: ${attachedStr}</span>` : ''}
             </div>
             <div style="display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap;">
               ${isOnHiatus ? '<span style="color: var(--hero-gold); font-weight: 800; font-size: 10pt;">⏸️ On Hiatus</span>' : (isLive ? '<span style="color: #10b981; font-weight: 800; font-size: 10pt;">🟢 Session Running</span>' : '<span style="color: var(--text-muted); font-size: 10pt;">⚪ No Session Running</span>')}
@@ -2637,10 +3114,19 @@ export class CampaignTrackerManager {
               ` : `
                 <button type="button" class="btn btn-outline btn-gm-toggle-session" data-action="start" data-campid="${c.campaignId}" style="font-size: 10pt; padding: 2px 7px; color: var(--hero-green); border-color: var(--hero-green); font-weight: 700;">▶️ Start Session</button>
               `) : ''}
-              ${isCur ? '<span style="font-size: 10pt; font-weight: 800; color: var(--hero-green);">[In Session]</span>' : (isLive ? `
+              ${isCur ? '<span style="font-size: 10pt; font-weight: 800; color: var(--hero-green);">[In Session]</span>' : (isLive && isJoinedOrCreated ? `
                 <button type="button" class="btn btn-primary btn-join-game-session" data-campid="${c.campaignId}" style="font-size: 10pt; padding: 2px 8px; font-weight: 800; background: var(--hero-green); border-color: var(--hero-green);">🎮 Join Game Session</button>
               ` : '')}
-              <button type="button" class="btn btn-outline btn-copy-campaign-link" data-campid="${c.campaignId}" title="Copy shareable Campaign Link" style="font-size: 10pt; padding: 2px 7px; color: var(--hero-blue); border-color: var(--hero-blue); font-weight: 700;">🔗 Copy Link</button>
+              ${!isJoinedOrCreated ? `
+                <button type="button" class="btn btn-primary btn-browser-apply-campaign" data-campid="${c.campaignId}" data-campname="${(c.campaignName || '').replace(/"/g, '&quot;')}" style="font-size: 10pt; padding: 2px 9px; font-weight: 800; background: var(--hero-blue); border-color: var(--hero-blue);">📝 Apply to Join</button>
+              ` : ''}
+              ${!c.isCreator && c.creatorName ? `
+                <button type="button" class="btn btn-outline btn-browser-message-gm" data-gm="${(c.creatorName || '').replace(/"/g, '&quot;')}" data-campid="${c.campaignId}" data-campname="${(c.campaignName || '').replace(/"/g, '&quot;')}" title="Send a message to GM ${c.creatorName}" style="font-size: 10pt; padding: 2px 7px; color: var(--hero-blue); border-color: var(--hero-blue); font-weight: 700;">✉️ Message GM</button>
+              ` : ''}
+              <div style="display: inline-flex; align-items: center; gap: 0.25rem; background: rgba(0,0,0,0.18); border: 1px solid var(--border-color); border-radius: 4px; padding: 1px 5px;">
+                <span style="font-size: 10pt; color: var(--text-muted); max-width: 145px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${shareLink}">🔗 Link</span>
+                <button type="button" class="btn btn-outline btn-copy-campaign-link" data-campid="${c.campaignId}" title="Copy shareable Campaign Link" style="font-size: 10pt; padding: 1px 6px; min-height: 22px; color: var(--hero-blue); border-color: var(--hero-blue); font-weight: 800;">📋 Copy</button>
+              </div>
               ${attached.length > 0 ? `
                 <button type="button" class="btn btn-outline btn-load-attached-char" data-campid="${c.campaignId}" style="font-size: 10pt; padding: 2px 8px; color: var(--hero-purple); border-color: var(--hero-purple);">🦸 Load Hero</button>
               ` : ''}
@@ -2650,15 +3136,23 @@ export class CampaignTrackerManager {
                 ` : `
                   <button type="button" class="btn btn-outline btn-gm-toggle-hiatus" data-action="hiatus" data-campid="${c.campaignId}" title="Put campaign on hiatus (you still own the campaign)" style="font-size: 10pt; padding: 2px 8px; color: var(--hero-gold); border-color: var(--hero-gold); font-weight: 700;">⏸️ Put on Hiatus</button>
                 `}
-              ` : `
+              ` : (isJoinedOrCreated ? `
                 <button type="button" class="btn btn-outline btn-leave-campaign-membership" data-campid="${c.campaignId}" data-campname="${(c.campaignName || '').replace(/"/g, '&quot;')}" title="Leave this campaign and detach characters" style="font-size: 10pt; padding: 2px 8px; color: var(--hero-red); border-color: rgba(239, 68, 68, 0.5); font-weight: 700;">🚪 Leave Campaign</button>
-              `}
+              ` : '')}
             </div>
           </div>
+
           ${c.isCreator ? `
+            <div style="display: flex; align-items: center; gap: 0.5rem; width: 100%; margin-top: 0.15rem;">
+              <label style="font-size: 10pt; font-weight: 700; color: var(--hero-gold); white-space: nowrap;">📝 Campaign Notes:</label>
+              <textarea class="textarea-campaign-notes" rows="1" data-campid="${c.campaignId}" placeholder="Add campaign notes or description (expands up to 3 rows)...">${notesText.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</textarea>
+            </div>
             <div style="display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; padding-top: 0.35rem; border-top: 1px dashed rgba(255,255,255,0.1); font-size: 10pt; flex-wrap: wrap;">
               <div style="display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap;">
-                <span style="color: var(--hero-gold); font-weight: 800;">⚙️ GM Campaign Settings (Owner):</span>
+                <span style="color: var(--hero-gold); font-weight: 800;">⚙️ GM Settings:</span>
+                <button type="button" class="btn btn-outline btn-gm-toggle-public" data-campid="${c.campaignId}" data-public="${isPublic ? '1' : '0'}" title="Advertise this campaign in the Campaign Browser so any app user can see it and apply to join" style="font-size: 10pt; padding: 1px 8px; font-weight: 800; color: ${isPublic ? '#10b981' : 'var(--hero-blue)'}; border-color: ${isPublic ? '#10b981' : 'var(--hero-blue)'}; cursor: pointer;">
+                  ${isPublic ? '🌐 Public (Click to Unlist)' : '📢 Make Public'}
+                </button>
                 <label style="display: inline-flex; align-items: center; gap: 0.35rem; cursor: pointer; user-select: none; color: var(--text-bright); font-weight: 700;" title="When checked, characters of any Power Level can join without PL restrictions">
                   <input type="checkbox" class="chk-campaign-dont-enforce-pl" data-campid="${c.campaignId}" ${c.dontEnforcePL ? 'checked' : ''} style="cursor: pointer; width: 14px; height: 14px; accent-color: var(--hero-gold);">
                   <span>Don't enforce PL</span>
@@ -2681,26 +3175,80 @@ export class CampaignTrackerManager {
                 <button type="button" class="btn btn-outline btn-gm-delete-campaign" data-campid="${c.campaignId}" data-campname="${(c.campaignName || '').replace(/"/g, '&quot;')}" style="font-size: 10pt; padding: 1px 8px; color: var(--hero-red); border-color: rgba(239, 68, 68, 0.5); font-weight: 700; cursor: pointer;">🗑️ Delete Campaign</button>
               </div>
             </div>
-          ` : ''}
+          ` : (notesText ? `
+            <div style="font-size: 10pt; color: var(--text-muted); background: rgba(0,0,0,0.15); border-left: 3px solid var(--hero-blue); padding: 0.3rem 0.6rem; border-radius: 3px; max-height: 75px; overflow-y: auto; white-space: pre-wrap;">${notesText.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</div>
+          ` : '')}
         </div>
       `;
     }).join('');
 
-    const historySection = `
+    const browserSection = `
       <div style="margin-top: 1.25rem; border-top: 1px solid var(--border-color); padding-top: 0.75rem;">
-        <div style="font-weight: 800; font-size: var(--font-size-sm); color: var(--text-bright); margin-bottom: 0.5rem; display: flex; justify-content: space-between; align-items: center;">
-          <span>📜 Your Participated Campaigns (${history.length})</span>
-          <span style="font-size: 10pt; color: var(--text-muted);">Join a running session or manage campaign membership</span>
+        <div style="font-weight: 800; font-size: var(--font-size-sm); color: var(--text-bright); margin-bottom: 0.55rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.4rem;">
+          <span>🌐 Campaign Browser (${browserCampaigns.length})</span>
+          <span style="font-size: 10pt; color: var(--text-muted);">🌟 Joined &amp; created campaigns are shown first by default • Browse &amp; apply to public campaigns</span>
         </div>
-        ${history.length === 0 ? `
-          <div style="padding: 1rem; text-align: center; color: var(--text-muted); font-size: 10pt; font-style: italic;">
-            No participated campaigns stored yet. When you create or join a campaign, it is saved here.
+
+        <!-- Campaign Browser Search, Checked Filters, Legal # to # PL Stepper, Sort & On Hiatus Filter Bar -->
+        <div class="campaign-browser-toolbar" style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 6px; padding: 0.6rem 0.75rem; margin-bottom: 0.7rem; display: flex; flex-direction: column; gap: 0.5rem;">
+          <div style="display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap;">
+            <input type="text" class="input-browser-search" value="${(bf.query || '').replace(/"/g, '&quot;')}" placeholder="🔍 Search campaigns..." style="flex: 1; min-width: 190px; background: var(--bg-input); color: var(--text-bright); border: 1px solid var(--border-color); border-radius: 4px; padding: 0.28rem 0.6rem; font-size: 10pt;" />
+            <div style="display: inline-flex; align-items: center; gap: 0.55rem; font-size: 10pt; flex-wrap: wrap;">
+              <span style="color: var(--text-muted); font-weight: 700;">Search in:</span>
+              <label style="display: inline-flex; align-items: center; gap: 0.25rem; cursor: pointer; font-weight: 700; color: var(--text-bright);">
+                <input type="checkbox" class="chk-search-camp-name" ${bf.searchName ? 'checked' : ''} style="cursor: pointer; accent-color: var(--hero-blue);" />
+                <span>Campaign Name</span>
+              </label>
+              <label style="display: inline-flex; align-items: center; gap: 0.25rem; cursor: pointer; font-weight: 700; color: var(--text-bright);">
+                <input type="checkbox" class="chk-search-camp-desc" ${bf.searchDesc ? 'checked' : ''} style="cursor: pointer; accent-color: var(--hero-blue);" />
+                <span>Description / Notes</span>
+              </label>
+              <label style="display: inline-flex; align-items: center; gap: 0.25rem; cursor: pointer; font-weight: 700; color: var(--text-bright);">
+                <input type="checkbox" class="chk-search-camp-pl" ${bf.searchPL ? 'checked' : ''} style="cursor: pointer; accent-color: var(--hero-gold);" />
+                <span>PL Range:</span>
+              </label>
+              <div class="pl-range-stepper-group" style="display: inline-flex; align-items: center; gap: 0.25rem; background: var(--bg-input); border: 1px solid var(--border-color); border-radius: 4px; padding: 1px 5px; opacity: ${bf.searchPL ? '1' : '0.65'};">
+                <button type="button" class="btn btn-outline btn-pl-min-minus" title="Decrease minimum PL" style="min-height: 22px; padding: 0 5px; font-size: 10pt; font-weight: 800;">-</button>
+                <input type="number" class="input-pl-range-min" min="1" max="20" value="${bf.plMin}" style="width: 42px; text-align: center; background: transparent; color: var(--hero-gold); border: none; font-size: 10pt; font-weight: 800;" />
+                <button type="button" class="btn btn-outline btn-pl-min-plus" title="Increase minimum PL" style="min-height: 22px; padding: 0 5px; font-size: 10pt; font-weight: 800;">+</button>
+                <span style="font-size: 10pt; color: var(--text-muted); font-weight: 700; padding: 0 2px;">to</span>
+                <button type="button" class="btn btn-outline btn-pl-max-minus" title="Decrease maximum PL" style="min-height: 22px; padding: 0 5px; font-size: 10pt; font-weight: 800;">-</button>
+                <input type="number" class="input-pl-range-max" min="1" max="20" value="${bf.plMax}" style="width: 42px; text-align: center; background: transparent; color: var(--hero-gold); border: none; font-size: 10pt; font-weight: 800;" />
+                <button type="button" class="btn btn-outline btn-pl-max-plus" title="Increase maximum PL" style="min-height: 22px; padding: 0 5px; font-size: 10pt; font-weight: 800;">+</button>
+              </div>
+            </div>
           </div>
-        ` : historyCards}
+          <div style="display: flex; justify-content: space-between; align-items: center; gap: 0.6rem; flex-wrap: wrap; border-top: 1px dashed rgba(255,255,255,0.08); padding-top: 0.4rem; font-size: 10pt;">
+            <div style="display: inline-flex; align-items: center; gap: 0.45rem;">
+              <span style="color: var(--text-muted); font-weight: 700;">Sort by:</span>
+              <select class="sel-browser-sort" style="background: var(--bg-input); color: var(--text-bright); border: 1px solid var(--border-color); border-radius: 4px; padding: 2px 8px; font-size: 10pt; font-weight: 700;">
+                <option value="default" ${bf.sortBy === 'default' ? 'selected' : ''}>🌟 Default (Joined / Created First)</option>
+                <option value="name_asc" ${bf.sortBy === 'name_asc' ? 'selected' : ''}>🔤 Campaign Name (A–Z)</option>
+                <option value="gm_asc" ${bf.sortBy === 'gm_asc' ? 'selected' : ''}>👑 GM Name (A–Z)</option>
+                <option value="age_desc" ${bf.sortBy === 'age_desc' ? 'selected' : ''}>🕒 Campaign Age (Newest First)</option>
+                <option value="age_asc" ${bf.sortBy === 'age_asc' ? 'selected' : ''}>🕰️ Campaign Age (Oldest First)</option>
+                <option value="pl_asc" ${bf.sortBy === 'pl_asc' ? 'selected' : ''}>⚡ Power Level (Low to High)</option>
+                <option value="pl_desc" ${bf.sortBy === 'pl_desc' ? 'selected' : ''}>⚡ Power Level (High to Low)</option>
+              </select>
+            </div>
+            <label style="display: inline-flex; align-items: center; gap: 0.35rem; cursor: pointer; font-weight: 700; color: var(--text-bright);" title="When checked, filters out inactive campaigns that are currently on hiatus">
+              <input type="checkbox" class="chk-filter-hide-hiatus" ${bf.hideHiatus ? 'checked' : ''} style="cursor: pointer; accent-color: var(--hero-gold);" />
+              <span>⏸️ Hide "On Hiatus" (Inactive Campaigns)</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="campaign-browser-list-container">
+          ${browserCampaigns.length === 0 ? `
+            <div style="padding: 1rem; text-align: center; color: var(--text-muted); font-size: 10pt; font-style: italic;">
+              No campaigns match your current browser filters. Create a campaign, join by name/link, or adjust your search filters above.
+            </div>
+          ` : browserCards}
+        </div>
       </div>
     `;
 
-    return connectionBar + charAttachmentBar + memberCards + historySection;
+    return connectionBar + charAttachmentBar + memberCards + browserSection;
   }
 
   renderAllOpenViews() {
@@ -2937,6 +3485,158 @@ export class CampaignTrackerManager {
         }
       });
     });
+
+    // Make Public / Unlist toggle button for GMs
+    parentEl.querySelectorAll('.btn-gm-toggle-public').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const campId = e.currentTarget.dataset.campid;
+        const curPublic = e.currentTarget.dataset.public === '1';
+        if (campId) {
+          this.setCampaignPublic(campId, !curPublic);
+          if (typeof supabaseService !== 'undefined' && supabaseService && supabaseService.isLoggedIn()) {
+            supabaseService.getCampaignByNameOrCode(campId).then(cloudCamp => {
+              if (cloudCamp?.id) {
+                supabaseService.updateCampaignSettings(cloudCamp.id, { isPublic: !curPublic }).catch(() => {});
+              }
+            }).catch(() => {});
+          }
+        }
+      });
+    });
+
+    // Apply to Join Campaign button in Campaign Browser
+    parentEl.querySelectorAll('.btn-browser-apply-campaign').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const campId = e.currentTarget.dataset.campid;
+        const campName = e.currentTarget.dataset.campname || campId;
+        if (typeof window !== 'undefined' && window.appController) {
+          window.appController.openJoinCampaignDialog(campName || campId);
+        } else if (campId) {
+          this.joinCampaign({ campaignId: campId, campaignName: campName });
+        }
+      });
+    });
+
+    // Direct Message GM button in Campaign Browser
+    parentEl.querySelectorAll('.btn-browser-message-gm').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const gm = e.currentTarget.dataset.gm || '';
+        const campId = e.currentTarget.dataset.campid || '';
+        if (gm) {
+          this.addKnownUser(gm, { role: 'GM', campaignId: campId });
+        }
+        if (typeof window !== 'undefined' && window.appController) {
+          window.appController.openCampaignMessagesModal(gm, campId);
+        }
+      });
+    });
+
+    // GM Campaign Notes (1 row default, expands up to 3 viewable rows before scrolling)
+    parentEl.querySelectorAll('.textarea-campaign-notes').forEach(textarea => {
+      const autoResizeNotes = () => {
+        textarea.style.height = 'auto';
+        const nextH = Math.min(Math.max(textarea.scrollHeight || 28, 28), 75);
+        textarea.style.height = `${nextH}px`;
+      };
+      autoResizeNotes();
+      textarea.addEventListener('input', (e) => {
+        autoResizeNotes();
+        const campId = e.currentTarget.dataset.campid;
+        const val = e.currentTarget.value;
+        if (campId) {
+          const histMatch = this.getCampaignHistory().find(c => c.campaignId === campId);
+          const regInfo = this.getCampaignInfo(campId) || {};
+          this.registerCampaignInfo({ ...regInfo, ...(histMatch || {}), campaignId: campId, notes: val });
+          if (histMatch) {
+            this.saveToCampaignHistory({ ...histMatch, notes: val });
+          }
+        }
+      });
+      textarea.addEventListener('change', (e) => {
+        const campId = e.currentTarget.dataset.campid;
+        const val = e.currentTarget.value;
+        if (campId) {
+          this.setCampaignNotes(campId, val);
+          if (typeof supabaseService !== 'undefined' && supabaseService && supabaseService.isLoggedIn()) {
+            supabaseService.getCampaignByNameOrCode(campId).then(cloudCamp => {
+              if (cloudCamp?.id) {
+                supabaseService.updateCampaignSettings(cloudCamp.id, { notes: val }).catch(() => {});
+              }
+            }).catch(() => {});
+          }
+        }
+      });
+    });
+
+    // Campaign Browser Search, Checked Fields, Legal PL Stepper, Sort & On Hiatus Filter
+    const searchInput = parentEl.querySelector('.input-browser-search');
+    if (searchInput) {
+      searchInput.addEventListener('input', (e) => {
+        const cursorPos = e.target.selectionStart;
+        this.setBrowserFilter({ query: e.target.value });
+        this.renderAllOpenViews();
+        const newSearchInput = parentEl.querySelector('.input-browser-search');
+        if (newSearchInput) {
+          newSearchInput.focus();
+          try { newSearchInput.setSelectionRange(cursorPos, cursorPos); } catch {}
+        }
+      });
+    }
+
+    parentEl.querySelector('.chk-search-camp-name')?.addEventListener('change', (e) => {
+      this.setBrowserFilter({ searchName: e.target.checked });
+      this.renderAllOpenViews();
+    });
+
+    parentEl.querySelector('.chk-search-camp-desc')?.addEventListener('change', (e) => {
+      this.setBrowserFilter({ searchDesc: e.target.checked });
+      this.renderAllOpenViews();
+    });
+
+    parentEl.querySelector('.chk-search-camp-pl')?.addEventListener('change', (e) => {
+      this.setBrowserFilter({ searchPL: e.target.checked });
+      this.renderAllOpenViews();
+    });
+
+    parentEl.querySelector('.btn-pl-min-minus')?.addEventListener('click', () => {
+      this.setBrowserPLRange((this.browserFilters?.plMin || 1) - 1, this.browserFilters?.plMax || 20, 'min');
+      this.renderAllOpenViews();
+    });
+
+    parentEl.querySelector('.btn-pl-min-plus')?.addEventListener('click', () => {
+      this.setBrowserPLRange((this.browserFilters?.plMin || 1) + 1, this.browserFilters?.plMax || 20, 'min');
+      this.renderAllOpenViews();
+    });
+
+    parentEl.querySelector('.btn-pl-max-minus')?.addEventListener('click', () => {
+      this.setBrowserPLRange(this.browserFilters?.plMin || 1, (this.browserFilters?.plMax || 20) - 1, 'max');
+      this.renderAllOpenViews();
+    });
+
+    parentEl.querySelector('.btn-pl-max-plus')?.addEventListener('click', () => {
+      this.setBrowserPLRange(this.browserFilters?.plMin || 1, (this.browserFilters?.plMax || 20) + 1, 'max');
+      this.renderAllOpenViews();
+    });
+
+    parentEl.querySelector('.input-pl-range-min')?.addEventListener('change', (e) => {
+      this.setBrowserPLRange(parseInt(e.target.value, 10) || 1, this.browserFilters?.plMax || 20, 'min');
+      this.renderAllOpenViews();
+    });
+
+    parentEl.querySelector('.input-pl-range-max')?.addEventListener('change', (e) => {
+      this.setBrowserPLRange(this.browserFilters?.plMin || 1, parseInt(e.target.value, 10) || 20, 'max');
+      this.renderAllOpenViews();
+    });
+
+    parentEl.querySelector('.sel-browser-sort')?.addEventListener('change', (e) => {
+      this.setBrowserFilter({ sortBy: e.target.value });
+      this.renderAllOpenViews();
+    });
+
+    parentEl.querySelector('.chk-filter-hide-hiatus')?.addEventListener('change', (e) => {
+      this.setBrowserFilter({ hideHiatus: e.target.checked });
+      this.renderAllOpenViews();
+    });
   }
 
   openPopout() {
@@ -2968,7 +3668,7 @@ export class CampaignTrackerManager {
 <head>
   <meta charset="UTF-8">
   <title>Mutants & Masterminds 3E - Party Conditions & Toughness Tracker</title>
-  <link rel="stylesheet" href="css/styles.css?v=3.72">
+  <link rel="stylesheet" href="css/styles.css?v=3.73">
   <style>
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;

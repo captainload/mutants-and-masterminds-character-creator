@@ -3108,3 +3108,38 @@ html[data-theme="light"] .stat-summary-bar {
   overflow-y: auto !important;
   overscroll-behavior: contain !important;
 }
+
+
+/* =====================================================================
+   UNREAD MESSAGE BADGE PULSE & CAMPAIGN BROWSER NOTES (v3.73)
+   ===================================================================== */
+@keyframes unreadMessagePulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.8);
+  }
+  50% {
+    transform: scale(1.12);
+    box-shadow: 0 0 10px 3px rgba(239, 68, 68, 0.55);
+  }
+}
+
+.unread-badge-pulse {
+  animation: unreadMessagePulse 1.5s infinite ease-in-out;
+}
+
+.textarea-campaign-notes {
+  width: 100%;
+  min-height: 28px;
+  max-height: 75px;
+  line-height: 1.35;
+  padding: 4px 8px;
+  font-size: 10pt;
+  background: var(--bg-input);
+  color: var(--text-bright);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  resize: none;
+  overflow-y: auto;
+  box-sizing: border-box;
+}

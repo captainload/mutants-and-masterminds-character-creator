@@ -6,8 +6,8 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Mutants & Masterminds 3E - Character Editor v3.72</title>
-  <link rel="stylesheet" href="css/styles.css?v=3.72">
+  <title>Mutants & Masterminds 3E - Character Editor v3.73</title>
+  <link rel="stylesheet" href="css/styles.css?v=3.73">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
@@ -93,7 +93,7 @@
 
           <div class="brand-title-centered">
             <span>Mutants & Masterminds 3E Character Editor</span>
-            <span id="header-version-tag" class="header-version-tag up-to-date" title="Current Version">v3.72</span>
+            <span id="header-version-tag" class="header-version-tag up-to-date" title="Current Version">v3.73</span>
             <button type="button" id="btn-header-update-alert" class="btn-header-update-alert" title="Check for updates / Update status" style="display: none;">!</button>
           </div>
 
@@ -122,6 +122,7 @@
                 <span style="display: flex; align-items: center; gap: 0.45rem;">
                   <span>📬</span> Campaign Messages
                 </span>
+                <span id="dropdown-message-count-badge" style="background: var(--hero-red); color: #fff; font-size: 10pt; font-weight: 800; padding: 0px 6px; border-radius: 999px; min-width: 18px; text-align: center;">0</span>
               </button>
               <button type="button" class="menu-dropdown-item" id="btn-header-user-settings" style="width: 100%; text-align: left; padding: 0.45rem 0.75rem; font-size: 10pt; font-weight: 700; color: var(--text-bright); background: none; border: none; cursor: pointer; display: flex; align-items: center; justify-content: space-between;">
                 <span style="display: flex; align-items: center; gap: 0.45rem;">
@@ -932,6 +933,26 @@
             <span style="color: #22c55e; font-weight: 700; display: inline-flex; align-items: center; gap: 0.35rem; font-size: 14px;">
               <span style="font-size: 10pt;">●</span> Connected to Database
             </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Public User Notes Card (up to 256 characters) -->
+      <div class="card-box" style="margin-bottom: 1.25rem;">
+        <div class="card-box-header" style="display: flex; justify-content: space-between; align-items: center;">
+          <div class="card-box-title" style="font-size: 14px;">
+            <span>📝</span> User Notes
+          </div>
+          <span id="user-settings-notes-count" style="font-size: 10pt; color: var(--text-muted); font-weight: 700;">0 / 256</span>
+        </div>
+        <div style="padding: 0.9rem;">
+          <p style="font-size: 10pt; color: var(--text-muted); margin-bottom: 0.6rem; line-height: 1.45;">
+            Post a short note or bio (up to 256 characters). Anyone you message can view these notes via the <strong>i</strong> button next to your name in their Known Users address book.
+          </p>
+          <textarea id="user-settings-notes-input" maxlength="256" rows="3" placeholder="Enter up to 256 characters (e.g., preferred game times, playstyle, Discord handle)..." style="width: 100%; background: var(--bg-input); color: var(--text-bright); border: 1px solid var(--border-color); border-radius: 4px; padding: 0.5rem; font-size: 10pt; resize: vertical; margin-bottom: 0.6rem;"></textarea>
+          <div style="display: flex; justify-content: flex-end; align-items: center; gap: 0.5rem;">
+            <span id="user-settings-notes-saved-msg" style="font-size: 10pt; color: var(--hero-green); font-weight: 700; display: none;">✓ Saved!</span>
+            <button type="button" class="btn btn-primary" id="btn-save-user-settings-notes" style="font-size: 10pt; font-weight: 700; padding: 0.35rem 0.9rem;">💾 Save User Notes</button>
           </div>
         </div>
       </div>
@@ -1865,18 +1886,48 @@
   </div>
 
   <!-- ======================================================= -->
-  <!-- MODAL: CAMPAIGN MESSAGES & NOTIFICATIONS                 -->
+  <!-- MODAL: CAMPAIGN MESSAGES & KNOWN USERS ADDRESS BOOK      -->
   <!-- ======================================================= -->
   <div class="modal-overlay" id="modal-campaign-messages">
-    <div class="modal-container" style="max-width: 720px; max-height: 90vh; display: flex; flex-direction: column;">
+    <div class="modal-container" style="max-width: 860px; width: 95%; max-height: 90vh; display: flex; flex-direction: column;">
       <div class="modal-header-bar">
-        <div class="modal-header-title">📬 Campaign Messages &amp; Notifications</div>
+        <div class="modal-header-title">📬 Campaign Messages &amp; Known Users</div>
         <button class="btn btn-outline" id="btn-close-campaign-messages" style="min-height: 28px; padding: 0.1rem 0.5rem;">✕</button>
       </div>
-      <div class="modal-scroll-body" style="padding: 1.25rem; flex: 1; overflow-y: auto;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.85rem; flex-wrap: wrap; gap: 0.5rem;">
+      <div class="modal-scroll-body" style="padding: 1rem 1.25rem; flex: 1; overflow-y: auto;">
+        <!-- Compose Direct Message & Known Users Address Book Pane -->
+        <div style="display: grid; grid-template-columns: 1.35fr 1fr; gap: 0.85rem; margin-bottom: 1rem; padding-bottom: 0.85rem; border-bottom: 1px solid var(--border-color);">
+          <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 6px; padding: 0.75rem;">
+            <div style="font-size: 10pt; font-weight: 800; color: var(--hero-gold); margin-bottom: 0.5rem;">✉️ Send Direct Message (Players &amp; GMs)</div>
+            <div style="display: flex; gap: 0.45rem; margin-bottom: 0.45rem; flex-wrap: wrap;">
+              <select id="msg-compose-recipient-select" style="flex: 1; min-width: 140px; background: var(--bg-input); color: var(--text-bright); border: 1px solid var(--border-color); border-radius: 4px; padding: 0.3rem 0.5rem; font-size: 10pt;">
+                <option value="">-- Select Known User --</option>
+              </select>
+              <input type="text" id="msg-compose-recipient-input" placeholder="Or enter username..." style="flex: 1; min-width: 130px; background: var(--bg-input); color: var(--text-bright); border: 1px solid var(--border-color); border-radius: 4px; padding: 0.3rem 0.5rem; font-size: 10pt;" />
+              <select id="msg-compose-campaign-select" style="flex: 1; min-width: 140px; background: var(--bg-input); color: var(--text-bright); border: 1px solid var(--border-color); border-radius: 4px; padding: 0.3rem 0.5rem; font-size: 10pt;">
+                <option value="">General / All Campaigns</option>
+              </select>
+            </div>
+            <div style="display: flex; gap: 0.45rem; align-items: center;">
+              <input type="text" id="msg-compose-text-input" placeholder="Write a message to GM or player..." style="flex: 1; background: var(--bg-input); color: var(--text-bright); border: 1px solid var(--border-color); border-radius: 4px; padding: 0.35rem 0.6rem; font-size: 10pt;" />
+              <button type="button" class="btn btn-primary" id="btn-send-direct-message" style="font-size: 10pt; font-weight: 800; padding: 0.35rem 0.85rem;">📨 Send</button>
+            </div>
+          </div>
+
+          <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 6px; padding: 0.75rem; display: flex; flex-direction: column;">
+            <div style="font-size: 10pt; font-weight: 800; color: var(--hero-blue); margin-bottom: 0.4rem; display: flex; justify-content: space-between; align-items: center;">
+              <span>📖 Known Users Address Book</span>
+              <span style="font-size: 10pt; color: var(--text-muted); font-weight: 600;">Click "i" for User Notes</span>
+            </div>
+            <div id="known-users-address-book-list" style="max-height: 110px; overflow-y: auto; display: flex; flex-direction: column; gap: 0.3rem;">
+              <div style="font-size: 10pt; color: var(--text-muted); font-style: italic;">No known users yet.</div>
+            </div>
+          </div>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; flex-wrap: wrap; gap: 0.5rem;">
           <p style="font-size: 10pt; color: var(--text-muted); margin: 0;">
-            Messages note the Campaign, GM, and Player involved. Ownership transfer offers and join requests can be managed directly below.
+            All messages note the Campaign, GM, and Player involved.
           </p>
           <div style="display: flex; gap: 0.4rem;">
             <button type="button" class="btn btn-outline" id="btn-mark-all-messages-read" style="font-size: 10pt; padding: 0.25rem 0.65rem;">✓ Mark All Read</button>
@@ -1895,6 +1946,6 @@
     </div>
   </div>
 
-  <script type="module" src="js/app.js?v=3.72"></script>
+  <script type="module" src="js/app.js?v=3.73"></script>
 </body>
 </html>

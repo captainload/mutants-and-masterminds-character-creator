@@ -41,7 +41,7 @@ import {
   tablesManager
 } from './tables.js';
 
-import { POWER_PROFILES_LIBRARY } from './power_profiles.js?v=3.72';
+import { POWER_PROFILES_LIBRARY } from './power_profiles.js?v=3.73';
 import { ARCHETYPES } from './archetypes.js';
 import { archetypeManager } from './archetype_window.js';
 import { campaignManager, partyManager, formatCharacterSheetHTML } from './party.js';
@@ -2059,7 +2059,7 @@ window.partyManager = partyManager;
   }
 
   async checkForUpdates({ isManual = false } = {}) {
-    const CURRENT_VERSION = '3.72';
+    const CURRENT_VERSION = '3.73';
     const versionEl = document.getElementById('header-version-tag');
     const updateBtn = document.getElementById('btn-header-update-alert');
     if (typeof window === 'undefined' || !window.location || !window.location.href || window.location.href === 'about:blank') return;
@@ -2568,6 +2568,39 @@ window.partyManager = partyManager;
     document.getElementById('btn-clear-read-messages')?.addEventListener('click', () => {
       campaignManager.clearReadMessages();
       this.renderCampaignMessagesModalIfOpen();
+    });
+    document.getElementById('msg-compose-recipient-select')?.addEventListener('change', (e) => {
+      const val = e.target.value;
+      const recInput = document.getElementById('msg-compose-recipient-input');
+      if (recInput && val) recInput.value = val;
+      if (val) {
+        const known = campaignManager.getKnownUsers().find(u => u.username.toLowerCase() === val.toLowerCase());
+        const campSelect = document.getElementById('msg-compose-campaign-select');
+        if (known && known.campaignId && campSelect && !campSelect.value) {
+          campSelect.value = known.campaignId;
+        }
+      }
+    });
+    document.getElementById('btn-send-direct-message')?.addEventListener('click', async () => {
+      const recInput = document.getElementById('msg-compose-recipient-input');
+      const recSelect = document.getElementById('msg-compose-recipient-select');
+      const campSelect = document.getElementById('msg-compose-campaign-select');
+      const textInput = document.getElementById('msg-compose-text-input');
+      const toUser = (recInput?.value || recSelect?.value || '').trim();
+      const campaignId = (campSelect?.value || '').trim();
+      const text = (textInput?.value || '').trim();
+      try {
+        campaignManager.sendDirectUserMessage({
+          toUser,
+          senderUser: supabaseService.getUsername() || this.char.playerName || 'Player',
+          campaignId,
+          text
+        });
+        if (textInput) textInput.value = '';
+        this.renderCampaignMessagesModalIfOpen();
+      } catch (err) {
+        await this.showAlertDialog(err.message, { title: 'Cannot Send Message' });
+      }
     });
     document.getElementById('btn-header-user-settings')?.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -3340,15 +3373,103 @@ window.partyManager = partyManager;
     }
   }
 
-  openCampaignMessagesModal() {
+  openCampaignMessagesModal(prefillRecipient = '', prefillCampId = '') {
     this.openModal('modal-campaign-messages');
     this.renderCampaignMessagesModalIfOpen();
+    if (prefillRecipient) {
+      const recInput = document.getElementById('msg-compose-recipient-input');
+      const recSelect = document.getElementById('msg-compose-recipient-select');
+      if (recInput) recInput.value = prefillRecipient;
+      if (recSelect) {
+        const matchingOpt = Array.from(recSelect.options || []).find(o => o.value.toLowerCase() === String(prefillRecipient).toLowerCase());
+        if (matchingOpt) recSelect.value = matchingOpt.value;
+      }
+      document.getElementById('msg-compose-text-input')?.focus();
+    }
+    if (prefillCampId) {
+      const campSelect = document.getElementById('msg-compose-campaign-select');
+      if (campSelect) campSelect.value = prefillCampId;
+    }
   }
 
   renderCampaignMessagesModalIfOpen() {
     const modal = document.getElementById('modal-campaign-messages');
     const container = document.getElementById('campaign-messages-list-container');
     if (!modal || !container) return;
+
+    // 1. Populate Known Users Dropdown & Address Book Pane
+    const knownUsers = campaignManager.getKnownUsers();
+    const recSelect = document.getElementById('msg-compose-recipient-select');
+    if (recSelect) {
+      const prevVal = recSelect.value;
+      recSelect.innerHTML = '<option value="">-- Select Known User --</option>' +
+        knownUsers.map(u => `<option value="${u.username}">${u.username} (${u.role}${u.campaignName ? ' • ' + u.campaignName : ''})</option>`).join('');
+      if (prevVal && knownUsers.some(u => u.username === prevVal)) {
+        recSelect.value = prevVal;
+      }
+    }
+
+    const campSelect = document.getElementById('msg-compose-campaign-select');
+    if (campSelect) {
+      const prevCamp = campSelect.value;
+      const camps = campaignManager.getCampaignHistory();
+      campSelect.innerHTML = '<option value="">General / All Campaigns</option>' +
+        camps.map(c => `<option value="${c.campaignId}">${c.campaignName} (#${c.campaignId})</option>`).join('');
+      if (prevCamp && camps.some(c => c.campaignId === prevCamp)) {
+        campSelect.value = prevCamp;
+      }
+    }
+
+    const addressBookEl = document.getElementById('known-users-address-book-list');
+    if (addressBookEl) {
+      if (knownUsers.length === 0) {
+        addressBookEl.innerHTML = '<div style="font-size: 10pt; color: var(--text-muted); font-style: italic;">No known users yet. Anyone you message is added automatically.</div>';
+      } else {
+        addressBookEl.innerHTML = knownUsers.map(u => `
+          <div class="known-user-address-row" style="display: flex; justify-content: space-between; align-items: center; gap: 0.4rem; background: rgba(255,255,255,0.04); border: 1px solid var(--border-color); border-radius: 4px; padding: 3px 6px;">
+            <div style="display: flex; align-items: center; gap: 0.35rem; min-width: 0; flex: 1;">
+              <button type="button" class="btn btn-outline btn-view-user-notes-info" data-username="${u.username}" title="View User Notes for ${u.username}" style="font-size: 10pt; font-weight: 800; padding: 0px 6px; min-height: 20px; border-radius: 999px; color: var(--hero-cyan); border-color: var(--hero-cyan);">i</button>
+              <span style="font-size: 10pt; font-weight: 700; color: var(--text-bright); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${u.username}</span>
+              <span style="font-size: 10pt; color: var(--text-muted);">(${u.role})</span>
+            </div>
+            <button type="button" class="btn btn-outline btn-address-book-select-user" data-username="${u.username}" data-campid="${u.campaignId || ''}" title="Message ${u.username}" style="font-size: 10pt; padding: 1px 6px; min-height: 22px; color: var(--hero-gold); border-color: var(--hero-gold); font-weight: 700;">✉️ Message</button>
+          </div>
+        `).join('');
+
+        addressBookEl.querySelectorAll('.btn-view-user-notes-info').forEach(btn => {
+          btn.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            const uname = e.currentTarget.dataset.username;
+            let notes = campaignManager.getUserNotes(uname);
+            if (!notes && supabaseService.client) {
+              try {
+                notes = await supabaseService.getUserNotes(uname);
+                if (notes) campaignManager.setUserNotes(notes, uname);
+              } catch {}
+            }
+            await this.showAlertDialog(
+              `User Notes for "${uname}":\n\n${notes ? notes : '(This user has not posted any user notes yet.)'}`,
+              { title: `📝 User Notes: ${uname}` }
+            );
+          });
+        });
+
+        addressBookEl.querySelectorAll('.btn-address-book-select-user').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const uname = e.currentTarget.dataset.username;
+            const cid = e.currentTarget.dataset.campid;
+            const rInput = document.getElementById('msg-compose-recipient-input');
+            const rSelect = document.getElementById('msg-compose-recipient-select');
+            const cSelect = document.getElementById('msg-compose-campaign-select');
+            if (rInput) rInput.value = uname;
+            if (rSelect) rSelect.value = uname;
+            if (cid && cSelect) cSelect.value = cid;
+            document.getElementById('msg-compose-text-input')?.focus();
+          });
+        });
+      }
+    }
 
     const readerKey = campaignManager.getTabSessionId();
     const messages = campaignManager.getMessagesForCurrentUser();
@@ -3362,9 +3483,14 @@ window.partyManager = partyManager;
       return;
     }
 
+    const myNameLower = (campaignManager.getCurrentUsername() || '').toLowerCase();
+
     container.innerHTML = messages.map(m => {
       const isUnread = !m.read && !(Array.isArray(m.readBy) && m.readBy.includes(readerKey));
       const isPendingOffer = m.type === 'OWNERSHIP_TRANSFER_OFFER' && m.offerStatus === 'pending';
+      const replyTarget = (m.senderUser && m.senderUser.toLowerCase() !== myNameLower)
+        ? m.senderUser
+        : ((m.gmName && m.gmName.toLowerCase() !== myNameLower && m.gmName !== 'GM') ? m.gmName : ((m.playerName && m.playerName !== 'All Campaign Players' && m.playerName.toLowerCase() !== myNameLower) ? m.playerName : ''));
 
       return `
         <div class="campaign-message-card" style="background: ${isUnread ? 'rgba(59, 130, 246, 0.1)' : 'var(--bg-card)'}; border: 1px solid ${isUnread ? 'var(--hero-blue)' : 'var(--border-color)'}; border-radius: 6px; padding: 0.75rem 1rem; margin-bottom: 0.65rem; display: flex; flex-direction: column; gap: 0.45rem;">
@@ -3381,6 +3507,9 @@ window.partyManager = partyManager;
             ${m.text}
           </div>
           <div style="display: flex; justify-content: flex-end; align-items: center; gap: 0.45rem; flex-wrap: wrap;">
+            ${replyTarget ? `
+              <button type="button" class="btn btn-outline btn-msg-reply-user" data-replyuser="${replyTarget}" data-campid="${m.campaignId !== 'DIRECT' ? m.campaignId : ''}" style="font-size: 10pt; padding: 2px 8px; color: var(--hero-gold); border-color: var(--hero-gold); font-weight: 700;">↩️ Message ${replyTarget}</button>
+            ` : ''}
             ${isPendingOffer ? `
               <button type="button" class="btn btn-primary btn-msg-accept-transfer" data-campid="${m.campaignId}" data-msgid="${m.id}" style="font-size: 10pt; padding: 2px 9px; font-weight: 800; background: var(--hero-green); border-color: var(--hero-green);">✅ Accept Ownership</button>
               <button type="button" class="btn btn-outline btn-msg-refuse-transfer" data-campid="${m.campaignId}" data-msgid="${m.id}" style="font-size: 10pt; padding: 2px 9px; font-weight: 800; color: var(--hero-red); border-color: var(--hero-red);">❌ Refuse Ownership</button>
@@ -3397,6 +3526,20 @@ window.partyManager = partyManager;
         </div>
       `;
     }).join('');
+
+    container.querySelectorAll('.btn-msg-reply-user').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const replyUser = e.currentTarget.dataset.replyuser;
+        const cid = e.currentTarget.dataset.campid;
+        const rInput = document.getElementById('msg-compose-recipient-input');
+        const rSelect = document.getElementById('msg-compose-recipient-select');
+        const cSelect = document.getElementById('msg-compose-campaign-select');
+        if (rInput) rInput.value = replyUser;
+        if (rSelect) rSelect.value = replyUser;
+        if (cid && cSelect) cSelect.value = cid;
+        document.getElementById('msg-compose-text-input')?.focus();
+      });
+    });
 
     container.querySelectorAll('.btn-msg-mark-read').forEach(btn => {
       btn.addEventListener('click', (e) => {
@@ -4976,6 +5119,48 @@ window.partyManager = partyManager;
     doneBtn?.addEventListener('click', closeFlyout);
     backdrop?.addEventListener('click', closeFlyout);
 
+    // User Notes (up to 256 characters) inside Account Settings flyout
+    const notesInput = document.getElementById('user-settings-notes-input');
+    const notesCount = document.getElementById('user-settings-notes-count');
+    const saveNotesBtn = document.getElementById('btn-save-user-settings-notes');
+    const savedMsgEl = document.getElementById('user-settings-notes-saved-msg');
+
+    if (notesInput) {
+      const initialNotes = campaignManager.getUserNotes();
+      notesInput.value = initialNotes;
+      if (notesCount) notesCount.textContent = `${initialNotes.length} / 256`;
+
+      notesInput.addEventListener('input', () => {
+        if (notesInput.value.length > 256) {
+          notesInput.value = notesInput.value.slice(0, 256);
+        }
+        if (notesCount) {
+          notesCount.textContent = `${notesInput.value.length} / 256`;
+        }
+      });
+    }
+
+    saveNotesBtn?.addEventListener('click', async () => {
+      const rawNotes = (notesInput?.value || '').slice(0, 256);
+      const uname = supabaseService.getUsername() || this.char?.playerName || 'Player';
+      const clean = campaignManager.setUserNotes(rawNotes, uname);
+      if (notesInput) notesInput.value = clean;
+      if (notesCount) notesCount.textContent = `${clean.length} / 256`;
+      if (supabaseService.isLoggedIn()) {
+        try {
+          await supabaseService.saveUserNotes(clean);
+        } catch (e) {
+          console.warn('Could not sync user notes to cloud:', e);
+        }
+      }
+      if (savedMsgEl) {
+        savedMsgEl.style.display = 'inline';
+        setTimeout(() => {
+          savedMsgEl.style.display = 'none';
+        }, 2500);
+      }
+    });
+
     // Password reset button inside flyout
     document.getElementById('btn-user-settings-reset-password')?.addEventListener('click', async () => {
       const email = supabaseService.currentUser?.email;
@@ -5024,18 +5209,24 @@ window.partyManager = partyManager;
     });
   }
 
-  openUserSettingsFlyout() {
+  openUserSettingsFlyout(allowOffline = false) {
     const backdrop = document.getElementById('flyout-user-settings-backdrop');
     const panel = document.getElementById('flyout-user-settings-panel');
     const displayUser = document.getElementById('user-settings-display-username');
     const displayEmail = document.getElementById('user-settings-display-email');
+    const notesInput = document.getElementById('user-settings-notes-input');
+    const notesCount = document.getElementById('user-settings-notes-count');
 
-    if (!supabaseService.isLoggedIn()) {
+    const uname = supabaseService.getUsername() || supabaseService.currentUser?.user_metadata?.username || this.char?.playerName || 'User';
+    const currentNotes = campaignManager.getUserNotes(uname);
+    if (notesInput) notesInput.value = currentNotes;
+    if (notesCount) notesCount.textContent = `${currentNotes.length} / 256`;
+
+    if (!supabaseService.isLoggedIn() && !allowOffline) {
       this.openAuthModal();
       return;
     }
 
-    const uname = supabaseService.getUsername() || supabaseService.currentUser?.user_metadata?.username || 'User';
     const email = supabaseService.currentUser?.email || '';
 
     if (displayUser) displayUser.textContent = uname;

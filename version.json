@@ -1,6 +1,6 @@
 {
-  "version": "3.74",
+  "version": "3.75",
   "updatedAt": "2026-10-30T13:30:00.000Z",
-  "releaseNotes": "Clear visual division between Game Session Monitor and Campaign Browser in Campaign Tracker; traditional Messaging Client window with top toolbar (New Message, Reply, Address Book, Mark All Read, Clear Read), no public user search/index, and bottom 3-to-8 row auto-expanding New Message compose pane.",
+  "releaseNotes": "Enlarged Messaging Client to match Campaign Tracker size (.25in margins); added well-defined Recipient Scope choices (Participants of currently connected campaign excluding self, Participants of all campaigns owned, Participants of specific campaigns); marked GM-owned campaigns with 👑 icon and listed them first in both Campaign Browser and Messaging Dialog; added multi-select checkboxes to Known Users dropdown; faster live update detection.",
   "updated": "2026-10-30"
 }

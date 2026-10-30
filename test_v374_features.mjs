@@ -33,11 +33,11 @@ globalThis.window = {
 
 const { partyManager } = await import('./js/party.js');
 
-console.log('=== Testing v3.74 Features ===');
+console.log('=== Testing v3.75 Features ===');
 
-// 1. Verify Version 3.74
+// 1. Verify Version 3.75
 const versionJson = JSON.parse(fs.readFileSync(path.join(__dirname, 'version.json'), 'utf8'));
-assert.equal(versionJson.version, '3.74', 'version.json should be 3.74');
+assert.equal(versionJson.version, '3.75', 'version.json should be 3.75');
 
 const indexHtml = fs.readFileSync(path.join(__dirname, 'index.html'), 'utf8');
 const stylesCss = fs.readFileSync(path.join(__dirname, 'css', 'styles.css'), 'utf8');
@@ -111,4 +111,4 @@ assert.ok(
 );
 
 console.log('✓ 4. Direct messaging to any known username (without public user index/search) verified.');
-console.log('ALL v3.74 TESTS PASSED SUCCESSFULLY!');
+console.log('ALL v3.75 TESTS PASSED SUCCESSFULLY!');

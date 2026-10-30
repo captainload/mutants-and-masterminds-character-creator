@@ -41,7 +41,7 @@ import {
   tablesManager
 } from './tables.js';
 
-import { POWER_PROFILES_LIBRARY } from './power_profiles.js?v=3.74';
+import { POWER_PROFILES_LIBRARY } from './power_profiles.js?v=3.75';
 import { ARCHETYPES } from './archetypes.js';
 import { archetypeManager } from './archetype_window.js';
 import { campaignManager, partyManager, formatCharacterSheetHTML } from './party.js';
@@ -2051,15 +2051,31 @@ window.partyManager = partyManager;
     document.getElementById('btn-close-update-alert')?.addEventListener('click', () => this.closeModal('modal-update-alert'));
     document.getElementById('btn-update-later')?.addEventListener('click', () => this.closeModal('modal-update-alert'));
     document.getElementById('btn-update-reload')?.addEventListener('click', () => {
-      window.location.reload(true);
+      try {
+        const u = new URL(window.location.href);
+        u.searchParams.set('_v', Date.now().toString());
+        window.location.replace(u.toString());
+      } catch {
+        window.location.reload(true);
+      }
     });
     document.getElementById('btn-header-update-alert')?.addEventListener('click', () => {
       this.checkForUpdates({ isManual: true });
     });
+    if (typeof window !== 'undefined' && typeof window.addEventListener === 'function') {
+      window.addEventListener('focus', () => this.checkForUpdates({ isManual: false }));
+      document.addEventListener?.('visibilitychange', () => {
+        if (document.visibilityState === 'visible') {
+          this.checkForUpdates({ isManual: false });
+        }
+      });
+      const pollTimer = setInterval(() => this.checkForUpdates({ isManual: false }), 20000);
+      if (pollTimer && typeof pollTimer.unref === 'function') pollTimer.unref();
+    }
   }
 
   async checkForUpdates({ isManual = false } = {}) {
-    const CURRENT_VERSION = '3.74';
+    const CURRENT_VERSION = '3.75';
     const versionEl = document.getElementById('header-version-tag');
     const updateBtn = document.getElementById('btn-header-update-alert');
     if (typeof window === 'undefined' || !window.location || !window.location.href || window.location.href === 'about:blank') return;
@@ -2610,37 +2626,45 @@ window.partyManager = partyManager;
     document.getElementById('btn-close-compose-pane')?.addEventListener('click', closeComposePane);
     document.getElementById('btn-cancel-compose-pane')?.addEventListener('click', closeComposePane);
 
-    document.getElementById('msg-compose-recipient-select')?.addEventListener('change', (e) => {
-      const val = e.target.value;
-      const recInput = document.getElementById('msg-compose-recipient-input');
-      if (recInput && val) recInput.value = val;
-      if (val) {
-        const known = campaignManager.getKnownUsers().find(u => u.username.toLowerCase() === val.toLowerCase());
-        const campSelect = document.getElementById('msg-compose-campaign-select');
-        if (known && known.campaignId && campSelect && !campSelect.value) {
-          campSelect.value = known.campaignId;
-        }
+    const toggleKnownBtn = document.getElementById('btn-toggle-known-users-dropdown');
+    const knownMenuEl = document.getElementById('msg-known-users-checkbox-menu');
+    const knownDropContainer = document.getElementById('msg-known-users-dropdown-container');
+
+    toggleKnownBtn?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      knownMenuEl?.classList.toggle('open');
+    });
+
+    document.addEventListener('click', (e) => {
+      if (knownMenuEl && knownMenuEl.classList.contains('open') && knownDropContainer && !knownDropContainer.contains(e.target)) {
+        knownMenuEl.classList.remove('open');
       }
     });
+
     document.getElementById('btn-send-direct-message')?.addEventListener('click', async () => {
       const recInput = document.getElementById('msg-compose-recipient-input');
-      const recSelect = document.getElementById('msg-compose-recipient-select');
       const campSelect = document.getElementById('msg-compose-campaign-select');
       const textInput = document.getElementById('msg-compose-text-input');
-      const toUser = (recInput?.value || recSelect?.value || '').trim();
-      const campaignId = (campSelect?.value || '').trim();
+      const checkedBoxes = Array.from(document.querySelectorAll('#msg-known-users-checkbox-menu .chk-known-user-recipient:checked'));
+      const checkedUsers = checkedBoxes.map(cb => cb.value);
+      const toUser = (recInput?.value || '').trim();
+      const recipientScope = (campSelect?.value || '').trim();
       const text = (textInput?.value || '').trim();
       try {
         campaignManager.sendDirectUserMessage({
           toUser,
+          toUsers: checkedUsers,
+          recipientScope,
           senderUser: supabaseService.getUsername() || this.char.playerName || 'Player',
-          campaignId,
           text
         });
         if (textInput) {
           textInput.value = '';
           textInput.style.height = '72px';
         }
+        if (recInput) recInput.value = '';
+        checkedBoxes.forEach(cb => { cb.checked = false; });
+        this.updateKnownUsersDropdownSummary();
         this.renderCampaignMessagesModalIfOpen();
       } catch (err) {
         await this.showAlertDialog(err.message, { title: 'Cannot Send Message' });
@@ -3417,6 +3441,29 @@ window.partyManager = partyManager;
     }
   }
 
+  updateKnownUsersDropdownSummary() {
+    const labelEl = document.getElementById('known-users-dropdown-label');
+    const recSelect = document.getElementById('msg-compose-recipient-select');
+    const checkedBoxes = Array.from(document.querySelectorAll('#msg-known-users-checkbox-menu .chk-known-user-recipient:checked'));
+    const names = checkedBoxes.map(cb => cb.value);
+
+    if (labelEl) {
+      if (names.length === 0) {
+        labelEl.textContent = '👥 Known Users (Checkboxes)';
+      } else if (names.length <= 2) {
+        labelEl.textContent = `👥 ${names.join(', ')}`;
+      } else {
+        labelEl.textContent = `👥 ${names.length} Users Selected (${names.slice(0, 2).join(', ')}...)`;
+      }
+    }
+
+    if (recSelect) {
+      Array.from(recSelect.options || []).forEach(opt => {
+        opt.selected = names.some(n => n.toLowerCase() === opt.value.toLowerCase());
+      });
+    }
+  }
+
   openMessageComposePane(prefillRecipient = '', prefillCampId = '', customTitle = '✉️ New Message') {
     const pane = document.getElementById('msg-client-compose-pane');
     if (pane) pane.style.display = 'block';
@@ -3424,19 +3471,26 @@ window.partyManager = partyManager;
     if (titleEl) titleEl.textContent = customTitle || '✉️ New Message';
 
     const recInput = document.getElementById('msg-compose-recipient-input');
-    const recSelect = document.getElementById('msg-compose-recipient-select');
     const campSelect = document.getElementById('msg-compose-campaign-select');
     const textInput = document.getElementById('msg-compose-text-input');
 
     if (prefillRecipient) {
       if (recInput) recInput.value = prefillRecipient;
-      if (recSelect) {
-        const matchingOpt = Array.from(recSelect.options || []).find(o => o.value.toLowerCase() === String(prefillRecipient).toLowerCase());
-        recSelect.value = matchingOpt ? matchingOpt.value : '';
-      }
+      const checkboxes = Array.from(document.querySelectorAll('#msg-known-users-checkbox-menu .chk-known-user-recipient'));
+      checkboxes.forEach(cb => {
+        cb.checked = cb.value.toLowerCase() === String(prefillRecipient).toLowerCase();
+      });
+      this.updateKnownUsersDropdownSummary();
     }
     if (prefillCampId && campSelect) {
-      campSelect.value = prefillCampId;
+      const cleanId = String(prefillCampId).trim().toUpperCase().replace(/^#+/, '').replace(/^CAMP:/, '');
+      const scopedVal = `CAMP:${cleanId}`;
+      const hasScoped = Array.from(campSelect.options || []).some(o => o.value === scopedVal);
+      if (hasScoped) {
+        campSelect.value = scopedVal;
+      } else if (Array.from(campSelect.options || []).some(o => o.value === prefillCampId)) {
+        campSelect.value = prefillCampId;
+      }
     }
     if (textInput) {
       textInput.style.height = 'auto';
@@ -3466,26 +3520,57 @@ window.partyManager = partyManager;
     const container = document.getElementById('campaign-messages-list-container');
     if (!modal || !container) return;
 
-    // 1. Populate Known Users Dropdown & Address Book Pane
+    // 1. Populate Known Users Multi-Select Checkbox Dropdown & Address Book Pane
     const knownUsers = campaignManager.getKnownUsers();
     const recSelect = document.getElementById('msg-compose-recipient-select');
+    const knownMenuEl = document.getElementById('msg-known-users-checkbox-menu');
+    const prevChecked = new Set(
+      Array.from(document.querySelectorAll('#msg-known-users-checkbox-menu .chk-known-user-recipient:checked')).map(cb => cb.value.toLowerCase())
+    );
+
     if (recSelect) {
-      const prevVal = recSelect.value;
-      recSelect.innerHTML = '<option value="">-- Select Known User --</option>' +
-        knownUsers.map(u => `<option value="${u.username}">${u.username} (${u.role}${u.campaignName ? ' • ' + u.campaignName : ''})</option>`).join('');
-      if (prevVal && knownUsers.some(u => u.username === prevVal)) {
-        recSelect.value = prevVal;
-      }
+      recSelect.innerHTML = knownUsers.map(u => `<option value="${u.username}" ${prevChecked.has(u.username.toLowerCase()) ? 'selected' : ''}>${u.username} (${u.role}${u.campaignName ? ' • ' + u.campaignName : ''})</option>`).join('');
     }
 
+    if (knownMenuEl) {
+      if (knownUsers.length === 0) {
+        knownMenuEl.innerHTML = '<div style="font-size: 10pt; color: var(--text-muted); font-style: italic; padding: 0.3rem;">No known users yet. Anyone you message is added automatically.</div>';
+      } else {
+        knownMenuEl.innerHTML = knownUsers.map(u => `
+          <label class="known-user-checkbox-item">
+            <input type="checkbox" class="chk-known-user-recipient" value="${u.username}" data-campid="${u.campaignId || ''}" ${prevChecked.has(u.username.toLowerCase()) ? 'checked' : ''} style="cursor: pointer; width: 15px; height: 15px; accent-color: var(--hero-blue);" />
+            <span style="font-weight: 700;">${u.username}</span>
+            <span style="color: var(--text-muted); font-size: 10pt;">(${u.role}${u.campaignName ? ' • ' + u.campaignName : ''})</span>
+          </label>
+        `).join('');
+
+        knownMenuEl.querySelectorAll('.chk-known-user-recipient').forEach(cb => {
+          cb.addEventListener('change', () => {
+            this.updateKnownUsersDropdownSummary();
+            const recInput = document.getElementById('msg-compose-recipient-input');
+            if (recInput) {
+              const checkedNames = Array.from(knownMenuEl.querySelectorAll('.chk-known-user-recipient:checked')).map(el => el.value);
+              const knownSet = new Set(knownUsers.map(k => k.username.toLowerCase()));
+              const manualExtras = recInput.value
+                .split(',')
+                .map(s => s.trim())
+                .filter(s => s && !knownSet.has(s.toLowerCase()));
+              recInput.value = [...checkedNames, ...manualExtras].join(', ');
+            }
+          });
+        });
+      }
+      this.updateKnownUsersDropdownSummary();
+    }
+
+    // 2. Populate Recipient Scope Dropdown (GM-owned campaigns shown FIRST with 👑 icon; other participated campaigns without 👑 icon)
     const campSelect = document.getElementById('msg-compose-campaign-select');
     if (campSelect) {
-      const prevCamp = campSelect.value;
-      const camps = campaignManager.getCampaignHistory();
-      campSelect.innerHTML = '<option value="">General / All Campaigns</option>' +
-        camps.map(c => `<option value="${c.campaignId}">${c.campaignName} (#${c.campaignId})</option>`).join('');
-      if (prevCamp && camps.some(c => c.campaignId === prevCamp)) {
-        campSelect.value = prevCamp;
+      const prevScope = campSelect.value;
+      const scopeChoices = campaignManager.getRecipientScopeChoices();
+      campSelect.innerHTML = scopeChoices.map(sc => `<option value="${sc.value}" data-gm-owned="${sc.isGM ? '1' : '0'}">${sc.label}</option>`).join('');
+      if (prevScope && scopeChoices.some(sc => sc.value === prevScope)) {
+        campSelect.value = prevScope;
       }
     }
 
@@ -3552,10 +3637,15 @@ window.partyManager = partyManager;
     }
 
     const myNameLower = (campaignManager.getCurrentUsername() || '').toLowerCase();
+    const ownedCampIds = new Set(
+      campaignManager.getCampaignHistory().filter(c => !!c.isCreator).map(c => String(c.campaignId || '').toUpperCase().replace(/^#+/, ''))
+    );
 
     container.innerHTML = messages.map(m => {
       const isUnread = !m.read && !(Array.isArray(m.readBy) && m.readBy.includes(readerKey));
       const isPendingOffer = m.type === 'OWNERSHIP_TRANSFER_OFFER' && m.offerStatus === 'pending';
+      const cleanMCampId = String(m.campaignId || '').toUpperCase().replace(/^#+/, '');
+      const isUserGMForCampaign = ownedCampIds.has(cleanMCampId) || (myNameLower && (m.gmName || '').toLowerCase() === myNameLower);
       const replyTarget = (m.senderUser && m.senderUser.toLowerCase() !== myNameLower)
         ? m.senderUser
         : ((m.gmName && m.gmName.toLowerCase() !== myNameLower && m.gmName !== 'GM') ? m.gmName : ((m.playerName && m.playerName !== 'All Campaign Players' && m.playerName.toLowerCase() !== myNameLower) ? m.playerName : ''));
@@ -3565,7 +3655,7 @@ window.partyManager = partyManager;
           <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.4rem; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 0.35rem;">
             <div style="display: flex; align-items: center; gap: 0.45rem; flex-wrap: wrap;">
               ${isUnread ? '<span style="background: var(--hero-blue); color: #fff; font-size: 10pt; font-weight: 800; padding: 1px 6px; border-radius: 4px;">NEW</span>' : ''}
-              <span style="font-size: 10pt; font-weight: 800; color: var(--hero-gold); background: rgba(234, 179, 8, 0.14); padding: 1px 7px; border-radius: 4px;">🛡️ Campaign: ${m.campaignName} (#${m.campaignId})</span>
+              <span class="msg-campaign-tag" data-gm-owned="${isUserGMForCampaign ? '1' : '0'}" style="font-size: 10pt; font-weight: 800; color: ${isUserGMForCampaign ? 'var(--hero-gold)' : 'var(--hero-cyan)'}; background: ${isUserGMForCampaign ? 'rgba(234, 179, 8, 0.16)' : 'rgba(56, 189, 248, 0.14)'}; padding: 1px 7px; border-radius: 4px;">${isUserGMForCampaign ? '👑 ' : ''}Campaign: ${m.campaignName} (#${m.campaignId})</span>
               <span style="font-size: 10pt; font-weight: 700; color: var(--hero-blue); background: rgba(59, 130, 246, 0.14); padding: 1px 7px; border-radius: 4px;">👑 GM: ${m.gmName || 'GM'}</span>
               <span style="font-size: 10pt; font-weight: 700; color: var(--text-bright); background: rgba(255, 255, 255, 0.08); padding: 1px 7px; border-radius: 4px;">👤 Player: ${m.playerName || 'Player'}</span>
             </div>

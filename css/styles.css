@@ -3090,7 +3090,8 @@ html[data-theme="light"] .stat-summary-bar {
    CAMPAIGN TRACKER EXPANDED MODAL SIZE (v3.69)
    Stretches to within 0.25 inches of tab margins
    ===================================================================== */
-#modal-campaign-tracker .modal-container {
+#modal-campaign-tracker .modal-container,
+#modal-campaign-messages .modal-container {
   width: calc(100vw - 0.5in) !important;
   max-width: calc(100vw - 0.5in) !important;
   height: calc(100vh - 0.5in) !important;
@@ -3229,9 +3230,56 @@ html[data-theme="light"] .stat-summary-bar {
   background: rgba(15, 23, 42, 0.35);
   display: flex;
   flex-direction: column;
-  min-height: 200px;
-  max-height: 360px;
+  flex: 1 1 auto;
+  min-height: 220px;
+  max-height: none;
   overflow: hidden;
+}
+
+.known-users-multiselect-dropdown {
+  position: relative;
+  display: inline-block;
+  flex: 1;
+  min-width: 210px;
+}
+
+.known-users-checkbox-menu {
+  position: absolute;
+  bottom: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  min-width: 250px;
+  max-height: 210px;
+  overflow-y: auto;
+  background: var(--bg-card);
+  border: 1px solid var(--hero-blue);
+  border-radius: 6px;
+  padding: 0.4rem;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45);
+  z-index: 1000;
+  display: none;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.known-users-checkbox-menu.open {
+  display: flex;
+}
+
+.known-user-checkbox-item {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.28rem 0.45rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 10pt;
+  color: var(--text-bright);
+  user-select: none;
+}
+
+.known-user-checkbox-item:hover {
+  background: rgba(59, 130, 246, 0.14);
 }
 
 .msg-client-list-header {

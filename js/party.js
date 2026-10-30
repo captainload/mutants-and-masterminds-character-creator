@@ -1130,6 +1130,9 @@ export class CampaignTrackerManager {
     const sortMode = f.sortBy || 'default';
     list.sort((a, b) => {
       if (sortMode === 'default') {
+        const aOwned = a.isCreator ? 1 : 0;
+        const bOwned = b.isCreator ? 1 : 0;
+        if (bOwned !== aOwned) return bOwned - aOwned;
         const aJoined = a.isJoinedOrCreated ? 1 : 0;
         const bJoined = b.isJoinedOrCreated ? 1 : 0;
         if (bJoined !== aJoined) return bJoined - aJoined;
@@ -1873,6 +1876,8 @@ export class CampaignTrackerManager {
     offerId = '',
     offerStatus = '',
     requestId = '',
+    excludedUser = '',
+    recipientUsers = [],
     text = ''
   } = {}) {
     const cleanId = String(campaignId || '').trim().toUpperCase().replace(/^#+/, '');
@@ -1898,6 +1903,8 @@ export class CampaignTrackerManager {
       offerId: offerId || '',
       offerStatus: offerStatus || '',
       requestId: requestId || '',
+      excludedUser: (excludedUser || '').trim(),
+      recipientUsers: Array.isArray(recipientUsers) ? recipientUsers : [],
       text: text || `Campaign "${resolvedCampName}" (GM: ${resolvedGM}, Player: ${resolvedPlayer})`,
       timestamp: new Date().toISOString(),
       displayTime: new Date().toLocaleString(),
@@ -2266,52 +2273,281 @@ export class CampaignTrackerManager {
   }
 
   /**
-   * Sends a direct message between a Player and a GM or Known User without exposing email addresses.
-   * Automatically adds the recipient to the sender's Known Users list and ensures the sender's User Notes are available to the recipient.
+   * Returns participated campaigns with GM-owned campaigns (isCreator: true) shown FIRST,
+   * followed by other campaigns the user participates in.
    */
-  sendDirectUserMessage({ toUser, senderUser = '', campaignId = '', campaignName = '', gmName = '', text = '' } = {}) {
-    const cleanTo = String(toUser || '').trim();
+  getSortedParticipatedCampaigns() {
+    const hist = this.getCampaignHistory().slice();
+    hist.sort((a, b) => {
+      const aGM = a.isCreator ? 1 : 0;
+      const bGM = b.isCreator ? 1 : 0;
+      if (bGM !== aGM) return bGM - aGM;
+      return (b.lastJoinedMs || b.createdAtMs || 0) - (a.lastJoinedMs || a.createdAtMs || 0);
+    });
+    return hist;
+  }
+
+  /**
+   * Returns all known participants of a given campaign, strictly excluding excludeUsername (e.g. the sender themselves).
+   */
+  getCampaignParticipants(campaignId, excludeUsername = '') {
+    const cleanId = String(campaignId || '').trim().toUpperCase().replace(/^#+/, '');
+    if (!cleanId) return [];
+    const excludeLower = String(excludeUsername || '').trim().toLowerCase();
+    const participants = new Map();
+
+    const addParticipant = (uname) => {
+      const clean = String(uname || '').trim();
+      if (!clean || clean === 'All Campaign Players' || clean === 'Player' || clean === 'GM') return;
+      const lower = clean.toLowerCase();
+      if (excludeLower && lower === excludeLower) return;
+      if (!participants.has(lower)) participants.set(lower, clean);
+    };
+
+    const info = this.getCampaignInfo(cleanId) || {};
+    const histMatch = this.getCampaignHistory().find(c => c.campaignId === cleanId) || {};
+    if (info.creatorName) addParticipant(info.creatorName);
+    if (histMatch.creatorName) addParticipant(histMatch.creatorName);
+    if (histMatch.playerName) addParticipant(histMatch.playerName);
+
+    // Connected party members in this campaign
+    this.getPartyMembers().forEach(m => {
+      const mCampId = String(m.campaignId || this.getCampaignState().campaignId || '').trim().toUpperCase().replace(/^#+/, '');
+      if (mCampId === cleanId && m.playerName) {
+        addParticipant(m.playerName);
+      }
+    });
+
+    // Saved campaign characters
+    const savedChars = this.getCampaignSavedCharacters(cleanId);
+    Object.values(savedChars).forEach(sc => {
+      if (sc && sc.playerName) addParticipant(sc.playerName);
+    });
+
+    // Join requests for this campaign
+    this.getJoinRequestsForGM(cleanId).forEach(r => {
+      if (r && r.username && r.status !== 'rejected') addParticipant(r.username);
+    });
+
+    // Message history for this campaign
+    this.getAllCampaignMessages().forEach(m => {
+      if (String(m.campaignId || '').toUpperCase().replace(/^#+/, '') === cleanId) {
+        if (m.gmName) addParticipant(m.gmName);
+        if (m.playerName) addParticipant(m.playerName);
+        if (m.senderUser) addParticipant(m.senderUser);
+      }
+    });
+
+    return Array.from(participants.values());
+  }
+
+  /**
+   * Returns the well-defined recipient scope choices for the Messaging Client:
+   * - Participants of currently connected campaign (excludes the user themselves)
+   * - Participants of all campaigns owned
+   * - Participants of [campaign 1] (GM-owned campaigns first with 👑 icon; other participated campaigns without 👑 icon)
+   */
+  getRecipientScopeChoices() {
+    const sortedCamps = this.getSortedParticipatedCampaigns();
+    const choices = [
+      {
+        value: '',
+        scopeType: 'DIRECT_ONLY',
+        label: 'Direct Recipient(s) Only (To: / Known Users)',
+        isGM: false
+      },
+      {
+        value: 'CURRENT_CONNECTED',
+        scopeType: 'CURRENT_CONNECTED',
+        label: 'Participants of currently connected campaign (excludes the user themselves)',
+        isGM: false
+      },
+      {
+        value: 'ALL_OWNED',
+        scopeType: 'ALL_OWNED',
+        label: '👑 Participants of all campaigns owned',
+        isGM: true
+      }
+    ];
+
+    sortedCamps.forEach(c => {
+      const isGM = !!c.isCreator;
+      choices.push({
+        value: `CAMP:${c.campaignId}`,
+        campaignId: c.campaignId,
+        campaignName: c.campaignName,
+        scopeType: 'SINGLE_CAMPAIGN',
+        isGM,
+        label: `${isGM ? '👑 ' : ''}Participants of ${c.campaignName} (#${c.campaignId})`
+      });
+    });
+
+    return choices;
+  }
+
+  /**
+   * Sends a message to one or more Known Users / explicit usernames and/or a well-defined campaign participant scope:
+   * - "CURRENT_CONNECTED": Participants of currently connected campaign (excludes the user themselves)
+   * - "ALL_OWNED": Participants of all campaigns owned (excludes the user themselves)
+   * - "CAMP:<id>": Participants of that specific campaign (excludes the user themselves)
+   * - Or specific individual recipient(s) selected via Known Users checkboxes or typed in To:
+   */
+  sendDirectUserMessage({ toUser = '', toUsers = [], recipientScope = '', senderUser = '', campaignId = '', campaignName = '', gmName = '', text = '' } = {}) {
     const cleanText = String(text || '').trim();
-    if (!cleanTo) {
-      throw new Error('Please select or enter a recipient username.');
-    }
     if (!cleanText) {
       throw new Error('Please enter a message to send.');
     }
 
     const effSender = String(senderUser || this.getCurrentUsername() || 'Player').trim();
-    const cleanCampId = String(campaignId || '').trim().toUpperCase().replace(/^#+/, '');
-    const info = cleanCampId ? (this.getCampaignInfo(cleanCampId) || {}) : {};
-    const histMatch = cleanCampId ? (this.getCampaignHistory().find(c => c.campaignId === cleanCampId) || {}) : {};
-    const effCampName = (campaignName || histMatch.campaignName || info.campaignName || (cleanCampId ? cleanCampId : 'Direct Message')).trim();
-    const effGM = (gmName || histMatch.creatorName || info.creatorName || (this.ownsAnyCampaign() ? effSender : cleanTo)).trim();
+    const senderLower = effSender.toLowerCase();
 
-    // Automatically add recipient to Known Users
-    this.addKnownUser(cleanTo, {
-      role: (effGM.toLowerCase() === cleanTo.toLowerCase()) ? 'GM' : 'Known User',
-      campaignId: cleanCampId,
-      campaignName: effCampName
-    });
-
-    // Ensure sender's current user notes are synced in the shared directory so recipient can view them via "i" button
+    // Sync sender's user notes so recipients can read them via the "i" button
     const myNotes = this.getUserNotes(effSender);
     if (myNotes) {
       this.setUserNotes(myNotes, effSender);
     }
 
-    const msg = this.sendCampaignMessage({
-      type: 'DIRECT_MESSAGE',
-      recipientRole: 'USER',
-      recipientUser: cleanTo,
-      senderUser: effSender,
-      campaignId: cleanCampId || 'DIRECT',
-      campaignName: effCampName,
-      gmName: effGM,
-      playerName: effSender,
-      text: `✉️ Direct Message from ${effSender} to ${cleanTo}: "${cleanText}"`
+    // Collect explicit user recipients from toUsers array and comma-separated toUser string
+    const explicitRecipients = [];
+    const seenRecip = new Set();
+    const rawUserList = [
+      ...(Array.isArray(toUsers) ? toUsers : []),
+      ...(Array.isArray(toUser) ? toUser : String(toUser || '').split(','))
+    ];
+    rawUserList.forEach(u => {
+      const clean = String(u || '').trim();
+      if (!clean) return;
+      const lower = clean.toLowerCase();
+      if (!seenRecip.has(lower)) {
+        seenRecip.add(lower);
+        explicitRecipients.push(clean);
+      }
     });
 
-    return msg;
+    const rawScope = String(recipientScope || campaignId || '').trim();
+    const dispatchedMessages = [];
+
+    // Helper to dispatch a campaign-participants scoped message (excluding the sender themselves)
+    const dispatchToCampaignParticipants = (targetCampId) => {
+      const cleanId = String(targetCampId || '').trim().toUpperCase().replace(/^#+/, '');
+      if (!cleanId) return;
+      const info = this.getCampaignInfo(cleanId) || {};
+      const histMatch = this.getCampaignHistory().find(c => c.campaignId === cleanId) || {};
+      const effCampName = (campaignName || histMatch.campaignName || info.campaignName || cleanId).trim();
+      const effGM = (gmName || histMatch.creatorName || info.creatorName || (histMatch.isCreator ? effSender : 'GM')).trim();
+      const participants = this.getCampaignParticipants(cleanId, effSender);
+
+      participants.forEach(p => {
+        this.addKnownUser(p, {
+          role: effGM.toLowerCase() === p.toLowerCase() ? 'GM' : 'Player',
+          campaignId: cleanId,
+          campaignName: effCampName
+        });
+      });
+
+      const recipSummary = participants.length > 0
+        ? `Participants of ${effCampName} (excluding ${effSender}: ${participants.join(', ')})`
+        : `Participants of ${effCampName} (excluding ${effSender})`;
+
+      const msg = this.sendCampaignMessage({
+        type: 'CAMPAIGN_PARTICIPANTS_MESSAGE',
+        recipientRole: 'PARTICIPANTS',
+        recipientUser: participants.length === 1 ? participants[0] : '',
+        recipientUsers: participants,
+        excludedUser: effSender,
+        senderUser: effSender,
+        campaignId: cleanId,
+        campaignName: effCampName,
+        gmName: effGM,
+        playerName: recipSummary,
+        text: `📢 Message from ${effSender} to Participants of "${effCampName}" (#${cleanId}): "${cleanText}"`
+      });
+      dispatchedMessages.push(msg);
+    };
+
+    if (rawScope === 'CURRENT_CONNECTED') {
+      const state = this.getCampaignState();
+      if (!state || !state.isConnected || !state.campaignId) {
+        throw new Error('You are not currently connected to an active campaign session.');
+      }
+      dispatchToCampaignParticipants(state.campaignId);
+    } else if (rawScope === 'ALL_OWNED') {
+      const owned = this.getSortedParticipatedCampaigns().filter(c => !!c.isCreator);
+      if (owned.length === 0) {
+        throw new Error('You do not currently own any campaigns as GM.');
+      }
+      owned.forEach(c => dispatchToCampaignParticipants(c.campaignId));
+    } else if (rawScope.toUpperCase().startsWith('CAMP:')) {
+      const targetCampId = rawScope.slice(5).trim().toUpperCase().replace(/^#+/, '');
+      if (explicitRecipients.length === 0) {
+        dispatchToCampaignParticipants(targetCampId);
+      } else {
+        // Explicit user(s) also specified alongside a campaign context
+        const info = this.getCampaignInfo(targetCampId) || {};
+        const histMatch = this.getCampaignHistory().find(c => c.campaignId === targetCampId) || {};
+        const effCampName = (campaignName || histMatch.campaignName || info.campaignName || targetCampId).trim();
+        const effGM = (gmName || histMatch.creatorName || info.creatorName || (this.ownsAnyCampaign() ? effSender : explicitRecipients[0])).trim();
+
+        explicitRecipients.forEach(cleanTo => {
+          if (explicitRecipients.length > 1 && cleanTo.toLowerCase() === senderLower) return;
+          this.addKnownUser(cleanTo, {
+            role: (effGM.toLowerCase() === cleanTo.toLowerCase()) ? 'GM' : 'Known User',
+            campaignId: targetCampId,
+            campaignName: effCampName
+          });
+          const msg = this.sendCampaignMessage({
+            type: 'DIRECT_MESSAGE',
+            recipientRole: 'USER',
+            recipientUser: cleanTo,
+            senderUser: effSender,
+            campaignId: targetCampId,
+            campaignName: effCampName,
+            gmName: effGM,
+            playerName: effSender,
+            text: `✉️ Direct Message from ${effSender} to ${cleanTo}: "${cleanText}"`
+          });
+          dispatchedMessages.push(msg);
+        });
+      }
+    } else {
+      // Direct recipient(s) mode (with optional legacy campaignId)
+      if (explicitRecipients.length === 0) {
+        if (rawScope) {
+          dispatchToCampaignParticipants(rawScope);
+        } else {
+          throw new Error('Please select or enter at least one recipient username or choose a Campaign Participants scope.');
+        }
+      } else {
+        const cleanCampId = rawScope.toUpperCase().replace(/^#+/, '');
+        const info = cleanCampId ? (this.getCampaignInfo(cleanCampId) || {}) : {};
+        const histMatch = cleanCampId ? (this.getCampaignHistory().find(c => c.campaignId === cleanCampId) || {}) : {};
+        const effCampName = (campaignName || histMatch.campaignName || info.campaignName || (cleanCampId ? cleanCampId : 'Direct Message')).trim();
+
+        explicitRecipients.forEach(cleanTo => {
+          if (explicitRecipients.length > 1 && cleanTo.toLowerCase() === senderLower) return;
+          const effGM = (gmName || histMatch.creatorName || info.creatorName || (this.ownsAnyCampaign() ? effSender : cleanTo)).trim();
+          this.addKnownUser(cleanTo, {
+            role: (effGM.toLowerCase() === cleanTo.toLowerCase()) ? 'GM' : 'Known User',
+            campaignId: cleanCampId,
+            campaignName: effCampName
+          });
+          const msg = this.sendCampaignMessage({
+            type: 'DIRECT_MESSAGE',
+            recipientRole: 'USER',
+            recipientUser: cleanTo,
+            senderUser: effSender,
+            campaignId: cleanCampId || 'DIRECT',
+            campaignName: effCampName,
+            gmName: effGM,
+            playerName: effSender,
+            text: `✉️ Direct Message from ${effSender} to ${cleanTo}: "${cleanText}"`
+          });
+          dispatchedMessages.push(msg);
+        });
+      }
+    }
+
+    return dispatchedMessages.length === 1 ? dispatchedMessages[0] : dispatchedMessages;
   }
 
   leaveCampaign() {
@@ -3098,8 +3334,14 @@ export class CampaignTrackerManager {
         <div class="campaign-browser-card" data-campid="${c.campaignId}" style="background: var(--bg-card); border: 1px solid ${isOnHiatus ? 'rgba(245, 158, 11, 0.45)' : (isJoinedOrCreated ? 'rgba(59, 130, 246, 0.5)' : 'var(--border-color)')}; border-radius: 6px; padding: 0.65rem 0.85rem; margin-bottom: 0.55rem; display: flex; flex-direction: column; gap: 0.45rem;">
           <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.45rem;">
             <div style="display: flex; align-items: center; gap: 0.45rem; flex-wrap: wrap;">
-              ${isJoinedOrCreated ? `<span class="badge-joined-campaign" title="Campaign you have joined or created" style="font-size: 10pt; font-weight: 800; color: var(--hero-gold); background: rgba(234, 179, 8, 0.16); border: 1px solid rgba(234, 179, 8, 0.45); padding: 1px 6px; border-radius: 4px;">🌟 Joined</span>` : `<span style="font-size: 10pt; font-weight: 700; color: var(--hero-green); background: rgba(16, 185, 129, 0.14); border: 1px solid rgba(16, 185, 129, 0.4); padding: 1px 6px; border-radius: 4px;">🌐 Open to Join</span>`}
-              <strong style="font-size: 10.5pt; color: var(--text-bright);">${c.campaignName}</strong>
+              ${c.isCreator
+                ? `<span class="badge-gm-owned-campaign badge-joined-campaign" data-gm-owned="1" title="Campaign you own as GM (shown first)" style="font-size: 10pt; font-weight: 800; color: var(--hero-gold); background: rgba(234, 179, 8, 0.18); border: 1px solid rgba(234, 179, 8, 0.55); padding: 1px 6px; border-radius: 4px;">👑 GM • 🌟 Joined</span>`
+                : (isJoinedOrCreated
+                  ? `<span class="badge-joined-campaign" data-gm-owned="0" title="Campaign you participate in as a Player" style="font-size: 10pt; font-weight: 800; color: var(--hero-blue); background: rgba(59, 130, 246, 0.16); border: 1px solid rgba(59, 130, 246, 0.45); padding: 1px 6px; border-radius: 4px;">🌟 Joined</span>`
+                  : `<span style="font-size: 10pt; font-weight: 700; color: var(--hero-green); background: rgba(16, 185, 129, 0.14); border: 1px solid rgba(16, 185, 129, 0.4); padding: 1px 6px; border-radius: 4px;">🌐 Open to Join</span>`
+                )
+              }
+              <strong style="font-size: 10.5pt; color: var(--text-bright);">${c.isCreator ? '👑 ' : ''}${c.campaignName}</strong>
               <span style="font-size: 10pt; background: rgba(0,0,0,0.15); padding: 1px 6px; border-radius: 4px; font-weight: 800; color: var(--hero-blue);">ID: #${c.campaignId}</span>
               <span style="font-size: 10pt; color: var(--hero-gold); font-weight: 800;">PL ${c.powerLevel || 10}</span>
               ${isPublic ? '<span style="font-size: 10pt; font-weight: 700; color: #10b981; background: rgba(16, 185, 129, 0.12); padding: 1px 5px; border-radius: 3px;">🌐 Public</span>' : '<span style="font-size: 10pt; color: var(--text-muted); background: rgba(255,255,255,0.05); padding: 1px 5px; border-radius: 3px;">🔒 Private</span>'}
@@ -3697,7 +3939,7 @@ export class CampaignTrackerManager {
 <head>
   <meta charset="UTF-8">
   <title>Mutants & Masterminds 3E - Party Conditions & Toughness Tracker</title>
-  <link rel="stylesheet" href="css/styles.css?v=3.74">
+  <link rel="stylesheet" href="css/styles.css?v=3.75">
   <style>
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;

@@ -15,12 +15,17 @@ assert(indexHtml.includes('id="cloud-restore-list"'), 'cloud-restore-list missin
 assert(indexHtml.includes('id="btn-close-cloud-restore"'), 'btn-close-cloud-restore missing in index.html');
 assert(indexHtml.includes('id="btn-close-cloud-restore-footer"'), 'btn-close-cloud-restore-footer missing in index.html');
 assert(indexHtml.includes('auth-tab-btn'), 'auth-tab-btn class missing in index.html');
+assert(indexHtml.includes('id="header-auth-icon"'), 'header-auth-icon missing in index.html');
+assert(indexHtml.includes('id="header-auth-label"'), 'header-auth-label missing in index.html');
+assert(indexHtml.includes('id="header-user-dropdown"'), 'header-user-dropdown missing in index.html');
 console.log('✓ UI elements and modals verified in index.html');
 
 // 2. Verify styles.css
 const stylesCss = readFileSync('css/styles.css', 'utf8');
 assert(stylesCss.includes('.auth-tab-btn.active'), '.auth-tab-btn.active rule missing in styles.css');
-console.log('✓ Active tab highlight styles verified in styles.css');
+assert(stylesCss.includes('.btn-header-user-link'), '.btn-header-user-link rule missing in styles.css');
+assert(stylesCss.includes('.header-user-icon-connected'), '.header-user-icon-connected rule missing in styles.css');
+console.log('✓ Active tab highlight and header user styles verified in styles.css');
 
 // 3. Verify supabase_client.js features
 import { supabaseService } from './js/supabase_client.js';

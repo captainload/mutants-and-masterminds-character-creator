@@ -2498,19 +2498,43 @@ window.partyManager = partyManager;
   // =======================================================
   setupAuthBindings() {
     const authBtn = document.getElementById('btn-header-auth');
+    const authIcon = document.getElementById('header-auth-icon');
+    const authLabel = document.getElementById('header-auth-label');
     const userBadge = document.getElementById('header-user-badge');
     const usernameLabel = document.getElementById('header-username-label');
+    const userDropdown = document.getElementById('header-user-dropdown');
+    const dropdownUsername = document.getElementById('header-dropdown-username');
+    const dropdownEmail = document.getElementById('header-dropdown-email');
     const logoutBtn = document.getElementById('btn-header-logout');
     const authCloseBtn = document.getElementById('btn-close-auth-modal');
 
     if (authBtn) {
-      authBtn.addEventListener('click', () => this.openAuthModal());
+      authBtn.addEventListener('click', (e) => {
+        if (supabaseService.isLoggedIn()) {
+          e.stopPropagation();
+          if (userDropdown) {
+            userDropdown.style.display = userDropdown.style.display === 'none' ? 'block' : 'none';
+          }
+        } else {
+          this.openAuthModal();
+        }
+      });
     }
+
+    // Close user dropdown when clicking outside
+    document.addEventListener('click', (e) => {
+      if (userDropdown && userDropdown.style.display !== 'none' && !userDropdown.contains(e.target) && !authBtn?.contains(e.target)) {
+        userDropdown.style.display = 'none';
+      }
+    });
+
     if (authCloseBtn) {
       authCloseBtn.addEventListener('click', () => this.closeModal('modal-auth'));
     }
     if (logoutBtn) {
-      logoutBtn.addEventListener('click', async () => {
+      logoutBtn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        if (userDropdown) userDropdown.style.display = 'none';
         await supabaseService.signOut();
         await this.showAlertDialog('You have been signed out.', { title: 'Signed Out' });
       });
@@ -2637,10 +2661,26 @@ window.partyManager = partyManager;
     // Auth State Observer
     supabaseService.onAuthStateChange((user) => {
       if (user) {
-        if (authBtn) authBtn.style.display = 'none';
-        if (userBadge) userBadge.style.display = 'flex';
-        const uname = supabaseService.getUsername();
+        const uname = supabaseService.getUsername() || user.user_metadata?.username || user.email?.split('@')[0] || 'User';
+        if (authIcon) {
+          authIcon.style.color = '#22c55e';
+          authIcon.style.filter = 'drop-shadow(0 0 5px rgba(34, 197, 94, 0.75))';
+          authIcon.setAttribute?.('title', 'Connected to Cloud Database');
+        }
+        if (authLabel) {
+          authLabel.innerHTML = `${uname} <span style="font-size: 8px; opacity: 0.8; margin-left: 2px;">▼</span>`;
+          authLabel.style.textDecoration = 'underline';
+          authLabel.style.cursor = 'pointer';
+        }
+        if (authBtn) {
+          authBtn.className = 'btn-header-user-link';
+          authBtn.setAttribute?.('title', `Logged in as ${uname} (Connected). Click for options.`);
+          authBtn.style.display = 'inline-flex';
+        }
         if (usernameLabel) usernameLabel.textContent = uname;
+        if (dropdownUsername) dropdownUsername.textContent = uname;
+        if (dropdownEmail) dropdownEmail.textContent = user.email || '';
+
         const pInput = document.getElementById('header-player-name');
         if (pInput && !pInput.value.trim()) {
           pInput.value = uname;
@@ -2648,8 +2688,23 @@ window.partyManager = partyManager;
           this.saveAndAudit();
         }
       } else {
-        if (authBtn) authBtn.style.display = 'inline-block';
-        if (userBadge) userBadge.style.display = 'none';
+        if (userDropdown) userDropdown.style.display = 'none';
+        if (authIcon) {
+          authIcon.style.color = 'var(--hero-blue)';
+          authIcon.style.filter = 'none';
+          authIcon.removeAttribute?.('title');
+        }
+        if (authLabel) {
+          authLabel.textContent = 'Sign In / Register';
+          authLabel.style.textDecoration = 'none';
+          authLabel.style.cursor = 'pointer';
+        }
+        if (authBtn) {
+          authBtn.className = 'btn btn-outline';
+          authBtn.setAttribute?.('title', 'Sign In / Register');
+          authBtn.style.display = 'inline-flex';
+        }
+        if (usernameLabel) usernameLabel.textContent = 'User';
       }
     });
   }

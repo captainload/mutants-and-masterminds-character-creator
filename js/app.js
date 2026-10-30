@@ -1968,18 +1968,7 @@ window.partyManager = partyManager;
       await this.openCloudRestoreModal();
     });
 
-    // 6. Local Import & Export (.MM3 / JSON)
-    document.getElementById('menu-action-export-mm3')?.addEventListener('click', async () => {
-      closeDropdown();
-      await this.saveCharacterFile({ forceSaveAs: true });
-    });
-
-    document.getElementById('menu-action-import-mm3')?.addEventListener('click', () => {
-      closeDropdown();
-      document.getElementById('menu-file-input')?.click();
-    });
-
-    // 7. Export Character (PDF)
+    // 6. Export Character (PDF)
     document.getElementById('menu-action-export-pdf')?.addEventListener('click', () => {
       closeDropdown();
       window.print();
@@ -2682,8 +2671,8 @@ window.partyManager = partyManager;
           authBtn.className = 'btn-header-user-link';
           authBtn.setAttribute?.('title', `Logged in as ${uname} (Connected). Click for options.`);
           authBtn.style.display = 'inline-flex';
-          authBtn.style.fontSize = '13px';
-          authBtn.style.padding = '3px 8px';
+          authBtn.style.fontSize = '14px';
+          authBtn.style.padding = '4px 10px';
         }
         if (usernameLabel) usernameLabel.textContent = uname;
         if (dropdownUsername) dropdownUsername.textContent = uname;
@@ -2711,8 +2700,8 @@ window.partyManager = partyManager;
           authBtn.className = 'btn btn-outline';
           authBtn.setAttribute?.('title', 'Sign In / Register');
           authBtn.style.display = 'inline-flex';
-          authBtn.style.fontSize = '13px';
-          authBtn.style.padding = '3px 10px';
+          authBtn.style.fontSize = '14px';
+          authBtn.style.padding = '4px 11px';
         }
         if (usernameLabel) usernameLabel.textContent = 'User';
       }
@@ -4350,14 +4339,27 @@ window.partyManager = partyManager;
   openSettingsFlyout() {
     const backdrop = document.getElementById('flyout-settings-backdrop');
     const panel = document.getElementById('flyout-settings-panel');
+    const menuList = document.getElementById('menu-dropdown-list');
+    const menuBtn = document.getElementById('btn-open-menu');
+
     if (panel) {
-      const menuBtn = document.getElementById('btn-open-menu');
-      if (menuBtn) {
-        const rect = menuBtn.getBoundingClientRect();
-        const targetWidth = Math.max(480, Math.floor(window.innerWidth - rect.right - 14));
-        panel.style.width = `${targetWidth}px`;
-        panel.style.maxWidth = `calc(100vw - ${Math.max(40, Math.floor(rect.right + 10))}px)`;
+      let menuRight = 260; // default menu width fallback
+      if (menuList && menuList.classList.contains('show')) {
+        const menuRect = menuList.getBoundingClientRect();
+        if (menuRect && menuRect.right > 0) {
+          menuRight = menuRect.right;
+        }
+      } else if (menuBtn) {
+        const btnRect = menuBtn.getBoundingClientRect();
+        // Menu container left + menu panel width (260px)
+        menuRight = Math.max(btnRect.right, btnRect.left + 260);
       }
+
+      const availableWidth = Math.max(320, Math.floor(window.innerWidth - menuRight));
+      panel.style.left = `${Math.floor(menuRight)}px`;
+      panel.style.right = 'auto';
+      panel.style.width = `${availableWidth}px`;
+      panel.style.maxWidth = `${availableWidth}px`;
     }
     backdrop?.classList.add('open');
     panel?.classList.add('open');

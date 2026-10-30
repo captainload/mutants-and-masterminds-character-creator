@@ -615,10 +615,10 @@ html[data-theme="light"] .auth-tab-btn.active {
   cursor: pointer;
   display: inline-flex;
   align-items: center;
-  gap: 0.4rem;
-  font-size: 13px !important;
+  gap: 0.45rem;
+  font-size: 14px !important;
   font-weight: 700;
-  padding: 3px 8px !important;
+  padding: 4px 10px !important;
   border-radius: 4px;
   transition: all 0.2s ease;
   box-shadow: none !important;
@@ -1250,6 +1250,17 @@ textarea {
 
 .flyout-panel.open {
   transform: translateX(0);
+}
+
+#flyout-settings-panel {
+  transform: translateX(-20px);
+  opacity: 0;
+  transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease;
+}
+
+#flyout-settings-panel.open {
+  transform: translateX(0);
+  opacity: 1;
 }
 
 .flyout-header {

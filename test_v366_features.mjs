@@ -8,8 +8,9 @@ const indexHtml = readFileSync('index.html', 'utf8');
 
 assert(indexHtml.includes('id="menu-action-cloud-backup"'), 'menu-action-cloud-backup missing in index.html');
 assert(indexHtml.includes('id="menu-action-cloud-restore"'), 'menu-action-cloud-restore missing in index.html');
-assert(indexHtml.includes('id="menu-action-export-mm3"'), 'menu-action-export-mm3 missing in index.html');
-assert(indexHtml.includes('id="menu-action-import-mm3"'), 'menu-action-import-mm3 missing in index.html');
+assert(indexHtml.includes('id="menu-action-export-pdf"'), 'menu-action-export-pdf missing in index.html');
+assert(!indexHtml.includes('id="menu-action-export-mm3"'), 'menu-action-export-mm3 should be removed');
+assert(!indexHtml.includes('id="menu-action-import-mm3"'), 'menu-action-import-mm3 should be removed');
 assert(indexHtml.includes('id="modal-cloud-restore"'), 'modal-cloud-restore missing in index.html');
 assert(indexHtml.includes('id="cloud-restore-list"'), 'cloud-restore-list missing in index.html');
 assert(indexHtml.includes('id="btn-close-cloud-restore"'), 'btn-close-cloud-restore missing in index.html');
@@ -22,7 +23,7 @@ assert(indexHtml.includes('id="btn-header-user-settings"'), 'btn-header-user-set
 assert(indexHtml.includes('id="flyout-user-settings-panel"'), 'flyout-user-settings-panel missing in index.html');
 assert(indexHtml.includes('id="btn-user-settings-reset-password"'), 'btn-user-settings-reset-password missing in index.html');
 assert(indexHtml.includes('id="btn-user-settings-delete-account"'), 'btn-user-settings-delete-account missing in index.html');
-assert(indexHtml.includes('font-size: 13px;'), '13px font size used on login button in index.html');
+assert(indexHtml.includes('font-size: 14px;'), '14px font size used on login button in index.html');
 console.log('✓ UI elements and modals verified in index.html');
 
 // 2. Verify styles.css

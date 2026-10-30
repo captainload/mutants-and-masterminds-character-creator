@@ -41,7 +41,7 @@ import {
   tablesManager
 } from './tables.js';
 
-import { POWER_PROFILES_LIBRARY } from './power_profiles.js?v=3.71';
+import { POWER_PROFILES_LIBRARY } from './power_profiles.js?v=3.72';
 import { ARCHETYPES } from './archetypes.js';
 import { archetypeManager } from './archetype_window.js';
 import { campaignManager, partyManager, formatCharacterSheetHTML } from './party.js';
@@ -263,6 +263,28 @@ class AppController {
 
     document.getElementById('btn-close-campaign-modal')?.addEventListener('click', closeCampaignsHandler);
     document.getElementById('btn-campaign-modal-close-footer')?.addEventListener('click', closeCampaignsHandler);
+
+    // Prevent wheel scrolling inside #modal-campaign-tracker from ever scrolling the underlying browser window
+    const campaignModalEl = document.getElementById('modal-campaign-tracker');
+    if (campaignModalEl) {
+      campaignModalEl.addEventListener('wheel', (e) => {
+        const scrollBody = document.getElementById('campaign-tracker-content');
+        if (!scrollBody) {
+          e.preventDefault();
+          return;
+        }
+        if (!scrollBody.contains(e.target)) {
+          scrollBody.scrollTop += e.deltaY;
+          e.preventDefault();
+          return;
+        }
+        const atTop = scrollBody.scrollTop <= 0 && e.deltaY < 0;
+        const atBottom = Math.ceil(scrollBody.scrollTop + scrollBody.clientHeight) >= scrollBody.scrollHeight && e.deltaY > 0;
+        if (atTop || atBottom) {
+          e.preventDefault();
+        }
+      }, { passive: false });
+    }
 
     document.getElementById('btn-campaign-sync-discord')?.addEventListener('click', async () => {
       await this.broadcastPartyToDiscord();
@@ -2037,7 +2059,7 @@ window.partyManager = partyManager;
   }
 
   async checkForUpdates({ isManual = false } = {}) {
-    const CURRENT_VERSION = '3.71';
+    const CURRENT_VERSION = '3.72';
     const versionEl = document.getElementById('header-version-tag');
     const updateBtn = document.getElementById('btn-header-update-alert');
     if (typeof window === 'undefined' || !window.location || !window.location.href || window.location.href === 'about:blank') return;
@@ -9618,6 +9640,25 @@ window.partyManager = partyManager;
     }
   }
 
+  syncBodyScrollLock() {
+    if (typeof document === 'undefined') return;
+    const anyModalOpen = typeof document.querySelector === 'function'
+      ? !!document.querySelector('.modal-overlay.active')
+      : false;
+    if (document.body) {
+      document.body.classList?.toggle?.('modal-open', anyModalOpen);
+      if (document.body.style) {
+        document.body.style.overflow = anyModalOpen ? 'hidden' : '';
+      }
+    }
+    if (document.documentElement) {
+      document.documentElement.classList?.toggle?.('modal-open', anyModalOpen);
+      if (document.documentElement.style) {
+        document.documentElement.style.overflow = anyModalOpen ? 'hidden' : '';
+      }
+    }
+  }
+
   openModal(id) {
     if ((id === 'modal-campaign-tracker' || id === 'modal-party') && campaignManager.isPopoutOpen()) {
       this.closeModal('modal-campaign-tracker');
@@ -9630,6 +9671,7 @@ window.partyManager = partyManager;
     }
     const el = document.getElementById(id);
     if (el) el.classList.add('active');
+    this.syncBodyScrollLock();
     if (id === 'modal-log-session') {
       setTimeout(() => this.resizeAllTextareas?.(), 50);
     }
@@ -9638,6 +9680,7 @@ window.partyManager = partyManager;
   closeModal(id) {
     const el = document.getElementById(id);
     if (el) el.classList.remove('active');
+    this.syncBodyScrollLock();
     if (id === 'modal-tables' && typeof tablesManager !== 'undefined') {
       tablesManager.setClosedWhilePoppedOut(false);
     }

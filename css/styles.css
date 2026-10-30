@@ -916,6 +916,12 @@ html[data-theme="light"] .btn-header-user-link:hover {
 /* =====================================================================
    TABLES & WIZARD MODALS
    ===================================================================== */
+html.modal-open,
+body.modal-open {
+  overflow: hidden !important;
+  overscroll-behavior: none !important;
+}
+
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -931,6 +937,7 @@ html[data-theme="light"] .btn-header-user-link:hover {
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.2s ease;
+  overscroll-behavior: contain;
 }
 
 .modal-overlay.active {
@@ -944,7 +951,8 @@ html[data-theme="light"] .btn-header-user-link:hover {
 #modal-auth,
 #modal-cloud-restore,
 #modal-join-requests,
-#modal-character-inspector {
+#modal-character-inspector,
+#modal-campaign-messages {
   z-index: 2500;
 }
 
@@ -989,6 +997,8 @@ html[data-theme="light"] .btn-header-user-link:hover {
   padding: 1rem;
   overflow-y: auto;
   flex: 1;
+  min-height: 0;
+  overscroll-behavior: contain;
 }
 
 /* Collapsible Table Section */
@@ -3093,6 +3103,8 @@ html[data-theme="light"] .stat-summary-bar {
 
 #modal-campaign-tracker #campaign-tracker-content {
   flex: 1 1 auto !important;
+  min-height: 0 !important;
   max-height: none !important;
   overflow-y: auto !important;
+  overscroll-behavior: contain !important;
 }

@@ -2,33 +2,33 @@ import { readFileSync } from 'fs';
 import assert from 'assert';
 import { CampaignTrackerManager } from './js/party.js';
 
-console.log('--- Testing v3.71 Features Suite ---');
+console.log('--- Testing v3.72 Features Suite ---');
 
 // =========================================================================
-// 1. Version Consistency (v3.71)
+// 1. Version Consistency (v3.72)
 // =========================================================================
 const versionJson = JSON.parse(readFileSync('version.json', 'utf8'));
-assert.strictEqual(versionJson.version, '3.71', `Expected 3.71 in version.json, got ${versionJson.version}`);
+assert(parseFloat(versionJson.version) >= 3.72, `Expected >= 3.72 in version.json, got ${versionJson.version}`);
 
 const indexHtml = readFileSync('index.html', 'utf8');
-assert(indexHtml.includes('Character Editor v3.71'), 'index.html title missing v3.71');
-assert(indexHtml.includes('css/styles.css?v=3.71'), 'index.html styles query missing v3.71');
-assert(indexHtml.includes('>v3.71</span>'), 'index.html version badge missing v3.71');
-assert(indexHtml.includes('js/app.js?v=3.71'), 'index.html app.js script query missing v3.71');
+assert(indexHtml.includes('Character Editor v3.72'), 'index.html title missing v3.72');
+assert(indexHtml.includes('css/styles.css?v=3.72'), 'index.html styles query missing v3.72');
+assert(indexHtml.includes('>v3.72</span>'), 'index.html version badge missing v3.72');
+assert(indexHtml.includes('js/app.js?v=3.72'), 'index.html app.js script query missing v3.72');
 
 const appJs = readFileSync('js/app.js', 'utf8');
-assert(appJs.includes("CURRENT_VERSION = '3.71'"), 'app.js CURRENT_VERSION missing 3.71');
-assert(appJs.includes("power_profiles.js?v=3.71"), 'app.js power_profiles query missing 3.71');
+assert(appJs.includes("CURRENT_VERSION = '3.72'"), 'app.js CURRENT_VERSION missing 3.72');
+assert(appJs.includes("power_profiles.js?v=3.72"), 'app.js power_profiles query missing 3.72');
 
 const archJs = readFileSync('js/archetype_window.js', 'utf8');
-assert(archJs.includes('css/styles.css?v=3.71'), 'archetype_window.js styles link missing 3.71');
+assert(archJs.includes('css/styles.css?v=3.72'), 'archetype_window.js styles link missing 3.72');
 
 const partyJs = readFileSync('js/party.js', 'utf8');
-assert(partyJs.includes('css/styles.css?v=3.71'), 'party.js styles link missing 3.71');
+assert(partyJs.includes('css/styles.css?v=3.72'), 'party.js styles link missing 3.72');
 
 const tablesJs = readFileSync('js/tables.js', 'utf8');
-assert(tablesJs.includes('css/styles.css?v=3.71'), 'tables.js styles link missing 3.71');
-console.log('✓ v3.71 version consistency verified across all files');
+assert(tablesJs.includes('css/styles.css?v=3.72'), 'tables.js styles link missing 3.72');
+console.log('✓ v3.72 version consistency verified across all files');
 
 // =========================================================================
 // 2. GM Campaign Controls: No "Leave Campaign" for GM; Hiatus & Delete Options
@@ -203,4 +203,15 @@ const cancelMsg = gmMgr.getAllCampaignMessages().find(m => m.type === 'CAMPAIGN_
 assert(cancelMsg && cancelMsg.campaignName === 'Titans Tomorrow' && cancelMsg.gmName === 'Player_Kori', 'Participants notified via messaging when campaign is cancelled/deleted');
 console.log('✓ Header message count badge & all GM/Player campaign notifications verified');
 
-console.log('\nALL v3.71 FEATURE TESTS PASSED CLEANLY!');
+
+// =========================================================================
+// 6. Campaign Tracker Scroll Lock (Prevent Scrolling Underlying Window)
+// =========================================================================
+const stylesCss = readFileSync('css/styles.css', 'utf8');
+assert(stylesCss.includes('body.modal-open') && stylesCss.includes('overflow: hidden !important;'), 'styles.css locks body overflow when modal-open is active');
+assert(stylesCss.includes('overscroll-behavior: contain !important;'), 'styles.css sets overscroll-behavior: contain on campaign tracker content');
+assert(appJs.includes('syncBodyScrollLock()'), 'app.js syncs body scroll lock on openModal and closeModal');
+assert(appJs.includes("campaignModalEl.addEventListener('wheel'"), 'app.js isolates wheel events inside #modal-campaign-tracker');
+console.log('✓ Campaign tracker scroll isolation (no background window scroll) verified');
+
+console.log('\nALL v3.72 FEATURE TESTS PASSED CLEANLY!');

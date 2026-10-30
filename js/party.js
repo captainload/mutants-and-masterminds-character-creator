@@ -2710,6 +2710,9 @@ export class CampaignTrackerManager {
       if (typeof document !== 'undefined') {
         document.getElementById('modal-campaign-tracker')?.classList.remove('active');
         document.getElementById('modal-party')?.classList.remove('active');
+        if (typeof window !== 'undefined' && window.appController?.syncBodyScrollLock) {
+          window.appController.syncBodyScrollLock();
+        }
       }
       try {
         const popContainer = this.popoutWindow.document.getElementById('party-tracker-popout-content');
@@ -2940,6 +2943,9 @@ export class CampaignTrackerManager {
     if (typeof document !== 'undefined') {
       document.getElementById('modal-campaign-tracker')?.classList.remove('active');
       document.getElementById('modal-party')?.classList.remove('active');
+      if (typeof window !== 'undefined' && window.appController?.syncBodyScrollLock) {
+        window.appController.syncBodyScrollLock();
+      }
     }
     if (this.popoutWindow && !this.popoutWindow.closed) {
       this.popoutWindow.focus();
@@ -2962,7 +2968,7 @@ export class CampaignTrackerManager {
 <head>
   <meta charset="UTF-8">
   <title>Mutants & Masterminds 3E - Party Conditions & Toughness Tracker</title>
-  <link rel="stylesheet" href="css/styles.css?v=3.71">
+  <link rel="stylesheet" href="css/styles.css?v=3.72">
   <style>
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;

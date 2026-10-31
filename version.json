@@ -1,6 +1,6 @@
 {
-  "version": "3.76",
-  "updatedAt": "2026-10-30T13:30:00.000Z",
-  "releaseNotes": "Replies go exclusively to the original sender unless copied via the new CC checkbox dropdown of Known Users; senders do not receive copies of messages they mass-mailed unless they specifically added themselves as a recipient; mailing lists are never added to Address Books.",
-  "updated": "2026-10-30"
+  "version": "3.77",
+  "updatedAt": "2026-10-31T14:36:11.898Z",
+  "releaseNotes": "The Messaging Client can now be fully popped out into its own window. Every pop-out (Messaging Client, Campaign Tracker, Archetype Builder, Reference Tables) has a Redock button. Login fixes: an email address can only be used by one account, usernames must be unique, the login button always shows the signed-in username, you can sign in with email or username, and messages are delivered to the correct account.",
+  "updated": "2026-10-31"
 }

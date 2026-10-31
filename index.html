@@ -6,8 +6,8 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Mutants & Masterminds 3E - Character Editor v3.76</title>
-  <link rel="stylesheet" href="css/styles.css?v=3.76">
+  <title>Mutants & Masterminds 3E - Character Editor v3.77</title>
+  <link rel="stylesheet" href="css/styles.css?v=3.77">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
@@ -93,7 +93,7 @@
 
           <div class="brand-title-centered">
             <span>Mutants & Masterminds 3E Character Editor</span>
-            <span id="header-version-tag" class="header-version-tag up-to-date" title="Current Version">v3.76</span>
+            <span id="header-version-tag" class="header-version-tag up-to-date" title="Current Version">v3.77</span>
             <button type="button" id="btn-header-update-alert" class="btn-header-update-alert" title="Check for updates / Update status" style="display: none;">!</button>
           </div>
 
@@ -1772,8 +1772,8 @@
         <!-- Form: Sign In -->
         <div id="auth-form-signin" class="auth-subform">
           <div style="margin-bottom: 0.85rem;">
-            <label class="field-label" style="display: block; margin-bottom: 0.3rem;">Email Address:</label>
-            <input type="email" id="auth-signin-email" class="header-field-input" placeholder="you@example.com" style="width: 100%; font-size: 10pt;">
+            <label class="field-label" style="display: block; margin-bottom: 0.3rem;">Email Address or Username:</label>
+            <input type="text" id="auth-signin-email" class="header-field-input" placeholder="you@example.com or YourUsername" autocomplete="username" style="width: 100%; font-size: 10pt;">
           </div>
           <div style="margin-bottom: 1rem;">
             <label class="field-label" style="display: block; margin-bottom: 0.3rem;">Password:</label>
@@ -1892,7 +1892,10 @@
     <div class="modal-container" style="width: calc(100vw - 0.5in); max-width: calc(100vw - 0.5in); height: calc(100vh - 0.5in); max-height: calc(100vh - 0.5in); margin: 0.25in; display: flex; flex-direction: column;">
       <div class="modal-header-bar">
         <div class="modal-header-title">📬 Campaign Messaging Client</div>
-        <button class="btn btn-outline" id="btn-close-campaign-messages" style="min-height: 28px; padding: 0.1rem 0.5rem;">✕</button>
+        <div style="display: flex; gap: 0.4rem; align-items: center;">
+          <button class="btn btn-outline" id="btn-messages-popout" title="Pop out into separate window" style="min-height: 28px; padding: 0.15rem 0.6rem; font-size: 10pt; font-weight: 700;">↗ Pop-out</button>
+          <button class="btn btn-outline" id="btn-close-campaign-messages" style="min-height: 28px; padding: 0.1rem 0.5rem;">✕</button>
+        </div>
       </div>
       <div class="modal-scroll-body" style="padding: 0.85rem 1.15rem; flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column;">
         <!-- Top Messaging Client Toolbar -->
@@ -1998,6 +2001,6 @@
     </div>
   </div>
 
-  <script type="module" src="js/app.js?v=3.76"></script>
+  <script type="module" src="js/app.js?v=3.77"></script>
 </body>
 </html>

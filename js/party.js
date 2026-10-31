@@ -4015,7 +4015,7 @@ export class CampaignTrackerManager {
 <head>
   <meta charset="UTF-8">
   <title>Mutants & Masterminds 3E - Party Conditions & Toughness Tracker</title>
-  <link rel="stylesheet" href="css/styles.css?v=3.76">
+  <link rel="stylesheet" href="css/styles.css?v=3.77">
   <style>
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -4067,6 +4067,7 @@ export class CampaignTrackerManager {
     <h2 class="popout-title">🛡️ Party Conditions & Toughness Tracker</h2>
     <div style="display: flex; gap: 0.5rem;">
       <button id="btn-popout-sync-discord" class="btn btn-outline" style="min-height: 28px; padding: 0.15rem 0.6rem; font-size: 10pt; font-weight: 700;">📢 Broadcast to Discord</button>
+      <button id="btn-popout-redock" class="btn btn-outline" title="Return this window to the main app" style="min-height: 28px; padding: 0.15rem 0.6rem; font-size: 10pt; font-weight: 700;">↙ Redock</button>
       <button id="btn-popout-close" class="btn" style="background: #dc2626; color: #fff; border: none; padding: 5px 12px; border-radius: 4px; font-weight: 700; cursor: pointer;">✕ Close</button>
     </div>
   </div>
@@ -4108,6 +4109,17 @@ export class CampaignTrackerManager {
     });
 
     document.getElementById('btn-popout-close')?.addEventListener('click', () => {
+      window.close();
+    });
+
+    document.getElementById('btn-popout-redock')?.addEventListener('click', () => {
+      const op = window.opener;
+      if (op && !op.closed && op.partyManager) {
+        op.partyManager.saveCoords({ left: window.screenX, top: window.screenY, width: window.outerWidth, height: window.outerHeight });
+        op.partyManager.popoutWindow = null;
+        if (op.appController) op.appController.openCampaignTracker();
+        try { op.focus(); } catch (e) {}
+      }
       window.close();
     });
 

@@ -41,7 +41,7 @@ import {
   tablesManager
 } from './tables.js';
 
-import { POWER_PROFILES_LIBRARY } from './power_profiles.js?v=3.76';
+import { POWER_PROFILES_LIBRARY } from './power_profiles.js?v=3.77';
 import { ARCHETYPES } from './archetypes.js';
 import { archetypeManager } from './archetype_window.js';
 import { campaignManager, partyManager, formatCharacterSheetHTML } from './party.js';
@@ -173,14 +173,17 @@ class AppController {
         document.documentElement.setAttribute('data-theme', theme);
         localStorage.setItem('mm3e_theme', theme);
         // Sync active popout windows
-        if (this.archetypeManager?.popoutWindow && !this.archetypeManager.popoutWindow.closed) {
-          try { this.archetypeManager.popoutWindow.document.documentElement.setAttribute('data-theme', theme); } catch(e) {}
+        if (archetypeManager?.popoutWindow && !archetypeManager.popoutWindow.closed) {
+          try { archetypeManager.popoutWindow.document.documentElement.setAttribute('data-theme', theme); } catch(e) {}
+        }
+        if (this.isMessagesPopoutOpen()) {
+          try { this.messagesPopoutWindow.document.documentElement.setAttribute('data-theme', theme); } catch(e) {}
         }
         if (partyManager?.popoutWindow && !partyManager.popoutWindow.closed) {
           try { partyManager.popoutWindow.document.documentElement.setAttribute('data-theme', theme); } catch(e) {}
         }
-        if (this.tablesManager?.popoutWindow && !this.tablesManager.popoutWindow.closed) {
-          try { this.tablesManager.popoutWindow.document.documentElement.setAttribute('data-theme', theme); } catch(e) {}
+        if (tablesManager?.popoutWindow && !tablesManager.popoutWindow.closed) {
+          try { tablesManager.popoutWindow.document.documentElement.setAttribute('data-theme', theme); } catch(e) {}
         }
         document.querySelectorAll('.theme-toggle-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
@@ -2075,7 +2078,7 @@ window.partyManager = partyManager;
   }
 
   async checkForUpdates({ isManual = false } = {}) {
-    const CURRENT_VERSION = '3.76';
+    const CURRENT_VERSION = '3.77';
     const versionEl = document.getElementById('header-version-tag');
     const updateBtn = document.getElementById('btn-header-update-alert');
     if (typeof window === 'undefined' || !window.location || !window.location.href || window.location.href === 'about:blank') return;
@@ -2577,131 +2580,10 @@ window.partyManager = partyManager;
     });
     document.getElementById('btn-close-campaign-messages')?.addEventListener('click', () => this.closeModal('modal-campaign-messages'));
     document.getElementById('btn-close-campaign-messages-footer')?.addEventListener('click', () => this.closeModal('modal-campaign-messages'));
-    document.getElementById('btn-mark-all-messages-read')?.addEventListener('click', () => {
-      campaignManager.markAllMessagesRead();
-      this.renderCampaignMessagesModalIfOpen();
-    });
-    document.getElementById('btn-clear-read-messages')?.addEventListener('click', () => {
-      campaignManager.clearReadMessages();
-      this.renderCampaignMessagesModalIfOpen();
-    });
-    const syncComposeTextareaHeight = () => {
-      const ta = document.getElementById('msg-compose-text-input');
-      if (!ta) return;
-      ta.style.height = 'auto';
-      const nextHeight = Math.min(Math.max(ta.scrollHeight || 72, 72), 172);
-      ta.style.height = nextHeight + 'px';
-    };
-
-    document.getElementById('msg-compose-text-input')?.addEventListener('input', syncComposeTextareaHeight);
-
-    document.getElementById('btn-msg-toolbar-new')?.addEventListener('click', () => {
-      this.openMessageComposePane();
-    });
-
-    document.getElementById('btn-msg-toolbar-reply')?.addEventListener('click', () => {
-      const selectedCard = document.querySelector('#campaign-messages-list-container .campaign-message-card.selected') ||
-                           document.querySelector('#campaign-messages-list-container .campaign-message-card');
-      const replyUser = selectedCard?.dataset?.replyuser || '';
-      // Replies go ONLY to the original sender unless the user explicitly selects CC users
-      this.openMessageComposePane(replyUser, '', replyUser ? `↩️ Reply to ${replyUser}` : '✉️ New Message', { isReply: true });
-    });
-
-    document.getElementById('btn-msg-toolbar-cc')?.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const pane = document.getElementById('msg-client-compose-pane');
-      if (!pane || pane.style.display === 'none') {
-        const selectedCard = document.querySelector('#campaign-messages-list-container .campaign-message-card.selected') ||
-                             document.querySelector('#campaign-messages-list-container .campaign-message-card');
-        const replyUser = selectedCard?.dataset?.replyuser || '';
-        this.openMessageComposePane(replyUser, '', replyUser ? `↩️ Reply to ${replyUser} (with CC)` : '✉️ New Message', { isReply: true });
-      }
-      const ccMenu = document.getElementById('msg-cc-checkbox-menu');
-      ccMenu?.classList.add('open');
-    });
-
-    document.getElementById('btn-msg-toolbar-address-book')?.addEventListener('click', () => {
-      const drawer = document.getElementById('msg-client-address-book-drawer');
-      if (drawer) {
-        drawer.style.display = drawer.style.display === 'none' ? 'block' : 'none';
-      }
-    });
-
-    document.getElementById('btn-close-address-book-drawer')?.addEventListener('click', () => {
-      const drawer = document.getElementById('msg-client-address-book-drawer');
-      if (drawer) drawer.style.display = 'none';
-    });
-
-    const closeComposePane = () => {
-      const pane = document.getElementById('msg-client-compose-pane');
-      if (pane) pane.style.display = 'none';
-    };
-    document.getElementById('btn-close-compose-pane')?.addEventListener('click', closeComposePane);
-    document.getElementById('btn-cancel-compose-pane')?.addEventListener('click', closeComposePane);
-
-    const toggleKnownBtn = document.getElementById('btn-toggle-known-users-dropdown');
-    const knownMenuEl = document.getElementById('msg-known-users-checkbox-menu');
-    const knownDropContainer = document.getElementById('msg-known-users-dropdown-container');
-
-    const toggleCcBtn = document.getElementById('btn-toggle-cc-dropdown');
-    const ccMenuEl = document.getElementById('msg-cc-checkbox-menu');
-    const ccDropContainer = document.getElementById('msg-cc-dropdown-container');
-
-    toggleKnownBtn?.addEventListener('click', (e) => {
-      e.stopPropagation();
-      ccMenuEl?.classList.remove('open');
-      knownMenuEl?.classList.toggle('open');
-    });
-
-    toggleCcBtn?.addEventListener('click', (e) => {
-      e.stopPropagation();
-      knownMenuEl?.classList.remove('open');
-      ccMenuEl?.classList.toggle('open');
-    });
-
-    document.addEventListener('click', (e) => {
-      if (knownMenuEl && knownMenuEl.classList.contains('open') && knownDropContainer && !knownDropContainer.contains(e.target)) {
-        knownMenuEl.classList.remove('open');
-      }
-      if (ccMenuEl && ccMenuEl.classList.contains('open') && ccDropContainer && !ccDropContainer.contains(e.target)) {
-        ccMenuEl.classList.remove('open');
-      }
-    });
-
-    document.getElementById('btn-send-direct-message')?.addEventListener('click', async () => {
-      const recInput = document.getElementById('msg-compose-recipient-input');
-      const campSelect = document.getElementById('msg-compose-campaign-select');
-      const textInput = document.getElementById('msg-compose-text-input');
-      const checkedBoxes = Array.from(document.querySelectorAll('#msg-known-users-checkbox-menu .chk-known-user-recipient:checked'));
-      const checkedUsers = checkedBoxes.map(cb => cb.value);
-      const checkedCcBoxes = Array.from(document.querySelectorAll('#msg-cc-checkbox-menu .chk-cc-user-recipient:checked'));
-      const checkedCcUsers = checkedCcBoxes.map(cb => cb.value);
-      const toUser = (recInput?.value || '').trim();
-      const recipientScope = (campSelect?.value || '').trim();
-      const text = (textInput?.value || '').trim();
-      try {
-        campaignManager.sendDirectUserMessage({
-          toUser,
-          toUsers: checkedUsers,
-          ccUsers: checkedCcUsers,
-          recipientScope,
-          senderUser: supabaseService.getUsername() || this.char.playerName || 'Player',
-          text
-        });
-        if (textInput) {
-          textInput.value = '';
-          textInput.style.height = '72px';
-        }
-        if (recInput) recInput.value = '';
-        checkedBoxes.forEach(cb => { cb.checked = false; });
-        checkedCcBoxes.forEach(cb => { cb.checked = false; });
-        this.updateKnownUsersDropdownSummary();
-        this.updateCcUsersDropdownSummary();
-        this.renderCampaignMessagesModalIfOpen();
-      } catch (err) {
-        await this.showAlertDialog(err.message, { title: 'Cannot Send Message' });
-      }
-    });
+    document.getElementById('btn-messages-popout')?.addEventListener('click', () => this.openMessagesPopout());
+    // Pristine messaging client markup (used to build the pop-out window)
+    this._messagesTemplateHTML = document.querySelector('#modal-campaign-messages .modal-scroll-body')?.innerHTML || '';
+    this.wireMessagingClient(document);
     document.getElementById('btn-header-user-settings')?.addEventListener('click', (e) => {
       e.stopPropagation();
       if (userDropdown) userDropdown.style.display = 'none';
@@ -2751,12 +2633,13 @@ window.partyManager = partyManager;
       const email = document.getElementById('auth-signin-email')?.value.trim();
       const password = document.getElementById('auth-signin-password')?.value;
       if (!email || !password) {
-        showAuthStatus('Please enter your email and password.', true);
+        showAuthStatus('Please enter your email (or username) and password.', true);
         return;
       }
       try {
         await supabaseService.signIn({ email, password });
-        showAuthStatus('Signed in successfully!', false);
+        this.updateAuthHeaderUI(supabaseService.getUser());
+        showAuthStatus(`Signed in successfully as ${supabaseService.getUsername()}!`, false);
         setTimeout(() => {
           this.closeModal('modal-auth');
         }, 600);
@@ -2783,17 +2666,18 @@ window.partyManager = partyManager;
         return;
       }
       try {
-        await supabaseService.signUp({ email, password, username });
-        showAuthStatus('Account created! Please check your email to confirm registration or sign in.', false);
+        const result = await supabaseService.signUp({ email, password, username });
+        this.updateAuthHeaderUI(supabaseService.getUser());
+        if (result?.needsEmailConfirmation) {
+          showAuthStatus(`Account "${username}" created! Please confirm your email address, then sign in.`, false);
+        } else {
+          showAuthStatus(`Account created! You are now signed in as ${supabaseService.getUsername()}.`, false);
+        }
         setTimeout(() => {
           this.closeModal('modal-auth');
-        }, 1200);
+        }, 1500);
       } catch (err) {
-        let msg = err.message || 'Failed to create account.';
-        if (msg.toLowerCase().includes('already registered')) {
-          msg = 'An account with this email already exists in Supabase. In your Supabase Dashboard (Authentication > Users), click "..." on the user to either "Confirm email" or "Delete user" to start fresh.';
-        }
-        showAuthStatus(msg, true);
+        showAuthStatus(err.message || 'Failed to create account.', true);
       }
     });
 
@@ -2834,57 +2718,219 @@ window.partyManager = partyManager;
       }, 500);
     }
 
-    // Auth State Observer
+    // Auth State Observer: the header button, dropdown, player name and messaging identity
+    // ALWAYS mirror the account that is actually authenticated.
     supabaseService.onAuthStateChange((user) => {
-      if (user) {
-        const uname = supabaseService.getUsername() || user.user_metadata?.username || user.email?.split('@')[0] || 'User';
-        if (authIcon) {
-          authIcon.style.color = '#22c55e';
-          authIcon.style.filter = 'drop-shadow(0 0 5px rgba(34, 197, 94, 0.75))';
-          authIcon.setAttribute?.('title', 'Connected to Cloud Database');
-        }
-        if (authLabel) {
-          authLabel.innerHTML = `${uname} <span style="font-size: 10pt; opacity: 0.8; margin-left: 2px;">▼</span>`;
-          authLabel.style.textDecoration = 'underline';
-          authLabel.style.cursor = 'pointer';
-        }
-        if (authBtn) {
-          authBtn.className = 'btn-header-user-link';
-          authBtn.setAttribute?.('title', `Logged in as ${uname} (Connected). Click for options.`);
-          authBtn.style.display = 'inline-flex';
-          authBtn.style.fontSize = '14px';
-          authBtn.style.padding = '4px 10px';
-        }
-        if (usernameLabel) usernameLabel.textContent = uname;
-        if (dropdownUsername) dropdownUsername.textContent = uname;
-        if (dropdownEmail) dropdownEmail.textContent = user.email || '';
+      this.updateAuthHeaderUI(user);
+    });
+  }
 
+  updateAuthHeaderUI(user = supabaseService.getUser()) {
+    const authBtn = document.getElementById('btn-header-auth');
+    const authIcon = document.getElementById('header-auth-icon');
+    const authLabel = document.getElementById('header-auth-label');
+    const usernameLabel = document.getElementById('header-username-label');
+    const userDropdown = document.getElementById('header-user-dropdown');
+    const dropdownUsername = document.getElementById('header-dropdown-username');
+    const dropdownEmail = document.getElementById('header-dropdown-email');
+
+    if (user) {
+      const uname = supabaseService.getUsername() || user.user_metadata?.username || user.email?.split('@')[0] || 'User';
+      if (authIcon) {
+        authIcon.style.color = '#22c55e';
+        authIcon.style.filter = 'drop-shadow(0 0 5px rgba(34, 197, 94, 0.75))';
+        authIcon.setAttribute?.('title', 'Connected to Cloud Database');
+      }
+      if (authLabel) {
+        authLabel.innerHTML = `${uname} <span style="font-size: 10pt; opacity: 0.8; margin-left: 2px;">▼</span>`;
+        authLabel.style.textDecoration = 'underline';
+        authLabel.style.cursor = 'pointer';
+      }
+      if (authBtn) {
+        authBtn.className = 'btn btn-outline btn-header-user-link';
+        authBtn.dataset.username = uname;
+        authBtn.setAttribute?.('title', `Logged in as ${uname} (Connected). Click for options.`);
+        authBtn.style.display = 'inline-flex';
+        authBtn.style.fontSize = '14px';
+        authBtn.style.padding = '4px 10px';
+      }
+      if (usernameLabel) usernameLabel.textContent = uname;
+      if (dropdownUsername) dropdownUsername.textContent = uname;
+      if (dropdownEmail) dropdownEmail.textContent = user.email || '';
+
+      // When a (different) account signs in, the active player identity becomes that account's username
+      if (this._lastAuthUserId !== user.id || (this.char && !String(this.char.playerName || '').trim())) {
+        this._lastAuthUserId = user.id;
         const pInput = document.getElementById('header-player-name');
-        if (pInput && !pInput.value.trim()) {
-          pInput.value = uname;
+        if (pInput) pInput.value = uname;
+        if (this.char && this.char.playerName !== uname) {
           this.char.playerName = uname;
+          if (this.primaryChar && this.primaryChar !== this.char) this.primaryChar.playerName = uname;
           this.saveAndAudit();
+          this.updatePlayerDropdown?.();
         }
-      } else {
-        if (userDropdown) userDropdown.style.display = 'none';
-        if (authIcon) {
-          authIcon.style.color = 'var(--hero-blue)';
-          authIcon.style.filter = 'none';
-          authIcon.removeAttribute?.('title');
+      }
+    } else {
+      this._lastAuthUserId = null;
+      if (userDropdown) userDropdown.style.display = 'none';
+      if (authIcon) {
+        authIcon.style.color = 'var(--hero-blue)';
+        authIcon.style.filter = 'none';
+        authIcon.removeAttribute?.('title');
+      }
+      if (authLabel) {
+        authLabel.textContent = 'Sign In / Register';
+        authLabel.style.textDecoration = 'none';
+        authLabel.style.cursor = 'pointer';
+      }
+      if (authBtn) {
+        authBtn.className = 'btn btn-outline';
+        authBtn.dataset.username = '';
+        authBtn.setAttribute?.('title', 'Sign In / Register');
+        authBtn.style.display = 'inline-flex';
+        authBtn.style.fontSize = '14px';
+        authBtn.style.padding = '4px 11px';
+      }
+      if (usernameLabel) usernameLabel.textContent = 'User';
+      if (dropdownUsername) dropdownUsername.textContent = 'User';
+      if (dropdownEmail) dropdownEmail.textContent = '';
+    }
+
+    // Message counts / inbox / campaign views must immediately reflect the current identity
+    try { campaignManager.updateHeaderBadge?.(); } catch (e) {}
+    try { this.renderCampaignMessagesModalIfOpen(); } catch (e) {}
+    try { campaignManager.renderAllOpenViews?.(); } catch (e) {}
+  }
+
+  /**
+   * Wires the messaging client toolbar, compose pane, Known Users / CC dropdowns and Send button
+   * inside the given document (main window modal or the messaging pop-out window).
+   */
+  wireMessagingClient(doc = document) {
+    if (!doc) return;
+    doc.getElementById('btn-mark-all-messages-read')?.addEventListener('click', () => {
+      campaignManager.markAllMessagesRead();
+      this.renderCampaignMessagesModalIfOpen();
+    });
+    doc.getElementById('btn-clear-read-messages')?.addEventListener('click', () => {
+      campaignManager.clearReadMessages();
+      this.renderCampaignMessagesModalIfOpen();
+    });
+    const syncComposeTextareaHeight = () => {
+      const ta = doc.getElementById('msg-compose-text-input');
+      if (!ta) return;
+      ta.style.height = 'auto';
+      const nextHeight = Math.min(Math.max(ta.scrollHeight || 72, 72), 172);
+      ta.style.height = nextHeight + 'px';
+    };
+
+    doc.getElementById('msg-compose-text-input')?.addEventListener('input', syncComposeTextareaHeight);
+
+    doc.getElementById('btn-msg-toolbar-new')?.addEventListener('click', () => {
+      this.openMessageComposePane('', '', '✉️ New Message', { doc });
+    });
+
+    doc.getElementById('btn-msg-toolbar-reply')?.addEventListener('click', () => {
+      const selectedCard = doc.querySelector('#campaign-messages-list-container .campaign-message-card.selected') ||
+                           doc.querySelector('#campaign-messages-list-container .campaign-message-card');
+      const replyUser = selectedCard?.dataset?.replyuser || '';
+      // Replies go ONLY to the original sender unless the user explicitly selects CC users
+      this.openMessageComposePane(replyUser, '', replyUser ? `↩️ Reply to ${replyUser}` : '✉️ New Message', { isReply: true, doc });
+    });
+
+    doc.getElementById('btn-msg-toolbar-cc')?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const pane = doc.getElementById('msg-client-compose-pane');
+      if (!pane || pane.style.display === 'none') {
+        const selectedCard = doc.querySelector('#campaign-messages-list-container .campaign-message-card.selected') ||
+                             doc.querySelector('#campaign-messages-list-container .campaign-message-card');
+        const replyUser = selectedCard?.dataset?.replyuser || '';
+        this.openMessageComposePane(replyUser, '', replyUser ? `↩️ Reply to ${replyUser} (with CC)` : '✉️ New Message', { isReply: true, doc });
+      }
+      const ccMenu = doc.getElementById('msg-cc-checkbox-menu');
+      ccMenu?.classList.add('open');
+    });
+
+    doc.getElementById('btn-msg-toolbar-address-book')?.addEventListener('click', () => {
+      const drawer = doc.getElementById('msg-client-address-book-drawer');
+      if (drawer) {
+        drawer.style.display = drawer.style.display === 'none' ? 'block' : 'none';
+      }
+    });
+
+    doc.getElementById('btn-close-address-book-drawer')?.addEventListener('click', () => {
+      const drawer = doc.getElementById('msg-client-address-book-drawer');
+      if (drawer) drawer.style.display = 'none';
+    });
+
+    const closeComposePane = () => {
+      const pane = doc.getElementById('msg-client-compose-pane');
+      if (pane) pane.style.display = 'none';
+    };
+    doc.getElementById('btn-close-compose-pane')?.addEventListener('click', closeComposePane);
+    doc.getElementById('btn-cancel-compose-pane')?.addEventListener('click', closeComposePane);
+
+    const toggleKnownBtn = doc.getElementById('btn-toggle-known-users-dropdown');
+    const knownMenuEl = doc.getElementById('msg-known-users-checkbox-menu');
+    const knownDropContainer = doc.getElementById('msg-known-users-dropdown-container');
+
+    const toggleCcBtn = doc.getElementById('btn-toggle-cc-dropdown');
+    const ccMenuEl = doc.getElementById('msg-cc-checkbox-menu');
+    const ccDropContainer = doc.getElementById('msg-cc-dropdown-container');
+
+    toggleKnownBtn?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      ccMenuEl?.classList.remove('open');
+      knownMenuEl?.classList.toggle('open');
+    });
+
+    toggleCcBtn?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      knownMenuEl?.classList.remove('open');
+      ccMenuEl?.classList.toggle('open');
+    });
+
+    doc.addEventListener('click', (e) => {
+      if (knownMenuEl && knownMenuEl.classList.contains('open') && knownDropContainer && !knownDropContainer.contains(e.target)) {
+        knownMenuEl.classList.remove('open');
+      }
+      if (ccMenuEl && ccMenuEl.classList.contains('open') && ccDropContainer && !ccDropContainer.contains(e.target)) {
+        ccMenuEl.classList.remove('open');
+      }
+    });
+
+    doc.getElementById('btn-send-direct-message')?.addEventListener('click', async () => {
+      const recInput = doc.getElementById('msg-compose-recipient-input');
+      const campSelect = doc.getElementById('msg-compose-campaign-select');
+      const textInput = doc.getElementById('msg-compose-text-input');
+      const checkedBoxes = Array.from(doc.querySelectorAll('#msg-known-users-checkbox-menu .chk-known-user-recipient:checked'));
+      const checkedUsers = checkedBoxes.map(cb => cb.value);
+      const checkedCcBoxes = Array.from(doc.querySelectorAll('#msg-cc-checkbox-menu .chk-cc-user-recipient:checked'));
+      const checkedCcUsers = checkedCcBoxes.map(cb => cb.value);
+      const toUser = (recInput?.value || '').trim();
+      const recipientScope = (campSelect?.value || '').trim();
+      const text = (textInput?.value || '').trim();
+      try {
+        campaignManager.sendDirectUserMessage({
+          toUser,
+          toUsers: checkedUsers,
+          ccUsers: checkedCcUsers,
+          recipientScope,
+          senderUser: supabaseService.getUsername() || this.char.playerName || 'Player',
+          text
+        });
+        if (textInput) {
+          textInput.value = '';
+          textInput.style.height = '72px';
         }
-        if (authLabel) {
-          authLabel.textContent = 'Sign In / Register';
-          authLabel.style.textDecoration = 'none';
-          authLabel.style.cursor = 'pointer';
-        }
-        if (authBtn) {
-          authBtn.className = 'btn btn-outline';
-          authBtn.setAttribute?.('title', 'Sign In / Register');
-          authBtn.style.display = 'inline-flex';
-          authBtn.style.fontSize = '14px';
-          authBtn.style.padding = '4px 11px';
-        }
-        if (usernameLabel) usernameLabel.textContent = 'User';
+        if (recInput) recInput.value = '';
+        checkedBoxes.forEach(cb => { cb.checked = false; });
+        checkedCcBoxes.forEach(cb => { cb.checked = false; });
+        this.updateKnownUsersDropdownSummary(doc);
+        this.updateCcUsersDropdownSummary(doc);
+        this.renderCampaignMessagesModalIfOpen();
+      } catch (err) {
+        await this.msgAlert(doc, err.message, { title: 'Cannot Send Message' });
       }
     });
   }
@@ -3473,10 +3519,10 @@ window.partyManager = partyManager;
     }
   }
 
-  updateKnownUsersDropdownSummary() {
-    const labelEl = document.getElementById('known-users-dropdown-label');
-    const recSelect = document.getElementById('msg-compose-recipient-select');
-    const checkedBoxes = Array.from(document.querySelectorAll('#msg-known-users-checkbox-menu .chk-known-user-recipient:checked'));
+  updateKnownUsersDropdownSummary(doc = document) {
+    const labelEl = doc.getElementById('known-users-dropdown-label');
+    const recSelect = doc.getElementById('msg-compose-recipient-select');
+    const checkedBoxes = Array.from(doc.querySelectorAll('#msg-known-users-checkbox-menu .chk-known-user-recipient:checked'));
     const names = checkedBoxes.map(cb => cb.value);
 
     if (labelEl) {
@@ -3496,9 +3542,9 @@ window.partyManager = partyManager;
     }
   }
 
-  updateCcUsersDropdownSummary() {
-    const labelEl = document.getElementById('cc-users-dropdown-label');
-    const checkedCcBoxes = Array.from(document.querySelectorAll('#msg-cc-checkbox-menu .chk-cc-user-recipient:checked'));
+  updateCcUsersDropdownSummary(doc = document) {
+    const labelEl = doc.getElementById('cc-users-dropdown-label');
+    const checkedCcBoxes = Array.from(doc.querySelectorAll('#msg-cc-checkbox-menu .chk-cc-user-recipient:checked'));
     const names = checkedCcBoxes.map(cb => cb.value);
 
     if (labelEl) {
@@ -3512,28 +3558,29 @@ window.partyManager = partyManager;
     }
   }
 
-  openMessageComposePane(prefillRecipient = '', prefillCampId = '', customTitle = '✉️ New Message', { isReply = false } = {}) {
-    const pane = document.getElementById('msg-client-compose-pane');
+  openMessageComposePane(prefillRecipient = '', prefillCampId = '', customTitle = '✉️ New Message', { isReply = false, doc = document } = {}) {
+    const knownUsers = campaignManager.getKnownUsers();
+    const pane = doc.getElementById('msg-client-compose-pane');
     if (pane) pane.style.display = 'block';
-    const titleEl = document.getElementById('msg-compose-pane-title');
+    const titleEl = doc.getElementById('msg-compose-pane-title');
     if (titleEl) titleEl.textContent = customTitle || '✉️ New Message';
 
-    const recInput = document.getElementById('msg-compose-recipient-input');
-    const campSelect = document.getElementById('msg-compose-campaign-select');
-    const textInput = document.getElementById('msg-compose-text-input');
+    const recInput = doc.getElementById('msg-compose-recipient-input');
+    const campSelect = doc.getElementById('msg-compose-campaign-select');
+    const textInput = doc.getElementById('msg-compose-text-input');
 
     if (prefillRecipient) {
       if (recInput) recInput.value = prefillRecipient;
-      const checkboxes = Array.from(document.querySelectorAll('#msg-known-users-checkbox-menu .chk-known-user-recipient'));
+      const checkboxes = Array.from(doc.querySelectorAll('#msg-known-users-checkbox-menu .chk-known-user-recipient'));
       checkboxes.forEach(cb => {
         cb.checked = cb.value.toLowerCase() === String(prefillRecipient).toLowerCase();
       });
-      this.updateKnownUsersDropdownSummary();
+      this.updateKnownUsersDropdownSummary(doc);
     }
 
-    const ccMenuEl = document.getElementById('msg-cc-checkbox-menu');
+    const ccMenuEl = doc.getElementById('msg-cc-checkbox-menu');
     const prevCcChecked = new Set(
-      Array.from(document.querySelectorAll('#msg-cc-checkbox-menu .chk-cc-user-recipient:checked')).map(cb => cb.value.toLowerCase())
+      Array.from(doc.querySelectorAll('#msg-cc-checkbox-menu .chk-cc-user-recipient:checked')).map(cb => cb.value.toLowerCase())
     );
     if (ccMenuEl) {
       if (knownUsers.length === 0) {
@@ -3549,19 +3596,19 @@ window.partyManager = partyManager;
 
         ccMenuEl.querySelectorAll('.chk-cc-user-recipient').forEach(cb => {
           cb.addEventListener('change', () => {
-            this.updateCcUsersDropdownSummary();
+            this.updateCcUsersDropdownSummary(doc);
           });
         });
       }
-      this.updateCcUsersDropdownSummary();
+      this.updateCcUsersDropdownSummary(doc);
     }
     if (isReply) {
       // Replies go ONLY to the original sender unless the user explicitly checks Known Users in the CC menu
       if (campSelect) campSelect.value = '';
-      document.querySelectorAll('#msg-cc-checkbox-menu .chk-cc-user-recipient').forEach(cb => {
+      doc.querySelectorAll('#msg-cc-checkbox-menu .chk-cc-user-recipient').forEach(cb => {
         cb.checked = false;
       });
-      this.updateCcUsersDropdownSummary();
+      this.updateCcUsersDropdownSummary(doc);
     } else if (prefillCampId && campSelect) {
       const cleanId = String(prefillCampId).trim().toUpperCase().replace(/^#+/, '').replace(/^CAMP:/, '');
       const scopedVal = `CAMP:${cleanId}`;
@@ -3583,29 +3630,240 @@ window.partyManager = partyManager;
     }
   }
 
+  // =======================================================
+  // MESSAGING CLIENT POP-OUT WINDOW (v3.77)
+  // =======================================================
+  isMessagesPopoutOpen() {
+    return !!(this.messagesPopoutWindow && !this.messagesPopoutWindow.closed);
+  }
+
+  getMessagesTargetDoc() {
+    return this.isMessagesPopoutOpen() ? this.messagesPopoutWindow.document : document;
+  }
+
   openCampaignMessagesModal(prefillRecipient = '', prefillCampId = '') {
-    this.openModal('modal-campaign-messages');
+    const usePopout = this.isMessagesPopoutOpen();
+    const doc = usePopout ? this.messagesPopoutWindow.document : document;
+    if (usePopout) {
+      // Never show the in-app modal and the pop-out simultaneously
+      this.closeModal('modal-campaign-messages');
+      try { this.messagesPopoutWindow.focus(); } catch (e) {}
+    } else {
+      this.openModal('modal-campaign-messages');
+    }
     this.renderCampaignMessagesModalIfOpen();
     if (prefillRecipient || prefillCampId) {
       this.openMessageComposePane(
         prefillRecipient,
         prefillCampId,
-        prefillRecipient ? `✉️ Message to ${prefillRecipient}` : '✉️ New Message'
+        prefillRecipient ? `✉️ Message to ${prefillRecipient}` : '✉️ New Message',
+        { doc }
       );
     }
   }
 
   renderCampaignMessagesModalIfOpen() {
-    const modal = document.getElementById('modal-campaign-messages');
-    const container = document.getElementById('campaign-messages-list-container');
-    if (!modal || !container) return;
+    this.renderMessagesInto(document);
+    if (this.isMessagesPopoutOpen()) {
+      try {
+        this.renderMessagesInto(this.messagesPopoutWindow.document);
+      } catch (e) {
+        console.warn('Could not render messaging pop-out:', e);
+      }
+    }
+  }
+
+  /** Shows an alert in the window that owns `doc` (pop-out uses its native alert so it stays in front). */
+  msgAlert(doc, message, opts = {}) {
+    if (doc && doc !== document && doc.defaultView && typeof doc.defaultView.alert === 'function') {
+      try {
+        doc.defaultView.alert(`${opts.title ? opts.title + '\n\n' : ''}${message}`);
+      } catch (e) {}
+      return Promise.resolve();
+    }
+    return this.showAlertDialog(message, opts);
+  }
+
+  getSavedMessagesCoords() {
+    const fallback = {
+      width: Math.max(760, Math.round((window.screen?.availWidth || 1280) * 0.85)),
+      height: Math.max(560, Math.round((window.screen?.availHeight || 900) * 0.85)),
+      left: 40,
+      top: 40
+    };
+    try {
+      const saved = JSON.parse(localStorage.getItem('mm3e_messages_window_coords') || 'null');
+      if (saved && saved.width > 200 && saved.height > 200) return { ...fallback, ...saved };
+    } catch (e) {}
+    return fallback;
+  }
+
+  saveMessagesCoords(coords) {
+    try {
+      if (coords && coords.width > 200 && coords.height > 200) {
+        localStorage.setItem('mm3e_messages_window_coords', JSON.stringify(coords));
+      }
+    } catch (e) {}
+  }
+
+  readComposeDraft(doc) {
+    if (!doc) return null;
+    const pane = doc.getElementById('msg-client-compose-pane');
+    if (!pane || pane.style.display === 'none') return null;
+    return {
+      to: doc.getElementById('msg-compose-recipient-input')?.value || '',
+      text: doc.getElementById('msg-compose-text-input')?.value || '',
+      scope: doc.getElementById('msg-compose-campaign-select')?.value || '',
+      title: doc.getElementById('msg-compose-pane-title')?.textContent || '✉️ New Message'
+    };
+  }
+
+  applyComposeDraft(doc, draft) {
+    if (!doc || !draft) return;
+    this.openMessageComposePane('', '', draft.title, { doc });
+    const to = doc.getElementById('msg-compose-recipient-input');
+    const text = doc.getElementById('msg-compose-text-input');
+    const scope = doc.getElementById('msg-compose-campaign-select');
+    if (to) to.value = draft.to;
+    if (text) text.value = draft.text;
+    if (scope && Array.from(scope.options || []).some(o => o.value === draft.scope)) scope.value = draft.scope;
+  }
+
+  openMessagesPopout() {
+    const draft = this.readComposeDraft(document);
+    this.closeModal('modal-campaign-messages');
+    if (this.isMessagesPopoutOpen()) {
+      try { this.messagesPopoutWindow.focus(); } catch (e) {}
+      return this.messagesPopoutWindow;
+    }
+
+    const c = this.getSavedMessagesCoords();
+    const features = `width=${c.width},height=${c.height},left=${c.left},top=${c.top},resizable=yes,scrollbars=yes`;
+    const win = window.open('', 'mm3e_messages_popout', features);
+    if (!win) {
+      this.showAlertDialog('Pop-up was blocked by the browser. Please allow pop-ups for this site to pop out the Messaging Client.', { title: 'Pop-out Blocked' });
+      return null;
+    }
+    this.messagesPopoutWindow = win;
+
+    const theme = document.documentElement.getAttribute('data-theme') || localStorage.getItem('mm3e_theme') || 'dark';
+    const fontSize = document.documentElement.getAttribute('data-font-size') || 'normal';
+    const html = `<!DOCTYPE html>
+<html lang="en" data-theme="${theme}" data-font-size="${fontSize}">
+<head>
+  <meta charset="UTF-8">
+  <title>Mutants &amp; Masterminds 3E - Campaign Messaging Client</title>
+  <link rel="stylesheet" href="css/styles.css?v=3.77">
+  <style>
+    html, body { height: 100%; margin: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg-app, #0f172a);
+      color: var(--text-main, #f8fafc);
+      padding: 0.75rem 1rem;
+      font-size: 10pt;
+      display: flex;
+      flex-direction: column;
+      box-sizing: border-box;
+      overflow: hidden;
+    }
+    .popout-top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 2px solid var(--border-color, #334155);
+      padding-bottom: 0.55rem;
+      margin-bottom: 0.75rem;
+      flex-shrink: 0;
+    }
+    .popout-title { color: var(--hero-gold, #f59e0b); font-size: 1.15rem; font-weight: 800; margin: 0; }
+    #messages-popout-body { flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; overscroll-behavior: contain; }
+  </style>
+</head>
+<body>
+  <div class="popout-top-bar">
+    <h2 class="popout-title">📬 Campaign Messaging Client</h2>
+    <div style="display: flex; gap: 0.5rem;">
+      <button id="btn-popout-redock" class="btn btn-outline" title="Return the Messaging Client to the main app" style="min-height: 28px; padding: 0.15rem 0.6rem; font-size: 10pt; font-weight: 700;">↙ Redock</button>
+      <button id="btn-popout-close" class="btn" style="background: #dc2626; color: #fff; border: none; padding: 5px 12px; border-radius: 4px; font-weight: 700; cursor: pointer;">✕ Close</button>
+    </div>
+  </div>
+  <div id="messages-popout-body">${this._messagesTemplateHTML || ''}</div>
+  <script>
+    var MSG_KEYS = ['mm3e_campaign_messages', 'mm3e_known_users', 'mm3e_user_notes_directory', 'mm3e_my_user_notes', 'mm3e_campaigns_history', 'mm3e_campaign_registry', 'mm3e_campaign_join_requests'];
+    window.addEventListener('storage', function (e) {
+      if (e.key === 'mm3e_theme' && e.newValue) document.documentElement.setAttribute('data-theme', e.newValue);
+      if (MSG_KEYS.indexOf(e.key) >= 0 && window.opener && !window.opener.closed && window.opener.appController) {
+        try { window.opener.appController.renderCampaignMessagesModalIfOpen(); } catch (err) {}
+      }
+    });
+    window.addEventListener('focus', function () {
+      if (window.opener && !window.opener.closed) {
+        try {
+          var t = window.opener.document.documentElement.getAttribute('data-theme');
+          if (t && t !== document.documentElement.getAttribute('data-theme')) document.documentElement.setAttribute('data-theme', t);
+          if (window.opener.appController) window.opener.appController.renderCampaignMessagesModalIfOpen();
+        } catch (err) {}
+      }
+    });
+    document.getElementById('btn-popout-close').addEventListener('click', function () { window.close(); });
+    document.getElementById('btn-popout-redock').addEventListener('click', function () {
+      if (window.opener && !window.opener.closed && window.opener.appController) {
+        window.opener.appController.redockMessagesPopout();
+        try { window.opener.focus(); } catch (err) {}
+      } else {
+        window.close();
+      }
+    });
+    window.addEventListener('beforeunload', function () {
+      if (window.opener && !window.opener.closed && window.opener.appController) {
+        var ac = window.opener.appController;
+        ac.saveMessagesCoords({ left: window.screenX, top: window.screenY, width: window.outerWidth, height: window.outerHeight });
+        if (ac.messagesPopoutWindow === window) ac.messagesPopoutWindow = null;
+      }
+    });
+  <\/script>
+</body>
+</html>`;
+
+    win.document.open();
+    win.document.write(html);
+    win.document.close();
+    this.wireMessagingClient(win.document);
+    this.renderMessagesInto(win.document);
+    if (draft) this.applyComposeDraft(win.document, draft);
+    try { win.focus(); } catch (e) {}
+    return win;
+  }
+
+  redockMessagesPopout() {
+    const win = this.messagesPopoutWindow;
+    let draft = null;
+    if (win && !win.closed) {
+      try {
+        draft = this.readComposeDraft(win.document);
+        this.saveMessagesCoords({ left: win.screenX, top: win.screenY, width: win.outerWidth, height: win.outerHeight });
+      } catch (e) {}
+    }
+    this.messagesPopoutWindow = null;
+    if (win && !win.closed) {
+      try { win.close(); } catch (e) {}
+    }
+    this.openCampaignMessagesModal();
+    if (draft) this.applyComposeDraft(document, draft);
+  }
+
+  renderMessagesInto(doc = document) {
+    if (!doc) return;
+    const container = doc.getElementById('campaign-messages-list-container');
+    if (!container) return;
 
     // 1. Populate Known Users Multi-Select Checkbox Dropdown & Address Book Pane
     const knownUsers = campaignManager.getKnownUsers();
-    const recSelect = document.getElementById('msg-compose-recipient-select');
-    const knownMenuEl = document.getElementById('msg-known-users-checkbox-menu');
+    const recSelect = doc.getElementById('msg-compose-recipient-select');
+    const knownMenuEl = doc.getElementById('msg-known-users-checkbox-menu');
     const prevChecked = new Set(
-      Array.from(document.querySelectorAll('#msg-known-users-checkbox-menu .chk-known-user-recipient:checked')).map(cb => cb.value.toLowerCase())
+      Array.from(doc.querySelectorAll('#msg-known-users-checkbox-menu .chk-known-user-recipient:checked')).map(cb => cb.value.toLowerCase())
     );
 
     if (recSelect) {
@@ -3626,8 +3884,8 @@ window.partyManager = partyManager;
 
         knownMenuEl.querySelectorAll('.chk-known-user-recipient').forEach(cb => {
           cb.addEventListener('change', () => {
-            this.updateKnownUsersDropdownSummary();
-            const recInput = document.getElementById('msg-compose-recipient-input');
+            this.updateKnownUsersDropdownSummary(doc);
+            const recInput = doc.getElementById('msg-compose-recipient-input');
             if (recInput) {
               const checkedNames = Array.from(knownMenuEl.querySelectorAll('.chk-known-user-recipient:checked')).map(el => el.value);
               const knownSet = new Set(knownUsers.map(k => k.username.toLowerCase()));
@@ -3640,11 +3898,11 @@ window.partyManager = partyManager;
           });
         });
       }
-      this.updateKnownUsersDropdownSummary();
+      this.updateKnownUsersDropdownSummary(doc);
     }
 
     // 2. Populate Recipient Scope Dropdown (GM-owned campaigns shown FIRST with 👑 icon; other participated campaigns without 👑 icon)
-    const campSelect = document.getElementById('msg-compose-campaign-select');
+    const campSelect = doc.getElementById('msg-compose-campaign-select');
     if (campSelect) {
       const prevScope = campSelect.value;
       const scopeChoices = campaignManager.getRecipientScopeChoices();
@@ -3654,7 +3912,7 @@ window.partyManager = partyManager;
       }
     }
 
-    const addressBookEl = document.getElementById('known-users-address-book-list');
+    const addressBookEl = doc.getElementById('known-users-address-book-list');
     if (addressBookEl) {
       if (knownUsers.length === 0) {
         addressBookEl.innerHTML = '<div style="font-size: 10pt; color: var(--text-muted); font-style: italic;">No known users yet. Anyone you message is added automatically.</div>';
@@ -3681,7 +3939,7 @@ window.partyManager = partyManager;
                 if (notes) campaignManager.setUserNotes(notes, uname);
               } catch {}
             }
-            await this.showAlertDialog(
+            await this.msgAlert(doc, 
               `User Notes for "${uname}":\n\n${notes ? notes : '(This user has not posted any user notes yet.)'}`,
               { title: `📝 User Notes: ${uname}` }
             );
@@ -3693,7 +3951,7 @@ window.partyManager = partyManager;
             e.stopPropagation();
             const uname = e.currentTarget.dataset.username;
             const cid = e.currentTarget.dataset.campid;
-            this.openMessageComposePane(uname, cid, `✉️ Message to ${uname}`);
+            this.openMessageComposePane(uname, cid, `✉️ Message to ${uname}`, { doc });
           });
         });
       }
@@ -3702,7 +3960,7 @@ window.partyManager = partyManager;
     const readerKey = campaignManager.getTabSessionId();
     const messages = campaignManager.getMessagesForCurrentUser();
     const unreadTotal = campaignManager.getUnreadMessageCount();
-    const summaryEl = document.getElementById('msg-client-inbox-summary');
+    const summaryEl = doc.getElementById('msg-client-inbox-summary');
     if (summaryEl) {
       summaryEl.textContent = `Inbox: ${messages.length} message${messages.length === 1 ? '' : 's'} (${unreadTotal} unread)`;
     }
@@ -3780,7 +4038,7 @@ window.partyManager = partyManager;
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
         const replyUser = e.currentTarget.dataset.replyuser;
-        this.openMessageComposePane(replyUser, '', `↩️ Reply to ${replyUser}`, { isReply: true });
+        this.openMessageComposePane(replyUser, '', `↩️ Reply to ${replyUser}`, { isReply: true, doc });
       });
     });
 
@@ -3797,6 +4055,7 @@ window.partyManager = partyManager;
         const campId = e.currentTarget.dataset.campid;
         if (msgId) campaignManager.markMessageRead(msgId);
         this.closeModal('modal-campaign-messages');
+        if (doc !== document) { try { window.focus(); } catch (err) {} }
         this.openJoinRequestsModal(campId);
       });
     });
@@ -3809,9 +4068,9 @@ window.partyManager = partyManager;
           const res = campaignManager.respondToOwnershipTransfer(campId, true, supabaseService.getUsername() || this.char.playerName || 'New GM');
           if (msgId) campaignManager.markMessageRead(msgId);
           this.renderCampaignMessagesModalIfOpen();
-          await this.showAlertDialog(`You have accepted ownership of campaign "${res.campaignName}" (#${res.campaignId})! You are now its GM.`, { title: 'Ownership Accepted' });
+          await this.msgAlert(doc, `You have accepted ownership of campaign "${res.campaignName}" (#${res.campaignId})! You are now its GM.`, { title: 'Ownership Accepted' });
         } catch (err) {
-          await this.showAlertDialog(err.message, { title: 'Transfer Error' });
+          await this.msgAlert(doc, err.message, { title: 'Transfer Error' });
         }
       });
     });
@@ -3824,9 +4083,9 @@ window.partyManager = partyManager;
           const res = campaignManager.respondToOwnershipTransfer(campId, false, supabaseService.getUsername() || this.char.playerName || 'Player');
           if (msgId) campaignManager.markMessageRead(msgId);
           this.renderCampaignMessagesModalIfOpen();
-          await this.showAlertDialog(`You have refused ownership of campaign "${res.campaignName}". The GM has been notified.`, { title: 'Ownership Refused' });
+          await this.msgAlert(doc, `You have refused ownership of campaign "${res.campaignName}". The GM has been notified.`, { title: 'Ownership Refused' });
         } catch (err) {
-          await this.showAlertDialog(err.message, { title: 'Transfer Error' });
+          await this.msgAlert(doc, err.message, { title: 'Transfer Error' });
         }
       });
     });
@@ -10098,6 +10357,11 @@ window.partyManager = partyManager;
       this.closeModal('modal-campaign-tracker');
       this.closeModal('modal-party');
       campaignManager.popoutWindow.focus();
+      return;
+    }
+    if (id === 'modal-campaign-messages' && this.isMessagesPopoutOpen()) {
+      try { this.messagesPopoutWindow.focus(); } catch (e) {}
+      this.renderCampaignMessagesModalIfOpen();
       return;
     }
     if (id === 'modal-hero-point') {

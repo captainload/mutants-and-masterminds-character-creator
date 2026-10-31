@@ -74,28 +74,51 @@ class SupabaseService {
 
   setupAuthListener() {
     if (!this.client) return;
-    this.client.auth.onAuthStateChange(async (event, session) => {
-      this.currentUser = session?.user || null;
-      if (this.currentUser) {
-        await this.loadProfile();
-      } else {
-        this.currentProfile = null;
-      }
-      this.authListeners.forEach(cb => {
-        try { cb(this.currentUser, this.currentProfile, event); } catch (e) {}
-      });
+    this.client.auth.onAuthStateChange((event, session) => {
+      // Defer async profile loading out of the Supabase callback (awaiting Supabase calls inside
+      // onAuthStateChange can deadlock the auth lock and leave the UI in a half-logged-in state).
+      setTimeout(async () => {
+        // Always apply the CURRENT session (a queued SIGNED_OUT must never clobber a newer sign-in)
+        let current = session;
+        try {
+          const { data } = await this.client.auth.getSession();
+          current = data?.session || null;
+        } catch {}
+        this.applySession(current, event);
+      }, 0);
     });
 
     // Check initial session
-    this.client.auth.getSession().then(async ({ data: { session } }) => {
-      this.currentUser = session?.user || null;
-      if (this.currentUser) {
-        await this.loadProfile();
+    this.client.auth.getSession()
+      .then(({ data: { session } }) => this.applySession(session, 'INITIAL'))
+      .catch(() => {});
+  }
+
+  /**
+   * Single source of truth for the authenticated identity. Loads the profile of the
+   * session's user and notifies every listener so the header/dropdown/messaging update together.
+   */
+  async applySession(session, event = 'SESSION') {
+    const nextUser = session?.user || null;
+    const prevId = this.currentUser?.id || null;
+    this.currentUser = nextUser;
+    if (nextUser) {
+      if (prevId !== nextUser.id || (this.currentProfile && this.currentProfile.id !== nextUser.id)) {
+        this.currentProfile = null;
       }
-      this.authListeners.forEach(cb => {
-        try { cb(this.currentUser, this.currentProfile, 'INITIAL'); } catch (e) {}
-      });
-    }).catch(() => {});
+      await this.loadProfile();
+      this.rememberAccount({ id: nextUser.id, email: nextUser.email, username: this.getUsername() });
+    } else {
+      this.currentProfile = null;
+    }
+    this.persistActiveAuthUser();
+    this.notifyAuthListeners(event);
+  }
+
+  notifyAuthListeners(event = 'SESSION') {
+    this.authListeners.forEach(cb => {
+      try { cb(this.currentUser, this.currentProfile, event); } catch (e) { console.warn('Auth listener error:', e); }
+    });
   }
 
   onAuthStateChange(callback) {
@@ -109,60 +132,161 @@ class SupabaseService {
   }
 
   // =======================================================
+  // LOCAL ACCOUNT DIRECTORY (unique email + username guard; never stores passwords)
+  // =======================================================
+  getAccountRegistry() {
+    try {
+      if (typeof localStorage === 'undefined') return [];
+      const list = JSON.parse(localStorage.getItem('mm3e_registered_accounts') || '[]');
+      return Array.isArray(list) ? list : [];
+    } catch {
+      return [];
+    }
+  }
+
+  saveAccountRegistry(list) {
+    try {
+      if (typeof localStorage !== 'undefined') {
+        localStorage.setItem('mm3e_registered_accounts', JSON.stringify(Array.isArray(list) ? list : []));
+      }
+    } catch {}
+  }
+
+  rememberAccount({ id = '', email = '', username = '' } = {}) {
+    const cleanEmail = String(email || '').trim().toLowerCase();
+    const cleanUser = String(username || '').trim();
+    if (!cleanEmail && !cleanUser) return;
+    const list = this.getAccountRegistry();
+    // An email address belongs to exactly one account: drop stale duplicates for this email / id
+    const filtered = list.filter(a => {
+      const sameId = id && a.id && a.id === id;
+      const sameEmail = cleanEmail && String(a.email || '').toLowerCase() === cleanEmail;
+      return !(sameId || sameEmail);
+    });
+    filtered.push({ id: id || '', email: cleanEmail, username: cleanUser, updatedAt: new Date().toISOString() });
+    this.saveAccountRegistry(filtered);
+  }
+
+  findAccountByEmail(email) {
+    const clean = String(email || '').trim().toLowerCase();
+    if (!clean) return null;
+    return this.getAccountRegistry().find(a => String(a.email || '').toLowerCase() === clean) || null;
+  }
+
+  findAccountByUsername(username) {
+    const clean = String(username || '').trim().toLowerCase();
+    if (!clean) return null;
+    return this.getAccountRegistry().find(a => String(a.username || '').toLowerCase() === clean) || null;
+  }
+
+  persistActiveAuthUser() {
+    try {
+      if (typeof sessionStorage === 'undefined') return;
+      if (this.currentUser) {
+        sessionStorage.setItem('mm3e_active_auth_user', JSON.stringify({
+          id: this.currentUser.id,
+          email: this.currentUser.email || '',
+          username: this.getUsername()
+        }));
+      } else {
+        sessionStorage.removeItem('mm3e_active_auth_user');
+      }
+    } catch {}
+  }
+
+  escapeLike(value) {
+    return String(value || '').replace(/[\\%_]/g, ch => '\\' + ch);
+  }
+
+  // =======================================================
   // AUTHENTICATION & USER IDENTITY
   // =======================================================
   async loadProfile() {
     if (!this.client || !this.currentUser) return null;
+    const user = this.currentUser;
+    const fallback = {
+      id: user.id,
+      username: user.user_metadata?.username || (user.email ? user.email.split('@')[0] : 'Player'),
+      email: user.email
+    };
     try {
-      const { data, error } = await this.client
+      const { data } = await this.client
         .from('profiles')
         .select('*')
-        .eq('id', this.currentUser.id)
+        .eq('id', user.id)
         .maybeSingle();
-
-      if (data) {
-        this.currentProfile = data;
-      } else if (!error) {
-        // Fallback profile if row is being created by trigger
-        this.currentProfile = {
-          id: this.currentUser.id,
-          username: this.currentUser.user_metadata?.username || this.currentUser.email.split('@')[0],
-          email: this.currentUser.email
-        };
-      }
-      return this.currentProfile;
+      // Ignore stale results if the user changed while loading
+      if (this.currentUser?.id !== user.id) return this.currentProfile;
+      this.currentProfile = (data && data.username) ? { ...fallback, ...data } : fallback;
     } catch {
-      return null;
+      if (this.currentUser?.id === user.id) this.currentProfile = fallback;
     }
+    return this.currentProfile;
   }
 
   async checkUsernameAvailable(username) {
-    if (!this.client) return true;
     const clean = String(username || '').trim().toLowerCase();
     if (!clean) return false;
-    const { data } = await this.client
-      .from('profiles')
-      .select('id')
-      .ilike('username', clean)
-      .maybeSingle();
-    return !data;
+    const local = this.findAccountByUsername(clean);
+    if (local && (!this.currentUser || local.id !== this.currentUser.id)) return false;
+    if (!this.client) return true;
+    try {
+      const { data, error } = await this.client
+        .from('profiles')
+        .select('id')
+        .ilike('username', this.escapeLike(clean))
+        .limit(1);
+      if (error) return true;
+      return !(Array.isArray(data) ? data.length : data);
+    } catch {
+      return true;
+    }
+  }
+
+  async checkEmailAvailable(email) {
+    const clean = String(email || '').trim().toLowerCase();
+    if (!clean) return false;
+    if (this.findAccountByEmail(clean)) return false;
+    if (!this.client) return true;
+    try {
+      const { data, error } = await this.client
+        .from('profiles')
+        .select('id')
+        .ilike('email', this.escapeLike(clean))
+        .limit(1);
+      if (error) return true; // profiles table may not expose email; Supabase Auth still enforces it below
+      return !(Array.isArray(data) ? data.length : data);
+    } catch {
+      return true;
+    }
+  }
+
+  duplicateEmailError(email) {
+    return new Error(`An account with the email address "${email}" already exists. Please sign in or use a different email address.`);
   }
 
   async signUp({ email, password, username }) {
     this.ensureClient();
     if (!this.client) throw new Error('Supabase client is not available. Please check your internet connection.');
     const cleanUser = String(username || '').trim();
+    const cleanEmail = String(email || '').trim().toLowerCase();
     if (!cleanUser) throw new Error('Username is required.');
-    
-    // Enforce unique username
-    const isAvail = await this.checkUsernameAvailable(cleanUser);
-    if (!isAvail) {
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) throw new Error('Please enter a valid email address.');
+
+    // Enforce unique username AND unique email address (case-insensitive)
+    if (!(await this.checkUsernameAvailable(cleanUser))) {
       throw new Error(`The username "${cleanUser}" is already taken. Please choose another.`);
     }
+    if (!(await this.checkEmailAvailable(cleanEmail))) {
+      throw this.duplicateEmailError(cleanEmail);
+    }
+
+    // Creating a new account always ends any other account's session first
+    if (this.currentUser) await this.signOut();
 
     const redirectUrl = typeof window !== 'undefined' && window.location?.origin ? (window.location.origin + window.location.pathname) : undefined;
     const { data, error } = await this.client.auth.signUp({
-      email: email.trim(),
+      email: cleanEmail,
       password,
       options: {
         data: {
@@ -172,31 +296,81 @@ class SupabaseService {
       }
     });
 
-    if (error) throw error;
-    this.currentUser = data.user;
-    await this.loadProfile();
-    return data;
+    if (error) {
+      if (/already (been )?registered|already exists|user_already_exists/i.test(error.message || '')) {
+        throw this.duplicateEmailError(cleanEmail);
+      }
+      throw error;
+    }
+    // Supabase obfuscates repeated sign-ups for an existing email: it returns a user with no identities
+    if (!data?.user || (Array.isArray(data.user.identities) && data.user.identities.length === 0)) {
+      throw this.duplicateEmailError(cleanEmail);
+    }
+
+    this.rememberAccount({ id: data.user.id, email: cleanEmail, username: cleanUser });
+
+    if (data.session) {
+      await this.applySession(data.session, 'SIGNED_IN');
+    } else {
+      // Email confirmation required: do NOT enter a half-logged-in state
+      this.currentUser = null;
+      this.currentProfile = null;
+      this.persistActiveAuthUser();
+      this.notifyAuthListeners('SIGNED_OUT');
+    }
+    return { ...data, needsEmailConfirmation: !data.session };
+  }
+
+  async resolveLoginEmail(identifier) {
+    const clean = String(identifier || '').trim();
+    if (clean.includes('@')) return clean.toLowerCase();
+    const local = this.findAccountByUsername(clean);
+    if (local?.email) return local.email;
+    if (this.client) {
+      try {
+        const { data } = await this.client
+          .from('profiles')
+          .select('email')
+          .ilike('username', this.escapeLike(clean))
+          .limit(1);
+        const row = Array.isArray(data) ? data[0] : data;
+        if (row?.email) return String(row.email).toLowerCase();
+      } catch {}
+    }
+    throw new Error(`No account email is known for username "${clean}" on this device. Please sign in with your email address.`);
   }
 
   async signIn({ email, password }) {
     this.ensureClient();
     if (!this.client) throw new Error('Supabase client is not available. Please check your internet connection.');
+    const loginEmail = await this.resolveLoginEmail(email);
+
+    // Switching accounts: fully end the previous account's session first
+    if (this.currentUser) {
+      this.cleanupSubscriptions();
+      try { await this.client.auth.signOut(); } catch {}
+      this.currentUser = null;
+      this.currentProfile = null;
+    }
+
     const { data, error } = await this.client.auth.signInWithPassword({
-      email: email.trim(),
+      email: loginEmail,
       password
     });
     if (error) throw error;
-    this.currentUser = data.user;
-    await this.loadProfile();
+    await this.applySession(data.session || { user: data.user }, 'SIGNED_IN');
     return data;
   }
 
   async signOut() {
-    if (!this.client) return;
     this.cleanupSubscriptions();
-    await this.client.auth.signOut();
+    if (this.client) {
+      try { await this.client.auth.signOut(); } catch {}
+    }
     this.currentUser = null;
     this.currentProfile = null;
+    this.persistActiveAuthUser();
+    this.notifyAuthListeners('SIGNED_OUT');
   }
 
   async resetPasswordForEmail(email) {
@@ -278,7 +452,10 @@ class SupabaseService {
   }
 
   getUsername() {
-    return this.currentProfile?.username || this.currentUser?.user_metadata?.username || (this.currentUser?.email ? this.currentUser.email.split('@')[0] : 'Player');
+    // Only an authenticated account has a username; callers fall back to the local player name otherwise
+    if (!this.currentUser) return '';
+    const profileName = this.currentProfile && this.currentProfile.id === this.currentUser.id ? this.currentProfile.username : '';
+    return String(profileName || this.currentUser.user_metadata?.username || (this.currentUser.email ? this.currentUser.email.split('@')[0] : 'Player')).trim();
   }
 
   // =======================================================

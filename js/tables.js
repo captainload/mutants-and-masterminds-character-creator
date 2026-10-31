@@ -234,7 +234,7 @@ export class TablesWindowManager {
       <head>
         <meta charset="UTF-8">
         <title>Mutants & Masterminds 3E - Official Reference Tables</title>
-        <link rel="stylesheet" href="css/styles.css?v=3.76">
+        <link rel="stylesheet" href="css/styles.css?v=3.77">
         <style>
           body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -287,6 +287,7 @@ export class TablesWindowManager {
         <div class="top-bar">
           <button id="btn-popout-expand">Expand All</button>
           <button id="btn-popout-collapse">Collapse All</button>
+          <button id="btn-popout-redock" title="Return this window to the main app">↙ Redock</button>
           <button id="btn-popout-close" style="background: #dc2626; color: #fff; border: none; padding: 5px 12px; border-radius: 4px; font-weight: 700; cursor: pointer;">✕ Close</button>
         </div>
         <h2>📜 Mutants & Masterminds 3E - Official Tables</h2>
@@ -332,7 +333,23 @@ export class TablesWindowManager {
             window.close();
           });
 
+          document.getElementById('btn-popout-redock').addEventListener('click', () => {
+            window.__mm3eRedocking = true;
+            const op = window.opener;
+            if (op && !op.closed) {
+              if (op.tablesManager) {
+                op.tablesManager.saveCoords({ left: window.screenX, top: window.screenY, width: window.outerWidth, height: window.outerHeight });
+                op.tablesManager.setClosedWhilePoppedOut(false);
+                op.tablesManager.popoutWindow = null;
+              }
+              if (op.appController) op.appController.openModal('modal-tables');
+              try { op.focus(); } catch (e) {}
+            }
+            window.close();
+          });
+
           window.addEventListener('beforeunload', () => {
+            if (window.__mm3eRedocking) return;
             if (window.opener && window.opener.tablesManager) {
               window.opener.tablesManager.saveCoords({
                 left: window.screenX,

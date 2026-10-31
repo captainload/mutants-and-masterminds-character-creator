@@ -124,7 +124,7 @@ export class ArchetypeWindowManager {
 <head>
   <meta charset="UTF-8">
   <title>Mutants & Masterminds 3E - Interactive Archetype Character Builder</title>
-  <link rel="stylesheet" href="css/styles.css?v=3.76">
+  <link rel="stylesheet" href="css/styles.css?v=3.77">
   <style>
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -174,7 +174,10 @@ export class ArchetypeWindowManager {
 <body>
   <div class="popout-top-bar">
     <h2 class="popout-title">✨ Interactive Archetype Character Builder</h2>
-    <button id="btn-popout-close" class="btn" style="background: #dc2626; color: #fff; border: none; padding: 5px 14px; border-radius: 4px; font-weight: 700; cursor: pointer;">✕ Close</button>
+    <div style="display: flex; gap: 0.5rem;">
+      <button id="btn-popout-redock" class="btn btn-outline" title="Return this window to the main app" style="min-height: 28px; padding: 5px 12px; font-size: 10pt; font-weight: 700; cursor: pointer;">↙ Redock</button>
+      <button id="btn-popout-close" class="btn" style="background: #dc2626; color: #fff; border: none; padding: 5px 14px; border-radius: 4px; font-weight: 700; cursor: pointer;">✕ Close</button>
+    </div>
   </div>
   <div class="popout-scroll-body" id="archetype-wizard-body">
     <!-- Dynamically rendered -->
@@ -215,7 +218,22 @@ export class ArchetypeWindowManager {
       }
       window.close();
     });
+    document.getElementById('btn-popout-redock')?.addEventListener('click', () => {
+      window.__mm3eRedocking = true;
+      const op = window.opener;
+      if (op && !op.closed) {
+        if (op.archetypeManager) {
+          op.archetypeManager.saveCoords({ left: window.screenX, top: window.screenY, width: window.outerWidth, height: window.outerHeight });
+          op.archetypeManager.setClosedWhilePoppedOut(false);
+          op.archetypeManager.popoutWindow = null;
+        }
+        if (op.appController) op.appController.openArchetypeWizard({ reset: false });
+        try { op.focus(); } catch (e) {}
+      }
+      window.close();
+    });
     window.addEventListener('beforeunload', () => {
+      if (window.__mm3eRedocking) return;
       if (window.opener && window.opener.archetypeManager) {
         window.opener.archetypeManager.saveCoords({
           left: window.screenX,

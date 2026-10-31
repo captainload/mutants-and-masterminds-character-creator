@@ -6,14 +6,14 @@ console.log('=== Testing v3.79 Campaign Security & Permissions ===');
 
 // 1. Version Check
 const vJson = JSON.parse(fs.readFileSync('version.json', 'utf8'));
-assert.strictEqual(vJson.version, '3.79', 'version.json should be 3.79');
+assert.ok(parseFloat(vJson.version) >= 3.79, 'version.json should be >= 3.79');
 
 const indexHtml = fs.readFileSync('index.html', 'utf8');
-assert.ok(indexHtml.includes('v3.79'), 'index.html shows v3.79');
+assert.ok(/v3\.(79|80)/.test(indexHtml), 'index.html shows v3.79+');
 
 const appJs = fs.readFileSync('js/app.js', 'utf8');
-assert.ok(appJs.includes("const CURRENT_VERSION = '3.79'"), 'app.js CURRENT_VERSION 3.79');
-console.log('✓ 1. Version 3.79 verified.');
+assert.ok(/CURRENT_VERSION = '3\.(79|80)'/.test(appJs), 'app.js CURRENT_VERSION 3.79+');
+console.log('✓ 1. Version 3.79+ verified.');
 
 // Mock storage & environment
 const mockLocalStorage = {

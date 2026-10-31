@@ -1,6 +1,6 @@
 {
-  "version": "3.79",
-  "updatedAt": "2026-10-31T17:07:59.826Z",
-  "releaseNotes": "Campaign security and access control fixes: non-public campaigns are now strictly hidden from users who did not create or join them, and GM rights & settings are exclusively granted to the authentic creator of each campaign.",
+  "version": "3.80",
+  "updatedAt": "2026-10-31T17:38:12.285Z",
+  "releaseNotes": "Combined join request approval notices directly into the approval dialog. Streamlined campaign viewer entries with intelligent, role-filtered dropdown menus for general and GM commands, and visually separated the campaign toolbar with a distinct colored border line.",
   "updated": "2026-10-31"
 }

@@ -3553,37 +3553,105 @@ export class CampaignTrackerManager {
               ${c.creatorName ? `<span style="font-size: 10pt; color: var(--text-muted);">GM: <strong>${c.creatorName}</strong></span>` : ''}
               ${isJoinedOrCreated ? `<span style="font-size: 10pt; color: var(--text-muted);">Attached: ${attachedStr}</span>` : ''}
             </div>
-            <div style="display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap;">
+            <div style="display: flex; align-items: center; gap: 0.45rem; flex-wrap: wrap;">
               ${isOnHiatus ? '<span style="color: var(--hero-gold); font-weight: 800; font-size: 10pt;">⏸️ On Hiatus</span>' : (isLive ? '<span style="color: #10b981; font-weight: 800; font-size: 10pt;">🟢 Session Running</span>' : '<span style="color: var(--text-muted); font-size: 10pt;">⚪ No Session Running</span>')}
-              ${c.isCreator && !isOnHiatus ? (isLive ? `
-                <button type="button" class="btn btn-outline btn-gm-toggle-session" data-action="end" data-campid="${c.campaignId}" style="font-size: 10pt; padding: 2px 7px; color: var(--hero-red); border-color: var(--hero-red); font-weight: 700;">⏹️ End Session</button>
-              ` : `
-                <button type="button" class="btn btn-outline btn-gm-toggle-session" data-action="start" data-campid="${c.campaignId}" style="font-size: 10pt; padding: 2px 7px; color: var(--hero-green); border-color: var(--hero-green); font-weight: 700;">▶️ Start Session</button>
-              `) : ''}
               ${isCur ? '<span style="font-size: 10pt; font-weight: 800; color: var(--hero-green);">[In Session]</span>' : (isLive && isJoinedOrCreated ? `
-                <button type="button" class="btn btn-primary btn-join-game-session" data-campid="${c.campaignId}" style="font-size: 10pt; padding: 2px 8px; font-weight: 800; background: var(--hero-green); border-color: var(--hero-green);">🎮 Join Game Session</button>
+                <button type="button" class="btn btn-primary btn-join-game-session" data-campid="${c.campaignId}" style="font-size: 10pt; padding: 2px 8px; font-weight: 800; background: var(--hero-green); border-color: var(--hero-green); cursor: pointer;">🎮 Join Session</button>
               ` : '')}
               ${!isJoinedOrCreated ? `
-                <button type="button" class="btn btn-primary btn-browser-apply-campaign" data-campid="${c.campaignId}" data-campname="${(c.campaignName || '').replace(/"/g, '&quot;')}" style="font-size: 10pt; padding: 2px 9px; font-weight: 800; background: var(--hero-blue); border-color: var(--hero-blue);">📝 Apply to Join</button>
+                <button type="button" class="btn btn-primary btn-browser-apply-campaign" data-campid="${c.campaignId}" data-campname="${(c.campaignName || '').replace(/"/g, '&quot;')}" style="font-size: 10pt; padding: 2px 8px; font-weight: 800; background: var(--hero-blue); border-color: var(--hero-blue); cursor: pointer;">📝 Apply to Join</button>
               ` : ''}
-              ${!c.isCreator && c.creatorName ? `
-                <button type="button" class="btn btn-outline btn-browser-message-gm" data-gm="${(c.creatorName || '').replace(/"/g, '&quot;')}" data-campid="${c.campaignId}" data-campname="${(c.campaignName || '').replace(/"/g, '&quot;')}" title="Send a message to GM ${c.creatorName}" style="font-size: 10pt; padding: 2px 7px; color: var(--hero-blue); border-color: var(--hero-blue); font-weight: 700;">✉️ Message GM</button>
-              ` : ''}
-              <div style="display: inline-flex; align-items: center; gap: 0.25rem; background: rgba(0,0,0,0.18); border: 1px solid var(--border-color); border-radius: 4px; padding: 1px 5px;">
-                <span style="font-size: 10pt; color: var(--text-muted); max-width: 145px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${shareLink}">🔗 Link</span>
-                <button type="button" class="btn btn-outline btn-copy-campaign-link" data-campid="${c.campaignId}" title="Copy shareable Campaign Link" style="font-size: 10pt; padding: 1px 6px; min-height: 22px; color: var(--hero-blue); border-color: var(--hero-blue); font-weight: 800;">📋 Copy</button>
-              </div>
-              ${c.isCreator ? `
-                <button type="button" class="btn btn-outline btn-gm-toggle-public" data-campid="${c.campaignId}" data-public="${isPublic ? '1' : '0'}" title="Advertise this campaign in the Campaign Browser so any app user can see it and apply to join" style="font-size: 10pt; padding: 1px 8px; min-height: 24px; font-weight: 800; color: ${isPublic ? '#10b981' : 'var(--hero-blue)'}; border-color: ${isPublic ? '#10b981' : 'var(--hero-blue)'}; cursor: pointer;">
-                  ${isPublic ? '🌐 Public (Unlist)' : '📢 Make Public'}
+
+              <!-- Dropdown 1: Campaign Actions (Player & General Actions) -->
+              <div class="menu-dropdown-container campaign-actions-dropdown" style="position: relative; display: inline-block;">
+                <button type="button" class="btn btn-outline campaign-actions-toggle" data-campid="${c.campaignId}" title="Campaign Actions" style="font-size: 10pt; padding: 2px 9px; font-weight: 700; color: var(--hero-blue); border-color: rgba(59, 130, 246, 0.55); background: rgba(59, 130, 246, 0.08); cursor: pointer; display: inline-flex; align-items: center; gap: 0.3rem;">
+                  <span>⚡ Actions ▾</span>
                 </button>
-                <button type="button" class="btn btn-outline btn-open-join-requests" data-campid="${c.campaignId}" style="font-size: 10pt; font-weight: 700; color: var(--hero-blue); border-color: var(--hero-blue); padding: 1px 8px; min-height: 24px; cursor: pointer;">🔔 Join Requests${pendingReqCount > 0 ? ` (${pendingReqCount})` : ''}</button>
-              ` : ''}
-              ${attached.length > 0 ? `
-                <button type="button" class="btn btn-outline btn-load-attached-char" data-campid="${c.campaignId}" style="font-size: 10pt; padding: 2px 8px; color: var(--hero-purple); border-color: var(--hero-purple);">🦸 Load Hero</button>
-              ` : ''}
-              ${!c.isCreator && isJoinedOrCreated ? `
-                <button type="button" class="btn btn-outline btn-leave-campaign-membership" data-campid="${c.campaignId}" data-campname="${(c.campaignName || '').replace(/"/g, '&quot;')}" title="Leave this campaign and detach characters" style="font-size: 10pt; padding: 2px 8px; color: var(--hero-red); border-color: rgba(239, 68, 68, 0.5); font-weight: 700;">🚪 Leave Campaign</button>
+                <div class="menu-dropdown-panel campaign-actions-panel" style="position: absolute; top: calc(100% + 4px); right: 0; left: auto; min-width: 200px; background-color: #111a2f; border: 1px solid var(--border-color); border-radius: 6px; box-shadow: 0 10px 28px rgba(0,0,0,0.85); z-index: 2500; display: none; padding: 0.35rem 0;">
+                  <div class="menu-dropdown-heading" style="font-size: 10pt; font-weight: 800; text-transform: uppercase; color: var(--text-muted); padding: 0.35rem 0.85rem 0.2rem 0.85rem;">Campaign Actions</div>
+                  ${isLive && isJoinedOrCreated ? `
+                    <button type="button" class="menu-dropdown-item btn-join-game-session" data-campid="${c.campaignId}" style="font-size: 10pt; color: var(--hero-green); font-weight: 700; cursor: pointer;">
+                      <span class="menu-item-icon">🎮</span> Join Game Session
+                    </button>
+                  ` : ''}
+                  ${!isJoinedOrCreated ? `
+                    <button type="button" class="menu-dropdown-item btn-browser-apply-campaign" data-campid="${c.campaignId}" data-campname="${(c.campaignName || '').replace(/"/g, '&quot;')}" style="font-size: 10pt; color: var(--hero-blue); font-weight: 700; cursor: pointer;">
+                      <span class="menu-item-icon">📝</span> Apply to Join
+                    </button>
+                  ` : ''}
+                  ${attached.length > 0 ? `
+                    <button type="button" class="menu-dropdown-item btn-load-attached-char" data-campid="${c.campaignId}" style="font-size: 10pt; color: var(--hero-purple); font-weight: 700; cursor: pointer;">
+                      <span class="menu-item-icon">🦸</span> Load Hero (${attachedStr})
+                    </button>
+                  ` : ''}
+                  <button type="button" class="menu-dropdown-item btn-copy-campaign-link" data-campid="${c.campaignId}" style="font-size: 10pt; color: var(--text-bright); font-weight: 600; cursor: pointer;">
+                    <span class="menu-item-icon">📋</span> Copy Campaign Link
+                  </button>
+                  ${!c.isCreator && c.creatorName ? `
+                    <button type="button" class="menu-dropdown-item btn-browser-message-gm" data-gm="${(c.creatorName || '').replace(/"/g, '&quot;')}" data-campid="${c.campaignId}" data-campname="${(c.campaignName || '').replace(/"/g, '&quot;')}" style="font-size: 10pt; color: var(--hero-blue); font-weight: 700; cursor: pointer;">
+                      <span class="menu-item-icon">✉️</span> Message GM (${c.creatorName})
+                    </button>
+                  ` : ''}
+                  ${!c.isCreator && isJoinedOrCreated ? `
+                    <div class="menu-dropdown-separator" style="height: 1px; background-color: var(--border-color); margin: 0.35rem 0;"></div>
+                    <button type="button" class="menu-dropdown-item btn-leave-campaign-membership" data-campid="${c.campaignId}" data-campname="${(c.campaignName || '').replace(/"/g, '&quot;')}" style="font-size: 10pt; color: var(--hero-red); font-weight: 700; cursor: pointer;">
+                      <span class="menu-item-icon">🚪</span> Leave Campaign
+                    </button>
+                  ` : ''}
+                </div>
+              </div>
+
+              <!-- Dropdown 2: GM Tools (STRICTLY FILTERED to Campaign GM Only) -->
+              ${c.isCreator ? `
+                <div class="menu-dropdown-container campaign-gm-tools-dropdown" style="position: relative; display: inline-block;">
+                  <button type="button" class="btn btn-outline campaign-gm-toggle" data-campid="${c.campaignId}" title="GM Management Commands" style="font-size: 10pt; padding: 2px 9px; font-weight: 800; color: var(--hero-gold); border-color: rgba(234, 179, 8, 0.65); background: rgba(234, 179, 8, 0.1); cursor: pointer; display: inline-flex; align-items: center; gap: 0.35rem;">
+                    <span>👑 GM Tools ▾</span>
+                    ${pendingReqCount > 0 ? `<span style="background: var(--hero-gold); color: #000; font-size: 10pt; font-weight: 900; padding: 0px 5px; border-radius: 999px;">${pendingReqCount}</span>` : ''}
+                  </button>
+                  <div class="menu-dropdown-panel campaign-gm-panel" style="position: absolute; top: calc(100% + 4px); right: 0; left: auto; min-width: 220px; background-color: #111a2f; border: 1px solid rgba(234, 179, 8, 0.45); border-radius: 6px; box-shadow: 0 10px 28px rgba(0,0,0,0.85); z-index: 2500; display: none; padding: 0.35rem 0;">
+                    <div class="menu-dropdown-heading" style="font-size: 10pt; font-weight: 800; text-transform: uppercase; color: var(--hero-gold); padding: 0.35rem 0.85rem 0.2rem 0.85rem;">GM Commands</div>
+                    ${!isOnHiatus ? (isLive ? `
+                      <button type="button" class="menu-dropdown-item btn-gm-toggle-session" data-action="end" data-campid="${c.campaignId}" style="font-size: 10pt; color: var(--hero-red); font-weight: 700; cursor: pointer;">
+                        <span class="menu-item-icon">⏹️</span> End Game Session
+                      </button>
+                    ` : `
+                      <button type="button" class="menu-dropdown-item btn-gm-toggle-session" data-action="start" data-campid="${c.campaignId}" style="font-size: 10pt; color: var(--hero-green); font-weight: 700; cursor: pointer;">
+                        <span class="menu-item-icon">▶️</span> Start Game Session
+                      </button>
+                    `) : ''}
+                    <button type="button" class="menu-dropdown-item btn-open-join-requests" data-campid="${c.campaignId}" style="font-size: 10pt; color: var(--hero-blue); font-weight: 700; display: flex; justify-content: space-between; align-items: center; cursor: pointer;">
+                      <span style="display: flex; align-items: center; gap: 0.45rem;">
+                        <span class="menu-item-icon">🔔</span> Review Join Requests
+                      </span>
+                      ${pendingReqCount > 0 ? `<span style="background: var(--hero-blue); color: #fff; font-size: 10pt; font-weight: 800; padding: 0px 6px; border-radius: 999px;">${pendingReqCount}</span>` : ''}
+                    </button>
+                    <button type="button" class="menu-dropdown-item btn-gm-toggle-public" data-campid="${c.campaignId}" data-public="${isPublic ? '1' : '0'}" style="font-size: 10pt; color: ${isPublic ? '#10b981' : 'var(--hero-blue)'}; font-weight: 700; cursor: pointer;">
+                      <span class="menu-item-icon">${isPublic ? '🌐' : '📢'}</span> ${isPublic ? 'Unlist (Make Private)' : 'Make Public (Advertise)'}
+                    </button>
+                    ${isOnHiatus ? `
+                      <button type="button" class="menu-dropdown-item btn-gm-toggle-hiatus" data-action="resume" data-campid="${c.campaignId}" style="font-size: 10pt; color: var(--hero-green); font-weight: 700; cursor: pointer;">
+                        <span class="menu-item-icon">▶️</span> Resume Campaign
+                      </button>
+                    ` : `
+                      <button type="button" class="menu-dropdown-item btn-gm-toggle-hiatus" data-action="hiatus" data-campid="${c.campaignId}" style="font-size: 10pt; color: var(--hero-gold); font-weight: 700; cursor: pointer;">
+                        <span class="menu-item-icon">⏸️</span> Put on Hiatus
+                      </button>
+                    `}
+                    ${pendingTransfer && pendingTransfer.status === 'pending' ? `
+                      <button type="button" class="menu-dropdown-item btn-gm-withdraw-transfer" data-campid="${c.campaignId}" style="font-size: 10pt; color: var(--hero-gold); font-weight: 700; cursor: pointer;">
+                        <span class="menu-item-icon">↩️</span> Withdraw Transfer Offer
+                      </button>
+                    ` : `
+                      <button type="button" class="menu-dropdown-item btn-gm-transfer-ownership" data-campid="${c.campaignId}" data-campname="${(c.campaignName || '').replace(/"/g, '&quot;')}" style="font-size: 10pt; color: var(--hero-gold); font-weight: 700; cursor: pointer;">
+                        <span class="menu-item-icon">👑</span> Transfer Ownership
+                      </button>
+                    `}
+                    <div class="menu-dropdown-separator" style="height: 1px; background-color: rgba(255,255,255,0.1); margin: 0.35rem 0;"></div>
+                    <button type="button" class="menu-dropdown-item btn-gm-delete-campaign" data-campid="${c.campaignId}" data-campname="${(c.campaignName || '').replace(/"/g, '&quot;')}" style="font-size: 10pt; color: var(--hero-red); font-weight: 700; cursor: pointer;">
+                      <span class="menu-item-icon">🗑️</span> Delete Campaign
+                    </button>
+                  </div>
+                </div>
               ` : ''}
             </div>
           </div>
@@ -3606,22 +3674,6 @@ export class CampaignTrackerManager {
                   </select>
                 </div>
               </div>
-            </div>
-            <div style="display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; padding-top: 0.35rem; border-top: 1px dashed rgba(255,255,255,0.1); font-size: 10pt; flex-wrap: wrap;">
-              <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
-                ${isOnHiatus ? `
-                  <button type="button" class="btn btn-outline btn-gm-toggle-hiatus" data-action="resume" data-campid="${c.campaignId}" style="font-size: 10pt; padding: 2px 8px; color: var(--hero-green); border-color: var(--hero-green); font-weight: 700; cursor: pointer;">▶️ Resume Campaign</button>
-                ` : `
-                  <button type="button" class="btn btn-outline btn-gm-toggle-hiatus" data-action="hiatus" data-campid="${c.campaignId}" title="Put campaign on hiatus (you still own the campaign)" style="font-size: 10pt; padding: 2px 8px; color: var(--hero-gold); border-color: var(--hero-gold); font-weight: 700; cursor: pointer;">⏸️ Put on Hiatus</button>
-                `}
-                ${pendingTransfer && pendingTransfer.status === 'pending' ? `
-                  <span style="font-size: 10pt; color: var(--hero-gold); font-weight: 700;">⏳ Transfer Offered to ${pendingTransfer.targetUser}</span>
-                  <button type="button" class="btn btn-outline btn-gm-withdraw-transfer" data-campid="${c.campaignId}" style="font-size: 10pt; padding: 1px 8px; color: var(--hero-gold); border-color: var(--hero-gold); font-weight: 700; cursor: pointer;">↩️ Withdraw Offer</button>
-                ` : `
-                  <button type="button" class="btn btn-outline btn-gm-transfer-ownership" data-campid="${c.campaignId}" data-campname="${(c.campaignName || '').replace(/"/g, '&quot;')}" style="font-size: 10pt; padding: 1px 8px; color: var(--hero-gold); border-color: var(--hero-gold); font-weight: 700; cursor: pointer;">👑 Transfer Ownership</button>
-                `}
-              </div>
-              <button type="button" class="btn btn-outline btn-gm-delete-campaign" data-campid="${c.campaignId}" data-campname="${(c.campaignName || '').replace(/"/g, '&quot;')}" style="font-size: 10pt; padding: 1px 8px; color: var(--hero-red); border-color: rgba(239, 68, 68, 0.5); font-weight: 700; cursor: pointer;">🗑️ Delete Campaign</button>
             </div>
           ` : (notesText ? `
             <div style="font-size: 10pt; color: var(--text-muted); background: rgba(0,0,0,0.15); border-left: 3px solid var(--hero-blue); padding: 0.3rem 0.6rem; border-radius: 3px; max-height: 75px; overflow-y: auto; white-space: pre-wrap;">${notesText.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</div>
@@ -3667,7 +3719,7 @@ export class CampaignTrackerManager {
         </div>
 
         <!-- Campaign Browser Search, Checked Filters, Legal # to # PL Stepper, Sort & On Hiatus Filter Bar -->
-        <div class="campaign-browser-toolbar" style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 6px; padding: 0.6rem 0.75rem; margin-bottom: 0.7rem; display: flex; flex-direction: column; gap: 0.5rem;">
+        <div class="campaign-browser-toolbar" style="background: rgba(17, 26, 47, 0.75); border: 1.5px solid rgba(59, 130, 246, 0.45); border-left: 5px solid var(--hero-blue); border-radius: 6px; padding: 0.65rem 0.85rem; margin-bottom: 0.4rem; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35); display: flex; flex-direction: column; gap: 0.5rem;">
           <div style="display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap;">
             <input type="text" class="input-browser-search" value="${(bf.query || '').replace(/"/g, '&quot;')}" placeholder="🔍 Search campaigns..." style="flex: 1; min-width: 190px; background: var(--bg-input); color: var(--text-bright); border: 1px solid var(--border-color); border-radius: 4px; padding: 0.28rem 0.6rem; font-size: 10pt;" />
             <div style="display: inline-flex; align-items: center; gap: 0.55rem; font-size: 10pt; flex-wrap: wrap;">
@@ -3710,6 +3762,9 @@ export class CampaignTrackerManager {
             </label>
           </div>
         </div>
+
+        <!-- Distinct Colored Border Line Separator between Toolbar and Campaign Entries -->
+        <div class="campaign-browser-toolbar-separator" style="height: 3px; background: linear-gradient(90deg, var(--hero-blue) 0%, var(--hero-cyan) 40%, rgba(59, 130, 246, 0.25) 80%, transparent 100%); margin: 0.45rem 0 0.95rem 0; border-radius: 2px;"></div>
 
         <div class="campaign-browser-list-container">
           ${browserCampaigns.length === 0 ? `
@@ -3756,6 +3811,45 @@ export class CampaignTrackerManager {
 
   wireCardButtons(parentEl) {
     if (!parentEl) return;
+
+    // Campaign Actions & GM Tools Dropdown Toggles
+    parentEl.querySelectorAll('.campaign-actions-toggle, .campaign-gm-toggle').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const panel = btn.nextElementSibling;
+        const isShown = panel?.classList.contains('show');
+        parentEl.querySelectorAll('.campaign-actions-panel.show, .campaign-gm-panel.show').forEach(p => {
+          p.classList.remove('show');
+          p.closest('.campaign-browser-card')?.style.removeProperty('z-index');
+        });
+        if (!isShown && panel) {
+          panel.classList.add('show');
+          const card = btn.closest('.campaign-browser-card');
+          if (card) card.style.zIndex = '50';
+        }
+      });
+    });
+
+    parentEl.querySelectorAll('.campaign-actions-panel .menu-dropdown-item, .campaign-gm-panel .menu-dropdown-item').forEach(item => {
+      item.addEventListener('click', () => {
+        parentEl.querySelectorAll('.campaign-actions-panel.show, .campaign-gm-panel.show').forEach(p => {
+          p.classList.remove('show');
+          p.closest('.campaign-browser-card')?.style.removeProperty('z-index');
+        });
+      });
+    });
+
+    if (typeof document !== 'undefined' && !this._campaignDropdownDocListenerAttached) {
+      this._campaignDropdownDocListenerAttached = true;
+      document.addEventListener('click', (e) => {
+        if (!e.target.closest('.campaign-actions-dropdown') && !e.target.closest('.campaign-gm-tools-dropdown')) {
+          document.querySelectorAll('.campaign-actions-panel.show, .campaign-gm-panel.show').forEach(p => {
+            p.classList.remove('show');
+            p.closest('.campaign-browser-card')?.style.removeProperty('z-index');
+          });
+        }
+      });
+    }
     parentEl.querySelectorAll('.btn-remove-party-member').forEach(btn => {
       btn.addEventListener('click', (e) => {
         const id = e.currentTarget.dataset.id;
@@ -4153,7 +4247,7 @@ export class CampaignTrackerManager {
 <head>
   <meta charset="UTF-8">
   <title>Mutants & Masterminds 3E - Party Conditions & Toughness Tracker</title>
-  <link rel="stylesheet" href="css/styles.css?v=3.79">
+  <link rel="stylesheet" href="css/styles.css?v=3.80">
   <style>
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;

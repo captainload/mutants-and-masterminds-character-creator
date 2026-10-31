@@ -41,7 +41,7 @@ import {
   tablesManager
 } from './tables.js';
 
-import { POWER_PROFILES_LIBRARY } from './power_profiles.js?v=3.79';
+import { POWER_PROFILES_LIBRARY } from './power_profiles.js?v=3.80';
 import { ARCHETYPES } from './archetypes.js';
 import { archetypeManager } from './archetype_window.js';
 import { campaignManager, partyManager, formatCharacterSheetHTML } from './party.js';
@@ -2078,7 +2078,7 @@ window.partyManager = partyManager;
   }
 
   async checkForUpdates({ isManual = false } = {}) {
-    const CURRENT_VERSION = '3.79';
+    const CURRENT_VERSION = '3.80';
     const versionEl = document.getElementById('header-version-tag');
     const updateBtn = document.getElementById('btn-header-update-alert');
     if (typeof window === 'undefined' || !window.location || !window.location.href || window.location.href === 'about:blank') return;
@@ -3642,7 +3642,7 @@ window.partyManager = partyManager;
   }
 
   // =======================================================
-  // MESSAGING CLIENT POP-OUT WINDOW (v3.79)
+  // MESSAGING CLIENT POP-OUT WINDOW (v3.80)
   // =======================================================
   isMessagesPopoutOpen() {
     return !!(this.messagesPopoutWindow && !this.messagesPopoutWindow.closed);
@@ -3764,7 +3764,7 @@ window.partyManager = partyManager;
 <head>
   <meta charset="UTF-8">
   <title>Mutants &amp; Masterminds 3E - Campaign Messaging Client</title>
-  <link rel="stylesheet" href="css/styles.css?v=3.79">
+  <link rel="stylesheet" href="css/styles.css?v=3.80">
   <style>
     html, body { height: 100%; margin: 0; }
     body {
@@ -4106,7 +4106,7 @@ window.partyManager = partyManager;
    * Opens the GM Join Requests Modal.
    * Viewable by the campaign owner even when no campaign session is running!
    */
-  async openJoinRequestsModal(campId = '') {
+  async openJoinRequestsModal(campId = '', notice = null) {
     const cleanTargetId = String(campId || '').trim().toUpperCase().replace(/^#+/, '');
     const ownedCampaigns = campaignManager.getCampaignHistory().filter(c => !!c.isCreator);
     const state = campaignManager.getCampaignState();
@@ -4119,6 +4119,20 @@ window.partyManager = partyManager;
 
     const container = document.getElementById('join-requests-list-container');
     this.openModal('modal-join-requests');
+
+    const banner = document.getElementById('join-requests-alert-banner');
+    if (banner) {
+      if (notice && notice.text) {
+        banner.style.display = 'flex';
+        banner.style.background = notice.bg || 'rgba(16, 185, 129, 0.16)';
+        banner.style.border = notice.border || '1px solid #10b981';
+        banner.style.color = notice.color || '#10b981';
+        banner.innerHTML = `<span>${notice.text}</span><button type="button" style="background:none;border:none;color:inherit;font-size:11pt;cursor:pointer;padding:0 4px;" onclick="this.parentElement.style.display='none'">✕</button>`;
+      } else {
+        banner.style.display = 'none';
+        banner.innerHTML = '';
+      }
+    }
 
     if (!container) return;
     container.innerHTML = '<div style="text-align: center; color: var(--text-muted); padding: 1.5rem 0;">Loading join requests...</div>';
@@ -4210,8 +4224,13 @@ window.partyManager = partyManager;
               characterData: req.character_data
             });
           }
-          await this.showAlertDialog(`Approved "${req?.character_name || 'Hero'}" for campaign "${req?.campaignName || effectiveCampId}"!`, { title: 'Player Approved' });
-          this.openJoinRequestsModal(cleanTargetId);
+          // Combined inline notification directly inside approval dialog
+          this.openJoinRequestsModal(cleanTargetId, {
+            text: `✅ Membership Approved! Hero "${req?.character_name || 'Hero'}" (Player: ${req?.username || 'Player'}) has joined campaign "${req?.campaignName || effectiveCampId}".`,
+            bg: 'rgba(16, 185, 129, 0.16)',
+            border: '1px solid #10b981',
+            color: '#10b981'
+          });
         } catch (err) {
           this.showAlertDialog(err.message, { title: 'Approval Error' });
         }
@@ -4227,8 +4246,13 @@ window.partyManager = partyManager;
           if (supabaseService.client && !String(reqId).startsWith('req_')) {
             await supabaseService.respondToJoinRequest(reqId, 'rejected');
           }
-          await this.showAlertDialog(`Join request from "${req?.username || 'Player'}" rejected. The player has been notified via messaging.`, { title: 'Request Rejected' });
-          this.openJoinRequestsModal(cleanTargetId);
+          // Combined inline notification directly inside approval dialog
+          this.openJoinRequestsModal(cleanTargetId, {
+            text: `ℹ️ Join Request Rejected: Request from player "${req?.username || 'Player'}" for character "${req?.character_name || 'Hero'}" was declined.`,
+            bg: 'rgba(239, 68, 68, 0.15)',
+            border: '1px solid var(--hero-red)',
+            color: 'var(--hero-red)'
+          });
         } catch (err) {
           this.showAlertDialog(err.message, { title: 'Rejection Error' });
         }

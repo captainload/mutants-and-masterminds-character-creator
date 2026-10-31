@@ -947,7 +947,10 @@ body.modal-open {
 
 #modal-alert-dialog,
 #modal-confirm-dialog,
-#modal-prompt-dialog,
+#modal-prompt-dialog {
+  z-index: 3000;
+}
+
 #modal-auth,
 #modal-cloud-restore,
 #modal-join-requests,
@@ -3341,4 +3344,35 @@ html[data-theme="light"] .stat-summary-bar {
   overflow-y: auto;
   box-sizing: border-box;
   display: block;
+}
+
+/* Campaign Browser Dropdown Menus (v3.80) */
+.campaign-actions-panel,
+.campaign-gm-panel {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  left: auto;
+  min-width: 210px;
+  background-color: #111a2f;
+  border-radius: 6px;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.85);
+  z-index: 2500;
+  display: none;
+  padding: 0.35rem 0;
+}
+.campaign-actions-panel.show,
+.campaign-gm-panel.show {
+  display: block;
+  animation: dropdownFadeIn 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.campaign-browser-card:has(.campaign-actions-panel.show),
+.campaign-browser-card:has(.campaign-gm-panel.show) {
+  z-index: 50;
+}
+.campaign-browser-toolbar-separator {
+  height: 3px;
+  background: linear-gradient(90deg, var(--hero-blue) 0%, var(--hero-cyan) 40%, rgba(59, 130, 246, 0.2) 80%, transparent 100%);
+  margin: 0.65rem 0 1rem 0;
+  border-radius: 2px;
 }

@@ -3210,6 +3210,20 @@ html[data-theme="light"] .stat-summary-bar {
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.22);
 }
 
+/* Remove arrow buttons / spinners from PL search range fields */
+.input-pl-range-min::-webkit-outer-spin-button,
+.input-pl-range-min::-webkit-inner-spin-button,
+.input-pl-range-max::-webkit-outer-spin-button,
+.input-pl-range-max::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.input-pl-range-min,
+.input-pl-range-max {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
 /* Traditional Messaging Client Layout */
 .msg-client-toolbar {
   display: flex;

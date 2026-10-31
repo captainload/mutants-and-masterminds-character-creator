@@ -1,6 +1,6 @@
 {
-  "version": "3.77",
-  "updatedAt": "2026-10-31T14:36:11.898Z",
-  "releaseNotes": "The Messaging Client can now be fully popped out into its own window. Every pop-out (Messaging Client, Campaign Tracker, Archetype Builder, Reference Tables) has a Redock button. Login fixes: an email address can only be used by one account, usernames must be unique, the login button always shows the signed-in username, you can sign in with email or username, and messages are delivered to the correct account.",
+  "version": "3.78",
+  "updatedAt": "2026-10-31T15:26:35.474Z",
+  "releaseNotes": "Campaign entry UI streamlined: hiatus/resume button placed at start of bottom row to left of transfer, public and join requests buttons moved to right of copy link, PL setting & enforcement checkbox compacted onto right end of second row, and arrow buttons removed from PL search range fields.",
   "updated": "2026-10-31"
 }

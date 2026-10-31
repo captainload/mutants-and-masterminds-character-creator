@@ -3445,53 +3445,55 @@ export class CampaignTrackerManager {
                 <span style="font-size: 10pt; color: var(--text-muted); max-width: 145px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${shareLink}">🔗 Link</span>
                 <button type="button" class="btn btn-outline btn-copy-campaign-link" data-campid="${c.campaignId}" title="Copy shareable Campaign Link" style="font-size: 10pt; padding: 1px 6px; min-height: 22px; color: var(--hero-blue); border-color: var(--hero-blue); font-weight: 800;">📋 Copy</button>
               </div>
+              ${c.isCreator ? `
+                <button type="button" class="btn btn-outline btn-gm-toggle-public" data-campid="${c.campaignId}" data-public="${isPublic ? '1' : '0'}" title="Advertise this campaign in the Campaign Browser so any app user can see it and apply to join" style="font-size: 10pt; padding: 1px 8px; min-height: 24px; font-weight: 800; color: ${isPublic ? '#10b981' : 'var(--hero-blue)'}; border-color: ${isPublic ? '#10b981' : 'var(--hero-blue)'}; cursor: pointer;">
+                  ${isPublic ? '🌐 Public (Unlist)' : '📢 Make Public'}
+                </button>
+                <button type="button" class="btn btn-outline btn-open-join-requests" data-campid="${c.campaignId}" style="font-size: 10pt; font-weight: 700; color: var(--hero-blue); border-color: var(--hero-blue); padding: 1px 8px; min-height: 24px; cursor: pointer;">🔔 Join Requests${pendingReqCount > 0 ? ` (${pendingReqCount})` : ''}</button>
+              ` : ''}
               ${attached.length > 0 ? `
                 <button type="button" class="btn btn-outline btn-load-attached-char" data-campid="${c.campaignId}" style="font-size: 10pt; padding: 2px 8px; color: var(--hero-purple); border-color: var(--hero-purple);">🦸 Load Hero</button>
               ` : ''}
-              ${c.isCreator ? `
-                ${isOnHiatus ? `
-                  <button type="button" class="btn btn-outline btn-gm-toggle-hiatus" data-action="resume" data-campid="${c.campaignId}" style="font-size: 10pt; padding: 2px 8px; color: var(--hero-green); border-color: var(--hero-green); font-weight: 700;">▶️ Resume Campaign</button>
-                ` : `
-                  <button type="button" class="btn btn-outline btn-gm-toggle-hiatus" data-action="hiatus" data-campid="${c.campaignId}" title="Put campaign on hiatus (you still own the campaign)" style="font-size: 10pt; padding: 2px 8px; color: var(--hero-gold); border-color: var(--hero-gold); font-weight: 700;">⏸️ Put on Hiatus</button>
-                `}
-              ` : (isJoinedOrCreated ? `
+              ${!c.isCreator && isJoinedOrCreated ? `
                 <button type="button" class="btn btn-outline btn-leave-campaign-membership" data-campid="${c.campaignId}" data-campname="${(c.campaignName || '').replace(/"/g, '&quot;')}" title="Leave this campaign and detach characters" style="font-size: 10pt; padding: 2px 8px; color: var(--hero-red); border-color: rgba(239, 68, 68, 0.5); font-weight: 700;">🚪 Leave Campaign</button>
-              ` : '')}
+              ` : ''}
             </div>
           </div>
 
           ${c.isCreator ? `
-            <div style="display: flex; align-items: center; gap: 0.5rem; width: 100%; margin-top: 0.15rem;">
-              <label style="font-size: 10pt; font-weight: 700; color: var(--hero-gold); white-space: nowrap;">📝 Campaign Notes:</label>
-              <textarea class="textarea-campaign-notes" rows="1" data-campid="${c.campaignId}" placeholder="Add campaign notes or description (expands up to 3 rows)...">${notesText.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</textarea>
-            </div>
-            <div style="display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; padding-top: 0.35rem; border-top: 1px dashed rgba(255,255,255,0.1); font-size: 10pt; flex-wrap: wrap;">
-              <div style="display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap;">
-                <span style="color: var(--hero-gold); font-weight: 800;">⚙️ GM Settings:</span>
-                <button type="button" class="btn btn-outline btn-gm-toggle-public" data-campid="${c.campaignId}" data-public="${isPublic ? '1' : '0'}" title="Advertise this campaign in the Campaign Browser so any app user can see it and apply to join" style="font-size: 10pt; padding: 1px 8px; font-weight: 800; color: ${isPublic ? '#10b981' : 'var(--hero-blue)'}; border-color: ${isPublic ? '#10b981' : 'var(--hero-blue)'}; cursor: pointer;">
-                  ${isPublic ? '🌐 Public (Click to Unlist)' : '📢 Make Public'}
-                </button>
-                <label style="display: inline-flex; align-items: center; gap: 0.35rem; cursor: pointer; user-select: none; color: var(--text-bright); font-weight: 700;" title="When checked, characters of any Power Level can join without PL restrictions">
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; width: 100%; margin-top: 0.15rem; flex-wrap: wrap;">
+              <div style="display: flex; align-items: center; gap: 0.45rem; flex: 1; min-width: 220px;">
+                <label style="font-size: 10pt; font-weight: 700; color: var(--hero-gold); white-space: nowrap;">📝 Campaign Notes:</label>
+                <textarea class="textarea-campaign-notes" rows="1" data-campid="${c.campaignId}" placeholder="Add campaign notes or description (expands up to 3 rows)..." style="flex: 1; min-width: 140px; font-size: 10pt; background: var(--bg-input); color: var(--text-bright); border: 1px solid var(--border-color); border-radius: 4px; padding: 2px 6px; resize: vertical; line-height: 1.35; max-height: 4.5em;">${notesText.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</textarea>
+              </div>
+              <div style="display: inline-flex; align-items: center; gap: 0.5rem; flex-shrink: 0; font-size: 10pt; flex-wrap: wrap;">
+                <label style="display: inline-flex; align-items: center; gap: 0.3rem; cursor: pointer; user-select: none; color: var(--text-bright); font-weight: 700;" title="When checked, characters of any Power Level can join without PL restrictions">
                   <input type="checkbox" class="chk-campaign-dont-enforce-pl" data-campid="${c.campaignId}" ${c.dontEnforcePL ? 'checked' : ''} style="cursor: pointer; width: 14px; height: 14px; accent-color: var(--hero-gold);">
                   <span>Don't enforce PL</span>
                 </label>
-                <div style="display: inline-flex; align-items: center; gap: 0.35rem;">
+                <div style="display: inline-flex; align-items: center; gap: 0.25rem;">
                   <span style="color: var(--text-muted); font-size: 10pt; font-weight: 700;">PL:</span>
-                  <select class="sel-campaign-target-pl" data-campid="${c.campaignId}" style="background: var(--bg-input); color: var(--text-bright); border: 1px solid var(--border-color); border-radius: 3px; padding: 1px 6px; font-size: 10pt; font-weight: 800;">
+                  <select class="sel-campaign-target-pl" data-campid="${c.campaignId}" style="background: var(--bg-input); color: var(--text-bright); border: 1px solid var(--border-color); border-radius: 3px; padding: 1px 5px; font-size: 10pt; font-weight: 800;">
                     ${[6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20].map(pl => `<option value="${pl}" ${(c.powerLevel || 10) === pl ? 'selected' : ''}>PL ${pl}</option>`).join('')}
                   </select>
                 </div>
-                <button type="button" class="btn btn-outline btn-open-join-requests" data-campid="${c.campaignId}" style="font-size: 10pt; font-weight: 700; color: var(--hero-blue); border-color: var(--hero-blue); padding: 1px 8px; cursor: pointer;">🔔 Join Requests${pendingReqCount > 0 ? ` (${pendingReqCount})` : ''}</button>
               </div>
-              <div style="display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap;">
+            </div>
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; padding-top: 0.35rem; border-top: 1px dashed rgba(255,255,255,0.1); font-size: 10pt; flex-wrap: wrap;">
+              <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+                ${isOnHiatus ? `
+                  <button type="button" class="btn btn-outline btn-gm-toggle-hiatus" data-action="resume" data-campid="${c.campaignId}" style="font-size: 10pt; padding: 2px 8px; color: var(--hero-green); border-color: var(--hero-green); font-weight: 700; cursor: pointer;">▶️ Resume Campaign</button>
+                ` : `
+                  <button type="button" class="btn btn-outline btn-gm-toggle-hiatus" data-action="hiatus" data-campid="${c.campaignId}" title="Put campaign on hiatus (you still own the campaign)" style="font-size: 10pt; padding: 2px 8px; color: var(--hero-gold); border-color: var(--hero-gold); font-weight: 700; cursor: pointer;">⏸️ Put on Hiatus</button>
+                `}
                 ${pendingTransfer && pendingTransfer.status === 'pending' ? `
                   <span style="font-size: 10pt; color: var(--hero-gold); font-weight: 700;">⏳ Transfer Offered to ${pendingTransfer.targetUser}</span>
                   <button type="button" class="btn btn-outline btn-gm-withdraw-transfer" data-campid="${c.campaignId}" style="font-size: 10pt; padding: 1px 8px; color: var(--hero-gold); border-color: var(--hero-gold); font-weight: 700; cursor: pointer;">↩️ Withdraw Offer</button>
                 ` : `
                   <button type="button" class="btn btn-outline btn-gm-transfer-ownership" data-campid="${c.campaignId}" data-campname="${(c.campaignName || '').replace(/"/g, '&quot;')}" style="font-size: 10pt; padding: 1px 8px; color: var(--hero-gold); border-color: var(--hero-gold); font-weight: 700; cursor: pointer;">👑 Transfer Ownership</button>
                 `}
-                <button type="button" class="btn btn-outline btn-gm-delete-campaign" data-campid="${c.campaignId}" data-campname="${(c.campaignName || '').replace(/"/g, '&quot;')}" style="font-size: 10pt; padding: 1px 8px; color: var(--hero-red); border-color: rgba(239, 68, 68, 0.5); font-weight: 700; cursor: pointer;">🗑️ Delete Campaign</button>
               </div>
+              <button type="button" class="btn btn-outline btn-gm-delete-campaign" data-campid="${c.campaignId}" data-campname="${(c.campaignName || '').replace(/"/g, '&quot;')}" style="font-size: 10pt; padding: 1px 8px; color: var(--hero-red); border-color: rgba(239, 68, 68, 0.5); font-weight: 700; cursor: pointer;">🗑️ Delete Campaign</button>
             </div>
           ` : (notesText ? `
             <div style="font-size: 10pt; color: var(--text-muted); background: rgba(0,0,0,0.15); border-left: 3px solid var(--hero-blue); padding: 0.3rem 0.6rem; border-radius: 3px; max-height: 75px; overflow-y: auto; white-space: pre-wrap;">${notesText.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</div>
@@ -3554,14 +3556,10 @@ export class CampaignTrackerManager {
                 <input type="checkbox" class="chk-search-camp-pl" ${bf.searchPL ? 'checked' : ''} style="cursor: pointer; accent-color: var(--hero-gold);" />
                 <span>PL Range:</span>
               </label>
-              <div class="pl-range-stepper-group" style="display: inline-flex; align-items: center; gap: 0.25rem; background: var(--bg-input); border: 1px solid var(--border-color); border-radius: 4px; padding: 1px 5px; opacity: ${bf.searchPL ? '1' : '0.65'};">
-                <button type="button" class="btn btn-outline btn-pl-min-minus" title="Decrease minimum PL" style="min-height: 22px; padding: 0 5px; font-size: 10pt; font-weight: 800;">-</button>
-                <input type="number" class="input-pl-range-min" min="1" max="20" value="${bf.plMin}" style="width: 42px; text-align: center; background: transparent; color: var(--hero-gold); border: none; font-size: 10pt; font-weight: 800;" />
-                <button type="button" class="btn btn-outline btn-pl-min-plus" title="Increase minimum PL" style="min-height: 22px; padding: 0 5px; font-size: 10pt; font-weight: 800;">+</button>
-                <span style="font-size: 10pt; color: var(--text-muted); font-weight: 700; padding: 0 2px;">to</span>
-                <button type="button" class="btn btn-outline btn-pl-max-minus" title="Decrease maximum PL" style="min-height: 22px; padding: 0 5px; font-size: 10pt; font-weight: 800;">-</button>
-                <input type="number" class="input-pl-range-max" min="1" max="20" value="${bf.plMax}" style="width: 42px; text-align: center; background: transparent; color: var(--hero-gold); border: none; font-size: 10pt; font-weight: 800;" />
-                <button type="button" class="btn btn-outline btn-pl-max-plus" title="Increase maximum PL" style="min-height: 22px; padding: 0 5px; font-size: 10pt; font-weight: 800;">+</button>
+              <div class="pl-range-inputs-group" style="display: inline-flex; align-items: center; gap: 0.35rem; opacity: ${bf.searchPL ? '1' : '0.65'};">
+                <input type="number" class="input-pl-range-min" min="1" max="20" value="${bf.plMin}" style="width: 36px; text-align: center; background: var(--bg-input); color: var(--hero-gold); border: 1px solid var(--border-color); border-radius: 4px; padding: 2px 4px; font-size: 10pt; font-weight: 800; -moz-appearance: textfield; appearance: textfield;" />
+                <span style="font-size: 10pt; color: var(--text-muted); font-weight: 700; padding: 0 1px;">to</span>
+                <input type="number" class="input-pl-range-max" min="1" max="20" value="${bf.plMax}" style="width: 36px; text-align: center; background: var(--bg-input); color: var(--hero-gold); border: 1px solid var(--border-color); border-radius: 4px; padding: 2px 4px; font-size: 10pt; font-weight: 800; -moz-appearance: textfield; appearance: textfield;" />
               </div>
             </div>
           </div>
@@ -3965,11 +3963,23 @@ export class CampaignTrackerManager {
       this.renderAllOpenViews();
     });
 
+    parentEl.querySelector('.input-pl-range-min')?.addEventListener('input', (e) => {
+      const val = parseInt(e.target.value, 10);
+      if (!isNaN(val)) {
+        this.setBrowserPLRange(val, this.browserFilters?.plMax || 20, 'min');
+      }
+    });
     parentEl.querySelector('.input-pl-range-min')?.addEventListener('change', (e) => {
       this.setBrowserPLRange(parseInt(e.target.value, 10) || 1, this.browserFilters?.plMax || 20, 'min');
       this.renderAllOpenViews();
     });
 
+    parentEl.querySelector('.input-pl-range-max')?.addEventListener('input', (e) => {
+      const val = parseInt(e.target.value, 10);
+      if (!isNaN(val)) {
+        this.setBrowserPLRange(this.browserFilters?.plMin || 1, val, 'max');
+      }
+    });
     parentEl.querySelector('.input-pl-range-max')?.addEventListener('change', (e) => {
       this.setBrowserPLRange(this.browserFilters?.plMin || 1, parseInt(e.target.value, 10) || 20, 'max');
       this.renderAllOpenViews();
@@ -4015,7 +4025,7 @@ export class CampaignTrackerManager {
 <head>
   <meta charset="UTF-8">
   <title>Mutants & Masterminds 3E - Party Conditions & Toughness Tracker</title>
-  <link rel="stylesheet" href="css/styles.css?v=3.77">
+  <link rel="stylesheet" href="css/styles.css?v=3.78">
   <style>
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;

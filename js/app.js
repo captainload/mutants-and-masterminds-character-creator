@@ -41,7 +41,7 @@ import {
   tablesManager
 } from './tables.js';
 
-import { POWER_PROFILES_LIBRARY } from './power_profiles.js?v=3.78';
+import { POWER_PROFILES_LIBRARY } from './power_profiles.js?v=3.79';
 import { ARCHETYPES } from './archetypes.js';
 import { archetypeManager } from './archetype_window.js';
 import { campaignManager, partyManager, formatCharacterSheetHTML } from './party.js';
@@ -2078,7 +2078,7 @@ window.partyManager = partyManager;
   }
 
   async checkForUpdates({ isManual = false } = {}) {
-    const CURRENT_VERSION = '3.78';
+    const CURRENT_VERSION = '3.79';
     const versionEl = document.getElementById('header-version-tag');
     const updateBtn = document.getElementById('btn-header-update-alert');
     if (typeof window === 'undefined' || !window.location || !window.location.href || window.location.href === 'about:blank') return;
@@ -2795,6 +2795,17 @@ window.partyManager = partyManager;
       if (dropdownUsername) dropdownUsername.textContent = 'User';
       if (dropdownEmail) dropdownEmail.textContent = '';
     }
+
+    // Disconnect if currently connected as GM to a campaign the new user does NOT own
+    try {
+      const curState = campaignManager.getCampaignState();
+      if (curState && curState.isConnected) {
+        const isCurGM = campaignManager.isUserCreatorOfCampaign(curState);
+        if (!isCurGM && curState.isHost) {
+          campaignManager.leaveCampaign();
+        }
+      }
+    } catch (e) {}
 
     // Message counts / inbox / campaign views must immediately reflect the current identity
     try { campaignManager.updateHeaderBadge?.(); } catch (e) {}
@@ -3631,7 +3642,7 @@ window.partyManager = partyManager;
   }
 
   // =======================================================
-  // MESSAGING CLIENT POP-OUT WINDOW (v3.78)
+  // MESSAGING CLIENT POP-OUT WINDOW (v3.79)
   // =======================================================
   isMessagesPopoutOpen() {
     return !!(this.messagesPopoutWindow && !this.messagesPopoutWindow.closed);
@@ -3753,7 +3764,7 @@ window.partyManager = partyManager;
 <head>
   <meta charset="UTF-8">
   <title>Mutants &amp; Masterminds 3E - Campaign Messaging Client</title>
-  <link rel="stylesheet" href="css/styles.css?v=3.78">
+  <link rel="stylesheet" href="css/styles.css?v=3.79">
   <style>
     html, body { height: 100%; margin: 0; }
     body {
@@ -4546,8 +4557,43 @@ window.partyManager = partyManager;
     partyManager.renderAllOpenViews();
   }
 
-  openCampaignTracker() {
+  async openCampaignTracker() {
     campaignManager.updateCurrentPlayer(this.char, this.primaryChar, this.activeAltId);
+    if (typeof supabaseService !== 'undefined' && supabaseService && supabaseService.isLoggedIn()) {
+      try {
+        const [myCamps, pubCamps] = await Promise.all([
+          supabaseService.getMyCreatedCampaigns().catch(() => []),
+          supabaseService.getPublicCampaigns().catch(() => [])
+        ]);
+        (myCamps || []).forEach(c => {
+          campaignManager.registerCampaignInfo({
+            campaignId: c.campaign_code || c.id,
+            campaignName: c.campaign_name,
+            creator_id: c.creator_id,
+            creatorName: c.creator_name,
+            powerLevel: c.power_level,
+            dontEnforcePL: c.dont_enforce_pl,
+            isPublic: !!c.is_public,
+            notes: c.description,
+            isOnHiatus: !!c.is_on_hiatus,
+            isCreator: true
+          });
+        });
+        (pubCamps || []).forEach(c => {
+          campaignManager.registerCampaignInfo({
+            campaignId: c.campaign_code || c.id,
+            campaignName: c.campaign_name,
+            creator_id: c.creator_id,
+            creatorName: c.creator_name,
+            powerLevel: c.power_level,
+            dontEnforcePL: c.dont_enforce_pl,
+            isPublic: true,
+            notes: c.description,
+            isOnHiatus: !!c.is_on_hiatus
+          });
+        });
+      } catch (e) {}
+    }
     if (campaignManager.isPopoutOpen()) {
       this.closeModal('modal-campaign-tracker');
       this.closeModal('modal-party');

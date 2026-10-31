@@ -250,6 +250,8 @@ export class CampaignTrackerManager {
       const isPublic = campaignData.isPublic !== undefined ? !!campaignData.isPublic : !!existing.isPublic;
       const notes = campaignData.notes !== undefined ? String(campaignData.notes) : (existing.notes || '');
       const createdAtMs = campaignData.createdAtMs || existing.createdAtMs || Date.now();
+      const playerName = campaignData.playerName || existing.playerName || '';
+      const userKey = (this.getCurrentUsername() || campaignData.playerName || existing.userKey || '').trim().toLowerCase();
       const entry = {
         campaignId: cleanId,
         campaignName: (campaignData.campaignName || existing.campaignName || cleanId).trim(),
@@ -257,6 +259,8 @@ export class CampaignTrackerManager {
         powerLevel: parseInt(campaignData.powerLevel, 10) || existing.powerLevel || 10,
         dontEnforcePL: campaignData.dontEnforcePL !== undefined ? !!campaignData.dontEnforcePL : !!existing.dontEnforcePL,
         creatorName: campaignData.creatorName || existing.creatorName || '',
+        playerName,
+        userKey,
         isCreator,
         isOnHiatus,
         isPublic,
@@ -424,6 +428,9 @@ export class CampaignTrackerManager {
 
     const info = this.getCampaignInfo(cleanId) || current;
     const histMatch = this.getCampaignHistory().find(c => c.campaignId === cleanId);
+    if (!this.isUserCreatorOfCampaign(info || histMatch || { campaignId: cleanId })) {
+      throw new Error('Only the GM can start a game session for this campaign.');
+    }
     if (info?.isOnHiatus || histMatch?.isOnHiatus) {
       throw new Error(`Campaign "${info?.campaignName || histMatch?.campaignName || cleanId}" is currently on hiatus. Resume the campaign from hiatus before starting a game session.`);
     }
@@ -459,6 +466,11 @@ export class CampaignTrackerManager {
     const current = this.getCampaignState();
     const cleanId = String(campaignId || current.campaignId || '').trim().toUpperCase().replace(/^#+/, '');
     if (!cleanId) return;
+    const info = this.getCampaignInfo(cleanId) || current;
+    const histMatch = this.getCampaignHistory().find(c => c.campaignId === cleanId);
+    if (!this.isUserCreatorOfCampaign(info || histMatch || current)) {
+      throw new Error('Only the GM can end a game session for this campaign.');
+    }
     this.stopSessionHeartbeat();
     if (current.isHost || current.isCreator) {
       // Save copies of all connected campaign characters as they were at the end of the session
@@ -869,29 +881,65 @@ export class CampaignTrackerManager {
   isUserMemberOfCampaign(campaignId, campaignName) {
     const cleanId = String(campaignId || '').trim().toUpperCase().replace(/^#+/, '');
     const cleanName = String(campaignName || '').trim().toLowerCase();
-    const history = this.getCampaignHistory();
-    const inHistory = history.some(c =>
-      (cleanId && c.campaignId === cleanId) ||
-      (cleanName && (c.campaignName || '').trim().toLowerCase() === cleanName)
-    );
-    if (inHistory) return true;
+    const currentUsername = (this.getCurrentUsername() || '').trim().toLowerCase();
 
+    // 1. If user is the creator, they are by definition a member
+    if (this.isUserCreatorOfCampaign({ campaignId: cleanId, campaignName: cleanName })) {
+      return true;
+    }
+
+    // 2. Check if the user has an active or stored character attached to this campaign
     if (typeof window !== 'undefined' && window.appController) {
       const char = window.appController.char;
       if (char) {
-        if ((cleanId && (char.campaignId || '').toUpperCase().replace(/^#+/, '') === cleanId) ||
-            (cleanName && (char.campaign || '').trim().toLowerCase() === cleanName)) {
-          return true;
+        const charPlayer = String(char.playerName || char.player || '').trim().toLowerCase();
+        const matchesPlayer = !currentUsername || !charPlayer || charPlayer === currentUsername;
+        if (matchesPlayer) {
+          const charCampId = String(char.campaignId || '').toUpperCase().replace(/^#+/, '');
+          const charCampName = String(char.campaign || '').trim().toLowerCase();
+          if ((cleanId && charCampId === cleanId) || (cleanName && charCampName === cleanName)) {
+            return true;
+          }
         }
       }
       const storedChars = window.appController.storage?.getCharacters?.() || [];
-      if (storedChars.some(ch =>
-        (cleanId && (ch.campaignId || '').toUpperCase().replace(/^#+/, '') === cleanId) ||
-        (cleanName && (ch.campaign || '').trim().toLowerCase() === cleanName)
-      )) {
+      const hasStored = storedChars.some(ch => {
+        const pName = String(ch.playerName || ch.player || '').trim().toLowerCase();
+        const matchesP = !currentUsername || !pName || pName === currentUsername;
+        if (!matchesP) return false;
+        const chCampId = String(ch.campaignId || '').toUpperCase().replace(/^#+/, '');
+        const chCampName = String(ch.campaign || '').trim().toLowerCase();
+        return (cleanId && chCampId === cleanId) || (cleanName && chCampName === cleanName);
+      });
+      if (hasStored) return true;
+    }
+
+    // 3. Check history entries, but ONLY entries belonging to this user
+    const history = this.getCampaignHistory();
+    const userHistoryMatch = history.find(c => {
+      const cId = String(c.campaignId || '').trim().toUpperCase().replace(/^#+/, '');
+      const cName = String(c.campaignName || '').trim().toLowerCase();
+      const matchesCamp = (cleanId && cId === cleanId) || (cleanName && cName === cleanName);
+      if (!matchesCamp) return false;
+      const histCreator = String(c.creatorName || '').trim().toLowerCase();
+      const histPlayer = String(c.playerName || '').trim().toLowerCase();
+      const histUser = String(c.userKey || c.forUser || '').trim().toLowerCase();
+      if (currentUsername) {
+        return histUser === currentUsername || histCreator === currentUsername || histPlayer === currentUsername;
+      }
+      return true;
+    });
+    if (userHistoryMatch) return true;
+
+    // 4. Check active party members if connected
+    const current = this.getCampaignState();
+    if (current.isConnected && current.campaignId && current.campaignId.replace(/^#+/, '') === cleanId) {
+      const members = this.getPartyMembers();
+      if (members.some(m => String(m.playerName || '').trim().toLowerCase() === currentUsername)) {
         return true;
       }
     }
+
     return false;
   }
 
@@ -956,7 +1004,7 @@ export class CampaignTrackerManager {
     const targetId = String(campaignId || current.campaignId || '').trim().toUpperCase().replace(/^#+/, '');
     const histMatch = this.getCampaignHistory().find(c => c.campaignId === targetId);
     const regInfo = this.getCampaignInfo(targetId) || {};
-    if (!current.isHost && !current.isCreator && !histMatch?.isCreator) return;
+    if (!this.isUserCreatorOfCampaign(regInfo || histMatch || current)) return;
 
     const effPL = powerLevel !== undefined ? (parseInt(powerLevel, 10) || 10) : (histMatch?.powerLevel ?? regInfo.powerLevel ?? current.powerLevel ?? 10);
     const effDontEnforce = dontEnforcePL !== undefined ? !!dontEnforcePL : !!(histMatch?.dontEnforcePL ?? regInfo.dontEnforcePL ?? current.dontEnforcePL);
@@ -1055,42 +1103,61 @@ export class CampaignTrackerManager {
     const reg = this.getCampaignRegistry();
     const mergedMap = new Map();
 
-    // 1. Add user's joined or created campaigns from history
-    history.forEach(h => {
-      const cleanId = String(h.campaignId || '').trim().toUpperCase().replace(/^#+/, '');
+    const processCampaignEntry = (c) => {
+      const cleanId = String(c.campaignId || '').trim().toUpperCase().replace(/^#+/, '');
       if (!cleanId) return;
+
       const regEntry = reg[cleanId] || {};
+      const effPublic = c.isPublic !== undefined ? !!c.isPublic : !!regEntry.isPublic;
+      const effCreatorName = (c.creatorName || regEntry.creatorName || '').trim();
+      const effNotes = String(c.notes ?? regEntry.notes ?? '');
+      const effHiatus = c.isOnHiatus !== undefined ? !!c.isOnHiatus : !!regEntry.isOnHiatus;
+
+      // Determine GM / Creator rights dynamically for current user
+      const isCreator = this.isUserCreatorOfCampaign({
+        campaignId: cleanId,
+        creatorName: effCreatorName,
+        creator_id: c.creator_id || regEntry.creator_id,
+        isCreator: c.isCreator
+      });
+
+      // Determine membership: either creator or joined as participant
+      const isMember = isCreator || this.isUserMemberOfCampaign(cleanId, c.campaignName || regEntry.campaignName);
+
+      // SECURITY & PRIVACY RULE:
+      // Non-public campaigns can ONLY be seen by the GM / Creator who created them, or members who joined them.
+      // Other users MUST NOT see non-public campaigns in the campaign browser!
+      if (!effPublic && !isCreator && !isMember) {
+        return;
+      }
+
+      const existing = mergedMap.get(cleanId);
+      if (existing) {
+        if (isCreator) existing.isCreator = true;
+        if (isMember) existing.isJoinedOrCreated = true;
+        return;
+      }
+
       mergedMap.set(cleanId, {
         ...regEntry,
-        ...h,
+        ...c,
         campaignId: cleanId,
-        isPublic: !!(h.isPublic ?? regEntry.isPublic),
-        notes: String(h.notes ?? regEntry.notes ?? ''),
-        isOnHiatus: !!(h.isOnHiatus ?? regEntry.isOnHiatus),
-        createdAtMs: h.createdAtMs || regEntry.createdAtMs || h.lastJoinedMs || 0,
-        isJoinedOrCreated: true
+        campaignName: (c.campaignName || regEntry.campaignName || cleanId).trim(),
+        creatorName: effCreatorName,
+        isCreator, // Strictly dynamically verified: true ONLY if the current user is the GM!
+        isPublic: effPublic,
+        notes: effNotes,
+        isOnHiatus: effHiatus,
+        createdAtMs: c.createdAtMs || regEntry.createdAtMs || c.lastJoinedMs || 0,
+        isJoinedOrCreated: isCreator || isMember
       });
-    });
+    };
 
-    // 2. Add all public advertised campaigns from the registry
-    Object.values(reg).forEach(r => {
-      const cleanId = String(r.campaignId || '').trim().toUpperCase().replace(/^#+/, '');
-      if (!cleanId) return;
-      if (mergedMap.has(cleanId)) return;
-      const isMember = this.isUserMemberOfCampaign(cleanId, r.campaignName);
-      if (r.isPublic || isMember) {
-        mergedMap.set(cleanId, {
-          ...r,
-          campaignId: cleanId,
-          isCreator: false,
-          isPublic: !!r.isPublic,
-          notes: String(r.notes || ''),
-          isOnHiatus: !!r.isOnHiatus,
-          createdAtMs: r.createdAtMs || r.lastUpdated || 0,
-          isJoinedOrCreated: !!isMember
-        });
-      }
-    });
+    // 1. Process history
+    history.forEach(h => processCampaignEntry(h));
+
+    // 2. Process registry
+    Object.values(reg).forEach(r => processCampaignEntry(r));
 
     let list = Array.from(mergedMap.values());
     const f = this.browserFilters;
@@ -1183,8 +1250,10 @@ export class CampaignTrackerManager {
 
     const alreadyMember = this.isUserMemberOfCampaign(cleanId, effName);
     const historyMatch = this.getCampaignHistory().find(c => c.campaignId === cleanId || (c.campaignName || '').toLowerCase() === effName.toLowerCase());
-    const isCreator = !!historyMatch?.isCreator;
+    const regInfo = this.getCampaignInfo(cleanId) || {};
+    const isCreator = this.isUserCreatorOfCampaign(historyMatch || regInfo || { campaignId: cleanId, creatorName: regInfo.creatorName });
 
+    const effCreatorName = info?.creatorName || historyMatch?.creatorName || regInfo?.creatorName || '';
     const membershipEntry = {
       isConnected: false,
       campaignId: cleanId,
@@ -1192,6 +1261,7 @@ export class CampaignTrackerManager {
       pin: cleanPin,
       powerLevel: effPL,
       dontEnforcePL: effDontEnforce,
+      creatorName: effCreatorName,
       isHost: isCreator,
       isCreator,
       playerName,
@@ -1201,6 +1271,7 @@ export class CampaignTrackerManager {
 
     this.registerCampaignInfo(membershipEntry);
     this.saveToCampaignHistory(membershipEntry);
+    this.saveCampaignState(membershipEntry);
     this.renderAllOpenViews();
 
     return membershipEntry;
@@ -1244,7 +1315,8 @@ export class CampaignTrackerManager {
     const effDontEnforce = info?.dontEnforcePL ?? (!!dontEnforcePL);
 
     const historyMatch = this.getCampaignHistory().find(c => c.campaignId === cleanId);
-    const isCreator = !!historyMatch?.isCreator;
+    const regInfo = this.getCampaignInfo(cleanId) || {};
+    const isCreator = this.isUserCreatorOfCampaign(historyMatch || regInfo || { campaignId: cleanId, creatorName: regInfo.creatorName });
 
     const newState = {
       isConnected: true,
@@ -1337,8 +1409,52 @@ export class CampaignTrackerManager {
     return (state.creatorName || state.playerName || 'Player').trim();
   }
 
+  /**
+   * Strictly determines whether the current active user is the GM / Creator of the campaign.
+   * Prevents non-creators from receiving GM rights or seeing non-public campaigns.
+   */
+  isUserCreatorOfCampaign(camp) {
+    if (!camp) return false;
+    const currentUsername = (this.getCurrentUsername() || '').trim().toLowerCase();
+    if (!currentUsername) return false;
+
+    const cleanId = String(camp.campaignId || camp.id || '').trim().toUpperCase().replace(/^#+/, '');
+    let regInfo = null;
+    if (cleanId) {
+      try {
+        const reg = this.getCampaignRegistry();
+        regInfo = reg[cleanId] || null;
+      } catch {}
+    }
+
+    const creatorId = camp.creator_id || regInfo?.creator_id || null;
+    const campCreator = String(camp.creatorName || camp.creator_name || regInfo?.creatorName || '').trim().toLowerCase();
+
+    // 1. Supabase authenticated user check
+    if (typeof supabaseService !== 'undefined' && supabaseService && supabaseService.isLoggedIn()) {
+      const user = supabaseService.getUser();
+      if (user && creatorId && user.id === creatorId) {
+        return true;
+      }
+      const suName = (supabaseService.getUsername() || '').trim().toLowerCase();
+      if (suName && campCreator && suName === campCreator) {
+        return true;
+      }
+      return false;
+    }
+
+    // 2. Offline / Local mode
+    if (campCreator && currentUsername) {
+      return campCreator === currentUsername;
+    }
+    if (!campCreator && camp.isCreator) {
+      return currentUsername === 'gm' || currentUsername === 'host';
+    }
+    return false;
+  }
+
   ownsAnyCampaign() {
-    return this.getCampaignHistory().some(c => !!c.isCreator);
+    return this.getBrowsableCampaigns().some(c => !!c.isCreator);
   }
 
   /**
@@ -1356,6 +1472,9 @@ export class CampaignTrackerManager {
     const hist = this.getCampaignHistory();
     const match = hist.find(c => c.campaignId === cleanId);
     const info = this.getCampaignInfo(cleanId) || match || {};
+    if (!this.isUserCreatorOfCampaign(info || match || { campaignId: cleanId })) {
+      throw new Error('Only the GM can put this campaign on hiatus or resume it.');
+    }
     const campName = match?.campaignName || info.campaignName || cleanId;
     const effectiveGM = gmName || match?.creatorName || info.creatorName || this.getCurrentUsername() || 'GM';
 
@@ -1403,13 +1522,16 @@ export class CampaignTrackerManager {
     const cleanId = String(campaignId || '').trim().toUpperCase().replace(/^#+/, '');
     if (!cleanId) return false;
 
-    if (this.isSessionActive(cleanId)) {
-      this.endSession(cleanId);
-    }
-
     const hist = this.getCampaignHistory();
     const match = hist.find(c => c.campaignId === cleanId);
     const info = this.getCampaignInfo(cleanId) || match || {};
+    if (!this.isUserCreatorOfCampaign(info || match || { campaignId: cleanId })) {
+      throw new Error('Only the GM can delete this campaign.');
+    }
+
+    if (this.isSessionActive(cleanId)) {
+      this.endSession(cleanId);
+    }
     const campName = match?.campaignName || info.campaignName || cleanId;
     const effectiveGM = gmName || match?.creatorName || info.creatorName || this.getCurrentUsername() || 'GM';
 
@@ -1461,6 +1583,9 @@ export class CampaignTrackerManager {
     const hist = this.getCampaignHistory();
     const match = hist.find(c => c.campaignId === cleanId);
     const info = this.getCampaignInfo(cleanId) || match || {};
+    if (!this.isUserCreatorOfCampaign(info || match || { campaignId: cleanId })) {
+      throw new Error('Only the GM can transfer ownership of this campaign.');
+    }
     const campName = match?.campaignName || info.campaignName || cleanId;
     const effectiveGM = gmName || match?.creatorName || info.creatorName || this.getCurrentUsername() || 'GM';
     const isDuringHiatus = !!(match?.isOnHiatus || info.isOnHiatus);
@@ -1525,6 +1650,9 @@ export class CampaignTrackerManager {
     const hist = this.getCampaignHistory();
     const match = hist.find(c => c.campaignId === cleanId);
     const info = this.getCampaignInfo(cleanId) || match || {};
+    if (!this.isUserCreatorOfCampaign(info || match || { campaignId: cleanId })) {
+      throw new Error('Only the GM can withdraw an ownership transfer offer.');
+    }
     const pending = match?.pendingTransfer || info.pendingTransfer;
     if (!pending || pending.status !== 'pending') {
       throw new Error('There is no pending ownership transfer offer to withdraw for this campaign.');
@@ -2345,14 +2473,14 @@ export class CampaignTrackerManager {
    * followed by other campaigns the user participates in.
    */
   getSortedParticipatedCampaigns() {
-    const hist = this.getCampaignHistory().slice();
-    hist.sort((a, b) => {
+    const list = this.getBrowsableCampaigns().filter(c => c.isJoinedOrCreated || c.isCreator);
+    list.sort((a, b) => {
       const aGM = a.isCreator ? 1 : 0;
       const bGM = b.isCreator ? 1 : 0;
       if (bGM !== aGM) return bGM - aGM;
       return (b.lastJoinedMs || b.createdAtMs || 0) - (a.lastJoinedMs || a.createdAtMs || 0);
     });
-    return hist;
+    return list;
   }
 
   /**
@@ -3235,7 +3363,7 @@ export class CampaignTrackerManager {
               <button type="button" class="btn btn-outline btn-leave-campaign-room" style="font-size: 10pt; font-weight: 700; padding: 0.2rem 0.65rem; color: var(--hero-red); border-color: var(--hero-red);">🚪 Leave Session</button>
             </div>
           </div>
-          ${(state.isCreator || this.getCampaignHistory().find(c => c.campaignId === state.campaignId)?.isCreator) ? `
+          ${this.isUserCreatorOfCampaign(state) ? `
             <div style="display: flex; align-items: center; gap: 0.6rem; margin-top: 0.45rem; padding-top: 0.45rem; border-top: 1px dashed rgba(255,255,255,0.15); font-size: 10pt; flex-wrap: wrap;">
               <span style="color: var(--hero-gold); font-weight: 800;">⚙️ GM Campaign Settings (Creator):</span>
               <button type="button" class="btn btn-outline btn-gm-toggle-session" data-action="end" data-campid="${state.campaignId}" style="font-size: 10pt; font-weight: 800; color: var(--hero-red); border-color: var(--hero-red); padding: 2px 9px; cursor: pointer;">⏹️ End Game Session</button>
@@ -4025,7 +4153,7 @@ export class CampaignTrackerManager {
 <head>
   <meta charset="UTF-8">
   <title>Mutants & Masterminds 3E - Party Conditions & Toughness Tracker</title>
-  <link rel="stylesheet" href="css/styles.css?v=3.78">
+  <link rel="stylesheet" href="css/styles.css?v=3.79">
   <style>
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;

@@ -896,9 +896,15 @@ export class CampaignTrackerManager {
    * Checks whether the user is already a member of the specified campaign
    */
   isUserMemberOfCampaign(campaignId, campaignName) {
+    // An unauthenticated visitor is NEVER a member of any campaign
+    if (typeof supabaseService !== 'undefined' && supabaseService && !supabaseService.isLoggedIn()) {
+      return false;
+    }
+
     const cleanId = String(campaignId || '').trim().toUpperCase().replace(/^#+/, '');
     const cleanName = String(campaignName || '').trim().toLowerCase();
     const currentUsername = (this.getCurrentUsername() || '').trim().toLowerCase();
+    if (!currentUsername) return false;
 
     // 1. If user is the creator, they are by definition a member
     if (this.isUserCreatorOfCampaign({ campaignId: cleanId, campaignName: cleanName })) {
@@ -1436,14 +1442,16 @@ export class CampaignTrackerManager {
   // GM HIATUS, CAMPAIGN DELETION & OWNERSHIP TRANSFER
   // =======================================================
   getCurrentUsername() {
-    if (typeof supabaseService !== 'undefined' && supabaseService && supabaseService.isLoggedIn()) {
-      return supabaseService.getUsername();
+    if (typeof supabaseService !== 'undefined' && supabaseService) {
+      if (supabaseService.isLoggedIn()) {
+        return supabaseService.getUsername();
+      }
+      return '';
     }
     if (typeof window !== 'undefined' && window.appController?.char?.playerName) {
       return window.appController.char.playerName.trim();
     }
-    const state = this.getCampaignState();
-    return (state.creatorName || state.playerName || 'Player').trim();
+    return '';
   }
 
   /**
@@ -1452,6 +1460,10 @@ export class CampaignTrackerManager {
    */
   isUserCreatorOfCampaign(camp) {
     if (!camp) return false;
+    // An unauthenticated visitor is NEVER a GM / creator of any campaign
+    if (typeof supabaseService !== 'undefined' && supabaseService && !supabaseService.isLoggedIn()) {
+      return false;
+    }
     const currentUsername = (this.getCurrentUsername() || '').trim().toLowerCase();
     if (!currentUsername) return false;
 
@@ -4315,7 +4327,7 @@ export class CampaignTrackerManager {
 <head>
   <meta charset="UTF-8">
   <title>Mutants & Masterminds 3E - Party Conditions & Toughness Tracker</title>
-  <link rel="stylesheet" href="css/styles.css?v=3.84">
+  <link rel="stylesheet" href="css/styles.css?v=3.85">
   <style>
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;

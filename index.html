@@ -6,8 +6,8 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Mutants & Masterminds 3E - Character Editor v3.84</title>
-  <link rel="stylesheet" href="css/styles.css?v=3.84">
+  <title>Mutants & Masterminds 3E - Character Editor v3.85</title>
+  <link rel="stylesheet" href="css/styles.css?v=3.85">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
@@ -93,7 +93,7 @@
 
           <div class="brand-title-centered">
             <span>Mutants & Masterminds 3E Character Editor</span>
-            <span id="header-version-tag" class="header-version-tag up-to-date" title="Current Version">v3.84</span>
+            <span id="header-version-tag" class="header-version-tag up-to-date" title="Current Version">v3.85</span>
             <button type="button" id="btn-header-update-alert" class="btn-header-update-alert" title="Check for updates / Update status" style="display: none;">!</button>
           </div>
 
@@ -235,7 +235,7 @@
       <div class="tab-pane active" id="tab-action">
         
         <!-- Top Dice Roller Row: Notation | DC Stepper | Roll Button | Live Result -->
-        <div class="dice-roller-bar" style="margin-bottom: 0.85rem; display: flex; align-items: center; gap: 0.5rem; flex-wrap: nowrap;">
+        <div class="dice-roller-bar" style="margin-bottom: 0.4rem; display: flex; align-items: center; gap: 0.5rem; flex-wrap: nowrap;">
           <span style="font-weight: 800; font-size: var(--font-size-sm); color: var(--hero-cyan); white-space: nowrap;">🎲 Roller:</span>
           <input type="text" id="action-dice-input" class="dice-roller-input" placeholder="e.g. d20+8, 2d10, 3d6+4" style="width: 175px; flex: 0 0 175px;">
           
@@ -273,7 +273,7 @@
           <div class="action-main-col">
             
             <!-- Main Abilities in Action Center -->
-            <div class="card-box" style="margin-bottom: 0.5rem; padding: 0.5rem 0.75rem;">
+            <div class="card-box" style="padding: 0.4rem 0.65rem;">
               <div class="card-box-header" style="margin-bottom: 0.35rem; display: flex; justify-content: space-between; align-items: center;">
                 <div class="card-box-title">🧬 Abilities</div>
                 <div style="display: flex; align-items: center; gap: 0.5rem;">
@@ -287,7 +287,7 @@
             </div>
 
             <!-- Core Combat Defenses & Resistance Checks -->
-            <div class="card-box" style="margin-bottom: 0.5rem; padding: 0.5rem 0.75rem;">
+            <div class="card-box" style="padding: 0.4rem 0.65rem;">
               <div class="card-box-header" style="margin-bottom: 0.35rem;">
                 <div class="card-box-title">🛡️ Defenses & Resistance Checks</div>
                 <div style="display: flex; align-items: center; gap: 0.5rem;">
@@ -301,7 +301,7 @@
             </div>
 
             <!-- Initiative & Movement Speeds (Tertiary Stats) -->
-            <div class="card-box" id="action-initiative-movement-box" style="margin-bottom: 0.5rem; padding: 0.45rem 0.75rem;">
+            <div class="card-box" id="action-initiative-movement-box" style="padding: 0.35rem 0.65rem;">
               <div style="display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; flex-wrap: wrap;">
                 <!-- Left: Initiative Roll Button & Formula -->
                 <div style="display: flex; align-items: center; gap: 0.6rem;">
@@ -365,7 +365,7 @@
           <div class="action-side-col">
             
             <!-- Hero Points & Spend HP (Right column above Edit Abilities) -->
-            <div class="card-box hp-status-card" style="margin-bottom: 0.65rem; padding: 0.45rem 0.65rem; display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-sm);">
+            <div class="card-box hp-status-card" style="padding: 0.35rem 0.65rem; display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-sm);">
               <div style="display: flex; align-items: center; gap: 0.45rem;">
                 <span class="pp-status-label" style="font-size: 10pt; font-weight: 800; color: var(--hero-gold);">HP:</span>
                 <div class="stepper-control" style="min-height: 32px;">
@@ -380,7 +380,7 @@
             </div>
 
             <!-- Quick Edit: Abilities & Defenses Button -->
-            <button class="btn btn-primary" id="btn-open-abilities-dialog" style="width: 100%; min-height: 40px; margin-bottom: 0.65rem; font-size: var(--font-size-sm); font-weight: 800; display: flex; align-items: center; justify-content: center; gap: 0.5rem; background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); border-color: #3b82f6; box-shadow: 0 2px 8px rgba(37, 99, 235, 0.4);">
+            <button class="btn btn-primary" id="btn-open-abilities-dialog" style="width: 100%; min-height: 38px; font-size: var(--font-size-sm); font-weight: 800; display: flex; align-items: center; justify-content: center; gap: 0.5rem; background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); border-color: #3b82f6; box-shadow: 0 2px 8px rgba(37, 99, 235, 0.4);">
               <span>🛡️</span> Edit Abilities & Defenses
             </button>
 
@@ -2008,6 +2008,6 @@
     </div>
   </div>
 
-  <script type="module" src="js/app.js?v=3.84"></script>
+  <script type="module" src="js/app.js?v=3.85"></script>
 </body>
 </html>

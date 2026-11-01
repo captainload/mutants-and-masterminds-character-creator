@@ -1,6 +1,6 @@
 {
-  "version": "3.84",
-  "updatedAt": "2026-11-01T18:06:58.813Z",
-  "releaseNotes": "Moved Hero Point total and Spend HP button to the Action Center right column, directly above the Edit Abilities & Defenses button, streamlining hero status tracking alongside damage and conditions.",
+  "version": "3.85",
+  "updatedAt": "2026-11-01T18:25:02.425Z",
+  "releaseNotes": "Cut down vertical whitespace between Action Center sections to eliminate excessive empty rows. Fixed campaign security and visibility when not logged in: unauthenticated users cannot be falsely flagged as members or GMs, private campaigns are strictly hidden from visitors, and joining campaigns requires logging in.",
   "updated": "2026-11-01"
 }

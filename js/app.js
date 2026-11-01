@@ -41,7 +41,7 @@ import {
   tablesManager
 } from './tables.js';
 
-import { POWER_PROFILES_LIBRARY } from './power_profiles.js?v=3.84';
+import { POWER_PROFILES_LIBRARY } from './power_profiles.js?v=3.85';
 import { ARCHETYPES } from './archetypes.js';
 import { archetypeManager } from './archetype_window.js';
 import { campaignManager, partyManager, formatCharacterSheetHTML } from './party.js';
@@ -2103,7 +2103,7 @@ window.partyManager = partyManager;
   }
 
   async checkForUpdates({ isManual = false } = {}) {
-    const CURRENT_VERSION = '3.84';
+    const CURRENT_VERSION = '3.85';
     const versionEl = document.getElementById('header-version-tag');
     const updateBtn = document.getElementById('btn-header-update-alert');
     if (typeof window === 'undefined' || !window.location || !window.location.href || window.location.href === 'about:blank') return;
@@ -2618,8 +2618,32 @@ window.partyManager = partyManager;
       logoutBtn.addEventListener('click', async (e) => {
         e.stopPropagation();
         if (userDropdown) userDropdown.style.display = 'none';
-        await supabaseService.signOut();
-        await this.showAlertDialog('You have been signed out.', { title: 'Signed Out' });
+        try {
+          if (campaignManager.isUserConnected()) {
+            campaignManager.leaveCampaign();
+          }
+          campaignManager.saveCampaignState({
+            isConnected: false,
+            campaignId: '',
+            campaignName: '',
+            isHost: false,
+            isCreator: false
+          });
+          if (this.char) {
+            this.char.campaign = '';
+            this.char.campaignId = '';
+            this.char.lastCampaign = '';
+            this.char.playerName = '';
+            this.saveAndAudit();
+          }
+          await supabaseService.signOut();
+          this.updateAuthHeaderUI(null);
+          this.updateCampaignDropdown();
+          partyManager.renderAllOpenViews();
+          await this.showAlertDialog('You have been signed out.', { title: 'Signed Out' });
+        } catch (err) {
+          console.warn('Sign out error:', err);
+        }
       });
     }
 
@@ -3129,6 +3153,22 @@ window.partyManager = partyManager;
    * and if a session is running, asks if they want to join the session with their campaign character.
    */
   async openJoinCampaignDialog(prefilledCampLinkOrName = '') {
+    // Require authentication to apply to or join a campaign
+    if (typeof supabaseService !== 'undefined' && supabaseService && !supabaseService.isLoggedIn()) {
+      const wantSignIn = await this.showConfirmDialog(
+        'You must sign in or register an account to apply to or join a campaign.\n\nWould you like to sign in now?',
+        {
+          title: 'Sign In Required',
+          confirmText: 'Sign In / Register',
+          cancelText: 'Cancel'
+        }
+      );
+      if (wantSignIn) {
+        this.openAuthModal();
+      }
+      return;
+    }
+
     let rawInput = (prefilledCampLinkOrName || '').trim();
     if (!rawInput && typeof document !== 'undefined') {
       const linkField = document.querySelector('.input-join-campaign-link');
@@ -3794,7 +3834,7 @@ window.partyManager = partyManager;
 <head>
   <meta charset="UTF-8">
   <title>Mutants &amp; Masterminds 3E - Campaign Messaging Client</title>
-  <link rel="stylesheet" href="css/styles.css?v=3.84">
+  <link rel="stylesheet" href="css/styles.css?v=3.85">
   <style>
     html, body { height: 100%; margin: 0; }
     body {

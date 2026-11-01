@@ -6,8 +6,8 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Mutants & Masterminds 3E - Character Editor v3.81</title>
-  <link rel="stylesheet" href="css/styles.css?v=3.81">
+  <title>Mutants & Masterminds 3E - Character Editor v3.82</title>
+  <link rel="stylesheet" href="css/styles.css?v=3.82">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
@@ -93,7 +93,7 @@
 
           <div class="brand-title-centered">
             <span>Mutants & Masterminds 3E Character Editor</span>
-            <span id="header-version-tag" class="header-version-tag up-to-date" title="Current Version">v3.81</span>
+            <span id="header-version-tag" class="header-version-tag up-to-date" title="Current Version">v3.82</span>
             <button type="button" id="btn-header-update-alert" class="btn-header-update-alert" title="Check for updates / Update status" style="display: none;">!</button>
           </div>
 
@@ -142,7 +142,7 @@
         <div class="header-fields-row">
           <div class="header-field" id="header-player-box" style="position: relative;">
             <span class="header-field-label">Player:</span>
-            <input type="text" id="header-player-name" class="header-field-input" placeholder="Player Name" style="width: 130px;">
+            <input type="text" id="header-player-name" class="header-field-input" placeholder="Player Name" maxlength="30" style="width: 130px;">
             <button type="button" id="btn-player-dropdown-arrow" title="Choose from stored players" style="display: none; background: none; border: none; color: var(--hero-gold); font-size: 10pt; font-weight: 900; cursor: pointer; padding: 0 4px; line-height: 1;">▼</button>
             <div id="player-dropdown-menu" class="card-box" style="display: none; position: absolute; top: calc(100% + 4px); left: 0; min-width: 170px; max-height: 200px; overflow-y: auto; z-index: 1000; box-shadow: 0 4px 14px rgba(0,0,0,0.5); padding: 0.25rem 0;">
             </div>
@@ -157,14 +157,9 @@
             👥 Alt Characters <span id="header-alts-count-badge" style="display:none; min-width: 22px; height: 22px; font-size: 10pt; font-weight: 900; padding: 0 4px; margin-left: 0.4rem; background: var(--hero-blue); color: #fff; border-radius: 0; line-height: 22px; text-align: center; box-sizing: border-box;">0</span>
           </button>
 
-          <div class="header-campaign-group" style="display: inline-flex; align-items: center; gap: 0.35rem; flex-shrink: 0;">
-            <div class="header-field" id="header-campaign-box">
-              <button type="button" class="header-field-label header-field-label-btn" id="btn-open-campaigns-label" title="Click to open Campaign Tracker & Settings">Campaign:</button>
-              <input type="text" id="header-campaign-name" class="header-field-input" placeholder="Campaign / Setting" style="width: 140px;">
-            </div>
-            <button type="button" class="btn btn-outline" id="btn-open-campaigns" title="Open Campaign Tracker, Member Conditions & Live P2P Sync" style="padding: 0.2rem 0.65rem; min-height: 38px; font-size: var(--font-size-xs); font-weight: 700; white-space: nowrap; color: var(--hero-green); border-color: var(--hero-green); display: inline-flex; align-items: center; gap: 0.25rem;">
-              🛡️ Campaigns
-            </button>
+          <div class="header-field" id="header-campaign-box">
+            <button type="button" class="header-field-label header-field-label-btn" id="btn-open-campaigns-label" title="Click to open Campaign Tracker & Settings">Campaign:</button>
+            <input type="text" id="header-campaign-name" class="header-field-input" placeholder="Campaign / Setting" style="width: 260px; cursor: pointer;" readonly title="Campaign name is defined in the Campaign Tracker (click to open)">
           </div>
 
           <div id="header-active-alt-badge" style="display: none; align-items: center; gap: 0.35rem; background: rgba(139, 92, 246, 0.18); border: 1px solid var(--hero-purple); border-radius: var(--radius-sm); padding: 0.2rem 0.65rem; min-height: 38px; font-size: var(--font-size-xs); color: var(--hero-purple); font-weight: 700; white-space: nowrap;">
@@ -196,17 +191,10 @@
             </div>
           </div>
 
-          <div class="hp-status-group">
-            <span class="pp-status-label">HP:</span>
-            <div class="stepper-control">
-              <button class="btn-stepper compact" id="btn-hp-minus" title="Reduce Hero Point">-</button>
-              <span class="stepper-value compact" id="header-hp-val">1</span>
-              <button class="btn-stepper compact" id="btn-hp-plus" title="Add Hero Point">+</button>
-            </div>
-            <button class="btn btn-primary" id="btn-quick-spend-hp" style="min-height: 38px; min-width: 130px; padding: 0.35rem 1.25rem; font-size: var(--font-size-sm); font-weight: 800; white-space: nowrap; flex-shrink: 0;">
-              ⚡ Spend HP
-            </button>
-          </div>
+          <!-- Relocated Campaigns Button (where Spend HP was previously) -->
+          <button type="button" class="btn btn-outline" id="btn-open-campaigns" title="Open Campaign Tracker, Member Conditions & Live P2P Sync" style="padding: 0.35rem 1.1rem; min-height: 38px; font-size: 10pt; font-weight: 800; white-space: nowrap; color: var(--hero-green); border-color: var(--hero-green); display: inline-flex; align-items: center; gap: 0.4rem; cursor: pointer;">
+            🛡️ Campaigns
+          </button>
 
           <!-- Second Row Right: Archetypes button AND Tables button side-by-side -->
           <div class="row-2-right">
@@ -283,11 +271,25 @@
             
             <!-- Main Abilities in Action Center -->
             <div class="card-box" style="margin-bottom: 0.5rem; padding: 0.5rem 0.75rem;">
-              <div class="card-box-header" style="margin-bottom: 0.35rem;">
+              <div class="card-box-header" style="margin-bottom: 0.35rem; display: flex; justify-content: space-between; align-items: center;">
                 <div class="card-box-title">🧬 Abilities</div>
-                <div style="display: flex; align-items: center; gap: 0.5rem;">
-                  <span style="font-size: var(--font-size-xs); color: var(--text-muted);">Click card to roll</span>
-                  <button class="btn btn-outline" id="btn-action-edit-abilities" style="font-size: var(--font-size-sm); min-height: 28px; padding: 0.15rem 0.55rem;" title="Edit Abilities & Defenses">✏️ Edit</button>
+                <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 0.35rem;">
+                  <!-- Relocated HP total & Spend HP button (above Edit abilities) -->
+                  <div class="hp-status-group" style="display: flex; align-items: center; gap: 0.45rem;">
+                    <span class="pp-status-label" style="font-size: 10pt; font-weight: 800; color: var(--hero-gold);">HP:</span>
+                    <div class="stepper-control" style="min-height: 28px;">
+                      <button class="btn-stepper compact" id="btn-hp-minus" title="Reduce Hero Point" style="min-width: 24px; min-height: 24px;">-</button>
+                      <span class="stepper-value compact" id="header-hp-val" style="min-width: 28px; font-weight: 900; color: var(--hero-gold);">1</span>
+                      <button class="btn-stepper compact" id="btn-hp-plus" title="Add Hero Point" style="min-width: 24px; min-height: 24px;">+</button>
+                    </div>
+                    <button class="btn btn-primary" id="btn-quick-spend-hp" style="min-height: 28px; padding: 0.15rem 0.75rem; font-size: 10pt; font-weight: 800; white-space: nowrap;">
+                      ⚡ Spend HP
+                    </button>
+                  </div>
+                  <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <span style="font-size: 10pt; color: var(--text-muted);">Click card to roll</span>
+                    <button class="btn btn-outline" id="btn-action-edit-abilities" style="font-size: 10pt; min-height: 28px; padding: 0.15rem 0.55rem;" title="Edit Abilities & Defenses">✏️ Edit</button>
+                  </div>
                 </div>
               </div>
               <div id="action-abilities-grid" style="display: grid; grid-template-columns: repeat(8, 1fr); gap: 0.35rem;">
@@ -1786,7 +1788,7 @@
         <div id="auth-form-signup" class="auth-subform" style="display: none;">
           <div style="margin-bottom: 0.85rem;">
             <label class="field-label" style="display: block; margin-bottom: 0.3rem;">Unique Username (visible to GM &amp; party):</label>
-            <input type="text" id="auth-signup-username" class="header-field-input" placeholder="e.g. CaptainCosmo" style="width: 100%; font-size: 10pt;">
+            <input type="text" id="auth-signup-username" class="header-field-input" placeholder="e.g. CaptainCosmo" maxlength="30" style="width: 100%; font-size: 10pt;">
           </div>
           <div style="margin-bottom: 0.85rem;">
             <label class="field-label" style="display: block; margin-bottom: 0.3rem;">Email Address:</label>
@@ -2002,6 +2004,6 @@
     </div>
   </div>
 
-  <script type="module" src="js/app.js?v=3.81"></script>
+  <script type="module" src="js/app.js?v=3.82"></script>
 </body>
 </html>

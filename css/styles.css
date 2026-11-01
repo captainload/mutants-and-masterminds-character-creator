@@ -149,8 +149,10 @@ body {
 }
 
 .brand-title-centered {
-  flex: 1;
-  text-align: center;
+  flex: 0 1 auto;
+  text-align: left;
+  justify-content: flex-start;
+  margin-left: 0.75rem;
   font-size: var(--font-size-md);
   font-weight: 900;
   color: var(--hero-gold);
@@ -160,7 +162,6 @@ body {
   white-space: nowrap;
   display: inline-flex;
   align-items: center;
-  justify-content: center;
   gap: 0.55rem;
 }
 
@@ -211,14 +212,14 @@ body {
 }
 
 .header-account-area {
+  flex: 1 1 auto;
   position: relative;
   z-index: 10;
   display: flex;
   align-items: center;
   justify-content: flex-end;
   gap: 0.5rem;
-  min-width: 140px;
-  flex-shrink: 0;
+  min-width: 0;
   pointer-events: auto;
 }
 
@@ -226,11 +227,28 @@ body {
   position: relative;
   z-index: 11;
   pointer-events: auto;
+  max-width: 320px;
+  min-width: 0;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  flex-shrink: 1;
 }
 
-#header-auth-icon,
+#header-auth-icon {
+  pointer-events: none;
+  flex-shrink: 0;
+}
+
 #header-auth-label {
   pointer-events: none;
+  display: inline-block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 260px;
+  text-align: right;
 }
 
 .btn-header-update-alert.out-of-date {
@@ -257,7 +275,7 @@ body {
   align-items: center;
   gap: 0.65rem;
   margin-bottom: 0.4rem;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
 }
 
 .btn-menu {
@@ -3422,4 +3440,23 @@ html[data-theme="light"] .campaign-gm-panel .menu-dropdown-item:hover {
   background: linear-gradient(90deg, var(--hero-blue) 0%, var(--hero-cyan) 40%, rgba(59, 130, 246, 0.2) 80%, transparent 100%);
   margin: 0.65rem 0 1rem 0;
   border-radius: 2px;
+}
+
+/* Action Center HP Group (v3.82) */
+.card-box-header .hp-status-group {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+.card-box-header .hp-status-group #btn-quick-spend-hp {
+  min-height: 28px;
+  min-width: 105px;
+  padding: 0.2rem 0.65rem;
+  font-size: 10pt;
+}
+
+.header-row-2 #btn-open-campaigns {
+  margin-left: auto;
+  margin-right: auto;
 }

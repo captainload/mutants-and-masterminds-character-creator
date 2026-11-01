@@ -41,7 +41,7 @@ import {
   tablesManager
 } from './tables.js';
 
-import { POWER_PROFILES_LIBRARY } from './power_profiles.js?v=3.81';
+import { POWER_PROFILES_LIBRARY } from './power_profiles.js?v=3.82';
 import { ARCHETYPES } from './archetypes.js';
 import { archetypeManager } from './archetype_window.js';
 import { campaignManager, partyManager, formatCharacterSheetHTML } from './party.js';
@@ -200,7 +200,7 @@ class AppController {
     if (playerNameInput) {
       playerNameInput.value = this.char.playerName || '';
       playerNameInput.addEventListener('input', (e) => {
-        this.char.playerName = e.target.value;
+        this.char.playerName = (e.target.value || '').slice(0, 30);
         this.saveAndAudit();
         this.updatePlayerDropdown();
       });
@@ -236,15 +236,12 @@ class AppController {
     });
 
     // Campaign Name - Do NOT prefill from global storage unless character is already associated
+    // (v3.82: Campaign field is non-editable; campaign names are defined in the Campaign Tracker)
     const campaignInput = document.getElementById('header-campaign-name');
     const existingCamp = (this.char.campaign || this.char.lastCampaign || '').trim();
     if (campaignInput) {
       campaignInput.value = existingCamp;
-      campaignInput.addEventListener('input', (e) => {
-        this.char.campaign = e.target.value;
-        if (e.target.value) this.char.lastCampaign = e.target.value;
-        this.saveAndAudit();
-      });
+      campaignInput.readOnly = true;
     }
 
     // Campaign Tracker Button & Label Click Handlers
@@ -254,6 +251,7 @@ class AppController {
     };
     document.getElementById('btn-open-campaigns')?.addEventListener('click', openCampaignsHandler);
     document.getElementById('btn-open-campaigns-label')?.addEventListener('click', openCampaignsHandler);
+    campaignInput?.addEventListener('click', openCampaignsHandler);
 
     const closeCampaignsHandler = () => {
       this.closeModal('modal-campaign-tracker');
@@ -2078,7 +2076,7 @@ window.partyManager = partyManager;
   }
 
   async checkForUpdates({ isManual = false } = {}) {
-    const CURRENT_VERSION = '3.81';
+    const CURRENT_VERSION = '3.82';
     const versionEl = document.getElementById('header-version-tag');
     const updateBtn = document.getElementById('btn-header-update-alert');
     if (typeof window === 'undefined' || !window.location || !window.location.href || window.location.href === 'about:blank') return;
@@ -2661,6 +2659,10 @@ window.partyManager = partyManager;
         showAuthStatus('Please enter a username, email, and password.', true);
         return;
       }
+      if (username.length > 30) {
+        showAuthStatus('Username cannot exceed 30 characters.', true);
+        return;
+      }
       if (password.length < 6) {
         showAuthStatus('Password must be at least 6 characters.', true);
         return;
@@ -2735,7 +2737,8 @@ window.partyManager = partyManager;
     const dropdownEmail = document.getElementById('header-dropdown-email');
 
     if (user) {
-      const uname = supabaseService.getUsername() || user.user_metadata?.username || user.email?.split('@')[0] || 'User';
+      const rawUname = supabaseService.getUsername() || user.user_metadata?.username || user.email?.split('@')[0] || 'User';
+      const uname = rawUname.length > 30 ? rawUname.slice(0, 30) : rawUname;
       if (authIcon) {
         authIcon.style.color = '#22c55e';
         authIcon.style.filter = 'drop-shadow(0 0 5px rgba(34, 197, 94, 0.75))';
@@ -3764,7 +3767,7 @@ window.partyManager = partyManager;
 <head>
   <meta charset="UTF-8">
   <title>Mutants &amp; Masterminds 3E - Campaign Messaging Client</title>
-  <link rel="stylesheet" href="css/styles.css?v=3.81">
+  <link rel="stylesheet" href="css/styles.css?v=3.82">
   <style>
     html, body { height: 100%; margin: 0; }
     body {
@@ -6529,7 +6532,7 @@ window.partyManager = partyManager;
         btn.title = `Roll ${ab.name} Check (${effRank >= 0 ? '+' + effRank : effRank})`;
         btn.innerHTML = `
           <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 0.15rem;">
-            <span style="font-size: 0.95rem; font-weight: 800; color: var(--hero-gold); letter-spacing: 0.04em;">${abShort}</span>
+            <span style="font-size: 0.95rem; font-weight: 800; color: var(--hero-gold); letter-spacing: 0.04em;">🎲 ${abShort}</span>
             <span class="rules-link rules-info-badge" data-id="${ab.id}" data-type="ability" data-name="${ab.name}" data-cat="Ability" title="${ab.name} (Click for rules)" style="font-size: var(--font-size-xs); opacity: 0.7; cursor: pointer; padding: 2px 4px; border-radius: 3px;">ℹ️</span>
           </div>
           <div style="display: flex; align-items: baseline; justify-content: space-between; width: 100%;">
@@ -6600,7 +6603,7 @@ window.partyManager = partyManager;
 
         btn.innerHTML = `
           <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 0.15rem;">
-            <span style="font-size: 0.95rem; font-weight: 800; color: var(--hero-cyan); text-transform: uppercase; letter-spacing: 0.04em;">${def.name}</span>
+            <span style="font-size: 0.95rem; font-weight: 800; color: var(--hero-cyan); text-transform: uppercase; letter-spacing: 0.04em;">🎲 ${def.name}</span>
             <span class="rules-link rules-info-badge" data-id="${def.id}" data-type="defense" data-name="${def.name}" data-cat="Defense" title="${def.name} (Click for rules)" style="font-size: var(--font-size-xs); opacity: 0.7; cursor: pointer; padding: 2px 4px; border-radius: 3px;">ℹ️</span>
           </div>
           <div style="display: flex; align-items: baseline; justify-content: space-between; width: 100%; gap: 0.35rem;">

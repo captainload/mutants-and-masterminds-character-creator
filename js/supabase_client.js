@@ -271,6 +271,7 @@ class SupabaseService {
     const cleanUser = String(username || '').trim();
     const cleanEmail = String(email || '').trim().toLowerCase();
     if (!cleanUser) throw new Error('Username is required.');
+    if (cleanUser.length > 30) throw new Error('Username cannot exceed 30 characters.');
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) throw new Error('Please enter a valid email address.');
 
     // Enforce unique username AND unique email address (case-insensitive)

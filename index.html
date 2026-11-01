@@ -6,8 +6,8 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Mutants & Masterminds 3E - Character Editor v3.82</title>
-  <link rel="stylesheet" href="css/styles.css?v=3.82">
+  <title>Mutants & Masterminds 3E - Character Editor v3.83</title>
+  <link rel="stylesheet" href="css/styles.css?v=3.83">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
@@ -93,7 +93,7 @@
 
           <div class="brand-title-centered">
             <span>Mutants & Masterminds 3E Character Editor</span>
-            <span id="header-version-tag" class="header-version-tag up-to-date" title="Current Version">v3.82</span>
+            <span id="header-version-tag" class="header-version-tag up-to-date" title="Current Version">v3.83</span>
             <button type="button" id="btn-header-update-alert" class="btn-header-update-alert" title="Check for updates / Update status" style="display: none;">!</button>
           </div>
 
@@ -159,7 +159,10 @@
 
           <div class="header-field" id="header-campaign-box">
             <button type="button" class="header-field-label header-field-label-btn" id="btn-open-campaigns-label" title="Click to open Campaign Tracker & Settings">Campaign:</button>
-            <input type="text" id="header-campaign-name" class="header-field-input" placeholder="Campaign / Setting" style="width: 260px; cursor: pointer;" readonly title="Campaign name is defined in the Campaign Tracker (click to open)">
+            <select id="header-campaign-select" class="header-field-input header-field-select" style="width: 260px; cursor: pointer; font-size: 10pt; font-weight: 700; color: var(--text-bright); background: transparent; border: none; outline: none;" title="Select an active campaign session to connect to, or open Campaign Tracker">
+              <option value="">-- No Active Session --</option>
+            </select>
+            <input type="hidden" id="header-campaign-name" value="">
           </div>
 
           <div id="header-active-alt-badge" style="display: none; align-items: center; gap: 0.35rem; background: rgba(139, 92, 246, 0.18); border: 1px solid var(--hero-purple); border-radius: var(--radius-sm); padding: 0.2rem 0.65rem; min-height: 38px; font-size: var(--font-size-xs); color: var(--hero-purple); font-weight: 700; white-space: nowrap;">
@@ -192,7 +195,7 @@
           </div>
 
           <!-- Relocated Campaigns Button (where Spend HP was previously) -->
-          <button type="button" class="btn btn-outline" id="btn-open-campaigns" title="Open Campaign Tracker, Member Conditions & Live P2P Sync" style="padding: 0.35rem 1.1rem; min-height: 38px; font-size: 10pt; font-weight: 800; white-space: nowrap; color: var(--hero-green); border-color: var(--hero-green); display: inline-flex; align-items: center; gap: 0.4rem; cursor: pointer;">
+          <button type="button" class="btn btn-outline" id="btn-open-campaigns" title="Open Campaign Tracker, Member Conditions & Live P2P Sync" style="padding: 0.35rem 1.1rem; min-height: 38px; font-size: 10pt; font-weight: 800; white-space: nowrap; color: var(--hero-blue); border-color: var(--hero-blue); display: inline-flex; align-items: center; gap: 0.4rem; cursor: pointer;">
             🛡️ Campaigns
           </button>
 
@@ -2004,6 +2007,6 @@
     </div>
   </div>
 
-  <script type="module" src="js/app.js?v=3.82"></script>
+  <script type="module" src="js/app.js?v=3.83"></script>
 </body>
 </html>

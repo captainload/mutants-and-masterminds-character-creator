@@ -1,6 +1,6 @@
 {
-  "version": "3.82",
-  "updatedAt": "2026-11-01T14:28:12.603Z",
-  "releaseNotes": "Prevent campaign field wrapping by shifting title left, setting nowrap header row, expanding user buttons leftward, and limiting usernames to 30 characters. Relocated HP group and Spend HP button to Action Center above Edit abilities. Relocated Campaigns button to header row 2 and widened readonly campaign field. Added dice icons to ability and defense roll cards in Action Center.",
+  "version": "3.83",
+  "updatedAt": "2026-11-01T15:48:54.597Z",
+  "releaseNotes": "Colored Campaigns button with primary theme blue to match top row buttons and aligned it right under the Campaign label. Turned campaign field into an active session dropdown allowing direct connection to running sessions. Filtered campaign browser so joined campaigns only show Join Session when running (no Join Campaign button). Strictly limited GMs to running one campaign session at a time.",
   "updated": "2026-11-01"
 }

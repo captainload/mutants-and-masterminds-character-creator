@@ -41,7 +41,7 @@ import {
   tablesManager
 } from './tables.js';
 
-import { POWER_PROFILES_LIBRARY } from './power_profiles.js?v=3.82';
+import { POWER_PROFILES_LIBRARY } from './power_profiles.js?v=3.83';
 import { ARCHETYPES } from './archetypes.js';
 import { archetypeManager } from './archetype_window.js';
 import { campaignManager, partyManager, formatCharacterSheetHTML } from './party.js';
@@ -235,13 +235,12 @@ class AppController {
       this.saveAndAudit();
     });
 
-    // Campaign Name - Do NOT prefill from global storage unless character is already associated
-    // (v3.82: Campaign field is non-editable; campaign names are defined in the Campaign Tracker)
+    // Campaign Dropdown & Tracker Setup (v3.83)
+    const campaignSelect = document.getElementById('header-campaign-select');
     const campaignInput = document.getElementById('header-campaign-name');
     const existingCamp = (this.char.campaign || this.char.lastCampaign || '').trim();
     if (campaignInput) {
       campaignInput.value = existingCamp;
-      campaignInput.readOnly = true;
     }
 
     // Campaign Tracker Button & Label Click Handlers
@@ -251,7 +250,35 @@ class AppController {
     };
     document.getElementById('btn-open-campaigns')?.addEventListener('click', openCampaignsHandler);
     document.getElementById('btn-open-campaigns-label')?.addEventListener('click', openCampaignsHandler);
-    campaignInput?.addEventListener('click', openCampaignsHandler);
+
+    // Dropdown change listener to pick an active session to connect to
+    campaignSelect?.addEventListener('change', async (e) => {
+      const val = e.target.value;
+      if (!val) return;
+      if (val === '__OPEN_TRACKER__') {
+        this.updateCampaignDropdown();
+        openCampaignsHandler();
+        return;
+      }
+      try {
+        await this.joinGameSession(val);
+      } finally {
+        this.updateCampaignDropdown();
+      }
+    });
+
+    this.updateCampaignDropdown();
+    this.alignCampaignButton();
+
+    window.addEventListener('resize', () => {
+      this.alignCampaignButton();
+    });
+
+    // Periodically refresh active campaign session list and layout alignment
+    setInterval(() => {
+      this.updateCampaignDropdown();
+      this.alignCampaignButton();
+    }, 4000);
 
     const closeCampaignsHandler = () => {
       this.closeModal('modal-campaign-tracker');
@@ -2076,7 +2103,7 @@ window.partyManager = partyManager;
   }
 
   async checkForUpdates({ isManual = false } = {}) {
-    const CURRENT_VERSION = '3.82';
+    const CURRENT_VERSION = '3.83';
     const versionEl = document.getElementById('header-version-tag');
     const updateBtn = document.getElementById('btn-header-update-alert');
     if (typeof window === 'undefined' || !window.location || !window.location.href || window.location.href === 'about:blank') return;
@@ -3767,7 +3794,7 @@ window.partyManager = partyManager;
 <head>
   <meta charset="UTF-8">
   <title>Mutants &amp; Masterminds 3E - Campaign Messaging Client</title>
-  <link rel="stylesheet" href="css/styles.css?v=3.82">
+  <link rel="stylesheet" href="css/styles.css?v=3.83">
   <style>
     html, body { height: 100%; margin: 0; }
     body {
@@ -6357,6 +6384,95 @@ window.partyManager = partyManager;
     this.renderHistoryTab();
   }
 
+  updateCampaignDropdown() {
+    const select = document.getElementById('header-campaign-select');
+    const hiddenInput = document.getElementById('header-campaign-name');
+    if (!select) return;
+
+    const charCampName = (this.char?.campaign || this.char?.lastCampaign || '').trim();
+    if (hiddenInput) {
+      hiddenInput.value = charCampName;
+    }
+
+    const state = campaignManager.getCampaignState();
+    const isConnectedToSession = state.isConnected && !!state.campaignId;
+    const connectedCampId = isConnectedToSession ? state.campaignId.replace(/^#+/, '') : '';
+
+    const activeSessions = campaignManager.getActiveSessions();
+    const sessionEntries = Object.values(activeSessions);
+
+    select.innerHTML = '';
+
+    if (sessionEntries.length === 0) {
+      const defaultOpt = document.createElement('option');
+      defaultOpt.value = '';
+      if (charCampName) {
+        defaultOpt.textContent = `📋 ${charCampName} (No session active)`;
+      } else {
+        defaultOpt.textContent = '-- No Active Session --';
+      }
+      select.appendChild(defaultOpt);
+    } else {
+      const placeholder = document.createElement('option');
+      placeholder.value = '';
+      if (isConnectedToSession) {
+        placeholder.textContent = `🟢 Connected: ${state.campaignName || state.campaignId}`;
+      } else if (charCampName) {
+        placeholder.textContent = `📋 ${charCampName} (Pick active session ▾)`;
+      } else {
+        placeholder.textContent = '-- Pick an Active Session to Connect --';
+      }
+      select.appendChild(placeholder);
+
+      const optGroup = document.createElement('optgroup');
+      optGroup.label = 'Active Campaign Sessions';
+
+      sessionEntries.forEach(s => {
+        const opt = document.createElement('option');
+        const sId = (s.campaignId || '').toUpperCase().replace(/^#+/, '');
+        opt.value = sId;
+        const isCurrent = connectedCampId && connectedCampId === sId;
+        const gmPart = s.creatorName ? ` (GM: ${s.creatorName})` : '';
+        opt.textContent = `${isCurrent ? '🟢 [Current] ' : '🎮 '} ${s.campaignName || sId} - PL ${s.powerLevel || 10}${gmPart}`;
+        if (isCurrent) {
+          opt.selected = true;
+        }
+        optGroup.appendChild(opt);
+      });
+      select.appendChild(optGroup);
+    }
+
+    const trackerOpt = document.createElement('option');
+    trackerOpt.value = '__OPEN_TRACKER__';
+    trackerOpt.textContent = '🛡️ Open Campaign Tracker...';
+    select.appendChild(trackerOpt);
+
+    if (connectedCampId && select.querySelector(`option[value="${connectedCampId}"]`)) {
+      select.value = connectedCampId;
+    }
+  }
+
+  alignCampaignButton() {
+    const campBox = document.getElementById('header-campaign-box');
+    const campBtn = document.getElementById('btn-open-campaigns');
+    const row2 = document.querySelector('.header-row-2');
+    const row2Left = document.querySelector('.row-2-left');
+    if (!campBox || !campBtn || !row2 || !row2Left) return;
+
+    const boxRect = campBox.getBoundingClientRect();
+    const row2Rect = row2.getBoundingClientRect();
+    const row2LeftRect = row2Left.getBoundingClientRect();
+
+    if (boxRect.width === 0 || row2Rect.width === 0) return;
+
+    const targetLeft = boxRect.left - row2Rect.left;
+    const currentLeft = row2LeftRect.right - row2Rect.left;
+    const marginNeeded = Math.max(12, Math.round(targetLeft - currentLeft));
+
+    campBtn.style.marginLeft = `${marginNeeded}px`;
+    campBtn.style.marginRight = '0';
+  }
+
   renderHeaderStatus() {
     const audit = auditCharacter(this.char);
     const ppUsedEl = document.getElementById('header-pp-used');
@@ -6403,6 +6519,8 @@ window.partyManager = partyManager;
     if (campEl) {
       campEl.value = (this.char.campaign || this.char.lastCampaign || '').trim();
     }
+    this.updateCampaignDropdown();
+    this.alignCampaignButton();
 
     // Alt Characters count badge
     const altsCountBadge = document.getElementById('header-alts-count-badge');

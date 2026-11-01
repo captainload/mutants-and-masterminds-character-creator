@@ -3457,6 +3457,48 @@ html[data-theme="light"] .campaign-gm-panel .menu-dropdown-item:hover {
 }
 
 .header-row-2 #btn-open-campaigns {
-  margin-left: auto;
-  margin-right: auto;
+  margin-left: 0;
+  margin-right: 0;
+  color: var(--hero-blue);
+  border-color: var(--hero-blue);
+  white-space: nowrap;
+  transition: all 0.15s ease;
+}
+
+.header-row-2 #btn-open-campaigns:hover {
+  background-color: rgba(59, 130, 246, 0.12);
+  border-color: var(--hero-blue);
+}
+
+/* Campaign Select Dropdown (v3.83) */
+select.header-field-select {
+  background-color: transparent;
+  color: var(--text-bright);
+  font-family: inherit;
+  font-size: 10pt;
+  font-weight: 700;
+  border: none;
+  outline: none;
+  cursor: pointer;
+  padding: 0.15rem 0.3rem;
+  max-width: 100%;
+}
+
+select.header-field-select option,
+select.header-field-select optgroup {
+  background-color: var(--bg-card);
+  color: var(--text-bright);
+  font-family: inherit;
+  font-size: 10pt;
+}
+
+html[data-theme="light"] select.header-field-select {
+  color: #1e293b;
+  background-color: transparent;
+}
+
+html[data-theme="light"] select.header-field-select option,
+html[data-theme="light"] select.header-field-select optgroup {
+  background-color: #ffffff;
+  color: #1e293b;
 }

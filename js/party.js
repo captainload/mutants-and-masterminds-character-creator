@@ -434,6 +434,23 @@ export class CampaignTrackerManager {
     if (info?.isOnHiatus || histMatch?.isOnHiatus) {
       throw new Error(`Campaign "${info?.campaignName || histMatch?.campaignName || cleanId}" is currently on hiatus. Resume the campaign from hiatus before starting a game session.`);
     }
+
+    // Limit GMs to running one campaign session at one time (v3.83)
+    const activeSessions = this.getActiveSessions();
+    for (const [activeCampId, s] of Object.entries(activeSessions)) {
+      if (activeCampId !== cleanId) {
+        const otherInfo = this.getCampaignInfo(activeCampId);
+        const otherHist = this.getCampaignHistory().find(c => c.campaignId === activeCampId);
+        if (this.isUserCreatorOfCampaign(otherInfo || otherHist || s || { campaignId: activeCampId })) {
+          const runningName = otherInfo?.campaignName || otherHist?.campaignName || s.campaignName || activeCampId;
+          throw new Error(`You are already running a game session for "${runningName}". GMs are limited to running one campaign session at a time. Please end that session before starting a new one.`);
+        }
+      }
+    }
+    if (current.isConnected && (current.isHost || current.isCreator) && current.campaignId && current.campaignId !== cleanId) {
+      throw new Error(`You are currently connected as GM to a game session for "${current.campaignName || current.campaignId}". GMs are limited to running one campaign session at a time. Please end that session before starting a new one.`);
+    }
+
     const campName = info?.campaignName || histMatch?.campaignName || current.campaignName || cleanId;
     const campPL = parseInt(info?.powerLevel ?? histMatch?.powerLevel ?? current.powerLevel ?? 10, 10) || 10;
     const dontEnforce = !!(info?.dontEnforcePL ?? histMatch?.dontEnforcePL ?? current.dontEnforcePL);
@@ -892,27 +909,47 @@ export class CampaignTrackerManager {
     if (typeof window !== 'undefined' && window.appController) {
       const char = window.appController.char;
       if (char) {
-        const charPlayer = String(char.playerName || char.player || '').trim().toLowerCase();
-        const matchesPlayer = !currentUsername || !charPlayer || charPlayer === currentUsername;
-        if (matchesPlayer) {
-          const charCampId = String(char.campaignId || '').toUpperCase().replace(/^#+/, '');
-          const charCampName = String(char.campaign || '').trim().toLowerCase();
-          if ((cleanId && charCampId === cleanId) || (cleanName && charCampName === cleanName)) {
-            return true;
-          }
+        const charCampId = String(char.campaignId || '').toUpperCase().replace(/^#+/, '');
+        const charCampName = String(char.campaign || '').trim().toLowerCase();
+        if ((cleanId && charCampId === cleanId) || (cleanName && charCampName === cleanName)) {
+          return true;
         }
       }
       const storedChars = window.appController.storage?.getCharacters?.() || [];
       const hasStored = storedChars.some(ch => {
-        const pName = String(ch.playerName || ch.player || '').trim().toLowerCase();
-        const matchesP = !currentUsername || !pName || pName === currentUsername;
-        if (!matchesP) return false;
         const chCampId = String(ch.campaignId || '').toUpperCase().replace(/^#+/, '');
         const chCampName = String(ch.campaign || '').trim().toLowerCase();
         return (cleanId && chCampId === cleanId) || (cleanName && chCampName === cleanName);
       });
       if (hasStored) return true;
     }
+
+    // 2b. Check approved join requests & saved campaign characters
+    try {
+      const reqs = this.getAllJoinRequestsStore();
+      const approvedReq = reqs.find(r => {
+        const cId = String(r.campaignId || '').trim().toUpperCase().replace(/^#+/, '');
+        const cName = String(r.campaignName || '').trim().toLowerCase();
+        const matchesCamp = (cleanId && cId === cleanId) || (cleanName && cName === cleanName);
+        if (!matchesCamp) return false;
+        if (r.status !== 'approved') return false;
+        if (currentUsername && String(r.username || '').trim().toLowerCase() !== currentUsername) return false;
+        return true;
+      });
+      if (approvedReq) return true;
+    } catch {}
+
+    try {
+      const savedChars = this.getCampaignSavedCharacters(cleanId);
+      if (savedChars && Object.keys(savedChars).length > 0) {
+        if (!currentUsername) return true;
+        const hasCharForUser = Object.values(savedChars).some(sc => {
+          const pName = String(sc.playerName || sc.username || '').trim().toLowerCase();
+          return pName && pName === currentUsername;
+        });
+        if (hasCharForUser) return true;
+      }
+    } catch {}
 
     // 3. Check history entries, but ONLY entries belonging to this user
     const history = this.getCampaignHistory();
@@ -3528,7 +3565,7 @@ export class CampaignTrackerManager {
       const pendingTransfer = c.pendingTransfer || regInfo.pendingTransfer || null;
       const isLive = !isOnHiatus && this.isSessionActive(c.campaignId);
       const isCur = state.isConnected && isLive && state.campaignId === c.campaignId;
-      const isJoinedOrCreated = !!c.isJoinedOrCreated;
+      const isJoinedOrCreated = !!(c.isCreator || c.isJoinedOrCreated || this.isUserMemberOfCampaign(c.campaignId, c.campaignName));
       const attached = storedChars.filter(ch => (ch.campaignId && ch.campaignId.toUpperCase().replace(/^#+/, '') === c.campaignId) || (ch.campaign && ch.campaign.trim().toLowerCase() === (c.campaignName || '').toLowerCase()));
       const attachedStr = attached.map(ch => ch.name || 'Hero').join(', ') || 'None';
       const pendingReqCount = c.isCreator ? this.getJoinRequestsForGM(c.campaignId).filter(r => r.status === 'pending').length : 0;
@@ -3919,13 +3956,29 @@ export class CampaignTrackerManager {
     });
 
     parentEl.querySelectorAll('.btn-gm-toggle-session').forEach(btn => {
-      btn.addEventListener('click', (e) => {
+      btn.addEventListener('click', async (e) => {
         const action = e.currentTarget.dataset.action;
         const campId = e.currentTarget.dataset.campid;
         if (action === 'start') {
-          this.startSession(campId);
+          try {
+            this.startSession(campId);
+          } catch (err) {
+            if (typeof window !== 'undefined' && window.appController) {
+              await window.appController.showAlertDialog(err.message, { title: 'Cannot Start Session' });
+            } else {
+              alert(err.message);
+            }
+          }
         } else {
-          this.endSession(campId);
+          try {
+            this.endSession(campId);
+          } catch (err) {
+            if (typeof window !== 'undefined' && window.appController) {
+              await window.appController.showAlertDialog(err.message, { title: 'Cannot End Session' });
+            } else {
+              alert(err.message);
+            }
+          }
         }
       });
     });
@@ -4262,7 +4315,7 @@ export class CampaignTrackerManager {
 <head>
   <meta charset="UTF-8">
   <title>Mutants & Masterminds 3E - Party Conditions & Toughness Tracker</title>
-  <link rel="stylesheet" href="css/styles.css?v=3.82">
+  <link rel="stylesheet" href="css/styles.css?v=3.83">
   <style>
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;

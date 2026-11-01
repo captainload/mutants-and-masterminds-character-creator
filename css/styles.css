@@ -3442,18 +3442,21 @@ html[data-theme="light"] .campaign-gm-panel .menu-dropdown-item:hover {
   border-radius: 2px;
 }
 
-/* Action Center HP Group (v3.82) */
-.card-box-header .hp-status-group {
-  margin: 0;
+/* Action Center HP Group (v3.84 - Right Column above Edit Abilities) */
+.action-side-col .hp-status-card {
+  margin-bottom: 0.65rem;
+  padding: 0.45rem 0.65rem;
   display: flex;
   align-items: center;
-  gap: 0.45rem;
+  justify-content: space-between;
+  gap: 0.5rem;
 }
-.card-box-header .hp-status-group #btn-quick-spend-hp {
-  min-height: 28px;
-  min-width: 105px;
-  padding: 0.2rem 0.65rem;
+.action-side-col .hp-status-card #btn-quick-spend-hp {
+  min-height: 32px;
+  padding: 0.25rem 0.95rem;
   font-size: 10pt;
+  font-weight: 800;
+  white-space: nowrap;
 }
 
 .header-row-2 #btn-open-campaigns {

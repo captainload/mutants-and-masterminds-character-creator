@@ -6,8 +6,8 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Mutants & Masterminds 3E - Character Editor v3.83</title>
-  <link rel="stylesheet" href="css/styles.css?v=3.83">
+  <title>Mutants & Masterminds 3E - Character Editor v3.84</title>
+  <link rel="stylesheet" href="css/styles.css?v=3.84">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
@@ -93,7 +93,7 @@
 
           <div class="brand-title-centered">
             <span>Mutants & Masterminds 3E Character Editor</span>
-            <span id="header-version-tag" class="header-version-tag up-to-date" title="Current Version">v3.83</span>
+            <span id="header-version-tag" class="header-version-tag up-to-date" title="Current Version">v3.84</span>
             <button type="button" id="btn-header-update-alert" class="btn-header-update-alert" title="Check for updates / Update status" style="display: none;">!</button>
           </div>
 
@@ -276,23 +276,9 @@
             <div class="card-box" style="margin-bottom: 0.5rem; padding: 0.5rem 0.75rem;">
               <div class="card-box-header" style="margin-bottom: 0.35rem; display: flex; justify-content: space-between; align-items: center;">
                 <div class="card-box-title">🧬 Abilities</div>
-                <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 0.35rem;">
-                  <!-- Relocated HP total & Spend HP button (above Edit abilities) -->
-                  <div class="hp-status-group" style="display: flex; align-items: center; gap: 0.45rem;">
-                    <span class="pp-status-label" style="font-size: 10pt; font-weight: 800; color: var(--hero-gold);">HP:</span>
-                    <div class="stepper-control" style="min-height: 28px;">
-                      <button class="btn-stepper compact" id="btn-hp-minus" title="Reduce Hero Point" style="min-width: 24px; min-height: 24px;">-</button>
-                      <span class="stepper-value compact" id="header-hp-val" style="min-width: 28px; font-weight: 900; color: var(--hero-gold);">1</span>
-                      <button class="btn-stepper compact" id="btn-hp-plus" title="Add Hero Point" style="min-width: 24px; min-height: 24px;">+</button>
-                    </div>
-                    <button class="btn btn-primary" id="btn-quick-spend-hp" style="min-height: 28px; padding: 0.15rem 0.75rem; font-size: 10pt; font-weight: 800; white-space: nowrap;">
-                      ⚡ Spend HP
-                    </button>
-                  </div>
-                  <div style="display: flex; align-items: center; gap: 0.5rem;">
-                    <span style="font-size: 10pt; color: var(--text-muted);">Click card to roll</span>
-                    <button class="btn btn-outline" id="btn-action-edit-abilities" style="font-size: 10pt; min-height: 28px; padding: 0.15rem 0.55rem;" title="Edit Abilities & Defenses">✏️ Edit</button>
-                  </div>
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                  <span style="font-size: 10pt; color: var(--text-muted);">Click card to roll</span>
+                  <button class="btn btn-outline" id="btn-action-edit-abilities" style="font-size: 10pt; min-height: 28px; padding: 0.15rem 0.55rem;" title="Edit Abilities & Defenses">✏️ Edit</button>
                 </div>
               </div>
               <div id="action-abilities-grid" style="display: grid; grid-template-columns: repeat(8, 1fr); gap: 0.35rem;">
@@ -378,6 +364,21 @@
           <!-- Right Sidebar Column -->
           <div class="action-side-col">
             
+            <!-- Hero Points & Spend HP (Right column above Edit Abilities) -->
+            <div class="card-box hp-status-card" style="margin-bottom: 0.65rem; padding: 0.45rem 0.65rem; display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-sm);">
+              <div style="display: flex; align-items: center; gap: 0.45rem;">
+                <span class="pp-status-label" style="font-size: 10pt; font-weight: 800; color: var(--hero-gold);">HP:</span>
+                <div class="stepper-control" style="min-height: 32px;">
+                  <button class="btn-stepper compact" id="btn-hp-minus" title="Reduce Hero Point" style="min-width: 28px; min-height: 28px; font-size: 10pt;">-</button>
+                  <span class="stepper-value compact" id="header-hp-val" style="min-width: 32px; font-size: 10pt; font-weight: 900; color: var(--hero-gold);">1</span>
+                  <button class="btn-stepper compact" id="btn-hp-plus" title="Add Hero Point" style="min-width: 28px; min-height: 28px; font-size: 10pt;">+</button>
+                </div>
+              </div>
+              <button class="btn btn-primary" id="btn-quick-spend-hp" style="min-height: 32px; padding: 0.25rem 0.95rem; font-size: 10pt; font-weight: 800; white-space: nowrap; flex-shrink: 0; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: #000; border: none; box-shadow: 0 2px 6px rgba(245, 158, 11, 0.35);">
+                ⚡ Spend HP
+              </button>
+            </div>
+
             <!-- Quick Edit: Abilities & Defenses Button -->
             <button class="btn btn-primary" id="btn-open-abilities-dialog" style="width: 100%; min-height: 40px; margin-bottom: 0.65rem; font-size: var(--font-size-sm); font-weight: 800; display: flex; align-items: center; justify-content: center; gap: 0.5rem; background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); border-color: #3b82f6; box-shadow: 0 2px 8px rgba(37, 99, 235, 0.4);">
               <span>🛡️</span> Edit Abilities & Defenses
@@ -2007,6 +2008,6 @@
     </div>
   </div>
 
-  <script type="module" src="js/app.js?v=3.83"></script>
+  <script type="module" src="js/app.js?v=3.84"></script>
 </body>
 </html>

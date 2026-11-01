@@ -5,14 +5,14 @@ console.log('=== Testing v3.80 Features & Visual Enhancements ===');
 
 // 1. Version checks
 const vJson = JSON.parse(fs.readFileSync('./version.json', 'utf8'));
-assert.strictEqual(vJson.version, '3.80', 'version.json should be 3.80');
+assert.ok(parseFloat(vJson.version) >= 3.80, 'version.json should be >= 3.80');
 
 const indexHtml = fs.readFileSync('./index.html', 'utf8');
-assert.ok(indexHtml.includes('v3.80'), 'index.html contains v3.80');
+assert.ok(/v3\.(80|81)/.test(indexHtml), 'index.html contains v3.80+');
 assert.ok(indexHtml.includes('id="join-requests-alert-banner"'), 'index.html contains join-requests-alert-banner inside modal-join-requests');
 
 const appJs = fs.readFileSync('./js/app.js', 'utf8');
-assert.ok(appJs.includes("CURRENT_VERSION = '3.80'"), 'app.js CURRENT_VERSION is 3.80');
+assert.ok(/CURRENT_VERSION = '3\.(80|81)'/.test(appJs), 'app.js CURRENT_VERSION is 3.80+');
 assert.ok(appJs.includes('join-requests-alert-banner'), 'app.js references join-requests-alert-banner');
 assert.ok(!appJs.includes("await this.showAlertDialog(`Approved"), 'app.js no longer pops alert under approval modal');
 

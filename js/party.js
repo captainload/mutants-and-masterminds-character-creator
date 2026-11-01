@@ -3567,7 +3567,7 @@ export class CampaignTrackerManager {
                 <button type="button" class="btn btn-outline campaign-actions-toggle" data-campid="${c.campaignId}" title="Campaign Actions" style="font-size: 10pt; padding: 2px 9px; font-weight: 700; color: var(--hero-blue); border-color: rgba(59, 130, 246, 0.55); background: rgba(59, 130, 246, 0.08); cursor: pointer; display: inline-flex; align-items: center; gap: 0.3rem;">
                   <span>⚡ Actions ▾</span>
                 </button>
-                <div class="menu-dropdown-panel campaign-actions-panel" style="position: absolute; top: calc(100% + 4px); right: 0; left: auto; min-width: 200px; background-color: #111a2f; border: 1px solid var(--border-color); border-radius: 6px; box-shadow: 0 10px 28px rgba(0,0,0,0.85); z-index: 2500; display: none; padding: 0.35rem 0;">
+                <div class="menu-dropdown-panel campaign-actions-panel" style="position: absolute; top: calc(100% + 4px); right: 0; left: auto; min-width: 200px; border-radius: 6px; z-index: 2500; padding: 0.35rem 0;">
                   <div class="menu-dropdown-heading" style="font-size: 10pt; font-weight: 800; text-transform: uppercase; color: var(--text-muted); padding: 0.35rem 0.85rem 0.2rem 0.85rem;">Campaign Actions</div>
                   ${isLive && isJoinedOrCreated ? `
                     <button type="button" class="menu-dropdown-item btn-join-game-session" data-campid="${c.campaignId}" style="font-size: 10pt; color: var(--hero-green); font-weight: 700; cursor: pointer;">
@@ -3608,7 +3608,7 @@ export class CampaignTrackerManager {
                     <span>👑 GM Tools ▾</span>
                     ${pendingReqCount > 0 ? `<span style="background: var(--hero-gold); color: #000; font-size: 10pt; font-weight: 900; padding: 0px 5px; border-radius: 999px;">${pendingReqCount}</span>` : ''}
                   </button>
-                  <div class="menu-dropdown-panel campaign-gm-panel" style="position: absolute; top: calc(100% + 4px); right: 0; left: auto; min-width: 220px; background-color: #111a2f; border: 1px solid rgba(234, 179, 8, 0.45); border-radius: 6px; box-shadow: 0 10px 28px rgba(0,0,0,0.85); z-index: 2500; display: none; padding: 0.35rem 0;">
+                  <div class="menu-dropdown-panel campaign-gm-panel" style="position: absolute; top: calc(100% + 4px); right: 0; left: auto; min-width: 220px; border-radius: 6px; z-index: 2500; padding: 0.35rem 0;">
                     <div class="menu-dropdown-heading" style="font-size: 10pt; font-weight: 800; text-transform: uppercase; color: var(--hero-gold); padding: 0.35rem 0.85rem 0.2rem 0.85rem;">GM Commands</div>
                     ${!isOnHiatus ? (isLive ? `
                       <button type="button" class="menu-dropdown-item btn-gm-toggle-session" data-action="end" data-campid="${c.campaignId}" style="font-size: 10pt; color: var(--hero-red); font-weight: 700; cursor: pointer;">
@@ -3719,7 +3719,7 @@ export class CampaignTrackerManager {
         </div>
 
         <!-- Campaign Browser Search, Checked Filters, Legal # to # PL Stepper, Sort & On Hiatus Filter Bar -->
-        <div class="campaign-browser-toolbar" style="background: rgba(17, 26, 47, 0.75); border: 1.5px solid rgba(59, 130, 246, 0.45); border-left: 5px solid var(--hero-blue); border-radius: 6px; padding: 0.65rem 0.85rem; margin-bottom: 0.4rem; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35); display: flex; flex-direction: column; gap: 0.5rem;">
+        <div class="campaign-browser-toolbar" style="display: flex; flex-direction: column; gap: 0.5rem; border-left: 5px solid var(--hero-blue);">
           <div style="display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap;">
             <input type="text" class="input-browser-search" value="${(bf.query || '').replace(/"/g, '&quot;')}" placeholder="🔍 Search campaigns..." style="flex: 1; min-width: 190px; background: var(--bg-input); color: var(--text-bright); border: 1px solid var(--border-color); border-radius: 4px; padding: 0.28rem 0.6rem; font-size: 10pt;" />
             <div style="display: inline-flex; align-items: center; gap: 0.55rem; font-size: 10pt; flex-wrap: wrap;">
@@ -3812,18 +3812,29 @@ export class CampaignTrackerManager {
   wireCardButtons(parentEl) {
     if (!parentEl) return;
 
-    // Campaign Actions & GM Tools Dropdown Toggles
+    // Campaign Actions & GM Tools Dropdown Toggles (v3.81)
+    const doc = parentEl.ownerDocument || (typeof document !== 'undefined' ? document : null);
+
     parentEl.querySelectorAll('.campaign-actions-toggle, .campaign-gm-toggle').forEach(btn => {
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
-        const panel = btn.nextElementSibling;
-        const isShown = panel?.classList.contains('show');
-        parentEl.querySelectorAll('.campaign-actions-panel.show, .campaign-gm-panel.show').forEach(p => {
-          p.classList.remove('show');
-          p.closest('.campaign-browser-card')?.style.removeProperty('z-index');
-        });
+        e.preventDefault();
+        const container = btn.closest('.menu-dropdown-container');
+        const panel = container ? container.querySelector('.campaign-actions-panel, .campaign-gm-panel') : btn.nextElementSibling;
+        const isShown = panel?.classList.contains('show') || panel?.style.display === 'block';
+
+        // Close all dropdowns in this document
+        if (doc) {
+          doc.querySelectorAll('.campaign-actions-panel, .campaign-gm-panel').forEach(p => {
+            p.classList.remove('show');
+            p.style.display = 'none';
+            const c = p.closest(".campaign-browser-card"); if (c && c.style) { if (typeof c.style.removeProperty === "function") c.style.removeProperty("z-index"); else c.style.zIndex = ""; }
+          });
+        }
+
         if (!isShown && panel) {
           panel.classList.add('show');
+          panel.style.display = 'block';
           const card = btn.closest('.campaign-browser-card');
           if (card) card.style.zIndex = '50';
         }
@@ -3832,20 +3843,24 @@ export class CampaignTrackerManager {
 
     parentEl.querySelectorAll('.campaign-actions-panel .menu-dropdown-item, .campaign-gm-panel .menu-dropdown-item').forEach(item => {
       item.addEventListener('click', () => {
-        parentEl.querySelectorAll('.campaign-actions-panel.show, .campaign-gm-panel.show').forEach(p => {
-          p.classList.remove('show');
-          p.closest('.campaign-browser-card')?.style.removeProperty('z-index');
-        });
+        if (doc) {
+          doc.querySelectorAll('.campaign-actions-panel, .campaign-gm-panel').forEach(p => {
+            p.classList.remove('show');
+            p.style.display = 'none';
+            const c = p.closest(".campaign-browser-card"); if (c && c.style) { if (typeof c.style.removeProperty === "function") c.style.removeProperty("z-index"); else c.style.zIndex = ""; }
+          });
+        }
       });
     });
 
-    if (typeof document !== 'undefined' && !this._campaignDropdownDocListenerAttached) {
-      this._campaignDropdownDocListenerAttached = true;
-      document.addEventListener('click', (e) => {
+    if (doc && !doc._campaignDropdownDocListenerAttached) {
+      doc._campaignDropdownDocListenerAttached = true;
+      doc.addEventListener('click', (e) => {
         if (!e.target.closest('.campaign-actions-dropdown') && !e.target.closest('.campaign-gm-tools-dropdown')) {
-          document.querySelectorAll('.campaign-actions-panel.show, .campaign-gm-panel.show').forEach(p => {
+          doc.querySelectorAll('.campaign-actions-panel, .campaign-gm-panel').forEach(p => {
             p.classList.remove('show');
-            p.closest('.campaign-browser-card')?.style.removeProperty('z-index');
+            p.style.display = 'none';
+            const c = p.closest(".campaign-browser-card"); if (c && c.style) { if (typeof c.style.removeProperty === "function") c.style.removeProperty("z-index"); else c.style.zIndex = ""; }
           });
         }
       });
@@ -4247,7 +4262,7 @@ export class CampaignTrackerManager {
 <head>
   <meta charset="UTF-8">
   <title>Mutants & Masterminds 3E - Party Conditions & Toughness Tracker</title>
-  <link rel="stylesheet" href="css/styles.css?v=3.80">
+  <link rel="stylesheet" href="css/styles.css?v=3.81">
   <style>
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;

@@ -1,6 +1,6 @@
 {
-  "version": "3.80",
-  "updatedAt": "2026-10-31T17:38:12.285Z",
-  "releaseNotes": "Combined join request approval notices directly into the approval dialog. Streamlined campaign viewer entries with intelligent, role-filtered dropdown menus for general and GM commands, and visually separated the campaign toolbar with a distinct colored border line.",
+  "version": "3.81",
+  "updatedAt": "2026-11-01T13:26:23.261Z",
+  "releaseNotes": "Fixed campaign entry dropdown menus to toggle reliably across themes and popouts. Fixed light theme styling for campaign toolbar and dropdown menus. Documented bottom campaign action buttons (Broadcast to Discord, Add Ally).",
   "updated": "2026-10-31"
 }

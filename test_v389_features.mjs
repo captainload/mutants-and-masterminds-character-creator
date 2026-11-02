@@ -54,7 +54,7 @@ test('Leave Campaign option available in Actions dropdown', () => {
   if (!party.includes('class="menu-dropdown-item btn-leave-campaign-membership"')) {
     throw new Error('party.js missing btn-leave-campaign-membership in Actions dropdown');
   }
-  if (!party.includes('${(isJoinedOrCreated || attached.length > 0) ?')) {
+  if (!party.includes('${isInParty ?') && !party.includes('${(isJoinedOrCreated || attached.length > 0) ?')) {
     throw new Error('party.js Leave Campaign not checking joined or attached characters');
   }
 });

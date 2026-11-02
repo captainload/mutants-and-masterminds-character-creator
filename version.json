@@ -1,6 +1,6 @@
 {
-  "version": "3.90",
-  "updatedAt": "2026-11-02T14:50:16.587Z",
-  "releaseNotes": "Shortened Fortitude to FORTI and Toughness to TOUGH in Action Center so all defense cards align cleanly in two vertical rows, and moved ability card 'i' rules icons to the upper right corner opposite the dice icon.",
+  "version": "3.91",
+  "updatedAt": "2026-11-02T15:08:35.325Z",
+  "releaseNotes": "Moved ability card dice icons to the left of the ability rank. Disabled campaign creation for logged-out users with explanatory text. Clarified Join Party and Leave Party terminology, ensuring GMs who leave a party retain campaign ownership without the 'joined' status remaining active.",
   "updated": "2026-11-01"
 }

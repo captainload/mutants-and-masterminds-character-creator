@@ -41,7 +41,7 @@ import {
   tablesManager
 } from './tables.js';
 
-import { POWER_PROFILES_LIBRARY } from './power_profiles.js?v=3.90';
+import { POWER_PROFILES_LIBRARY } from './power_profiles.js?v=3.91';
 import { ARCHETYPES } from './archetypes.js';
 import { archetypeManager } from './archetype_window.js';
 import { campaignManager, partyManager, formatCharacterSheetHTML } from './party.js';
@@ -323,7 +323,7 @@ class AppController {
     document.getElementById('btn-campaign-modal-close-footer')?.addEventListener('click', closeCampaignsHandler);
 
     
-    // Campaign Characters Modal Listeners (v3.90)
+    // Campaign Characters Modal Listeners (v3.91)
     const closeCampChars = () => this.closeModal('modal-campaign-characters');
     document.getElementById('btn-close-campaign-characters-modal')?.addEventListener('click', closeCampChars);
     document.getElementById('btn-close-campaign-characters-footer')?.addEventListener('click', closeCampChars);
@@ -335,12 +335,12 @@ class AppController {
       }
     });
 
-    // Sync campaign character updates when app goes online (v3.90)
+    // Sync campaign character updates when app goes online (v3.91)
     window.addEventListener('online', () => {
       this.syncCampaignCharacterUpdates();
     });
 
-    // Game Session Modal Listeners (v3.90)
+    // Game Session Modal Listeners (v3.91)
     const closeSessionHandler = () => {
       this.closeModal('modal-game-session');
     };
@@ -2204,7 +2204,7 @@ window.partyManager = partyManager;
   }
 
   async checkForUpdates({ isManual = false } = {}) {
-    const CURRENT_VERSION = '3.90';
+    const CURRENT_VERSION = '3.91';
     const versionEl = document.getElementById('header-version-tag');
     const updateBtn = document.getElementById('btn-header-update-alert');
     if (typeof window === 'undefined' || !window.location || !window.location.href || window.location.href === 'about:blank') return;
@@ -3219,7 +3219,16 @@ window.partyManager = partyManager;
     }
   }
 
-  openCreateCampaignDialog() {
+  async openCreateCampaignDialog() {
+    if (typeof supabaseService !== 'undefined' && supabaseService && !supabaseService.isLoggedIn()) {
+      const doAuth = await this.showConfirmDialog(
+        'User must be logged in to create and manage campaigns.\n\nWould you like to open the Sign In / Register dialog now?',
+        { title: 'Sign In Required', confirmText: 'Sign In / Register' }
+      );
+      if (doAuth) this.openAuthModal();
+      return;
+    }
+
     if (partyManager.isUserConnected()) {
       const state = partyManager.getCampaignState();
       this.showAlertDialog(
@@ -3250,9 +3259,10 @@ window.partyManager = partyManager;
         const campPL = parseInt(plStr, 10) || 10;
 
         try {
+          let cloudData = null;
           if (supabaseService.isLoggedIn()) {
             try {
-              await supabaseService.createCampaign({
+              cloudData = await supabaseService.createCampaign({
                 name: campName.trim(),
                 powerLevel: campPL,
                 dontEnforcePL: false
@@ -3265,11 +3275,14 @@ window.partyManager = partyManager;
 
           const created = partyManager.createCampaign({
             name: campName.trim(),
+            campaignId: cloudData?.campaign_code || undefined,
             pin: '',
             powerLevel: campPL,
             dontEnforcePL: false,
+            creator_id: supabaseService.currentUser?.id || undefined,
             creatorName: supabaseService.getUsername() || this.char.playerName || this.char.name || 'GM'
           });
+          partyManager.renderAllOpenViews();
 
           const shareLink = partyManager.generateCampaignLink(created);
           try {
@@ -3589,11 +3602,12 @@ window.partyManager = partyManager;
     const cleanName = displayCampName.trim().toLowerCase();
 
         const confirmed = await this.showConfirmDialog(
-      `Are you sure you want to leave the campaign "${displayCampName}"?\n\n` +
+      `Are you sure you want to leave the party for campaign "${displayCampName}"?\n\n` +
+      `⚠️ Please Note: This will only prevent you from having characters in this campaign's party — a GM user will still own and manage the campaign.\n\n` +
       `Your campaign characters will remain intact in your character library, and you will still be able to restore characters from campaign backups at any time.`,
       {
-        title: 'Leave Campaign?',
-        confirmText: 'Leave Campaign',
+        title: 'Leave Party?',
+        confirmText: 'Leave Party',
         cancelText: 'Cancel',
         confirmClass: 'btn-danger'
       }
@@ -3987,7 +4001,7 @@ window.partyManager = partyManager;
 <head>
   <meta charset="UTF-8">
   <title>Mutants &amp; Masterminds 3E - Campaign Messaging Client</title>
-  <link rel="stylesheet" href="css/styles.css?v=3.90">
+  <link rel="stylesheet" href="css/styles.css?v=3.91">
   <style>
     html, body { height: 100%; margin: 0; }
     body {
@@ -4541,7 +4555,7 @@ window.partyManager = partyManager;
 
 
   // =======================================================
-  // GM CAMPAIGN CHARACTERS MANAGEMENT & HP/PP AWARDS (v3.90)
+  // GM CAMPAIGN CHARACTERS MANAGEMENT & HP/PP AWARDS (v3.91)
   // =======================================================
   async openCampaignCharactersModal(campId, campName = '') {
     const cleanId = String(campId || '').trim().toUpperCase().replace(/^#+/, '');
@@ -7495,11 +7509,11 @@ window.partyManager = partyManager;
         btn.title = `Roll ${ab.name} Check (${effRank >= 0 ? '+' + effRank : effRank})`;
         btn.innerHTML = `
           <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 0.15rem; padding-right: 18px;">
-            <span style="font-size: 0.95rem; font-weight: 800; color: var(--hero-gold); letter-spacing: 0.04em; white-space: nowrap;">🎲 ${abShort}</span>
+            <span style="font-size: 0.95rem; font-weight: 800; color: var(--hero-gold); letter-spacing: 0.04em; white-space: nowrap;">${abShort}</span>
             <span class="rules-link rules-info-badge" data-id="${ab.id}" data-type="ability" data-name="${ab.name}" data-cat="Ability" title="${ab.name} (Click for rules)" style="position: absolute; top: 4px; right: 5px; font-size: 10pt; opacity: 0.75; cursor: pointer; padding: 1px 3px; border-radius: 3px; z-index: 2;">ℹ️</span>
           </div>
           <div style="display: flex; align-items: baseline; justify-content: space-between; width: 100%;">
-            <strong style="font-size: 1.35rem; font-weight: 900; line-height: 1; color: ${effRank !== baseRank ? 'var(--hero-red)' : 'var(--text-bright)'};">${effRank >= 0 ? '+' + effRank : effRank}</strong>
+            <strong style="font-size: 1.35rem; font-weight: 900; line-height: 1; color: ${effRank !== baseRank ? 'var(--hero-red)' : 'var(--text-bright)'};">🎲 ${effRank >= 0 ? '+' + effRank : effRank}</strong>
             ${mods.checkPenalty !== 0 ? `<span style="font-size: 10pt; color: var(--hero-red); font-weight: 800;">(${mods.checkPenalty})</span>` : ''}
           </div>
         `;

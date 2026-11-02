@@ -41,7 +41,7 @@ import {
   tablesManager
 } from './tables.js';
 
-import { POWER_PROFILES_LIBRARY } from './power_profiles.js?v=3.87';
+import { POWER_PROFILES_LIBRARY } from './power_profiles.js?v=3.88';
 import { ARCHETYPES } from './archetypes.js';
 import { archetypeManager } from './archetype_window.js';
 import { campaignManager, partyManager, formatCharacterSheetHTML } from './party.js';
@@ -322,7 +322,7 @@ class AppController {
     document.getElementById('btn-close-campaign-modal')?.addEventListener('click', closeCampaignsHandler);
     document.getElementById('btn-campaign-modal-close-footer')?.addEventListener('click', closeCampaignsHandler);
 
-    // Game Session Modal Listeners (v3.87)
+    // Game Session Modal Listeners (v3.88)
     const closeSessionHandler = () => {
       this.closeModal('modal-game-session');
     };
@@ -2186,7 +2186,7 @@ window.partyManager = partyManager;
   }
 
   async checkForUpdates({ isManual = false } = {}) {
-    const CURRENT_VERSION = '3.87';
+    const CURRENT_VERSION = '3.88';
     const versionEl = document.getElementById('header-version-tag');
     const updateBtn = document.getElementById('btn-header-update-alert');
     if (typeof window === 'undefined' || !window.location || !window.location.href || window.location.href === 'about:blank') return;
@@ -3005,7 +3005,7 @@ window.partyManager = partyManager;
       const ta = doc.getElementById('msg-compose-text-input');
       if (!ta) return;
       ta.style.height = 'auto';
-      const nextHeight = Math.min(Math.max(ta.scrollHeight || 72, 72), 172);
+      const nextHeight = Math.min(Math.max(ta.scrollHeight || 140, 140), 260);
       ta.style.height = nextHeight + 'px';
     };
 
@@ -3112,7 +3112,7 @@ window.partyManager = partyManager;
         });
         if (textInput) {
           textInput.value = '';
-          textInput.style.height = '72px';
+          textInput.style.height = '140px';
         }
         if (recInput) recInput.value = '';
         checkedBoxes.forEach(cb => { cb.checked = false; });
@@ -3968,7 +3968,7 @@ window.partyManager = partyManager;
 <head>
   <meta charset="UTF-8">
   <title>Mutants &amp; Masterminds 3E - Campaign Messaging Client</title>
-  <link rel="stylesheet" href="css/styles.css?v=3.87">
+  <link rel="stylesheet" href="css/styles.css?v=3.88">
   <style>
     html, body { height: 100%; margin: 0; }
     body {

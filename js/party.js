@@ -3475,7 +3475,7 @@ export class CampaignTrackerManager {
       dropdownMsgBadge.classList.toggle('unread-badge-pulse', unreadCount > 0);
     }
 
-    // Update running sessions count badge to the left of the Campaigns dropdown (v3.87)
+    // Update running sessions count badge to the left of the Campaigns dropdown (v3.88)
     const runningSessionsCount = this.getEligibleRunningSessionsCount();
     const sessionsBtn = document.getElementById('btn-header-active-sessions');
     const sessionsBadge = document.getElementById('header-sessions-count-badge');
@@ -3899,13 +3899,13 @@ export class CampaignTrackerManager {
     }).join('');
 
     const topDirectoryBar = `
-      <div style="background: var(--bg-card); border: 1px dashed var(--border-color); border-radius: 6px; padding: 0.75rem 0.85rem; margin-bottom: 0.75rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.65rem;">
-        <div>
-          <div style="font-weight: 800; color: var(--text-bright); font-size: var(--font-size-sm);">Campaign Directory &amp; Membership</div>
-          <div style="font-size: 10pt; color: var(--text-muted);">Apply to join a campaign by name or paste a GM's Campaign Link, or create and advertise your own campaign.</div>
+      <div style="background: var(--bg-card); border: 1.5px solid rgba(56, 189, 248, 0.55); border-radius: 6px; padding: 0.75rem 0.85rem; margin-bottom: 0.75rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.65rem; box-shadow: 0 2px 10px rgba(56, 189, 248, 0.08);">
+        <div style="display: flex; align-items: baseline; gap: 0.75rem; flex-wrap: wrap;">
+          <span style="font-weight: 800; color: var(--text-bright); font-size: 1.05rem; white-space: nowrap;">Campaign Directory</span>
+          <span style="font-size: 10pt; color: var(--text-muted);">Apply to join a campaign by name or paste a GM's Campaign Link, or create and advertise your own campaign.</span>
         </div>
         <div style="display: flex; align-items: center; gap: 0.45rem; flex-wrap: wrap;">
-          <input type="text" class="input-join-campaign-link" placeholder="Paste campaign link or campaign name..." style="background: var(--bg-input); color: var(--text-bright); border: 1px solid var(--border-color); border-radius: 4px; padding: 0.28rem 0.6rem; font-size: 10pt; min-width: 240px;" />
+          <input type="text" class="input-join-campaign-link" placeholder="Paste campaign link or campaign name..." style="background: var(--bg-input); color: var(--text-bright); border: 1px solid var(--border-color); border-radius: 4px; padding: 0.28rem 0.6rem; font-size: 10pt; min-width: 350px;" />
           <button type="button" class="btn btn-outline btn-trigger-join-campaign" style="font-size: 10pt; font-weight: 700; padding: 0.25rem 0.75rem; color: var(--hero-blue); border-color: var(--hero-blue);">🔗 Join Campaign</button>
           <button type="button" class="btn btn-primary btn-trigger-create-campaign" style="font-size: 10pt; font-weight: 800; padding: 0.25rem 0.75rem;">➕ Create Campaign</button>
         </div>
@@ -3917,7 +3917,7 @@ export class CampaignTrackerManager {
         <div class="tracker-section-header">
           <div style="display: flex; align-items: center; gap: 0.55rem; flex-wrap: wrap;">
             <span style="font-size: 1.15rem; font-weight: 900; color: var(--hero-cyan); text-transform: uppercase; letter-spacing: 0.03em;">🌐 Campaign Browser (${browserCampaigns.length})</span>
-            <span style="font-size: 10pt; font-weight: 800; color: var(--hero-gold); background: rgba(234, 179, 8, 0.14); border: 1px solid rgba(234, 179, 8, 0.4); padding: 2px 8px; border-radius: 999px;">🌟 Joined &amp; Created First</span>
+            <span style="font-size: 10pt; font-weight: 800; color: var(--hero-gold); background: rgba(234, 179, 8, 0.14); border: 1px solid rgba(234, 179, 8, 0.4); padding: 2px 8px; border-radius: 999px;">🌟 Joined or owned campaigns shown first</span>
           </div>
           <span style="font-size: 10pt; color: var(--text-muted);">Browse all campaigns you are eligible to join, manage your campaigns, or advertise public campaigns</span>
         </div>
@@ -3950,7 +3950,7 @@ export class CampaignTrackerManager {
             <div style="display: inline-flex; align-items: center; gap: 0.45rem;">
               <span style="color: var(--text-muted); font-weight: 700;">Sort by:</span>
               <select class="sel-browser-sort" style="background: var(--bg-input); color: var(--text-bright); border: 1px solid var(--border-color); border-radius: 4px; padding: 2px 8px; font-size: 10pt; font-weight: 700;">
-                <option value="default" ${bf.sortBy === 'default' ? 'selected' : ''}>🌟 Default (Joined / Created First)</option>
+                <option value="default" ${bf.sortBy === 'default' ? 'selected' : ''}>🌟 Default (Joined / Owned First)</option>
                 <option value="name_asc" ${bf.sortBy === 'name_asc' ? 'selected' : ''}>🔤 Campaign Name (A–Z)</option>
                 <option value="gm_asc" ${bf.sortBy === 'gm_asc' ? 'selected' : ''}>👑 GM Name (A–Z)</option>
                 <option value="age_desc" ${bf.sortBy === 'age_desc' ? 'selected' : ''}>🕒 Campaign Age (Newest First)</option>
@@ -4505,7 +4505,7 @@ export class CampaignTrackerManager {
 <head>
   <meta charset="UTF-8">
   <title>Mutants & Masterminds 3E - Party Conditions & Toughness Tracker</title>
-  <link rel="stylesheet" href="css/styles.css?v=3.87">
+  <link rel="stylesheet" href="css/styles.css?v=3.88">
   <style>
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -4682,7 +4682,7 @@ export class CampaignTrackerManager {
 <head>
   <meta charset="UTF-8">
   <title>Mutants & Masterminds 3E - Game Session Tracker</title>
-  <link rel="stylesheet" href="css/styles.css?v=3.87">
+  <link rel="stylesheet" href="css/styles.css?v=3.88">
   <style>
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;

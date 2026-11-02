@@ -1,6 +1,6 @@
 {
-  "version": "3.87",
-  "updatedAt": "2026-11-01T21:45:00.000Z",
-  "releaseNotes": "Separated the Game Session Tracker (party display) from the Campaign Browser with dedicated session popup, top-half party tracker, and bottom-half Rolls and General tabs. Added running sessions count badge to header. Changed light mode read messages background to white. Widened compose dialog to within 20px of side margins, and cleaned up message client buttons.",
+  "version": "3.88",
+  "updatedAt": "2026-11-01T23:15:00.000Z",
+  "releaseNotes": "Streamlined Campaign Directory header with description to the right of the title, widened campaign link input field, lighter border styling for Campaign Browser, updated badge to 'Joined or owned campaigns shown first', increased New Message compose dialog height by ~30% with 5-line textarea, and fixed Known Users and CC recipient dropdowns popping downwards cleanly over the compose area.",
   "updated": "2026-11-01"
 }

@@ -1,6 +1,6 @@
 {
-  "version": "3.92",
+  "version": "3.93",
   "updatedAt": "2026-11-02T15:35:47.445Z",
-  "releaseNotes": "Shifted the three buttons on header row 3 (Campaigns, Archetypes, Tables) leftwards to prevent the Tables button from exceeding the right margin. Enhanced campaign manager authentication and discovery: synchronous session restore, automatic cloud campaign synchronization with Supabase, and accurate GM/party membership detection so owned and joined campaigns display properly.",
+  "releaseNotes": "Guard against early auth render race, assign window controllers in constructor, add defensive checks across modules, and update all module cache busting.",
   "updated": "2026-11-02"
 }

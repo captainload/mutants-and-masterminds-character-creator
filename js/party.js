@@ -5,7 +5,7 @@
  * GM join approval queues, character sheet inspection, and P2P fallback.
  */
 
-import { supabaseService } from './supabase_client.js';
+import { supabaseService } from './supabase_client.js?v=3.93';
 
 export function formatCharacterSheetHTML(char) {
   if (!char) return '<div style="padding:1rem;color:var(--text-muted);">No character data available.</div>';
@@ -3363,8 +3363,12 @@ export class CampaignTrackerManager {
       });
     }
 
-    if (typeof window !== 'undefined' && window.appController?.renderSessionRollsAndGeneral) {
-      window.appController.renderSessionRollsAndGeneral();
+    if (typeof window !== 'undefined' && window.appController && typeof window.appController.renderSessionRollsAndGeneral === 'function') {
+      try {
+        window.appController.renderSessionRollsAndGeneral();
+      } catch (e) {
+        console.warn('renderSessionRollsAndGeneral error:', e);
+      }
     }
   }
 
@@ -3924,10 +3928,14 @@ export class CampaignTrackerManager {
       `;
     }).join('');
 
-    const isLoggedIn = this.isUserLoggedIn();
-    if (typeof supabaseService !== 'undefined' && supabaseService && supabaseService.isLoggedIn() && !this._isSyncingCampaigns) {
+    const isLoggedIn = (typeof this.isUserLoggedIn === 'function')
+      ? this.isUserLoggedIn()
+      : (typeof supabaseService !== 'undefined' && !!supabaseService?.isLoggedIn?.());
+    if (typeof supabaseService !== 'undefined' && supabaseService && typeof supabaseService.isLoggedIn === 'function' && supabaseService.isLoggedIn() && typeof supabaseService.syncCloudCampaignsToLocal === 'function' && !this._isSyncingCampaigns) {
       this._isSyncingCampaigns = true;
-      supabaseService.syncCloudCampaignsToLocal(this).finally(() => { this._isSyncingCampaigns = false; });
+      supabaseService.syncCloudCampaignsToLocal(this).catch(err => {
+        console.warn('syncCloudCampaignsToLocal error:', err);
+      }).finally(() => { this._isSyncingCampaigns = false; });
     }
     const topDirectoryBar = `
       <div style="background: var(--bg-card); border: 1.5px solid rgba(56, 189, 248, 0.55); border-radius: 6px; padding: 0.75rem 0.85rem; margin-bottom: 0.75rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.65rem; box-shadow: 0 2px 10px rgba(56, 189, 248, 0.08);">
@@ -4560,7 +4568,7 @@ export class CampaignTrackerManager {
 <head>
   <meta charset="UTF-8">
   <title>Mutants & Masterminds 3E - Party Conditions & Toughness Tracker</title>
-  <link rel="stylesheet" href="css/styles.css?v=3.92">
+  <link rel="stylesheet" href="css/styles.css?v=3.93">
   <style>
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -4737,7 +4745,7 @@ export class CampaignTrackerManager {
 <head>
   <meta charset="UTF-8">
   <title>Mutants & Masterminds 3E - Game Session Tracker</title>
-  <link rel="stylesheet" href="css/styles.css?v=3.92">
+  <link rel="stylesheet" href="css/styles.css?v=3.93">
   <style>
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;

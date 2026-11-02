@@ -162,7 +162,13 @@ class SupabaseService {
   onAuthStateChange(callback) {
     this.authListeners.push(callback);
     if (this.currentUser !== undefined) {
-      callback(this.currentUser, this.currentProfile, 'INITIAL');
+      setTimeout(() => {
+        try {
+          callback(this.currentUser, this.currentProfile, 'INITIAL');
+        } catch (e) {
+          console.warn('Initial auth callback error:', e);
+        }
+      }, 0);
     }
     return () => {
       this.authListeners = this.authListeners.filter(cb => cb !== callback);
@@ -721,7 +727,9 @@ class SupabaseService {
           }
         }
       });
-      partyMgr.renderAllOpenViews();
+      if (typeof partyMgr.renderAllOpenViews === 'function') {
+        try { partyMgr.renderAllOpenViews(); } catch (e) { console.warn('renderAllOpenViews error:', e); }
+      }
     } catch (e) {
       console.warn('syncCloudCampaignsToLocal error:', e);
     }

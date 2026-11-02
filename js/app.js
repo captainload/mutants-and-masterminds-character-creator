@@ -39,22 +39,29 @@ import {
   HQ_SIZES_TABLE,
   HQ_FEATURES_LIST,
   tablesManager
-} from './tables.js';
+} from './tables.js?v=3.93';
 
-import { POWER_PROFILES_LIBRARY } from './power_profiles.js?v=3.92';
-import { ARCHETYPES } from './archetypes.js';
-import { archetypeManager } from './archetype_window.js';
-import { campaignManager, partyManager, formatCharacterSheetHTML } from './party.js';
-import { supabaseService } from './supabase_client.js';
-import { ARCHETYPE_CUSTOMIZATION_OPTIONS, buildCustomizedArchetype } from './archetype_builder.js';
-import { diceRoller } from './dice.js';
-import { DiscordConfig, discordIntegrator } from './discord.js';
-import { helpManager } from './help.js';
-import { storageManager } from './storage.js';
-import { BASIC_CONDITIONS, COMBINED_CONDITIONS, calculateConditionModifiers } from './conditions.js';
+import { POWER_PROFILES_LIBRARY } from './power_profiles.js?v=3.93';
+import { ARCHETYPES } from './archetypes.js?v=3.93';
+import { archetypeManager } from './archetype_window.js?v=3.93';
+import { campaignManager, partyManager, formatCharacterSheetHTML } from './party.js?v=3.93';
+import { supabaseService } from './supabase_client.js?v=3.93';
+import { ARCHETYPE_CUSTOMIZATION_OPTIONS, buildCustomizedArchetype } from './archetype_builder.js?v=3.93';
+import { diceRoller } from './dice.js?v=3.93';
+import { DiscordConfig, discordIntegrator } from './discord.js?v=3.93';
+import { helpManager } from './help.js?v=3.93';
+import { storageManager } from './storage.js?v=3.93';
+import { BASIC_CONDITIONS, COMBINED_CONDITIONS, calculateConditionModifiers } from './conditions.js?v=3.93';
 
 class AppController {
   constructor() {
+    window.appController = this;
+    window.partyManager = partyManager;
+    window.campaignManager = campaignManager;
+    window.tablesManager = tablesManager;
+    window.archetypeManager = archetypeManager;
+    this._isInitialized = false;
+
     this.char = storageManager.getActiveCharacter();
     if (!this.char.alts) this.char.alts = [];
     this.primaryChar = this.char;
@@ -112,6 +119,8 @@ class AppController {
     this.repairTruncatedPowerNotes(this.char);
     this.setupUpdateChecker();
     this.renderAll();
+    this._isInitialized = true;
+    try { partyManager?.renderAllOpenViews?.(); } catch (e) {}
     this.checkForUpdates({ isManual: false });
     setTimeout(() => {
       this.checkActiveSessionOffer();
@@ -2204,7 +2213,7 @@ window.partyManager = partyManager;
   }
 
   async checkForUpdates({ isManual = false } = {}) {
-    const CURRENT_VERSION = '3.92';
+    const CURRENT_VERSION = '3.93';
     const versionEl = document.getElementById('header-version-tag');
     const updateBtn = document.getElementById('btn-header-update-alert');
     if (typeof window === 'undefined' || !window.location || !window.location.href || window.location.href === 'about:blank') return;
@@ -2941,8 +2950,10 @@ window.partyManager = partyManager;
       if (usernameLabel) usernameLabel.textContent = uname;
       if (dropdownUsername) dropdownUsername.textContent = uname;
       if (dropdownEmail) dropdownEmail.textContent = user.email || '';
-      partyManager.renderAllOpenViews();
-      this.updateCampaignDropdown();
+      if (this._isInitialized) {
+        try { partyManager?.renderAllOpenViews?.(); } catch (e) { console.warn('renderAllOpenViews auth error:', e); }
+        try { this.updateCampaignDropdown?.(); } catch (e) { console.warn('updateCampaignDropdown auth error:', e); }
+      }
 
       // When a (different) account signs in, the active player identity becomes that account's username
       if (this._lastAuthUserId !== user.id || (this.char && !String(this.char.playerName || '').trim())) {
@@ -2980,6 +2991,10 @@ window.partyManager = partyManager;
       if (usernameLabel) usernameLabel.textContent = 'User';
       if (dropdownUsername) dropdownUsername.textContent = 'User';
       if (dropdownEmail) dropdownEmail.textContent = '';
+      if (this._isInitialized) {
+        try { partyManager?.renderAllOpenViews?.(); } catch (e) { console.warn('renderAllOpenViews logout error:', e); }
+        try { this.updateCampaignDropdown?.(); } catch (e) { console.warn('updateCampaignDropdown logout error:', e); }
+      }
     }
 
     // Disconnect if currently connected as GM to a campaign the new user does NOT own
@@ -3222,7 +3237,10 @@ window.partyManager = partyManager;
   }
 
   async openCreateCampaignDialog() {
-    if (partyManager && !partyManager.isUserLoggedIn()) {
+    const isLoggedIn = (typeof partyManager !== 'undefined' && partyManager?.isUserLoggedIn)
+      ? partyManager.isUserLoggedIn()
+      : (typeof supabaseService !== 'undefined' && supabaseService?.isLoggedIn?.());
+    if (!isLoggedIn) {
       const doAuth = await this.showConfirmDialog(
         'User must be logged in to create and manage campaigns.\n\nWould you like to open the Sign In / Register dialog now?',
         { title: 'Sign In Required', confirmText: 'Sign In / Register' }
@@ -4003,7 +4021,7 @@ window.partyManager = partyManager;
 <head>
   <meta charset="UTF-8">
   <title>Mutants &amp; Masterminds 3E - Campaign Messaging Client</title>
-  <link rel="stylesheet" href="css/styles.css?v=3.92">
+  <link rel="stylesheet" href="css/styles.css?v=3.93">
   <style>
     html, body { height: 100%; margin: 0; }
     body {

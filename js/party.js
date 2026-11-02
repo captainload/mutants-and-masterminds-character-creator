@@ -3481,7 +3481,7 @@ export class CampaignTrackerManager {
       dropdownMsgBadge.classList.toggle('unread-badge-pulse', unreadCount > 0);
     }
 
-    // Update running sessions count badge to the left of the Campaigns dropdown (v3.89)
+    // Update running sessions count badge to the left of the Campaigns dropdown (v3.90)
     const runningSessionsCount = this.getEligibleRunningSessionsCount();
     const sessionsBtn = document.getElementById('btn-header-active-sessions');
     const sessionsBadge = document.getElementById('header-sessions-count-badge');
@@ -4524,7 +4524,7 @@ export class CampaignTrackerManager {
 <head>
   <meta charset="UTF-8">
   <title>Mutants & Masterminds 3E - Party Conditions & Toughness Tracker</title>
-  <link rel="stylesheet" href="css/styles.css?v=3.89">
+  <link rel="stylesheet" href="css/styles.css?v=3.90">
   <style>
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -4701,7 +4701,7 @@ export class CampaignTrackerManager {
 <head>
   <meta charset="UTF-8">
   <title>Mutants & Masterminds 3E - Game Session Tracker</title>
-  <link rel="stylesheet" href="css/styles.css?v=3.89">
+  <link rel="stylesheet" href="css/styles.css?v=3.90">
   <style>
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;

@@ -1671,6 +1671,7 @@ button.action-roll-card {
   flex-direction: column;
   justify-content: space-between;
   min-height: 50px;
+  position: relative;
   box-sizing: border-box;
   transition: all 0.15s ease;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);

@@ -41,7 +41,7 @@ import {
   tablesManager
 } from './tables.js';
 
-import { POWER_PROFILES_LIBRARY } from './power_profiles.js?v=3.89';
+import { POWER_PROFILES_LIBRARY } from './power_profiles.js?v=3.90';
 import { ARCHETYPES } from './archetypes.js';
 import { archetypeManager } from './archetype_window.js';
 import { campaignManager, partyManager, formatCharacterSheetHTML } from './party.js';
@@ -323,7 +323,7 @@ class AppController {
     document.getElementById('btn-campaign-modal-close-footer')?.addEventListener('click', closeCampaignsHandler);
 
     
-    // Campaign Characters Modal Listeners (v3.89)
+    // Campaign Characters Modal Listeners (v3.90)
     const closeCampChars = () => this.closeModal('modal-campaign-characters');
     document.getElementById('btn-close-campaign-characters-modal')?.addEventListener('click', closeCampChars);
     document.getElementById('btn-close-campaign-characters-footer')?.addEventListener('click', closeCampChars);
@@ -335,12 +335,12 @@ class AppController {
       }
     });
 
-    // Sync campaign character updates when app goes online (v3.89)
+    // Sync campaign character updates when app goes online (v3.90)
     window.addEventListener('online', () => {
       this.syncCampaignCharacterUpdates();
     });
 
-    // Game Session Modal Listeners (v3.89)
+    // Game Session Modal Listeners (v3.90)
     const closeSessionHandler = () => {
       this.closeModal('modal-game-session');
     };
@@ -2204,7 +2204,7 @@ window.partyManager = partyManager;
   }
 
   async checkForUpdates({ isManual = false } = {}) {
-    const CURRENT_VERSION = '3.89';
+    const CURRENT_VERSION = '3.90';
     const versionEl = document.getElementById('header-version-tag');
     const updateBtn = document.getElementById('btn-header-update-alert');
     if (typeof window === 'undefined' || !window.location || !window.location.href || window.location.href === 'about:blank') return;
@@ -3987,7 +3987,7 @@ window.partyManager = partyManager;
 <head>
   <meta charset="UTF-8">
   <title>Mutants &amp; Masterminds 3E - Campaign Messaging Client</title>
-  <link rel="stylesheet" href="css/styles.css?v=3.89">
+  <link rel="stylesheet" href="css/styles.css?v=3.90">
   <style>
     html, body { height: 100%; margin: 0; }
     body {
@@ -4541,7 +4541,7 @@ window.partyManager = partyManager;
 
 
   // =======================================================
-  // GM CAMPAIGN CHARACTERS MANAGEMENT & HP/PP AWARDS (v3.89)
+  // GM CAMPAIGN CHARACTERS MANAGEMENT & HP/PP AWARDS (v3.90)
   // =======================================================
   async openCampaignCharactersModal(campId, campName = '') {
     const cleanId = String(campId || '').trim().toUpperCase().replace(/^#+/, '');
@@ -7494,13 +7494,13 @@ window.partyManager = partyManager;
         btn.setAttribute('data-ab', ab.id);
         btn.title = `Roll ${ab.name} Check (${effRank >= 0 ? '+' + effRank : effRank})`;
         btn.innerHTML = `
-          <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 0.15rem;">
-            <span style="font-size: 0.95rem; font-weight: 800; color: var(--hero-gold); letter-spacing: 0.04em;">🎲 ${abShort}</span>
-            <span class="rules-link rules-info-badge" data-id="${ab.id}" data-type="ability" data-name="${ab.name}" data-cat="Ability" title="${ab.name} (Click for rules)" style="font-size: var(--font-size-xs); opacity: 0.7; cursor: pointer; padding: 2px 4px; border-radius: 3px;">ℹ️</span>
+          <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 0.15rem; padding-right: 18px;">
+            <span style="font-size: 0.95rem; font-weight: 800; color: var(--hero-gold); letter-spacing: 0.04em; white-space: nowrap;">🎲 ${abShort}</span>
+            <span class="rules-link rules-info-badge" data-id="${ab.id}" data-type="ability" data-name="${ab.name}" data-cat="Ability" title="${ab.name} (Click for rules)" style="position: absolute; top: 4px; right: 5px; font-size: 10pt; opacity: 0.75; cursor: pointer; padding: 1px 3px; border-radius: 3px; z-index: 2;">ℹ️</span>
           </div>
           <div style="display: flex; align-items: baseline; justify-content: space-between; width: 100%;">
             <strong style="font-size: 1.35rem; font-weight: 900; line-height: 1; color: ${effRank !== baseRank ? 'var(--hero-red)' : 'var(--text-bright)'};">${effRank >= 0 ? '+' + effRank : effRank}</strong>
-            ${mods.checkPenalty !== 0 ? `<span style="font-size: var(--font-size-xs); color: var(--hero-red); font-weight: 800;">(${mods.checkPenalty})</span>` : ''}
+            ${mods.checkPenalty !== 0 ? `<span style="font-size: 10pt; color: var(--hero-red); font-weight: 800;">(${mods.checkPenalty})</span>` : ''}
           </div>
         `;
 
@@ -7558,6 +7558,10 @@ window.partyManager = partyManager;
 
         const noteText = modNotes.length > 0 ? modNotes.join(', ') : `Base ${baseScore}`;
 
+        let defDisplayName = def.name.toUpperCase();
+        if (def.id === 'fortitude') defDisplayName = 'FORTI';
+        if (def.id === 'toughness') defDisplayName = 'TOUGH';
+
         const btn = document.createElement('button');
         btn.type = 'button';
         btn.className = 'action-save-card action-roll-card';
@@ -7565,16 +7569,16 @@ window.partyManager = partyManager;
         btn.title = `Roll ${def.name} Resistance (+${effScore})`;
 
         btn.innerHTML = `
-          <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 0.15rem;">
-            <span style="font-size: 0.95rem; font-weight: 800; color: var(--hero-cyan); text-transform: uppercase; letter-spacing: 0.04em;">🎲 ${def.name}</span>
-            <span class="rules-link rules-info-badge" data-id="${def.id}" data-type="defense" data-name="${def.name}" data-cat="Defense" title="${def.name} (Click for rules)" style="font-size: var(--font-size-xs); opacity: 0.7; cursor: pointer; padding: 2px 4px; border-radius: 3px;">ℹ️</span>
+          <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 0.15rem; padding-right: 18px;">
+            <span style="font-size: 0.95rem; font-weight: 800; color: var(--hero-cyan); letter-spacing: 0.04em; white-space: nowrap;">🎲 ${defDisplayName}</span>
+            <span class="rules-link rules-info-badge" data-id="${def.id}" data-type="defense" data-name="${def.name}" data-cat="Defense" title="${def.name} (Click for rules)" style="position: absolute; top: 4px; right: 5px; font-size: 10pt; opacity: 0.75; cursor: pointer; padding: 1px 3px; border-radius: 3px; z-index: 2;">ℹ️</span>
           </div>
           <div style="display: flex; align-items: baseline; justify-content: space-between; width: 100%; gap: 0.35rem;">
-            <div style="display: flex; align-items: baseline; gap: 0.25rem;">
+            <div style="display: flex; align-items: baseline; gap: 0.25rem; flex-shrink: 0;">
               <strong style="font-size: 1.35rem; font-weight: 900; line-height: 1; color: ${effScore !== baseScore ? 'var(--hero-red)' : 'var(--text-bright)'};">${effScore >= 0 ? '+' + effScore : effScore}</strong>
-              ${effScore !== baseScore ? `<span style="font-size: var(--font-size-xs); color: var(--hero-red); font-weight: 800;">*</span>` : ''}
+              ${effScore !== baseScore ? `<span style="font-size: 10pt; color: var(--hero-red); font-weight: 800;">*</span>` : ''}
             </div>
-            <span style="font-size: var(--font-size-xs); color: ${effScore !== baseScore ? 'var(--hero-red)' : 'var(--text-muted)'}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: right; max-width: 110px;" title="${noteText}">
+            <span style="font-size: 10pt; color: ${effScore !== baseScore ? 'var(--hero-red)' : 'var(--text-muted)'}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: right; flex: 1; min-width: 0;" title="${noteText}">
               ${noteText}
             </span>
           </div>

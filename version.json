@@ -1,6 +1,6 @@
 {
-  "version": "3.89",
-  "updatedAt": "2026-11-02T04:32:26.236Z",
-  "releaseNotes": "Reclaimed bottom footer space in Campaign Browser. Added Leave Campaign confirmation pop-up informing users that character files and backups remain intact. Added GM Campaign Characters list popup enabling GMs to view all campaign characters and award HP or PP, which seamlessly sync to the online database and push out to players.",
+  "version": "3.90",
+  "updatedAt": "2026-11-02T14:50:16.587Z",
+  "releaseNotes": "Shortened Fortitude to FORTI and Toughness to TOUGH in Action Center so all defense cards align cleanly in two vertical rows, and moved ability card 'i' rules icons to the upper right corner opposite the dice icon.",
   "updated": "2026-11-01"
 }

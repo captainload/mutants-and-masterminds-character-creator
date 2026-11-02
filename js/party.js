@@ -3432,7 +3432,8 @@ export class CampaignTrackerManager {
         btn.style.color = '#10b981';
       }
       if (labelBtn) {
-        labelBtn.title = `Campaign: ${state.campaignName || ''} (#${state.campaignId}) [PL ${state.powerLevel || 10}]`;
+        labelBtn.textContent = 'Sessions:';
+        labelBtn.title = `Active Session: ${state.campaignName || ''} (#${state.campaignId}) [PL ${state.powerLevel || 10}]`;
       }
     } else {
       if (btn) {
@@ -3441,7 +3442,8 @@ export class CampaignTrackerManager {
         btn.style.color = '';
       }
       if (labelBtn) {
-        labelBtn.title = 'Click to open Campaign Tracker & Settings';
+        labelBtn.textContent = 'Sessions:';
+        labelBtn.title = 'Click to open Campaign Browser & Sessions';
       }
     }
 

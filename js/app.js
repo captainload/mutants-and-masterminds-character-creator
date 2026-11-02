@@ -406,21 +406,10 @@ class AppController {
       if (name && name.trim()) {
         campaignManager.addManualMember({ characterName: name.trim() });
         partyManager.addSessionEvent({ type: 'ally', icon: '➕', text: `Ally "${name.trim()}" added to party` });
-      }
-    };
-    const addAllyHandler = this.addPartyAlly;
-      const name = await this.showPromptDialog({
-        title: 'Add Ally / Minion to Campaign',
-        label: 'Character Name:',
-        defaultValue: '',
-        placeholder: 'e.g. Aegis, Night Ranger, Police Officer',
-        confirmText: 'Add to Party'
-      });
-      if (name && name.trim()) {
-        campaignManager.addManualMember({ characterName: name.trim() });
         campaignManager.renderAllOpenViews();
       }
     };
+    const addAllyHandler = this.addPartyAlly;
     document.getElementById('btn-campaign-add-ally')?.addEventListener('click', addAllyHandler);
 
     const clearInactiveHandler = () => {
@@ -6835,7 +6824,7 @@ window.partyManager = partyManager;
       select.appendChild(placeholder);
 
       const optGroup = document.createElement('optgroup');
-      optGroup.label = 'Active Campaign Sessions';
+      optGroup.label = 'Active Sessions';
 
       sessionEntries.forEach(s => {
         const opt = document.createElement('option');
@@ -6854,7 +6843,7 @@ window.partyManager = partyManager;
 
     const trackerOpt = document.createElement('option');
     trackerOpt.value = '__OPEN_TRACKER__';
-    trackerOpt.textContent = '🛡️ Open Campaign Tracker...';
+    trackerOpt.textContent = '🌐 Open Campaign Browser...';
     select.appendChild(trackerOpt);
 
     if (connectedCampId && select.querySelector(`option[value="${connectedCampId}"]`)) {

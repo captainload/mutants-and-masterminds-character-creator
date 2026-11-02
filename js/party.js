@@ -2192,6 +2192,26 @@ export class CampaignTrackerManager {
     }
   }
 
+  markMessagesRead(msgIds = []) {
+    if (!Array.isArray(msgIds) || msgIds.length === 0) return;
+    const targetSet = new Set(msgIds);
+    const readerKey = this.getTabSessionId();
+    const messages = this.getAllCampaignMessages();
+    let changed = false;
+    messages.forEach(m => {
+      if (targetSet.has(m.id)) {
+        m.read = true;
+        if (!Array.isArray(m.readBy)) m.readBy = [];
+        if (!m.readBy.includes(readerKey)) m.readBy.push(readerKey);
+        changed = true;
+      }
+    });
+    if (changed) {
+      this.saveAllCampaignMessages(messages);
+      this.updateHeaderBadge();
+    }
+  }
+
   markAllMessagesRead() {
     const readerKey = this.getTabSessionId();
     const userMsgIds = new Set(this.getMessagesForCurrentUser().map(m => m.id));
@@ -2449,69 +2469,57 @@ export class CampaignTrackerManager {
    */
   getKnownUsers() {
     const myName = (this.getCurrentUsername() || '').trim().toLowerCase();
-    const store = this.getKnownUsersStore();
-    let storeModified = false;
-    Object.keys(store).forEach(k => {
-      if (this.isMailingListName(k) || this.isMailingListName(store[k]?.username)) {
-        delete store[k];
-        storeModified = true;
-      }
-    });
-    if (storeModified) {
-      this.saveKnownUsersStore(store);
-    }
+    if (!myName) return [];
 
     const map = new Map();
 
     const upsert = (uname, info = {}) => {
       const clean = String(uname || '').trim();
       if (this.isMailingListName(clean)) return;
-      if (myName && clean.toLowerCase() === myName) return;
+      if (clean.toLowerCase() === myName) return;
       const key = clean.toLowerCase();
       const existing = map.get(key) || {};
       map.set(key, {
         username: existing.username || clean,
-        role: info.role || existing.role || 'Known User',
-        campaignId: info.campaignId || existing.campaignId || '',
-        campaignName: info.campaignName || existing.campaignName || '',
-        notes: this.getUserNotes(clean)
+        notes: this.getUserNotes(clean) || info.notes || ''
       });
     };
 
-    // 1. Explicitly stored known users (e.g. anyone individually messaged)
-    Object.values(store).forEach(u => upsert(u.username, u));
-
-    // 2. Campaign GMs and Players from participated/owned campaigns
-    this.getCampaignHistory().forEach(c => {
-      if (c.creatorName) {
-        upsert(c.creatorName, { role: 'GM', campaignId: c.campaignId, campaignName: c.campaignName });
-      }
-      if (c.isCreator) {
-        const reqs = this.getJoinRequestsForGM(c.campaignId);
-        reqs.forEach(r => {
-          if (r.username) upsert(r.username, { role: 'Player', campaignId: c.campaignId, campaignName: c.campaignName });
-        });
-        const savedChars = this.getCampaignSavedCharacters(c.campaignId);
-        Object.values(savedChars).forEach(sc => {
-          if (sc.playerName) upsert(sc.playerName, { role: 'Player', campaignId: c.campaignId, campaignName: c.campaignName });
-        });
-      }
-    });
-
-    // 3. Message history (individual senders/recipients only — never mailing lists)
+    // Only add users if a message has been successfully exchanged between that user and the currently logged in user
     this.getAllCampaignMessages().forEach(m => {
       const sender = (m.senderUser || '').trim();
       const recip = (m.recipientUser || '').trim();
-      if (sender && (!myName || sender.toLowerCase() === myName) && recip && !this.isMailingListName(recip)) {
-        upsert(recip, { role: 'Messaged', campaignId: m.campaignId, campaignName: m.campaignName });
-      } else if (recip && (!myName || recip.toLowerCase() === myName) && sender && !this.isMailingListName(sender)) {
-        upsert(sender, { role: 'Messaged You', campaignId: m.campaignId, campaignName: m.campaignName });
+      const senderLower = sender.toLowerCase();
+      const recipLower = recip.toLowerCase();
+
+      // Case 1: Current user sent a direct message or CC to this user
+      if (senderLower === myName) {
+        if (recip && !this.isMailingListName(recip) && recipLower !== myName) {
+          upsert(recip);
+        }
+        if (Array.isArray(m.ccUsers)) {
+          m.ccUsers.forEach(cc => {
+            const ccClean = String(cc || '').trim();
+            if (ccClean && !this.isMailingListName(ccClean) && ccClean.toLowerCase() !== myName) {
+              upsert(ccClean);
+            }
+          });
+        }
       }
-      if (Array.isArray(m.ccUsers)) {
-        m.ccUsers.forEach(cc => upsert(cc, { role: 'CC', campaignId: m.campaignId, campaignName: m.campaignName }));
+
+      // Case 2: Current user received a direct message from this user
+      if (recipLower === myName) {
+        if (sender && !this.isMailingListName(sender) && senderLower !== myName) {
+          upsert(sender);
+        }
       }
-      if (m.gmName && !this.isMailingListName(m.gmName)) upsert(m.gmName, { role: 'GM', campaignId: m.campaignId, campaignName: m.campaignName });
-      if (m.playerName && !this.isMailingListName(m.playerName)) upsert(m.playerName, { role: 'Player', campaignId: m.campaignId, campaignName: m.campaignName });
+
+      // Case 3: Current user was CC'd on a message from this user
+      if (Array.isArray(m.ccUsers) && m.ccUsers.some(u => String(u || '').trim().toLowerCase() === myName)) {
+        if (sender && !this.isMailingListName(sender) && senderLower !== myName) {
+          upsert(sender);
+        }
+      }
     });
 
     return Array.from(map.values()).sort((a, b) => a.username.localeCompare(b.username));
@@ -3298,13 +3306,16 @@ export class CampaignTrackerManager {
     }
 
     // Update new message count next to the user icon AND next to the Campaign Messages dropdown menu item (with pulsing effect when unread > 0)
+    // Requirement v3.86: Always show the messages icon if a user is logged in
     const unreadCount = this.getUnreadMessageCount();
-    const totalMsgs = this.getMessagesForCurrentUser().length;
-    const ownsCamp = this.ownsAnyCampaign();
     const msgBtn = document.getElementById('btn-header-messages');
     const msgCountEl = document.getElementById('header-message-count-badge');
+    const isUserLoggedIn = (typeof supabaseService !== 'undefined' && supabaseService?.isLoggedIn)
+      ? supabaseService.isLoggedIn()
+      : !!(this.getCurrentUsername && this.getCurrentUsername());
+
     if (msgBtn && msgCountEl) {
-      if (ownsCamp || totalMsgs > 0) {
+      if (isUserLoggedIn) {
         msgBtn.style.display = 'inline-flex';
         msgCountEl.textContent = String(unreadCount);
         msgCountEl.style.background = unreadCount > 0 ? 'var(--hero-red)' : 'rgba(148, 163, 184, 0.35)';
@@ -4169,9 +4180,6 @@ export class CampaignTrackerManager {
       btn.addEventListener('click', (e) => {
         const gm = e.currentTarget.dataset.gm || '';
         const campId = e.currentTarget.dataset.campid || '';
-        if (gm) {
-          this.addKnownUser(gm, { role: 'GM', campaignId: campId });
-        }
         if (typeof window !== 'undefined' && window.appController) {
           window.appController.openCampaignMessagesModal(gm, campId);
         }
@@ -4327,7 +4335,7 @@ export class CampaignTrackerManager {
 <head>
   <meta charset="UTF-8">
   <title>Mutants & Masterminds 3E - Party Conditions & Toughness Tracker</title>
-  <link rel="stylesheet" href="css/styles.css?v=3.85">
+  <link rel="stylesheet" href="css/styles.css?v=3.86">
   <style>
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;

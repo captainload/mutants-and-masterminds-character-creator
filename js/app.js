@@ -41,7 +41,7 @@ import {
   tablesManager
 } from './tables.js';
 
-import { POWER_PROFILES_LIBRARY } from './power_profiles.js?v=3.85';
+import { POWER_PROFILES_LIBRARY } from './power_profiles.js?v=3.86';
 import { ARCHETYPES } from './archetypes.js';
 import { archetypeManager } from './archetype_window.js';
 import { campaignManager, partyManager, formatCharacterSheetHTML } from './party.js';
@@ -2103,7 +2103,7 @@ window.partyManager = partyManager;
   }
 
   async checkForUpdates({ isManual = false } = {}) {
-    const CURRENT_VERSION = '3.85';
+    const CURRENT_VERSION = '3.86';
     const versionEl = document.getElementById('header-version-tag');
     const updateBtn = document.getElementById('btn-header-update-alert');
     if (typeof window === 'undefined' || !window.location || !window.location.href || window.location.href === 'about:blank') return;
@@ -2567,6 +2567,11 @@ window.partyManager = partyManager;
     const userDropdown = document.getElementById('header-user-dropdown');
     const dropdownUsername = document.getElementById('header-dropdown-username');
     const dropdownEmail = document.getElementById('header-dropdown-email');
+    const headerMessagesBtn = document.getElementById('btn-header-messages');
+    if (headerMessagesBtn) {
+      headerMessagesBtn.style.display = supabaseService.isLoggedIn() ? 'inline-flex' : 'none';
+    }
+
     const logoutBtn = document.getElementById('btn-header-logout');
     const authCloseBtn = document.getElementById('btn-close-auth-modal');
 
@@ -2677,6 +2682,25 @@ window.partyManager = partyManager;
       statusMsg.style.border = `1px solid ${isError ? 'var(--hero-red)' : 'var(--hero-green)'}`;
     };
 
+    // Enter key on password field triggers sign in button
+    document.getElementById('auth-signin-password')?.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        document.getElementById('btn-submit-signin')?.click();
+      }
+    });
+
+    // Clear previous login messages when user types in login name or password fields
+    const clearAuthStatus = () => {
+      if (statusMsg) {
+        statusMsg.style.display = 'none';
+        statusMsg.textContent = '';
+      }
+    };
+    ['auth-signin-email', 'auth-signin-password', 'auth-signup-username', 'auth-signup-email', 'auth-signup-password', 'auth-forgot-email'].forEach(id => {
+      document.getElementById(id)?.addEventListener('input', clearAuthStatus);
+    });
+
     // Submit Sign In
     document.getElementById('btn-submit-signin')?.addEventListener('click', async () => {
       const email = document.getElementById('auth-signin-email')?.value.trim();
@@ -2786,6 +2810,11 @@ window.partyManager = partyManager;
     const userDropdown = document.getElementById('header-user-dropdown');
     const dropdownUsername = document.getElementById('header-dropdown-username');
     const dropdownEmail = document.getElementById('header-dropdown-email');
+    const headerMessagesBtn = document.getElementById('btn-header-messages');
+    if (headerMessagesBtn) {
+      headerMessagesBtn.style.display = supabaseService.isLoggedIn() ? 'inline-flex' : 'none';
+    }
+
 
     if (user) {
       const rawUname = supabaseService.getUsername() || user.user_metadata?.username || user.email?.split('@')[0] || 'User';
@@ -2873,6 +2902,14 @@ window.partyManager = partyManager;
    */
   wireMessagingClient(doc = document) {
     if (!doc) return;
+    doc.getElementById('btn-mark-selected-messages-read')?.addEventListener('click', () => {
+      const selectedCards = doc.querySelectorAll('#campaign-messages-list-container .campaign-message-card.selected');
+      const ids = Array.from(selectedCards).map(c => c.dataset.msgid).filter(Boolean);
+      if (ids.length > 0) {
+        campaignManager.markMessagesRead(ids);
+        this.renderCampaignMessagesModalIfOpen();
+      }
+    });
     doc.getElementById('btn-mark-all-messages-read')?.addEventListener('click', () => {
       campaignManager.markAllMessagesRead();
       this.renderCampaignMessagesModalIfOpen();
@@ -2934,6 +2971,12 @@ window.partyManager = partyManager;
     };
     doc.getElementById('btn-close-compose-pane')?.addEventListener('click', closeComposePane);
     doc.getElementById('btn-cancel-compose-pane')?.addEventListener('click', closeComposePane);
+    const composePaneEl = doc.getElementById('msg-client-compose-pane');
+    if (composePaneEl) {
+      composePaneEl.addEventListener('click', (e) => {
+        if (e.target === composePaneEl) closeComposePane();
+      });
+    }
 
     const toggleKnownBtn = doc.getElementById('btn-toggle-known-users-dropdown');
     const knownMenuEl = doc.getElementById('msg-known-users-checkbox-menu');
@@ -3642,7 +3685,7 @@ window.partyManager = partyManager;
   openMessageComposePane(prefillRecipient = '', prefillCampId = '', customTitle = '✉️ New Message', { isReply = false, doc = document } = {}) {
     const knownUsers = campaignManager.getKnownUsers();
     const pane = doc.getElementById('msg-client-compose-pane');
-    if (pane) pane.style.display = 'block';
+    if (pane) pane.style.display = 'flex';
     const titleEl = doc.getElementById('msg-compose-pane-title');
     if (titleEl) titleEl.textContent = customTitle || '✉️ New Message';
 
@@ -3671,7 +3714,6 @@ window.partyManager = partyManager;
           <label class="known-user-checkbox-item">
             <input type="checkbox" class="chk-cc-user-recipient" value="${u.username}" ${prevCcChecked.has(u.username.toLowerCase()) ? 'checked' : ''} style="cursor: pointer; width: 15px; height: 15px; accent-color: var(--hero-cyan);" />
             <span style="font-weight: 700;">${u.username}</span>
-            <span style="color: var(--text-muted); font-size: 10pt;">(${u.role})</span>
           </label>
         `).join('');
 
@@ -3834,7 +3876,7 @@ window.partyManager = partyManager;
 <head>
   <meta charset="UTF-8">
   <title>Mutants &amp; Masterminds 3E - Campaign Messaging Client</title>
-  <link rel="stylesheet" href="css/styles.css?v=3.85">
+  <link rel="stylesheet" href="css/styles.css?v=3.86">
   <style>
     html, body { height: 100%; margin: 0; }
     body {
@@ -3959,7 +4001,6 @@ window.partyManager = partyManager;
           <label class="known-user-checkbox-item">
             <input type="checkbox" class="chk-known-user-recipient" value="${u.username}" data-campid="${u.campaignId || ''}" ${prevChecked.has(u.username.toLowerCase()) ? 'checked' : ''} style="cursor: pointer; width: 15px; height: 15px; accent-color: var(--hero-blue);" />
             <span style="font-weight: 700;">${u.username}</span>
-            <span style="color: var(--text-muted); font-size: 10pt;">(${u.role}${u.campaignName ? ' • ' + u.campaignName : ''})</span>
           </label>
         `).join('');
 
@@ -3996,18 +4037,38 @@ window.partyManager = partyManager;
     const addressBookEl = doc.getElementById('known-users-address-book-list');
     if (addressBookEl) {
       if (knownUsers.length === 0) {
-        addressBookEl.innerHTML = '<div style="font-size: 10pt; color: var(--text-muted); font-style: italic;">No known users yet. Anyone you message is added automatically.</div>';
+        addressBookEl.innerHTML = '<div style="font-size: 10pt; color: var(--text-muted); font-style: italic;">No known users yet. Users are added once a message is exchanged.</div>';
       } else {
-        addressBookEl.innerHTML = knownUsers.map(u => `
-          <div class="known-user-address-row" style="display: flex; justify-content: space-between; align-items: center; gap: 0.4rem; background: rgba(255,255,255,0.04); border: 1px solid var(--border-color); border-radius: 4px; padding: 3px 6px;">
-            <div style="display: flex; align-items: center; gap: 0.35rem; min-width: 0; flex: 1;">
-              <button type="button" class="btn btn-outline btn-view-user-notes-info" data-username="${u.username}" title="View User Notes for ${u.username}" style="font-size: 10pt; font-weight: 800; padding: 0px 6px; min-height: 20px; border-radius: 999px; color: var(--hero-cyan); border-color: var(--hero-cyan);">i</button>
-              <span style="font-size: 10pt; font-weight: 700; color: var(--text-bright); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${u.username}</span>
-              <span style="font-size: 10pt; color: var(--text-muted);">(${u.role})</span>
+        addressBookEl.innerHTML = knownUsers.map(u => {
+          const uNotes = (campaignManager.getUserNotes(u.username) || u.notes || '').trim();
+          return `
+          <div class="known-user-address-row">
+            <div style="display: flex; align-items: center; gap: 0.4rem; min-width: 120px; max-width: 170px; flex-shrink: 0;">
+              <button type="button" class="btn btn-outline btn-view-user-notes-info" data-username="${u.username}" title="View full user notes for ${u.username}" style="font-size: 10pt; font-weight: 800; padding: 0px 6px; min-height: 20px; border-radius: 999px; color: var(--hero-cyan); border-color: var(--hero-cyan);">i</button>
+              <span style="font-size: 10pt; font-weight: 700; color: var(--text-bright); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${u.username}">${u.username}</span>
             </div>
-            <button type="button" class="btn btn-outline btn-address-book-select-user" data-username="${u.username}" data-campid="${u.campaignId || ''}" title="Message ${u.username}" style="font-size: 10pt; padding: 1px 6px; min-height: 22px; color: var(--hero-gold); border-color: var(--hero-gold); font-weight: 700;">✉️ Message</button>
+            <div class="address-book-user-notes-middle" title="User Notes for ${u.username}">
+              ${uNotes ? uNotes : '<span style="font-style: italic; opacity: 0.65;">(No notes entered)</span>'}
+            </div>
+            <div style="flex-shrink: 0; margin-left: 0.4rem;">
+              <button type="button" class="btn btn-outline btn-address-book-select-user" data-username="${u.username}" data-campid="${u.campaignId || ''}" title="Message ${u.username}" style="font-size: 10pt; padding: 2px 8px; min-height: 24px; color: var(--hero-gold); border-color: var(--hero-gold); font-weight: 700;">✉️ Message</button>
+            </div>
           </div>
-        `).join('');
+        `;
+        }).join('');
+
+        knownUsers.forEach(u => {
+          if (!campaignManager.getUserNotes(u.username) && supabaseService.client) {
+            supabaseService.getUserNotes(u.username).then(notes => {
+              if (notes) {
+                campaignManager.setUserNotes(notes, u.username);
+                const rowEl = addressBookEl.querySelector(`.btn-view-user-notes-info[data-username="${u.username}"]`)?.closest('.known-user-address-row');
+                const notesEl = rowEl?.querySelector('.address-book-user-notes-middle');
+                if (notesEl) notesEl.textContent = notes;
+              }
+            }).catch(() => {});
+          }
+        });
 
         addressBookEl.querySelectorAll('.btn-view-user-notes-info').forEach(btn => {
           btn.addEventListener('click', async (e) => {
@@ -4073,7 +4134,7 @@ window.partyManager = partyManager;
       const replyTarget = (rawSender && rawSender.toLowerCase() !== myNameLower) ? rawSender : '';
 
       return `
-        <div class="campaign-message-card" data-msgid="${m.id}" data-replyuser="${replyTarget}" data-campid="${m.campaignId !== 'DIRECT' ? m.campaignId : ''}" style="background: ${isUnread ? 'rgba(59, 130, 246, 0.1)' : 'var(--bg-card)'}; border: 1px solid ${isUnread ? 'var(--hero-blue)' : 'var(--border-color)'}; border-radius: 6px; padding: 0.75rem 1rem; margin-bottom: 0.65rem; display: flex; flex-direction: column; gap: 0.45rem; cursor: pointer;">
+        <div class="campaign-message-card ${isUnread ? 'msg-unread' : 'msg-read'}" data-msgid="${m.id}" data-replyuser="${replyTarget}" data-campid="${m.campaignId !== 'DIRECT' ? m.campaignId : ''}">
           <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.4rem; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 0.35rem;">
             <div style="display: flex; align-items: center; gap: 0.45rem; flex-wrap: wrap;">
               ${isUnread ? '<span style="background: var(--hero-blue); color: #fff; font-size: 10pt; font-weight: 800; padding: 1px 6px; border-radius: 4px;">NEW</span>' : ''}
@@ -4099,21 +4160,58 @@ window.partyManager = partyManager;
             ${m.type === 'JOIN_REQUEST' ? `
               <button type="button" class="btn btn-outline btn-msg-open-requests" data-campid="${m.campaignId}" data-msgid="${m.id}" style="font-size: 10pt; padding: 2px 8px; color: var(--hero-blue); border-color: var(--hero-blue); font-weight: 700;">🛡️ Review Join Requests</button>
             ` : ''}
-            ${isUnread ? `
-              <button type="button" class="btn btn-outline btn-msg-mark-read" data-msgid="${m.id}" style="font-size: 10pt; padding: 2px 8px;">Mark Read</button>
-            ` : ''}
+            <button type="button" class="btn btn-outline btn-msg-mark-read" data-msgid="${m.id}" style="font-size: 10pt; padding: 2px 8px; ${isUnread ? 'color: var(--hero-blue); border-color: var(--hero-blue); font-weight: 700;' : 'opacity: 0.65; cursor: default;'}" ${isUnread ? '' : 'disabled title="Already marked as read"'}>
+              ${isUnread ? '✓ Mark Read' : '✓ Read'}
+            </button>
           </div>
         </div>
       `;
     }).join('');
 
-    container.querySelectorAll('.campaign-message-card').forEach((card, idx) => {
-      if (idx === 0) card.classList.add('selected');
-      card.addEventListener('click', () => {
-        container.querySelectorAll('.campaign-message-card').forEach(c => c.classList.remove('selected'));
-        card.classList.add('selected');
+    const cards = Array.from(container.querySelectorAll('.campaign-message-card'));
+    let lastClickedIndex = cards.length > 0 ? 0 : -1;
+    if (cards.length > 0) cards[0].classList.add('selected');
+    const selectedBtn = doc.getElementById('btn-mark-selected-messages-read');
+
+    const updateSelectionUI = () => {
+      const selectedCards = container.querySelectorAll('.campaign-message-card.selected');
+      const count = selectedCards.length;
+      if (selectedBtn) {
+        if (count > 1) {
+          selectedBtn.style.display = 'inline-flex';
+          selectedBtn.textContent = `✓ Mark Selected Read (${count})`;
+        } else {
+          selectedBtn.style.display = 'none';
+        }
+      }
+    };
+
+    cards.forEach((card, idx) => {
+      card.addEventListener('click', (e) => {
+        if (e.target.closest('button') || e.target.closest('a') || e.target.closest('input')) return;
+
+        if (e.shiftKey && lastClickedIndex >= 0) {
+          const start = Math.min(lastClickedIndex, idx);
+          const end = Math.max(lastClickedIndex, idx);
+          if (!e.ctrlKey && !e.metaKey) {
+            cards.forEach(c => c.classList.remove('selected'));
+          }
+          for (let i = start; i <= end; i++) {
+            cards[i].classList.add('selected');
+          }
+        } else if (e.ctrlKey || e.metaKey) {
+          card.classList.toggle('selected');
+          lastClickedIndex = idx;
+        } else {
+          cards.forEach(c => c.classList.remove('selected'));
+          card.classList.add('selected');
+          lastClickedIndex = idx;
+        }
+        updateSelectionUI();
       });
     });
+
+    updateSelectionUI();
 
     container.querySelectorAll('.btn-msg-reply-user').forEach(btn => {
       btn.addEventListener('click', (e) => {
@@ -4470,6 +4568,8 @@ window.partyManager = partyManager;
             </div>
           `;
         }).join('');
+
+
 
         container.innerHTML = html;
 

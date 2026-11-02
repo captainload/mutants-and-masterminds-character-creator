@@ -6,8 +6,8 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Mutants & Masterminds 3E - Character Editor v3.85</title>
-  <link rel="stylesheet" href="css/styles.css?v=3.85">
+  <title>Mutants & Masterminds 3E - Character Editor v3.86</title>
+  <link rel="stylesheet" href="css/styles.css?v=3.86">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
@@ -93,7 +93,7 @@
 
           <div class="brand-title-centered">
             <span>Mutants & Masterminds 3E Character Editor</span>
-            <span id="header-version-tag" class="header-version-tag up-to-date" title="Current Version">v3.85</span>
+            <span id="header-version-tag" class="header-version-tag up-to-date" title="Current Version">v3.86</span>
             <button type="button" id="btn-header-update-alert" class="btn-header-update-alert" title="Check for updates / Update status" style="display: none;">!</button>
           </div>
 
@@ -1913,6 +1913,7 @@
             <button type="button" class="btn btn-outline" id="btn-msg-toolbar-cc" title="Copy reply/message to Known Users via checkboxes" style="font-size: 10pt; font-weight: 700; padding: 0.28rem 0.65rem; color: var(--hero-cyan); border-color: var(--hero-cyan);">📋 CC</button>
             <button type="button" class="btn btn-outline" id="btn-msg-toolbar-address-book" style="font-size: 10pt; font-weight: 700; padding: 0.28rem 0.65rem; color: var(--hero-blue); border-color: var(--hero-blue);">📖 Address Book</button>
             <span style="color: var(--border-color); padding: 0 0.15rem;">|</span>
+            <button type="button" class="btn btn-outline" id="btn-mark-selected-messages-read" style="font-size: 10pt; padding: 0.25rem 0.65rem; display: none; color: var(--hero-green); border-color: var(--hero-green); font-weight: 700;">✓ Mark Selected Read</button>
             <button type="button" class="btn btn-outline" id="btn-mark-all-messages-read" style="font-size: 10pt; padding: 0.25rem 0.65rem;">✓ Mark All Read</button>
             <button type="button" class="btn btn-outline" id="btn-clear-read-messages" style="font-size: 10pt; padding: 0.25rem 0.65rem;">🗑️ Clear Read</button>
           </div>
@@ -1922,16 +1923,16 @@
         </div>
 
         <!-- Collapsible Known Users Address Book Drawer (toggled via Toolbar "Address Book" button) -->
-        <div id="msg-client-address-book-drawer" style="display: none; background: var(--bg-card); border: 1px solid var(--hero-blue); border-radius: 6px; padding: 0.65rem 0.85rem; margin-bottom: 0.65rem;">
+        <div id="msg-client-address-book-drawer" style="display: none;">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem; flex-wrap: wrap; gap: 0.4rem;">
             <div>
               <strong style="font-size: 10pt; color: var(--hero-blue);">📖 Personal Address Book (Known Users)</strong>
-              <span style="font-size: 10pt; color: var(--text-muted); margin-left: 0.4rem;">• Click <strong>i</strong> to read User Notes or <strong>✉️ Message</strong> to compose (No public user index or search)</span>
+              <span style="font-size: 10pt; color: var(--text-muted); margin-left: 0.4rem;">• Up to 3 rows of user notes are shown per contact • Click <strong>✉️ Message</strong> to compose</span>
             </div>
             <button type="button" class="btn btn-outline" id="btn-close-address-book-drawer" style="font-size: 10pt; padding: 1px 7px; min-height: 22px;">✕ Close</button>
           </div>
-          <div id="known-users-address-book-list" style="max-height: 150px; overflow-y: auto; display: flex; flex-direction: column; gap: 0.3rem;">
-            <div style="font-size: 10pt; color: var(--text-muted); font-style: italic;">No known users yet. Anyone you message is added automatically.</div>
+          <div id="known-users-address-book-list">
+            <div style="font-size: 10pt; color: var(--text-muted); font-style: italic;">No known users yet. Users are added once a message is exchanged.</div>
           </div>
         </div>
 
@@ -1939,7 +1940,7 @@
         <div class="msg-client-inbox-pane" id="msg-client-inbox-pane">
           <div class="msg-client-list-header">
             <span>📬 Message List (Campaigns you GM are marked with 👑)</span>
-            <span>Click a message to select</span>
+            <span>Click to select • Ctrl-Click / Shift-Click for multi-select</span>
           </div>
           <div id="campaign-messages-list-container" style="padding: 0.65rem; overflow-y: auto; flex: 1;">
             <div style="text-align: center; color: var(--text-muted); font-size: 10pt; font-style: italic; padding: 2rem 0;">
@@ -1948,56 +1949,60 @@
           </div>
         </div>
 
-        <!-- Second Pane Below Message List: New Message Compose Pane (3 rows default, expands up to 8 rows before scrolling) -->
+        <!-- New Message Compose Dialog (Popup Modal) -->
         <div class="msg-client-compose-pane" id="msg-client-compose-pane" style="display: none;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; padding-bottom: 0.35rem; border-bottom: 1px solid var(--border-color);">
-            <strong id="msg-compose-pane-title" style="font-size: 10pt; color: var(--hero-gold); font-weight: 800;">✉️ New Message</strong>
-            <button type="button" class="btn btn-outline" id="btn-close-compose-pane" style="font-size: 10pt; padding: 1px 7px; min-height: 22px;" title="Close New Message Pane">✕</button>
-          </div>
-          <div style="display: flex; gap: 0.5rem; margin-bottom: 0.5rem; flex-wrap: wrap; align-items: center;">
-            <label style="font-size: 10pt; font-weight: 800; color: var(--text-muted);">To:</label>
-            <input type="text" id="msg-compose-recipient-input" placeholder="Enter exact username(s), comma-separated..." style="flex: 1.1; min-width: 170px; background: var(--bg-input); color: var(--text-bright); border: 1px solid var(--border-color); border-radius: 4px; padding: 0.3rem 0.55rem; font-size: 10pt;" />
-            
-            <!-- Known Users Multi-Select Checkbox Dropdown -->
-            <div class="known-users-multiselect-dropdown" id="msg-known-users-dropdown-container">
-              <button type="button" class="btn btn-outline" id="btn-toggle-known-users-dropdown" style="width: 100%; display: flex; justify-content: space-between; align-items: center; font-size: 10pt; padding: 0.28rem 0.6rem; background: var(--bg-input); color: var(--text-bright); border: 1px solid var(--border-color); font-weight: 700;">
-                <span id="known-users-dropdown-label">👥 Known Users (Checkboxes)</span>
-                <span style="font-size: 10pt; opacity: 0.8;">▼</span>
-              </button>
-              <div class="known-users-checkbox-menu" id="msg-known-users-checkbox-menu">
-                <div style="font-size: 10pt; color: var(--text-muted); font-style: italic; padding: 0.25rem;">No known users yet.</div>
-              </div>
-              <select id="msg-compose-recipient-select" multiple style="display: none;"></select>
+          <div class="msg-client-compose-dialog">
+            <div class="modal-header-bar" style="border-radius: 6px 6px 0 0;">
+              <strong id="msg-compose-pane-title" style="font-size: 10pt; color: var(--hero-gold); font-weight: 800;">✉️ New Message</strong>
+              <button type="button" class="btn btn-outline" id="btn-close-compose-pane" style="min-height: 28px; padding: 0.1rem 0.5rem;" title="Close New Message Dialog">✕</button>
             </div>
+            <div class="modal-scroll-body" style="padding: 1rem 1.15rem; flex: 1; overflow-y: auto;">
+              <div style="display: flex; gap: 0.5rem; margin-bottom: 0.5rem; flex-wrap: wrap; align-items: center;">
+                <label style="font-size: 10pt; font-weight: 800; color: var(--text-muted);">To:</label>
+                <input type="text" id="msg-compose-recipient-input" placeholder="Enter exact username(s), comma-separated..." style="flex: 1.1; min-width: 170px; background: var(--bg-input); color: var(--text-bright); border: 1px solid var(--border-color); border-radius: 4px; padding: 0.3rem 0.55rem; font-size: 10pt;" />
+                
+                <!-- Known Users Multi-Select Checkbox Dropdown -->
+                <div class="known-users-multiselect-dropdown" id="msg-known-users-dropdown-container">
+                  <button type="button" class="btn btn-outline" id="btn-toggle-known-users-dropdown" style="width: 100%; display: flex; justify-content: space-between; align-items: center; font-size: 10pt; padding: 0.28rem 0.6rem; background: var(--bg-input); color: var(--text-bright); border: 1px solid var(--border-color); font-weight: 700;">
+                    <span id="known-users-dropdown-label">👥 Known Users (Checkboxes)</span>
+                    <span style="font-size: 10pt; opacity: 0.8;">▼</span>
+                  </button>
+                  <div class="known-users-checkbox-menu" id="msg-known-users-checkbox-menu">
+                    <div style="font-size: 10pt; color: var(--text-muted); font-style: italic; padding: 0.25rem;">No known users yet.</div>
+                  </div>
+                  <select id="msg-compose-recipient-select" multiple style="display: none;"></select>
+                </div>
 
-            <!-- CC Known Users Checkbox Dropdown (for copying replies/messages to additional known users) -->
-            <div class="known-users-multiselect-dropdown" id="msg-cc-dropdown-container" style="min-width: 185px; flex: 0.85;">
-              <button type="button" class="btn btn-outline" id="btn-toggle-cc-dropdown" title="Select Known Users to CC on this message/reply" style="width: 100%; display: flex; justify-content: space-between; align-items: center; font-size: 10pt; padding: 0.28rem 0.6rem; background: var(--bg-input); color: var(--hero-cyan); border: 1px solid var(--hero-cyan); font-weight: 700;">
-                <span id="cc-users-dropdown-label">📋 CC: None</span>
-                <span style="font-size: 10pt; opacity: 0.8;">▼</span>
-              </button>
-              <div class="known-users-checkbox-menu" id="msg-cc-checkbox-menu">
-                <div style="font-size: 10pt; color: var(--text-muted); font-style: italic; padding: 0.25rem;">No known users yet.</div>
+                <!-- CC Known Users Checkbox Dropdown (for copying replies/messages to additional known users) -->
+                <div class="known-users-multiselect-dropdown" id="msg-cc-dropdown-container" style="min-width: 185px; flex: 0.85;">
+                  <button type="button" class="btn btn-outline" id="btn-toggle-cc-dropdown" title="Select Known Users to CC on this message/reply" style="width: 100%; display: flex; justify-content: space-between; align-items: center; font-size: 10pt; padding: 0.28rem 0.6rem; background: var(--bg-input); color: var(--hero-cyan); border: 1px solid var(--hero-cyan); font-weight: 700;">
+                    <span id="cc-users-dropdown-label">📋 CC: None</span>
+                    <span style="font-size: 10pt; opacity: 0.8;">▼</span>
+                  </button>
+                  <div class="known-users-checkbox-menu" id="msg-cc-checkbox-menu">
+                    <div style="font-size: 10pt; color: var(--text-muted); font-style: italic; padding: 0.25rem;">No known users yet.</div>
+                  </div>
+                </div>
+
+                <label style="font-size: 10pt; font-weight: 800; color: var(--text-muted); margin-left: 0.25rem;">Recipient Scope:</label>
+                <select id="msg-compose-campaign-select" style="flex: 1.4; min-width: 240px; background: var(--bg-input); color: var(--text-bright); border: 1px solid var(--border-color); border-radius: 4px; padding: 0.3rem 0.5rem; font-size: 10pt; font-weight: 700;">
+                  <option value="">Direct Recipient(s) Only (To: / Known Users)</option>
+                  <option value="CURRENT_CONNECTED">Participants of currently connected campaign (excludes yourself)</option>
+                  <option value="ALL_OWNED">👑 Participants of all campaigns owned</option>
+                </select>
+              </div>
+              <div style="margin-bottom: 0.5rem;">
+                <textarea id="msg-compose-text-input" class="textarea-msg-compose" rows="3" placeholder="Type your message here (shows 3 rows by default, expands up to 8 visible rows before scrolling)..."></textarea>
               </div>
             </div>
-
-            <label style="font-size: 10pt; font-weight: 800; color: var(--text-muted); margin-left: 0.25rem;">Recipient Scope:</label>
-            <select id="msg-compose-campaign-select" style="flex: 1.4; min-width: 240px; background: var(--bg-input); color: var(--text-bright); border: 1px solid var(--border-color); border-radius: 4px; padding: 0.3rem 0.5rem; font-size: 10pt; font-weight: 700;">
-              <option value="">Direct Recipient(s) Only (To: / Known Users)</option>
-              <option value="CURRENT_CONNECTED">Participants of currently connected campaign (excludes yourself)</option>
-              <option value="ALL_OWNED">👑 Participants of all campaigns owned</option>
-            </select>
-          </div>
-          <div style="margin-bottom: 0.5rem;">
-            <textarea id="msg-compose-text-input" class="textarea-msg-compose" rows="3" placeholder="Type your message here (shows 3 rows by default, expands up to 8 visible rows before scrolling)..."></textarea>
-          </div>
-          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
-            <span style="font-size: 10pt; color: var(--text-muted);">
-              🔒 Any user can be messaged if you know their username, or select a campaign participant scope. No public user directory or search exists.
-            </span>
-            <div style="display: flex; gap: 0.4rem;">
-              <button type="button" class="btn btn-outline" id="btn-cancel-compose-pane" style="font-size: 10pt; padding: 0.3rem 0.7rem;">Cancel</button>
-              <button type="button" class="btn btn-primary" id="btn-send-direct-message" style="font-size: 10pt; font-weight: 800; padding: 0.3rem 0.9rem;">📨 Send Message</button>
+            <div class="modal-footer-bar" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
+              <span style="font-size: 10pt; color: var(--text-muted);">
+                🔒 Any user can be messaged if you know their username, or select a campaign participant scope. No public user directory or search exists.
+              </span>
+              <div style="display: flex; gap: 0.4rem;">
+                <button type="button" class="btn btn-outline" id="btn-cancel-compose-pane" style="font-size: 10pt; padding: 0.3rem 0.7rem;">Cancel</button>
+                <button type="button" class="btn btn-primary" id="btn-send-direct-message" style="font-size: 10pt; font-weight: 800; padding: 0.3rem 0.9rem;">📨 Send Message</button>
+              </div>
             </div>
           </div>
         </div>
@@ -2008,6 +2013,6 @@
     </div>
   </div>
 
-  <script type="module" src="js/app.js?v=3.85"></script>
+  <script type="module" src="js/app.js?v=3.86"></script>
 </body>
 </html>

@@ -6,8 +6,8 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Mutants & Masterminds 3E - Character Editor v3.86</title>
-  <link rel="stylesheet" href="css/styles.css?v=3.86">
+  <title>Mutants & Masterminds 3E - Character Editor v3.87</title>
+  <link rel="stylesheet" href="css/styles.css?v=3.87">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
@@ -93,7 +93,7 @@
 
           <div class="brand-title-centered">
             <span>Mutants & Masterminds 3E Character Editor</span>
-            <span id="header-version-tag" class="header-version-tag up-to-date" title="Current Version">v3.86</span>
+            <span id="header-version-tag" class="header-version-tag up-to-date" title="Current Version">v3.87</span>
             <button type="button" id="btn-header-update-alert" class="btn-header-update-alert" title="Check for updates / Update status" style="display: none;">!</button>
           </div>
 
@@ -159,6 +159,9 @@
 
           <div class="header-field" id="header-campaign-box">
             <button type="button" class="header-field-label header-field-label-btn" id="btn-open-campaigns-label" title="Click to open Campaign Tracker & Settings">Campaign:</button>
+            <button type="button" id="btn-header-active-sessions" title="Running campaign sessions available to join" style="display: none; background: none; border: none; padding: 0 4px 0 0; cursor: pointer; align-items: center;">
+              <span id="header-sessions-count-badge" style="background: var(--hero-green); color: #fff; font-size: 10pt; font-weight: 800; padding: 1px 7px; border-radius: 999px; min-width: 18px; text-align: center; line-height: 1.3; box-shadow: 0 0 6px rgba(16, 185, 129, 0.4);">0</span>
+            </button>
             <select id="header-campaign-select" class="header-field-input header-field-select" style="width: 260px; cursor: pointer; font-size: 10pt; font-weight: 700; color: var(--text-bright); background: transparent; border: none; outline: none;" title="Select an active campaign session to connect to, or open Campaign Tracker">
               <option value="">-- No Active Session --</option>
             </select>
@@ -1716,12 +1719,12 @@
   <!-- ======================================================= -->
   
   <!-- ======================================================= -->
-  <!-- MODAL: CAMPAIGN TRACKER & CONDITIONS                    -->
+  <!-- MODAL: CAMPAIGN BROWSER & DIRECTORY                     -->
   <!-- ======================================================= -->
   <div class="modal-overlay" id="modal-campaign-tracker">
     <div class="modal-container" style="width: calc(100vw - 0.5in); max-width: calc(100vw - 0.5in); height: calc(100vh - 0.5in); max-height: calc(100vh - 0.5in); margin: 0.25in; display: flex; flex-direction: column;">
       <div class="modal-header-bar">
-        <div class="modal-header-title">🛡️ Campaign Tracker & Conditions</div>
+        <div class="modal-header-title">🌐 Campaign Browser & Directory</div>
         <div style="display: flex; gap: 0.4rem; align-items: center;">
           <button class="btn btn-outline" id="btn-campaign-popout" title="Pop out into separate window" style="min-height: 28px; padding: 0.15rem 0.6rem; font-size: 10pt; font-weight: 700;">↗ Pop-out</button>
           <button class="btn btn-outline" id="btn-close-campaign-modal" style="min-height: 28px; padding: 0.1rem 0.5rem;">✕</button>
@@ -1732,12 +1735,70 @@
       </div>
       <div class="modal-footer-bar" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
         <div style="display: flex; gap: 0.4rem;">
-          <button class="btn btn-primary" id="btn-campaign-sync-discord" style="font-size: 10pt; font-weight: 800; min-height: 32px; padding: 0.2rem 0.85rem;">📢 Broadcast to Discord</button>
-          <button class="btn btn-outline" id="btn-campaign-add-ally" style="font-size: 10pt; font-weight: 700; min-height: 32px; padding: 0.2rem 0.75rem;">➕ Add Ally</button>
+          <button type="button" class="btn btn-primary btn-trigger-create-campaign" style="font-size: 10pt; font-weight: 800; min-height: 32px; padding: 0.2rem 0.85rem;">➕ Create Campaign</button>
         </div>
         <div style="display: flex; gap: 0.4rem;">
-          <button class="btn btn-outline" id="btn-campaign-clear-inactive" style="font-size: 10pt; min-height: 32px; padding: 0.2rem 0.6rem;">Clear Inactive</button>
           <button class="btn btn-outline" id="btn-campaign-modal-close-footer" style="font-size: 10pt; min-height: 32px; padding: 0.2rem 0.85rem;">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================= -->
+  <!-- MODAL: GAME SESSION TRACKER (PARTY & SESSION OUTPUT)   -->
+  <!-- ======================================================= -->
+  <div class="modal-overlay" id="modal-game-session">
+    <div class="modal-container" style="width: calc(100vw - 0.5in); max-width: calc(100vw - 0.5in); height: calc(100vh - 0.5in); max-height: calc(100vh - 0.5in); margin: 0.25in; display: flex; flex-direction: column;">
+      <div class="modal-header-bar">
+        <div class="modal-header-title" id="game-session-modal-title">🎮 Game Session Tracker</div>
+        <div style="display: flex; gap: 0.4rem; align-items: center;">
+          <button class="btn btn-outline" id="btn-session-popout" title="Pop out into separate window" style="min-height: 28px; padding: 0.15rem 0.6rem; font-size: 10pt; font-weight: 700;">↗ Pop-out</button>
+          <button class="btn btn-outline" id="btn-close-session-modal" style="min-height: 28px; padding: 0.1rem 0.5rem;">✕</button>
+        </div>
+      </div>
+
+      <!-- Top Half: Party Tracker (50% max height) -->
+      <div class="session-modal-top" id="session-party-tracker-container">
+        <!-- Rendered dynamically by generateSessionTrackerHTML() -->
+      </div>
+
+      <!-- Bottom Half: Session Output History Tabs (Rolls & General) -->
+      <div class="session-modal-bottom" id="session-output-history-container">
+        <div class="session-tabs-bar">
+          <div style="display: flex; gap: 0.5rem; align-items: center;">
+            <button type="button" class="session-tab-btn active" id="btn-session-tab-rolls">🎲 Rolls <span id="session-rolls-count-badge" style="font-size: 10pt; font-weight: 800; background: rgba(59, 130, 246, 0.25); color: var(--hero-blue); padding: 1px 6px; border-radius: 999px; margin-left: 3px;">0</span></button>
+            <button type="button" class="session-tab-btn" id="btn-session-tab-general">📜 General <span id="session-general-count-badge" style="font-size: 10pt; font-weight: 800; background: rgba(16, 185, 129, 0.25); color: var(--hero-green); padding: 1px 6px; border-radius: 999px; margin-left: 3px;">0</span></button>
+          </div>
+          <div style="display: flex; align-items: center; gap: 0.4rem;">
+            <button type="button" class="btn btn-outline" id="btn-clear-session-rolls" style="font-size: 10pt; padding: 2px 7px; min-height: 24px;">Clear Rolls</button>
+          </div>
+        </div>
+
+        <!-- Pane 1: Rolls History -->
+        <div class="session-pane" id="session-pane-rolls">
+          <div id="session-rolls-list"></div>
+        </div>
+
+        <!-- Pane 2: General Events & Logs -->
+        <div class="session-pane" id="session-pane-general" style="display: none; flex-direction: column;">
+          <div id="session-general-list" style="flex: 1; overflow-y: auto; margin-bottom: 0.5rem;"></div>
+          <div style="display: flex; gap: 0.4rem; align-items: center; padding-top: 0.4rem; border-top: 1px solid var(--border-color);">
+            <input type="text" id="session-broadcast-input" placeholder="Post a broadcast message or event to session log..." style="flex: 1; background: var(--bg-input); color: var(--text-bright); border: 1px solid var(--border-color); border-radius: 4px; padding: 0.28rem 0.6rem; font-size: 10pt;">
+            <button type="button" class="btn btn-primary" id="btn-session-send-broadcast" style="font-size: 10pt; font-weight: 800; padding: 0.28rem 0.85rem; white-space: nowrap;">📢 Post Event</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal Footer Bar -->
+      <div class="modal-footer-bar" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
+        <div style="display: flex; gap: 0.4rem; align-items: center;">
+          <button class="btn btn-primary" id="btn-session-sync-discord" style="font-size: 10pt; font-weight: 800; min-height: 32px; padding: 0.2rem 0.85rem;">📢 Broadcast to Discord</button>
+          <button class="btn btn-outline" id="btn-session-add-ally" style="font-size: 10pt; font-weight: 700; min-height: 32px; padding: 0.2rem 0.75rem;">➕ Add Ally</button>
+          <button class="btn btn-outline" id="btn-session-clear-inactive" style="font-size: 10pt; min-height: 32px; padding: 0.2rem 0.6rem;">Clear Inactive</button>
+          <button type="button" class="btn btn-outline btn-leave-campaign-room" id="btn-session-leave" style="font-size: 10pt; font-weight: 700; min-height: 32px; padding: 0.2rem 0.75rem; color: var(--hero-red); border-color: var(--hero-red);">🚪 Leave Session</button>
+        </div>
+        <div style="display: flex; gap: 0.4rem;">
+          <button class="btn btn-outline" id="btn-close-session-footer" style="font-size: 10pt; min-height: 32px; padding: 0.2rem 0.85rem;">Close</button>
         </div>
       </div>
     </div>
@@ -1910,7 +1971,6 @@
           <div style="display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap;">
             <button type="button" class="btn btn-primary" id="btn-msg-toolbar-new" style="font-size: 10pt; font-weight: 800; padding: 0.28rem 0.75rem;">✉️ New Message</button>
             <button type="button" class="btn btn-outline" id="btn-msg-toolbar-reply" title="Reply only to the original sender" style="font-size: 10pt; font-weight: 700; padding: 0.28rem 0.65rem; color: var(--hero-gold); border-color: var(--hero-gold);">↩️ Reply</button>
-            <button type="button" class="btn btn-outline" id="btn-msg-toolbar-cc" title="Copy reply/message to Known Users via checkboxes" style="font-size: 10pt; font-weight: 700; padding: 0.28rem 0.65rem; color: var(--hero-cyan); border-color: var(--hero-cyan);">📋 CC</button>
             <button type="button" class="btn btn-outline" id="btn-msg-toolbar-address-book" style="font-size: 10pt; font-weight: 700; padding: 0.28rem 0.65rem; color: var(--hero-blue); border-color: var(--hero-blue);">📖 Address Book</button>
             <span style="color: var(--border-color); padding: 0 0.15rem;">|</span>
             <button type="button" class="btn btn-outline" id="btn-mark-selected-messages-read" style="font-size: 10pt; padding: 0.25rem 0.65rem; display: none; color: var(--hero-green); border-color: var(--hero-green); font-weight: 700;">✓ Mark Selected Read</button>
@@ -2007,12 +2067,10 @@
           </div>
         </div>
       </div>
-      <div class="modal-footer-bar">
-        <button type="button" class="btn btn-outline" id="btn-close-campaign-messages-footer">Close</button>
-      </div>
+
     </div>
   </div>
 
-  <script type="module" src="js/app.js?v=3.86"></script>
+  <script type="module" src="js/app.js?v=3.87"></script>
 </body>
 </html>

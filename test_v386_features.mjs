@@ -7,26 +7,26 @@ console.log('--- Running v3.86 Feature Tests ---');
 
 // 1. Version Check
 const versionJson = JSON.parse(fs.readFileSync('version.json', 'utf8'));
-assert.strictEqual(versionJson.version, '3.86', 'version.json should be 3.86');
+assert.ok(parseFloat(versionJson.version) >= 3.86, 'version.json should be >= 3.86');
 
 const indexHtml = fs.readFileSync('index.html', 'utf8');
-assert(indexHtml.includes('Character Editor v3.86'), 'index.html title has v3.86');
-assert(indexHtml.includes('css/styles.css?v=3.86'), 'index.html links css v3.86');
-assert(indexHtml.includes('id="header-version-tag" class="header-version-tag up-to-date" title="Current Version">v3.86<'), 'header version tag is v3.86');
-assert(indexHtml.includes('src="js/app.js?v=3.86"'), 'index.html loads app.js v3.86');
+assert.ok(/Character Editor v3\.(8[6-9]|9\d)/.test(indexHtml), 'index.html title has version >= 3.86');
+assert.ok(/css\/styles\.css\?v=3\.(8[6-9]|9\d)/.test(indexHtml), 'index.html links css >= 3.86');
+assert.ok(/id="header-version-tag" class="header-version-tag up-to-date" title="Current Version">v3\.(8[6-9]|9\d)</.test(indexHtml), 'header version tag is >= 3.86');
+assert.ok(/src="js\/app\.js\?v=3\.(8[6-9]|9\d)"/.test(indexHtml), 'index.html loads app.js >= 3.86');
 
 const appJs = fs.readFileSync('js/app.js', 'utf8');
-assert(appJs.includes("CURRENT_VERSION = '3.86'"), 'app.js CURRENT_VERSION is 3.86');
+assert.ok(/CURRENT_VERSION = '3\.(8[6-9]|9\d)'/.test(appJs), 'app.js CURRENT_VERSION is >= 3.86');
 
 const partyJs = fs.readFileSync('js/party.js', 'utf8');
-assert(partyJs.includes('css/styles.css?v=3.86'), 'party.js has v3.86 css link');
+assert.ok(/css\/styles\.css\?v=3\.(8[6-9]|9\d)/.test(partyJs), 'party.js has css link');
 
 const tablesJs = fs.readFileSync('js/tables.js', 'utf8');
-assert(tablesJs.includes('css/styles.css?v=3.86'), 'tables.js has v3.86 css link');
+assert.ok(/css\/styles\.css\?v=3\.(8[6-9]|9\d)/.test(tablesJs), 'tables.js has css link');
 
 const archetypeJs = fs.readFileSync('js/archetype_window.js', 'utf8');
-assert(archetypeJs.includes('css/styles.css?v=3.86'), 'archetype_window.js has v3.86 css link');
-console.log('✓ Test 1 Passed: All versions successfully bumped to 3.86');
+assert.ok(/css\/styles\.css\?v=3\.(8[6-9]|9\d)/.test(archetypeJs), 'archetype_window.js has css link');
+console.log('✓ Test 1 Passed: All versions successfully bumped to >= 3.86');
 
 // 2. Address Book Direct Exchange Rule
 // Clear test storage

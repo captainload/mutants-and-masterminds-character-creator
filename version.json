@@ -1,6 +1,6 @@
 {
-  "version": "3.86",
-  "updatedAt": "2026-11-01T18:25:02.425Z",
-  "releaseNotes": "Cut down vertical whitespace between Action Center sections to eliminate excessive empty rows. Fixed campaign security and visibility when not logged in: unauthenticated users cannot be falsely flagged as members or GMs, private campaigns are strictly hidden from visitors, and joining campaigns requires logging in.",
+  "version": "3.87",
+  "updatedAt": "2026-11-01T21:45:00.000Z",
+  "releaseNotes": "Separated the Game Session Tracker (party display) from the Campaign Browser with dedicated session popup, top-half party tracker, and bottom-half Rolls and General tabs. Added running sessions count badge to header. Changed light mode read messages background to white. Widened compose dialog to within 20px of side margins, and cleaned up message client buttons.",
   "updated": "2026-11-01"
 }

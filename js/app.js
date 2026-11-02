@@ -41,7 +41,7 @@ import {
   tablesManager
 } from './tables.js';
 
-import { POWER_PROFILES_LIBRARY } from './power_profiles.js?v=3.86';
+import { POWER_PROFILES_LIBRARY } from './power_profiles.js?v=3.87';
 import { ARCHETYPES } from './archetypes.js';
 import { archetypeManager } from './archetype_window.js';
 import { campaignManager, partyManager, formatCharacterSheetHTML } from './party.js';
@@ -261,9 +261,39 @@ class AppController {
         return;
       }
       try {
+        if (this.isModalOpen('modal-campaign-tracker')) {
+          this.closeModal('modal-campaign-tracker');
+        }
         await this.joinGameSession(val);
+        this.openGameSessionModal();
       } finally {
         this.updateCampaignDropdown();
+      }
+    });
+
+    // Running sessions badge click handler
+    document.getElementById('btn-header-active-sessions')?.addEventListener('click', async () => {
+      const state = partyManager.getCampaignState();
+      if (state.isConnected && state.campaignId) {
+        this.openGameSessionModal();
+        return;
+      }
+      const campaigns = partyManager.getBrowsableCampaigns();
+      const activeSessions = campaigns.filter(c => {
+        const isMember = !!(c.isCreator || c.isJoinedOrCreated || partyManager.isUserMemberOfCampaign(c.campaignId, c.campaignName));
+        const regInfo = partyManager.getCampaignInfo(c.campaignId) || {};
+        const isOnHiatus = !!(c.isOnHiatus || regInfo.isOnHiatus);
+        const isLive = !isOnHiatus && partyManager.isSessionActive(c.campaignId);
+        return isMember && isLive;
+      });
+      if (activeSessions.length === 1) {
+        if (this.isModalOpen('modal-campaign-tracker')) {
+          this.closeModal('modal-campaign-tracker');
+        }
+        await this.joinGameSession(activeSessions[0].campaignId);
+        this.openGameSessionModal();
+      } else {
+        openCampaignsHandler();
       }
     });
 
@@ -292,6 +322,53 @@ class AppController {
     document.getElementById('btn-close-campaign-modal')?.addEventListener('click', closeCampaignsHandler);
     document.getElementById('btn-campaign-modal-close-footer')?.addEventListener('click', closeCampaignsHandler);
 
+    // Game Session Modal Listeners (v3.87)
+    const closeSessionHandler = () => {
+      this.closeModal('modal-game-session');
+    };
+    document.getElementById('btn-close-session-modal')?.addEventListener('click', closeSessionHandler);
+    document.getElementById('btn-close-session-footer')?.addEventListener('click', closeSessionHandler);
+    document.getElementById('btn-session-popout')?.addEventListener('click', () => {
+      this.closeModal('modal-game-session');
+      partyManager.openSessionPopout();
+    });
+    document.getElementById('btn-session-sync-discord')?.addEventListener('click', async () => {
+      await this.broadcastPartyToDiscord();
+    });
+    document.getElementById('btn-session-add-ally')?.addEventListener('click', () => {
+      this.addPartyAlly();
+    });
+    document.getElementById('btn-session-clear-inactive')?.addEventListener('click', () => {
+      partyManager.clearInactiveMembers();
+    });
+    document.getElementById('btn-session-leave')?.addEventListener('click', () => {
+      partyManager.leaveCampaign();
+      partyManager.renderAllOpenViews();
+      this.updateCampaignDropdown();
+      this.closeModal('modal-game-session');
+    });
+
+    const gameSessionModalEl = document.getElementById('modal-game-session');
+    if (gameSessionModalEl) {
+      gameSessionModalEl.addEventListener('wheel', (e) => {
+        const topBody = document.getElementById('session-party-tracker-container');
+        const bottomRolls = document.getElementById('session-pane-rolls');
+        const bottomGeneral = document.getElementById('session-pane-general');
+        const targetScroll = (topBody && topBody.contains(e.target)) ? topBody :
+                             ((bottomRolls && bottomRolls.contains(e.target)) ? bottomRolls :
+                             ((bottomGeneral && bottomGeneral.contains(e.target)) ? bottomGeneral : null));
+        if (!targetScroll) {
+          e.preventDefault();
+          return;
+        }
+        const atTop = targetScroll.scrollTop <= 0 && e.deltaY < 0;
+        const atBottom = Math.ceil(targetScroll.scrollTop + targetScroll.clientHeight) >= targetScroll.scrollHeight && e.deltaY > 0;
+        if (atTop || atBottom) {
+          e.preventDefault();
+        }
+      }, { passive: false });
+    }
+
     // Prevent wheel scrolling inside #modal-campaign-tracker from ever scrolling the underlying browser window
     const campaignModalEl = document.getElementById('modal-campaign-tracker');
     if (campaignModalEl) {
@@ -318,7 +395,20 @@ class AppController {
       await this.broadcastPartyToDiscord();
     });
 
-    const addAllyHandler = async () => {
+    this.addPartyAlly = async () => {
+      const name = await this.showPromptDialog({
+        title: 'Add Ally / Minion to Campaign',
+        label: 'Character Name:',
+        defaultValue: '',
+        placeholder: 'e.g. Aegis, Night Ranger, Police Officer',
+        confirmText: 'Add to Party'
+      });
+      if (name && name.trim()) {
+        campaignManager.addManualMember({ characterName: name.trim() });
+        partyManager.addSessionEvent({ type: 'ally', icon: '➕', text: `Ally "${name.trim()}" added to party` });
+      }
+    };
+    const addAllyHandler = this.addPartyAlly;
       const name = await this.showPromptDialog({
         title: 'Add Ally / Minion to Campaign',
         label: 'Character Name:',
@@ -1552,7 +1642,11 @@ class AppController {
     });
 
     // Wire global roller listener
-    diceRoller.onRoll((roll) => this.displayRollResult(roll));
+    diceRoller.onRoll((roll) => {
+      this.displayRollResult(roll);
+      partyManager.addSessionRoll(roll);
+      this.renderSessionRollsAndGeneral();
+    });
 
     // Toggle history dropdown
     const toggleBtn = document.getElementById('btn-toggle-dice-history');
@@ -2103,7 +2197,7 @@ window.partyManager = partyManager;
   }
 
   async checkForUpdates({ isManual = false } = {}) {
-    const CURRENT_VERSION = '3.86';
+    const CURRENT_VERSION = '3.87';
     const versionEl = document.getElementById('header-version-tag');
     const updateBtn = document.getElementById('btn-header-update-alert');
     if (typeof window === 'undefined' || !window.location || !window.location.href || window.location.href === 'about:blank') return;
@@ -3448,11 +3542,20 @@ window.partyManager = partyManager;
       partyManager.updateCurrentPlayer(this.char, this.primaryChar, this.activeAltId);
       partyManager.broadcastLocalMemberData();
 
+      partyManager.addSessionEvent({
+        type: 'hero_join',
+        icon: '🦸',
+        text: `"${charName}" connected to live game session`
+      });
+      if (this.isModalOpen('modal-campaign-tracker')) {
+        this.closeModal('modal-campaign-tracker');
+      }
+      partyManager.renderAllOpenViews();
+      this.openGameSessionModal();
       await this.showAlertDialog(
         `"${charName}" is now connected to the live game session for "${joined.campaignName}" (#${joined.campaignId})!\n\nYour hero conditions, toughness penalty, and active alt status are now live-synced with the party.`,
         { title: 'Joined Game Session' }
       );
-      partyManager.renderAllOpenViews();
     } catch (err) {
       await this.showAlertDialog(err.message, { title: 'Cannot Join Game Session' });
     }
@@ -3876,7 +3979,7 @@ window.partyManager = partyManager;
 <head>
   <meta charset="UTF-8">
   <title>Mutants &amp; Masterminds 3E - Campaign Messaging Client</title>
-  <link rel="stylesheet" href="css/styles.css?v=3.86">
+  <link rel="stylesheet" href="css/styles.css?v=3.87">
   <style>
     html, body { height: 100%; margin: 0; }
     body {
@@ -4749,6 +4852,173 @@ window.partyManager = partyManager;
 
     partyManager.updateCurrentPlayer(this.char, this.primaryChar, this.activeAltId);
     partyManager.renderAllOpenViews();
+  }
+
+
+  async joinGameSessionAndOpen(campId) {
+    if (this.isModalOpen('modal-campaign-tracker')) {
+      this.closeModal('modal-campaign-tracker');
+    }
+    await this.joinGameSession(campId);
+    this.openGameSessionModal();
+  }
+
+  openGameSessionModal() {
+    const state = partyManager.getCampaignState();
+    const titleEl = document.getElementById('game-session-modal-title');
+    if (titleEl) {
+      if (state.isConnected && state.campaignId) {
+        titleEl.textContent = `🎮 Game Session: ${state.campaignName || state.campaignId} (#${state.campaignId}) [PL ${state.powerLevel || 10}]`;
+      } else {
+        titleEl.textContent = '🎮 Game Session Tracker';
+      }
+    }
+    const topCont = document.getElementById('session-party-tracker-container');
+    if (topCont) {
+      topCont.innerHTML = partyManager.generateSessionTrackerHTML();
+      partyManager.wireCardButtons(topCont);
+    }
+    this.wireSessionTabs(document);
+    this.renderSessionRollsAndGeneral(document);
+    this.openModal('modal-game-session');
+  }
+
+  wireSessionTabs(doc = document) {
+    const tabRolls = doc.getElementById('btn-session-tab-rolls');
+    const tabGeneral = doc.getElementById('btn-session-tab-general');
+    const paneRolls = doc.getElementById('session-pane-rolls');
+    const paneGeneral = doc.getElementById('session-pane-general');
+    const clearRollsBtn = doc.getElementById('btn-clear-session-rolls');
+    const broadcastInput = doc.getElementById('session-broadcast-input');
+    const sendBroadcastBtn = doc.getElementById('btn-session-send-broadcast');
+
+    tabRolls?.addEventListener('click', () => {
+      tabRolls.classList.add('active');
+      tabGeneral?.classList.remove('active');
+      if (paneRolls) paneRolls.style.display = 'block';
+      if (paneGeneral) paneGeneral.style.display = 'none';
+      if (clearRollsBtn) clearRollsBtn.style.display = 'inline-block';
+    });
+
+    tabGeneral?.addEventListener('click', () => {
+      tabGeneral.classList.add('active');
+      tabRolls?.classList.remove('active');
+      if (paneRolls) paneRolls.style.display = 'none';
+      if (paneGeneral) paneGeneral.style.display = 'flex';
+      if (clearRollsBtn) clearRollsBtn.style.display = 'none';
+    });
+
+    clearRollsBtn?.addEventListener('click', () => {
+      partyManager.clearSessionRolls();
+      this.renderSessionRollsAndGeneral(doc);
+    });
+
+    const handleBroadcast = () => {
+      const text = broadcastInput?.value.trim();
+      if (!text) return;
+      const currentUser = (partyManager.getCurrentUsername && partyManager.getCurrentUsername()) || 'User';
+      const charName = this.char.name || 'Hero';
+      partyManager.addSessionEvent({
+        type: 'broadcast',
+        icon: '📢',
+        text: `${charName} (${currentUser}): ${text}`,
+        broadcast: true
+      });
+      if (broadcastInput) broadcastInput.value = '';
+      this.renderSessionRollsAndGeneral(doc);
+    };
+
+    sendBroadcastBtn?.addEventListener('click', handleBroadcast);
+    broadcastInput?.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') handleBroadcast();
+    });
+  }
+
+  renderSessionRollsAndGeneral(doc = document) {
+    if (!doc) doc = document;
+    const rollsContainer = doc.getElementById('session-rolls-list');
+    const generalContainer = doc.getElementById('session-general-list');
+    const rollsBadge = doc.getElementById('session-rolls-count-badge');
+    const generalBadge = doc.getElementById('session-general-count-badge');
+
+    const rolls = partyManager.getSessionRolls();
+    const events = partyManager.getSessionEvents();
+
+    if (rollsBadge) rollsBadge.textContent = String(rolls.length);
+    if (generalBadge) generalBadge.textContent = String(events.length);
+
+    if (rollsContainer) {
+      if (rolls.length === 0) {
+        rollsContainer.innerHTML = `
+          <div style="padding: 1.5rem 1rem; text-align: center; color: var(--text-muted); font-size: 10pt; font-style: italic;">
+            No rolls recorded in this session yet. Checks made in the Action Center or custom rolls will appear here live.
+          </div>
+        `;
+      } else {
+        rollsContainer.innerHTML = rolls.map(r => {
+          let outcomeBadge = '';
+          if (r.isNatural20) {
+            outcomeBadge = '<span style="font-size: 10pt; font-weight: 800; color: var(--hero-gold); background: rgba(234, 179, 8, 0.18); border: 1px solid var(--hero-gold); padding: 1px 7px; border-radius: 4px;">🌟 Nat 20 / Crit</span>';
+          } else if (r.outcomeClass === 'success') {
+            outcomeBadge = `<span style="font-size: 10pt; font-weight: 800; color: var(--hero-green); background: rgba(16, 185, 129, 0.15); border: 1px solid var(--hero-green); padding: 1px 7px; border-radius: 4px;">✅ ${r.outcomeDescription || r.outcome || 'Success'}</span>`;
+          } else if (r.outcomeClass === 'failure') {
+            outcomeBadge = `<span style="font-size: 10pt; font-weight: 800; color: var(--hero-red); background: rgba(239, 68, 68, 0.15); border: 1px solid var(--hero-red); padding: 1px 7px; border-radius: 4px;">❌ ${r.outcomeDescription || r.outcome || 'Failure'}</span>`;
+          } else if (r.outcome) {
+            outcomeBadge = `<span style="font-size: 10pt; color: var(--text-muted); background: rgba(255,255,255,0.06); padding: 1px 6px; border-radius: 4px;">${r.outcome}</span>`;
+          }
+
+          return `
+            <div class="session-roll-card">
+              <div style="display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+                <div style="display: flex; align-items: center; gap: 0.45rem;">
+                  <strong style="color: var(--hero-blue); font-size: 10pt;">🦸 ${r.characterName}</strong>
+                  <span style="font-size: 10pt; font-weight: 800; color: var(--text-bright);">${r.title}</span>
+                </div>
+                <span style="font-size: 10pt; color: var(--text-muted);">${r.timestamp}</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+                <div style="font-size: 10pt; color: var(--text-bright);">
+                  <span>Result: <strong style="font-size: 1.05rem; color: var(--hero-gold);">${r.total}</strong></span>
+                  ${r.rawDie !== null ? `<span style="font-size: 10pt; color: var(--text-muted); margin-left: 5px;">(d20: ${r.rawDie}${r.modifier !== undefined ? (r.modifier >= 0 ? ' +' + r.modifier : ' ' + r.modifier) : ''})</span>` : ''}
+                  ${r.targetDC ? `<span style="font-size: 10pt; color: var(--text-muted); margin-left: 6px;">vs DC ${r.targetDC}</span>` : ''}
+                </div>
+                <div>${outcomeBadge}</div>
+              </div>
+              ${r.extraText ? `<div style="font-size: 10pt; color: var(--text-muted); font-style: italic;">${r.extraText}</div>` : ''}
+              ${r.appliedToughnessPenalties ? `<div style="font-size: 10pt; color: var(--hero-red); font-weight: 800;">💥 Toughness -${r.appliedToughnessPenalties.newTotal} penalty applied</div>` : ''}
+            </div>
+          `;
+        }).join('');
+      }
+    }
+
+    if (generalContainer) {
+      if (events.length === 0) {
+        generalContainer.innerHTML = `
+          <div style="padding: 1.5rem 1rem; text-align: center; color: var(--text-muted); font-size: 10pt; font-style: italic;">
+            No session events or broadcasts recorded yet.
+          </div>
+        `;
+      } else {
+        generalContainer.innerHTML = events.map(e => {
+          let borderCol = 'var(--hero-blue)';
+          if (e.type === 'session_start' || e.type === 'hero_join') borderCol = 'var(--hero-green)';
+          else if (e.type === 'toughness' || e.type === 'session_end') borderCol = 'var(--hero-red)';
+          else if (e.type === 'condition') borderCol = 'var(--hero-gold)';
+          else if (e.type === 'broadcast') borderCol = 'var(--hero-purple)';
+
+          return `
+            <div class="session-general-card" style="border-left-color: ${borderCol};">
+              <div style="display: flex; align-items: center; gap: 0.45rem; color: var(--text-bright);">
+                <span>${e.icon || '📜'}</span>
+                <span>${e.text}</span>
+              </div>
+              <span style="font-size: 10pt; color: var(--text-muted); white-space: nowrap;">${e.timestamp}</span>
+            </div>
+          `;
+        }).join('');
+      }
+    }
   }
 
   async openCampaignTracker() {

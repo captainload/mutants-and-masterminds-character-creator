@@ -117,6 +117,9 @@ export class CampaignTrackerManager {
     this.coordsKey = 'mm3e_party_window_coords';
     this.campaignStateKey = 'mm3e_party_campaign_state';
     this.popoutWindow = null;
+    this.sessionPopoutWindow = null;
+    this._sessionRolls = [];
+    this._sessionEvents = [];
     this.isEmbeddedOpen = false;
     this.broadcastChannel = null;
     this._memoryFallback = {};
@@ -2935,6 +2938,33 @@ export class CampaignTrackerManager {
       return;
     }
 
+    if (msg.type === 'SESSION_ROLL' && msg.roll) {
+      if (!this._sessionRolls) this._sessionRolls = [];
+      const exists = this._sessionRolls.some(r => r.id === msg.roll.id);
+      if (!exists) {
+        this._sessionRolls.unshift(msg.roll);
+        if (this._sessionRolls.length > 100) this._sessionRolls.pop();
+        if (typeof window !== 'undefined' && window.appController?.renderSessionRollsAndGeneral) {
+          window.appController.renderSessionRollsAndGeneral();
+        }
+      }
+      return;
+    }
+
+    if (msg.type === 'SESSION_EVENT' && msg.event) {
+      if (!this._sessionEvents) this._sessionEvents = this.getSessionEvents();
+      const exists = this._sessionEvents.some(e => e.id === msg.event.id);
+      if (!exists) {
+        this._sessionEvents.unshift(msg.event);
+        if (this._sessionEvents.length > 100) this._sessionEvents.pop();
+        try { localStorage.setItem('mm3e_session_events', JSON.stringify(this._sessionEvents)); } catch {}
+        if (typeof window !== 'undefined' && window.appController?.renderSessionRollsAndGeneral) {
+          window.appController.renderSessionRollsAndGeneral();
+        }
+      }
+      return;
+    }
+
     if (msg.type === 'CAMPAIGN_HIATUS_CHANGED' && msg.campaignId) {
       const cleanId = String(msg.campaignId).trim().toUpperCase().replace(/^#+/, '');
       const hist = this.getCampaignHistory();
@@ -3280,6 +3310,116 @@ export class CampaignTrackerManager {
     this.savePartyMembers(members);
   }
 
+
+  isSessionPopoutOpen() {
+    return !!(this.sessionPopoutWindow && !this.sessionPopoutWindow.closed);
+  }
+
+  getSessionRolls(campaignId = null) {
+    if (!this._sessionRolls) this._sessionRolls = [];
+    return this._sessionRolls;
+  }
+
+  addSessionRoll(roll) {
+    if (!roll) return;
+    if (!this._sessionRolls) this._sessionRolls = [];
+    const formatted = {
+      id: roll.id || ('roll_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4)),
+      characterName: roll.characterName || 'Hero',
+      title: roll.title || 'Dice Roll',
+      total: roll.total,
+      rawDie: roll.rawDie !== undefined ? roll.rawDie : (roll.d20Roll !== undefined ? roll.d20Roll : null),
+      modifier: roll.modifier,
+      targetDC: roll.targetDC,
+      outcome: roll.outcome,
+      outcomeClass: roll.outcomeClass || 'neutral',
+      outcomeDescription: roll.outcomeDescription || '',
+      isNatural20: !!roll.isNatural20,
+      extraText: roll.extraText || '',
+      appliedToughnessPenalties: roll.appliedToughnessPenalties || null,
+      timestamp: roll.timestamp || new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+    };
+    this._sessionRolls.unshift(formatted);
+    if (this._sessionRolls.length > 100) this._sessionRolls.pop();
+
+    if (this.isUserConnected()) {
+      const state = this.getCampaignState();
+      this.broadcastMessage({
+        type: 'SESSION_ROLL',
+        campaignId: state.campaignId,
+        roll: formatted
+      });
+    }
+
+    if (typeof window !== 'undefined' && window.appController?.renderSessionRollsAndGeneral) {
+      window.appController.renderSessionRollsAndGeneral();
+    }
+  }
+
+  clearSessionRolls() {
+    this._sessionRolls = [];
+    if (typeof window !== 'undefined' && window.appController?.renderSessionRollsAndGeneral) {
+      window.appController.renderSessionRollsAndGeneral();
+    }
+  }
+
+  getSessionEvents(campaignId = null) {
+    if (!this._sessionEvents || this._sessionEvents.length === 0) {
+      try {
+        const stored = typeof localStorage !== 'undefined' ? localStorage.getItem('mm3e_session_events') : null;
+        this._sessionEvents = stored ? JSON.parse(stored) : [];
+      } catch {
+        this._sessionEvents = [];
+      }
+    }
+    return this._sessionEvents;
+  }
+
+  addSessionEvent({ type = 'general', text = '', icon = '📜', timestamp = null, broadcast = true } = {}) {
+    if (!text) return;
+    if (!this._sessionEvents) this._sessionEvents = this.getSessionEvents();
+    const event = {
+      id: 'evt_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
+      type,
+      text,
+      icon,
+      timestamp: timestamp || new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+    };
+    this._sessionEvents.unshift(event);
+    if (this._sessionEvents.length > 100) this._sessionEvents.pop();
+
+    try {
+      if (typeof localStorage !== 'undefined') {
+        localStorage.setItem('mm3e_session_events', JSON.stringify(this._sessionEvents));
+      }
+    } catch {}
+
+    if (broadcast && this.isUserConnected()) {
+      const state = this.getCampaignState();
+      this.broadcastMessage({
+        type: 'SESSION_EVENT',
+        campaignId: state.campaignId,
+        event
+      });
+    }
+
+    if (typeof window !== 'undefined' && window.appController?.renderSessionRollsAndGeneral) {
+      window.appController.renderSessionRollsAndGeneral();
+    }
+  }
+
+  getEligibleRunningSessionsCount() {
+    const campaigns = this.getBrowsableCampaigns();
+    const activeSessions = campaigns.filter(c => {
+      const isMember = !!(c.isCreator || c.isJoinedOrCreated || this.isUserMemberOfCampaign(c.campaignId, c.campaignName));
+      const regInfo = this.getCampaignInfo(c.campaignId) || {};
+      const isOnHiatus = !!(c.isOnHiatus || regInfo.isOnHiatus);
+      const isLive = !isOnHiatus && this.isSessionActive(c.campaignId);
+      return isMember && isLive;
+    });
+    return activeSessions.length;
+  }
+
   updateHeaderBadge() {
     if (typeof document === 'undefined') return;
     const btn = document.getElementById('btn-open-campaigns') || document.getElementById('btn-open-party');
@@ -3331,6 +3471,20 @@ export class CampaignTrackerManager {
       dropdownMsgBadge.style.display = 'inline-flex';
       dropdownMsgBadge.style.background = unreadCount > 0 ? 'var(--hero-red)' : 'rgba(148, 163, 184, 0.35)';
       dropdownMsgBadge.classList.toggle('unread-badge-pulse', unreadCount > 0);
+    }
+
+    // Update running sessions count badge to the left of the Campaigns dropdown (v3.87)
+    const runningSessionsCount = this.getEligibleRunningSessionsCount();
+    const sessionsBtn = document.getElementById('btn-header-active-sessions');
+    const sessionsBadge = document.getElementById('header-sessions-count-badge');
+    if (sessionsBtn && sessionsBadge) {
+      if (isUserLoggedIn && runningSessionsCount > 0) {
+        sessionsBtn.style.display = 'inline-flex';
+        sessionsBadge.textContent = String(runningSessionsCount);
+        sessionsBtn.title = `${runningSessionsCount} active game session${runningSessionsCount === 1 ? '' : 's'} available to join`;
+      } else {
+        sessionsBtn.style.display = 'none';
+      }
     }
   }
 
@@ -3395,7 +3549,7 @@ export class CampaignTrackerManager {
   // =======================================================
   // HTML RENDERING & VIEW SYNCHRONIZATION
   // =======================================================
-  generatePartyHTML() {
+  generateSessionTrackerHTML() {
     const members = this.getPartyMembers();
     const state = this.getCampaignState();
     const isLive = state.campaignId ? this.isSessionActive(state.campaignId) : false;
@@ -3425,7 +3579,7 @@ export class CampaignTrackerManager {
           </div>
           ${this.isUserCreatorOfCampaign(state) ? `
             <div style="display: flex; align-items: center; gap: 0.6rem; margin-top: 0.45rem; padding-top: 0.45rem; border-top: 1px dashed rgba(255,255,255,0.15); font-size: 10pt; flex-wrap: wrap;">
-              <span style="color: var(--hero-gold); font-weight: 800;">⚙️ GM Campaign Settings (Creator):</span>
+              <span style="color: var(--hero-gold); font-weight: 800;">👑 GM Session Controls:</span>
               <button type="button" class="btn btn-outline btn-gm-toggle-session" data-action="end" data-campid="${state.campaignId}" style="font-size: 10pt; font-weight: 800; color: var(--hero-red); border-color: var(--hero-red); padding: 2px 9px; cursor: pointer;">⏹️ End Game Session</button>
               <span style="color: #10b981; font-size: 10pt; font-weight: 800;">🟢 Live Broadcasting</span>
               <label style="display: inline-flex; align-items: center; gap: 0.35rem; cursor: pointer; user-select: none; color: var(--text-bright); font-weight: 700; margin-left: 0.4rem;" title="When checked, characters of any Power Level can join without PL restrictions">
@@ -3449,21 +3603,14 @@ export class CampaignTrackerManager {
       `;
     } else {
       connectionBar = `
-        <div style="background: var(--bg-card); border: 1px dashed var(--border-color); border-radius: 6px; padding: 0.75rem 0.85rem; margin-bottom: 0.75rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.65rem;">
-          <div>
-            <div style="font-weight: 800; color: var(--text-bright); font-size: var(--font-size-sm);">Game Session Status: Not Connected to a Live Session</div>
-            <div style="font-size: 10pt; color: var(--text-muted);">Apply to join a campaign by Campaign Name or paste a GM's Campaign Link below. Connect to live rooms when a session is running.</div>
-          </div>
-          <div style="display: flex; align-items: center; gap: 0.45rem; flex-wrap: wrap;">
-            <input type="text" class="input-join-campaign-link" placeholder="Paste campaign link or campaign name..." style="background: var(--bg-input); color: var(--text-bright); border: 1px solid var(--border-color); border-radius: 4px; padding: 0.28rem 0.6rem; font-size: 10pt; min-width: 240px;" />
-            <button type="button" class="btn btn-outline btn-trigger-join-campaign" style="font-size: 10pt; font-weight: 700; padding: 0.25rem 0.75rem; color: var(--hero-blue); border-color: var(--hero-blue);">🔗 Join Campaign</button>
-            <button type="button" class="btn btn-primary btn-trigger-create-campaign" style="font-size: 10pt; font-weight: 800; padding: 0.25rem 0.75rem;">➕ Create Campaign</button>
-          </div>
+        <div style="background: var(--bg-card); border: 1px dashed var(--border-color); border-radius: 6px; padding: 1.25rem 1rem; margin-bottom: 0.75rem; text-align: center; color: var(--text-muted); font-size: 10pt;">
+          <div style="font-size: 1.1rem; font-weight: 800; color: var(--text-bright); margin-bottom: 0.35rem;">⚪ No Active Game Session Connected</div>
+          <div>Pick a running session from the Campaign dropdown in the top header, or select "🎮 Join Session" in the Campaign Browser to connect.</div>
         </div>
       `;
     }
 
-    // Hero Attachment Status Bar (Allows GM or Player to manually attach or detach their loaded hero)
+    // Hero Attachment Status Bar
     let charAttachmentBar = '';
     const activeChar = (typeof window !== 'undefined' && window.appController?.char) || null;
     if ((isConnectedToLiveSession || state.campaignId) && activeChar) {
@@ -3498,7 +3645,7 @@ export class CampaignTrackerManager {
     let memberCards = '';
     if (members.length === 0) {
       memberCards = `
-        <div style="padding: 2.5rem 1rem; text-align: center; color: var(--text-muted); font-size: var(--font-size-sm); font-style: italic;">
+        <div style="padding: 2.5rem 1rem; text-align: center; color: var(--text-muted); font-size: 10pt; font-style: italic;">
           No party members recorded yet. When heroes connect or suffer conditions, they appear here live.
         </div>
       `;
@@ -3539,7 +3686,7 @@ export class CampaignTrackerManager {
               <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
                 <strong style="font-size: 1.05rem; color: var(--text-bright);">${m.characterName}</strong>
                 ${altBadge}
-                <span style="font-size: var(--font-size-xs); color: var(--text-muted); font-weight: 600;">Player: ${m.playerName}</span>
+                <span style="font-size: 10pt; color: var(--text-muted); font-weight: 600;">Player: ${m.playerName}</span>
               </div>
               <div style="display: flex; align-items: center; gap: 0.5rem;">
                 <span style="font-size: 10pt; font-weight: 800; color: var(--hero-gold);">⚡ ${m.heroPoints} HP</span>
@@ -3547,7 +3694,6 @@ export class CampaignTrackerManager {
                 ${!m.isLocal ? `<button type="button" class="btn-remove-party-member" data-id="${m.id}" title="Remove member" style="background: none; border: none; color: var(--hero-red); cursor: pointer; font-size: 10pt; font-weight: 700;">✕</button>` : ''}
               </div>
             </div>
-            
             ${m.hasDiffAlert && state.isHost ? `
               <div style="background: rgba(245, 158, 11, 0.12); border: 1px solid var(--hero-gold); border-radius: 4px; padding: 0.4rem 0.6rem; font-size: 10pt; color: var(--hero-gold); display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
                 <div>
@@ -3561,8 +3707,8 @@ export class CampaignTrackerManager {
             ` : ''}
             <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.6rem; padding-top: 0.2rem;">
               <div>${toughnessPill}</div>
-              <div style="display: flex; align-items: center; gap: 0.35rem; flex-wrap: wrap;">
-                <span style="font-size: var(--font-size-xs); color: var(--text-muted); font-weight: 700;">Conditions:</span>
+              <div style="display: inline-flex; align-items: center; gap: 0.35rem; flex-wrap: wrap;">
+                <span style="font-size: 10pt; color: var(--text-muted); font-weight: 700;">Conditions:</span>
                 ${conditionPills}
               </div>
               <div style="font-size: 10pt; color: var(--text-muted);">
@@ -3574,11 +3720,20 @@ export class CampaignTrackerManager {
       }).join('');
     }
 
+    return `
+      <div class="tracker-section-session-monitor ${isConnectedToLiveSession ? 'session-live' : ''}">
+        ${connectionBar}
+        ${charAttachmentBar}
+        ${memberCards}
+      </div>
+    `;
+  }
 
-    // Upgraded Campaign Browser (shows user's joined/created campaigns first with special icon + all public advertised campaigns)
+  generateCampaignBrowserHTML() {
     const browserCampaigns = this.getBrowsableCampaigns();
     const storedChars = (typeof window !== 'undefined' && window.appController?.storage?.getCharacters()) || [];
     const bf = this.browserFilters || { query: '', searchName: true, searchDesc: true, searchPL: false, plMin: 1, plMax: 20, sortBy: 'default', hideHiatus: false };
+    const state = this.getCampaignState();
 
     const browserCards = browserCampaigns.map(c => {
       const regInfo = this.getCampaignInfo(c.campaignId) || {};
@@ -3592,7 +3747,6 @@ export class CampaignTrackerManager {
       const attached = storedChars.filter(ch => (ch.campaignId && ch.campaignId.toUpperCase().replace(/^#+/, '') === c.campaignId) || (ch.campaign && ch.campaign.trim().toLowerCase() === (c.campaignName || '').toLowerCase()));
       const attachedStr = attached.map(ch => ch.name || 'Hero').join(', ') || 'None';
       const pendingReqCount = c.isCreator ? this.getJoinRequestsForGM(c.campaignId).filter(r => r.status === 'pending').length : 0;
-      const shareLink = this.generateCampaignLink(c);
 
       return `
         <div class="campaign-browser-card" data-campid="${c.campaignId}" style="background: var(--bg-card); border: 1px solid ${isOnHiatus ? 'rgba(245, 158, 11, 0.45)' : (isJoinedOrCreated ? 'rgba(59, 130, 246, 0.5)' : 'var(--border-color)')}; border-radius: 6px; padding: 0.65rem 0.85rem; margin-bottom: 0.55rem; display: flex; flex-direction: column; gap: 0.45rem;">
@@ -3622,7 +3776,7 @@ export class CampaignTrackerManager {
                 <button type="button" class="btn btn-primary btn-browser-apply-campaign" data-campid="${c.campaignId}" data-campname="${(c.campaignName || '').replace(/"/g, '&quot;')}" style="font-size: 10pt; padding: 2px 8px; font-weight: 800; background: var(--hero-blue); border-color: var(--hero-blue); cursor: pointer;">📝 Apply to Join</button>
               ` : ''}
 
-              <!-- Dropdown 1: Campaign Actions (Player & General Actions) -->
+              <!-- Dropdown 1: Campaign Actions -->
               <div class="menu-dropdown-container campaign-actions-dropdown" style="position: relative; display: inline-block;">
                 <button type="button" class="btn btn-outline campaign-actions-toggle" data-campid="${c.campaignId}" title="Campaign Actions" style="font-size: 10pt; padding: 2px 9px; font-weight: 700; color: var(--hero-blue); border-color: rgba(59, 130, 246, 0.55); background: rgba(59, 130, 246, 0.08); cursor: pointer; display: inline-flex; align-items: center; gap: 0.3rem;">
                   <span>⚡ Actions ▾</span>
@@ -3661,7 +3815,7 @@ export class CampaignTrackerManager {
                 </div>
               </div>
 
-              <!-- Dropdown 2: GM Tools (STRICTLY FILTERED to Campaign GM Only) -->
+              <!-- Dropdown 2: GM Tools -->
               ${c.isCreator ? `
                 <div class="menu-dropdown-container campaign-gm-tools-dropdown" style="position: relative; display: inline-block;">
                   <button type="button" class="btn btn-outline campaign-gm-toggle" data-campid="${c.campaignId}" title="GM Management Commands" style="font-size: 10pt; padding: 2px 9px; font-weight: 800; color: var(--hero-gold); border-color: rgba(234, 179, 8, 0.65); background: rgba(234, 179, 8, 0.1); cursor: pointer; display: inline-flex; align-items: center; gap: 0.35rem;">
@@ -3742,29 +3896,17 @@ export class CampaignTrackerManager {
       `;
     }).join('');
 
-    const sessionMonitorSection = `
-      <div class="tracker-section-session-monitor ${isConnectedToLiveSession ? 'session-live' : ''}">
-        <div class="tracker-section-header">
-          <div style="display: flex; align-items: center; gap: 0.55rem; flex-wrap: wrap;">
-            <span style="font-size: 1.15rem; font-weight: 900; color: var(--text-bright); text-transform: uppercase; letter-spacing: 0.03em;">🎮 Game Session Monitor</span>
-            ${isConnectedToLiveSession
-              ? `<span style="font-size: 10pt; font-weight: 800; color: #10b981; background: rgba(16, 185, 129, 0.16); border: 1px solid #10b981; padding: 2px 9px; border-radius: 999px;">🟢 Live Session Active • ${members.length} Hero${members.length === 1 ? '' : 'es'} in Room</span>`
-              : `<span style="font-size: 10pt; font-weight: 800; color: var(--text-muted); background: rgba(255,255,255,0.06); border: 1px solid var(--border-color); padding: 2px 9px; border-radius: 999px;">⚪ Standby — Not Connected to a Live Session</span>`
-            }
-          </div>
-          <span style="font-size: 10pt; color: var(--text-muted); font-weight: 600;">Real-time party conditions, toughness penalties &amp; active hero forms</span>
+    const topDirectoryBar = `
+      <div style="background: var(--bg-card); border: 1px dashed var(--border-color); border-radius: 6px; padding: 0.75rem 0.85rem; margin-bottom: 0.75rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.65rem;">
+        <div>
+          <div style="font-weight: 800; color: var(--text-bright); font-size: var(--font-size-sm);">Campaign Directory &amp; Membership</div>
+          <div style="font-size: 10pt; color: var(--text-muted);">Apply to join a campaign by name or paste a GM's Campaign Link, or create and advertise your own campaign.</div>
         </div>
-        ${connectionBar}
-        ${charAttachmentBar}
-        ${memberCards}
-      </div>
-    `;
-
-    const sectionDivider = `
-      <div class="tracker-section-divider">
-        <div class="tracker-section-divider-line"></div>
-        <div class="tracker-section-divider-badge">🌐 Campaign Browser &amp; Membership Directory</div>
-        <div class="tracker-section-divider-line"></div>
+        <div style="display: flex; align-items: center; gap: 0.45rem; flex-wrap: wrap;">
+          <input type="text" class="input-join-campaign-link" placeholder="Paste campaign link or campaign name..." style="background: var(--bg-input); color: var(--text-bright); border: 1px solid var(--border-color); border-radius: 4px; padding: 0.28rem 0.6rem; font-size: 10pt; min-width: 240px;" />
+          <button type="button" class="btn btn-outline btn-trigger-join-campaign" style="font-size: 10pt; font-weight: 700; padding: 0.25rem 0.75rem; color: var(--hero-blue); border-color: var(--hero-blue);">🔗 Join Campaign</button>
+          <button type="button" class="btn btn-primary btn-trigger-create-campaign" style="font-size: 10pt; font-weight: 800; padding: 0.25rem 0.75rem;">➕ Create Campaign</button>
+        </div>
       </div>
     `;
 
@@ -3778,7 +3920,6 @@ export class CampaignTrackerManager {
           <span style="font-size: 10pt; color: var(--text-muted);">Browse all campaigns you are eligible to join, manage your campaigns, or advertise public campaigns</span>
         </div>
 
-        <!-- Campaign Browser Search, Checked Filters, Legal # to # PL Stepper, Sort & On Hiatus Filter Bar -->
         <div class="campaign-browser-toolbar" style="display: flex; flex-direction: column; gap: 0.5rem; border-left: 5px solid var(--hero-blue);">
           <div style="display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap;">
             <input type="text" class="input-browser-search" value="${(bf.query || '').replace(/"/g, '&quot;')}" placeholder="🔍 Search campaigns..." style="flex: 1; min-width: 190px; background: var(--bg-input); color: var(--text-bright); border: 1px solid var(--border-color); border-radius: 4px; padding: 0.28rem 0.6rem; font-size: 10pt;" />
@@ -3823,7 +3964,6 @@ export class CampaignTrackerManager {
           </div>
         </div>
 
-        <!-- Distinct Colored Border Line Separator between Toolbar and Campaign Entries -->
         <div class="campaign-browser-toolbar-separator" style="height: 3px; background: linear-gradient(90deg, var(--hero-blue) 0%, var(--hero-cyan) 40%, rgba(59, 130, 246, 0.25) 80%, transparent 100%); margin: 0.45rem 0 0.95rem 0; border-radius: 2px;"></div>
 
         <div class="campaign-browser-list-container">
@@ -3836,13 +3976,16 @@ export class CampaignTrackerManager {
       </div>
     `;
 
-    return sessionMonitorSection + sectionDivider + browserSection;
+    return topDirectoryBar + browserSection;
+  }
+
+  generatePartyHTML() {
+    return this.generateCampaignBrowserHTML();
   }
 
   renderAllOpenViews() {
     this.updateHeaderBadge();
     if (this.isPopoutOpen()) {
-      // Ensure in-app campaign modal is closed when popped out so both are never open simultaneously
       if (typeof document !== 'undefined') {
         document.getElementById('modal-campaign-tracker')?.classList.remove('active');
         document.getElementById('modal-party')?.classList.remove('active');
@@ -3862,10 +4005,35 @@ export class CampaignTrackerManager {
       return;
     }
 
-    const container = typeof document !== 'undefined' ? (document.getElementById('campaign-tracker-content') || document.getElementById('party-tracker-content')) : null;
-    if (container) {
-      container.innerHTML = this.generatePartyHTML();
-      this.wireCardButtons(container);
+    if (this.isSessionPopoutOpen()) {
+      try {
+        const topCont = this.sessionPopoutWindow.document.getElementById('session-party-tracker-container');
+        if (topCont) {
+          topCont.innerHTML = this.generateSessionTrackerHTML();
+          this.wireCardButtons(topCont);
+        }
+        if (typeof window !== 'undefined' && window.appController?.renderSessionRollsAndGeneral) {
+          window.appController.renderSessionRollsAndGeneral(this.sessionPopoutWindow.document);
+        }
+      } catch (e) {
+        console.warn('Could not update session popout window view:', e);
+      }
+    }
+
+    const browserContainer = typeof document !== 'undefined' ? document.getElementById('campaign-tracker-content') : null;
+    if (browserContainer) {
+      browserContainer.innerHTML = this.generateCampaignBrowserHTML();
+      this.wireCardButtons(browserContainer);
+    }
+
+    const sessionTrackerContainer = typeof document !== 'undefined' ? document.getElementById('session-party-tracker-container') : null;
+    if (sessionTrackerContainer) {
+      sessionTrackerContainer.innerHTML = this.generateSessionTrackerHTML();
+      this.wireCardButtons(sessionTrackerContainer);
+    }
+
+    if (typeof window !== 'undefined' && window.appController?.renderSessionRollsAndGeneral) {
+      window.appController.renderSessionRollsAndGeneral();
     }
   }
 
@@ -4335,7 +4503,7 @@ export class CampaignTrackerManager {
 <head>
   <meta charset="UTF-8">
   <title>Mutants & Masterminds 3E - Party Conditions & Toughness Tracker</title>
-  <link rel="stylesheet" href="css/styles.css?v=3.86">
+  <link rel="stylesheet" href="css/styles.css?v=3.87">
   <style>
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -4479,6 +4647,212 @@ export class CampaignTrackerManager {
     this.popoutWindow.document.write(htmlContent);
     this.popoutWindow.document.close();
   }
+
+  openSessionPopout() {
+    const coords = this.getSavedCoords();
+    const width = Math.max(900, coords.width || 950);
+    const height = Math.max(700, coords.height || 750);
+    const left = coords.left !== null ? coords.left : (window.screenX + 50);
+    const top = coords.top !== null ? coords.top : (window.screenY + 50);
+
+    if (this.sessionPopoutWindow && !this.sessionPopoutWindow.closed) {
+      this.sessionPopoutWindow.focus();
+      return;
+    }
+
+    this.sessionPopoutWindow = window.open('', 'MMGameSessionPopout', `left=${left},top=${top},width=${width},height=${height},resizable=yes,scrollbars=yes`);
+    if (!this.sessionPopoutWindow) {
+      console.warn('Pop-out blocked by browser');
+      return;
+    }
+
+    if (typeof document !== 'undefined') {
+      document.getElementById('modal-game-session')?.classList.remove('active');
+      if (typeof window !== 'undefined' && window.appController?.syncBodyScrollLock) {
+        window.appController.syncBodyScrollLock();
+      }
+    }
+
+    const currentTheme = (typeof document !== 'undefined' && document.documentElement.getAttribute('data-theme')) || (typeof localStorage !== 'undefined' && localStorage.getItem('mm3e_theme')) || 'dark';
+
+    const htmlContent = `<!DOCTYPE html>
+<html lang="en" data-theme="${currentTheme}">
+<head>
+  <meta charset="UTF-8">
+  <title>Mutants & Masterminds 3E - Game Session Tracker</title>
+  <link rel="stylesheet" href="css/styles.css?v=3.87">
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg-app, #0f172a);
+      color: var(--text-main, #f8fafc);
+      margin: 0;
+      padding: 0;
+      font-size: 10pt;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
+      box-sizing: border-box;
+    }
+    .popout-top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 2px solid var(--border-color, #334155);
+      padding: 0.6rem 1rem;
+      background: var(--bg-card, #1e293b);
+    }
+    .popout-title {
+      color: var(--hero-green, #10b981);
+      font-size: 1.15rem;
+      font-weight: 800;
+      margin: 0;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .session-modal-top {
+      flex: 1 1 50%;
+      max-height: 50%;
+      overflow-y: auto;
+      padding: 0.75rem 1rem;
+      border-bottom: 2px solid var(--border-color);
+      min-height: 0;
+    }
+    .session-modal-bottom {
+      flex: 1 1 50%;
+      max-height: 50%;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+      background: var(--bg-card);
+    }
+    .popout-footer-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-top: 1px solid var(--border-color, #334155);
+      padding: 0.5rem 1rem;
+      background: var(--bg-app, #0f172a);
+    }
+  </style>
+</head>
+<body>
+  <div class="popout-top-bar">
+    <h2 class="popout-title" id="popout-session-title">🎮 Game Session Tracker</h2>
+    <div style="display: flex; gap: 0.5rem; align-items: center;">
+      <button id="btn-session-popout-redock" class="btn btn-outline" title="Return this window to the main app" style="min-height: 28px; padding: 0.15rem 0.6rem; font-size: 10pt; font-weight: 700;">↙ Redock</button>
+      <button id="btn-session-popout-close" class="btn" style="background: #dc2626; color: #fff; border: none; padding: 5px 12px; border-radius: 4px; font-weight: 700; cursor: pointer;">✕ Close</button>
+    </div>
+  </div>
+
+  <div class="session-modal-top" id="session-party-tracker-container">
+    ${this.generateSessionTrackerHTML()}
+  </div>
+
+  <div class="session-modal-bottom" id="session-output-history-container">
+    <div class="session-tabs-bar">
+      <div style="display: flex; gap: 0.5rem; align-items: center;">
+        <button type="button" class="session-tab-btn active" id="btn-session-tab-rolls">🎲 Rolls <span id="session-rolls-count-badge" style="font-size: 10pt; font-weight: 800; background: rgba(59, 130, 246, 0.25); color: var(--hero-blue); padding: 1px 6px; border-radius: 999px; margin-left: 3px;">0</span></button>
+        <button type="button" class="session-tab-btn" id="btn-session-tab-general">📜 General <span id="session-general-count-badge" style="font-size: 10pt; font-weight: 800; background: rgba(16, 185, 129, 0.25); color: var(--hero-green); padding: 1px 6px; border-radius: 999px; margin-left: 3px;">0</span></button>
+      </div>
+      <div style="display: flex; align-items: center; gap: 0.4rem;">
+        <button type="button" class="btn btn-outline" id="btn-clear-session-rolls" style="font-size: 10pt; padding: 2px 7px; min-height: 24px;">Clear Rolls</button>
+      </div>
+    </div>
+
+    <div class="session-pane" id="session-pane-rolls">
+      <div id="session-rolls-list"></div>
+    </div>
+
+    <div class="session-pane" id="session-pane-general" style="display: none; flex-direction: column;">
+      <div id="session-general-list" style="flex: 1; overflow-y: auto; margin-bottom: 0.5rem;"></div>
+      <div style="display: flex; gap: 0.4rem; align-items: center; padding-top: 0.4rem; border-top: 1px solid var(--border-color);">
+        <input type="text" id="session-broadcast-input" placeholder="Post a broadcast message or event to session log..." style="flex: 1; background: var(--bg-input); color: var(--text-bright); border: 1px solid var(--border-color); border-radius: 4px; padding: 0.28rem 0.6rem; font-size: 10pt;">
+        <button type="button" class="btn btn-primary" id="btn-session-send-broadcast" style="font-size: 10pt; font-weight: 800; padding: 0.28rem 0.85rem; white-space: nowrap;">📢 Post Event</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="popout-footer-bar">
+    <div style="display: flex; gap: 0.45rem;">
+      <button class="btn btn-primary" id="btn-popout-session-discord" style="font-size: 10pt; font-weight: 800; padding: 0.2rem 0.85rem;">📢 Broadcast to Discord</button>
+      <button class="btn btn-outline" id="btn-popout-session-add-ally" style="font-size: 10pt; font-weight: 700; padding: 0.2rem 0.75rem;">➕ Add Ally</button>
+    </div>
+    <div style="display: flex; gap: 0.45rem;">
+      <button class="btn btn-outline" id="btn-popout-clear-inactive" style="font-size: 10pt; padding: 0.2rem 0.6rem;">Clear Inactive</button>
+    </div>
+  </div>
+
+  <script>
+    window.addEventListener('storage', (e) => {
+      if (e.key === 'mm3e_theme' && e.newValue) {
+        document.documentElement.setAttribute('data-theme', e.newValue);
+      }
+      if (e.key === 'mm3e_party_members' || e.key === 'mm3e_party_campaign_state') {
+        if (window.opener && window.opener.partyManager) {
+          const c = document.getElementById('session-party-tracker-container');
+          if (c) {
+            c.innerHTML = window.opener.partyManager.generateSessionTrackerHTML();
+            window.opener.partyManager.wireCardButtons(c);
+          }
+        }
+      }
+    });
+
+    document.getElementById('btn-session-popout-close')?.addEventListener('click', () => {
+      window.close();
+    });
+
+    document.getElementById('btn-session-popout-redock')?.addEventListener('click', () => {
+      const op = window.opener;
+      if (op && !op.closed && op.partyManager) {
+        op.partyManager.sessionPopoutWindow = null;
+        if (op.appController) op.appController.openGameSessionModal();
+        try { op.focus(); } catch (e) {}
+      }
+      window.close();
+    });
+
+    document.getElementById('btn-popout-session-discord')?.addEventListener('click', () => {
+      if (window.opener && window.opener.appController) {
+        window.opener.appController.broadcastPartyToDiscord();
+      }
+    });
+
+    document.getElementById('btn-popout-session-add-ally')?.addEventListener('click', () => {
+      if (window.opener && window.opener.appController) {
+        window.opener.appController.addPartyAlly();
+      }
+    });
+
+    document.getElementById('btn-popout-clear-inactive')?.addEventListener('click', () => {
+      if (window.opener && window.opener.partyManager) {
+        window.opener.partyManager.clearInactiveMembers();
+      }
+    });
+
+    if (window.opener && window.opener.appController) {
+      window.opener.partyManager.wireCardButtons(document.getElementById('session-party-tracker-container'));
+      window.opener.appController.wireSessionTabs(document);
+      window.opener.appController.renderSessionRollsAndGeneral(document);
+    }
+
+    window.addEventListener('beforeunload', () => {
+      if (window.opener && window.opener.partyManager) {
+        window.opener.partyManager.sessionPopoutWindow = null;
+      }
+    });
+  </script>
+</body>
+</html>`;
+
+    this.sessionPopoutWindow.document.open();
+    this.sessionPopoutWindow.document.write(htmlContent);
+    this.sessionPopoutWindow.document.close();
+  }
+
 }
 
 export const campaignManager = new CampaignTrackerManager();

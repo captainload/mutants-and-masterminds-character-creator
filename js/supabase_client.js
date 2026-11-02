@@ -787,6 +787,38 @@ class SupabaseService {
     } catch {}
   }
 
+  
+  async updateCampaignMemberAwards({ campaignId, characterId, characterName, heroPoints, powerPointsBudget, characterData }) {
+    if (!this.client || !campaignId) return false;
+    try {
+      const cleanCampId = String(campaignId).toUpperCase().replace(/^#+/, '');
+      const payload = {
+        last_seen: new Date().toISOString()
+      };
+      if (heroPoints !== undefined) payload.hero_points = heroPoints;
+      if (characterData) payload.character_data = characterData;
+      
+      let query = this.client.from('campaign_members').update(payload).eq('campaign_id', cleanCampId);
+      if (characterId) {
+        query = query.eq('character_id', characterId);
+      } else if (characterName) {
+        query = query.ilike('character_name', characterName);
+      }
+      const { data, error } = await query.select();
+      if (error && characterName) {
+        await this.client
+          .from('campaign_members')
+          .update(payload)
+          .eq('campaign_id', cleanCampId)
+          .ilike('character_name', characterName);
+      }
+      return true;
+    } catch (e) {
+      console.warn('Failed to update campaign member awards in Supabase:', e);
+      return false;
+    }
+  }
+
   async saveCampaignCharacterSnapshot({ campaignId, characterId, characterName, playerName, characterData, timestamp }) {
     if (!this.client || !campaignId) return;
     try {

@@ -3081,6 +3081,12 @@ export class CampaignTrackerManager {
         }
         break;
 
+      case 'GM_AWARD_CHARACTER':
+        if (typeof window !== 'undefined' && window.appController) {
+          window.appController.handleGMAwardCharacterMessage(msg);
+        }
+        break;
+
       case 'MEMBER_LEFT':
         if (msg.memberId) {
           this.removeMember(msg.memberId);
@@ -3475,7 +3481,7 @@ export class CampaignTrackerManager {
       dropdownMsgBadge.classList.toggle('unread-badge-pulse', unreadCount > 0);
     }
 
-    // Update running sessions count badge to the left of the Campaigns dropdown (v3.88)
+    // Update running sessions count badge to the left of the Campaigns dropdown (v3.89)
     const runningSessionsCount = this.getEligibleRunningSessionsCount();
     const sessionsBtn = document.getElementById('btn-header-active-sessions');
     const sessionsBadge = document.getElementById('header-sessions-count-badge');
@@ -3808,7 +3814,7 @@ export class CampaignTrackerManager {
                       <span class="menu-item-icon">✉️</span> Message GM (${c.creatorName})
                     </button>
                   ` : ''}
-                  ${!c.isCreator && isJoinedOrCreated ? `
+                  ${(isJoinedOrCreated || attached.length > 0) ? `
                     <div class="menu-dropdown-separator" style="height: 1px; background-color: var(--border-color); margin: 0.35rem 0;"></div>
                     <button type="button" class="menu-dropdown-item btn-leave-campaign-membership" data-campid="${c.campaignId}" data-campname="${(c.campaignName || '').replace(/"/g, '&quot;')}" style="font-size: 10pt; color: var(--hero-red); font-weight: 700; cursor: pointer;">
                       <span class="menu-item-icon">🚪</span> Leave Campaign
@@ -3826,6 +3832,9 @@ export class CampaignTrackerManager {
                   </button>
                   <div class="menu-dropdown-panel campaign-gm-panel" style="position: absolute; top: calc(100% + 4px); right: 0; left: auto; min-width: 220px; border-radius: 6px; z-index: 2500; padding: 0.35rem 0;">
                     <div class="menu-dropdown-heading" style="font-size: 10pt; font-weight: 800; text-transform: uppercase; color: var(--hero-gold); padding: 0.35rem 0.85rem 0.2rem 0.85rem;">GM Commands</div>
+                    <button type="button" class="menu-dropdown-item btn-open-campaign-characters" data-campid="${c.campaignId}" data-campname="${(c.campaignName || '').replace(/"/g, '&quot;')}" style="font-size: 10pt; color: var(--hero-gold); font-weight: 700; display: flex; align-items: center; gap: 0.45rem; cursor: pointer;">
+                      <span class="menu-item-icon">👥</span> Campaign Characters
+                    </button>
                     ${!isOnHiatus ? (isLive ? `
                       <button type="button" class="menu-dropdown-item btn-gm-toggle-session" data-action="end" data-campid="${c.campaignId}" style="font-size: 10pt; color: var(--hero-red); font-weight: 700; cursor: pointer;">
                         <span class="menu-item-icon">⏹️</span> End Game Session
@@ -4185,6 +4194,16 @@ export class CampaignTrackerManager {
       });
     });
 
+    parentEl.querySelectorAll('.btn-open-campaign-characters').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const campId = e.currentTarget.dataset.campid || '';
+        const campName = e.currentTarget.dataset.campname || '';
+        if (typeof window !== 'undefined' && window.appController) {
+          window.appController.openCampaignCharactersModal(campId, campName);
+        }
+      });
+    });
+
     parentEl.querySelectorAll('.btn-open-join-requests').forEach(btn => {
       btn.addEventListener('click', (e) => {
         const campId = e.currentTarget.dataset.campid || '';
@@ -4505,7 +4524,7 @@ export class CampaignTrackerManager {
 <head>
   <meta charset="UTF-8">
   <title>Mutants & Masterminds 3E - Party Conditions & Toughness Tracker</title>
-  <link rel="stylesheet" href="css/styles.css?v=3.88">
+  <link rel="stylesheet" href="css/styles.css?v=3.89">
   <style>
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -4682,7 +4701,7 @@ export class CampaignTrackerManager {
 <head>
   <meta charset="UTF-8">
   <title>Mutants & Masterminds 3E - Game Session Tracker</title>
-  <link rel="stylesheet" href="css/styles.css?v=3.88">
+  <link rel="stylesheet" href="css/styles.css?v=3.89">
   <style>
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;

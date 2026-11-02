@@ -3763,3 +3763,36 @@ html[data-theme="light"] .session-general-card {
   border-color: #cbd5e1 !important;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
 }
+
+
+/* =====================================================================
+   CAMPAIGN CHARACTERS LIST MODAL & CARDS (v3.89)
+   ===================================================================== */
+#modal-campaign-characters .modal-container {
+  width: 860px;
+  max-width: 95vw;
+  height: 82vh;
+  max-height: 88vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.campaign-character-card {
+  background: var(--bg-card);
+  border: 1.5px solid var(--border-color);
+  border-radius: 6px;
+  padding: 0.75rem 1rem;
+  margin-bottom: 0.65rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+html[data-theme="light"] .campaign-character-card {
+  background: #ffffff !important;
+  border-color: rgba(59, 130, 246, 0.3) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06) !important;
+}

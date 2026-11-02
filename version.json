@@ -1,6 +1,6 @@
 {
-  "version": "3.88",
-  "updatedAt": "2026-11-01T23:15:00.000Z",
-  "releaseNotes": "Streamlined Campaign Directory header with description to the right of the title, widened campaign link input field, lighter border styling for Campaign Browser, updated badge to 'Joined or owned campaigns shown first', increased New Message compose dialog height by ~30% with 5-line textarea, and fixed Known Users and CC recipient dropdowns popping downwards cleanly over the compose area.",
+  "version": "3.89",
+  "updatedAt": "2026-11-02T04:32:26.236Z",
+  "releaseNotes": "Reclaimed bottom footer space in Campaign Browser. Added Leave Campaign confirmation pop-up informing users that character files and backups remain intact. Added GM Campaign Characters list popup enabling GMs to view all campaign characters and award HP or PP, which seamlessly sync to the online database and push out to players.",
   "updated": "2026-11-01"
 }

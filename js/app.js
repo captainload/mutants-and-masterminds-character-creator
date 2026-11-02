@@ -41,7 +41,7 @@ import {
   tablesManager
 } from './tables.js';
 
-import { POWER_PROFILES_LIBRARY } from './power_profiles.js?v=3.88';
+import { POWER_PROFILES_LIBRARY } from './power_profiles.js?v=3.89';
 import { ARCHETYPES } from './archetypes.js';
 import { archetypeManager } from './archetype_window.js';
 import { campaignManager, partyManager, formatCharacterSheetHTML } from './party.js';
@@ -322,7 +322,25 @@ class AppController {
     document.getElementById('btn-close-campaign-modal')?.addEventListener('click', closeCampaignsHandler);
     document.getElementById('btn-campaign-modal-close-footer')?.addEventListener('click', closeCampaignsHandler);
 
-    // Game Session Modal Listeners (v3.88)
+    
+    // Campaign Characters Modal Listeners (v3.89)
+    const closeCampChars = () => this.closeModal('modal-campaign-characters');
+    document.getElementById('btn-close-campaign-characters-modal')?.addEventListener('click', closeCampChars);
+    document.getElementById('btn-close-campaign-characters-footer')?.addEventListener('click', closeCampChars);
+    document.getElementById('btn-refresh-campaign-characters')?.addEventListener('click', () => {
+      const title = document.getElementById('campaign-characters-modal-title')?.textContent || '';
+      const match = title.match(/ID: #([A-Z0-9-]+)/i);
+      if (match && match[1]) {
+        this.renderCampaignCharactersList(match[1]);
+      }
+    });
+
+    // Sync campaign character updates when app goes online (v3.89)
+    window.addEventListener('online', () => {
+      this.syncCampaignCharacterUpdates();
+    });
+
+    // Game Session Modal Listeners (v3.89)
     const closeSessionHandler = () => {
       this.closeModal('modal-game-session');
     };
@@ -2186,7 +2204,7 @@ window.partyManager = partyManager;
   }
 
   async checkForUpdates({ isManual = false } = {}) {
-    const CURRENT_VERSION = '3.88';
+    const CURRENT_VERSION = '3.89';
     const versionEl = document.getElementById('header-version-tag');
     const updateBtn = document.getElementById('btn-header-update-alert');
     if (typeof window === 'undefined' || !window.location || !window.location.href || window.location.href === 'about:blank') return;
@@ -3570,8 +3588,9 @@ window.partyManager = partyManager;
     const displayCampName = campName || info?.campaignName || cleanId;
     const cleanName = displayCampName.trim().toLowerCase();
 
-    const confirmed = await this.showConfirmDialog(
-      `Are you sure you want to leave the campaign "${displayCampName}"?\n\n⚠️ Please Note: Leaving a campaign means any characters you have attached to the campaign will no longer be attached to it.`,
+        const confirmed = await this.showConfirmDialog(
+      `Are you sure you want to leave the campaign "${displayCampName}"?\n\n` +
+      `Your campaign characters will remain intact in your character library, and you will still be able to restore characters from campaign backups at any time.`,
       {
         title: 'Leave Campaign?',
         confirmText: 'Leave Campaign',
@@ -3968,7 +3987,7 @@ window.partyManager = partyManager;
 <head>
   <meta charset="UTF-8">
   <title>Mutants &amp; Masterminds 3E - Campaign Messaging Client</title>
-  <link rel="stylesheet" href="css/styles.css?v=3.88">
+  <link rel="stylesheet" href="css/styles.css?v=3.89">
   <style>
     html, body { height: 100%; margin: 0; }
     body {
@@ -4518,6 +4537,433 @@ window.partyManager = partyManager;
         }
       });
     });
+  }
+
+
+  // =======================================================
+  // GM CAMPAIGN CHARACTERS MANAGEMENT & HP/PP AWARDS (v3.89)
+  // =======================================================
+  async openCampaignCharactersModal(campId, campName = '') {
+    const cleanId = String(campId || '').trim().toUpperCase().replace(/^#+/, '');
+    const info = campaignManager.getCampaignInfo(cleanId) || {};
+    const displayCampName = campName || info.campaignName || cleanId;
+
+    const titleEl = document.getElementById('campaign-characters-modal-title');
+    if (titleEl) titleEl.textContent = `👥 Campaign Characters — ${displayCampName} (ID: #${cleanId})`;
+
+    const container = document.getElementById('campaign-characters-list-container');
+    if (container) {
+      container.innerHTML = '<div style="text-align: center; color: var(--text-muted); padding: 2rem 0; font-size: 10pt;">Loading campaign characters...</div>';
+    }
+
+    this.openModal('modal-campaign-characters');
+    await this.renderCampaignCharactersList(cleanId, displayCampName);
+  }
+
+  async renderCampaignCharactersList(campId, campName = '') {
+    const cleanId = String(campId || '').trim().toUpperCase().replace(/^#+/, '');
+    const container = document.getElementById('campaign-characters-list-container');
+    if (!container) return;
+
+    let onlineMembers = [];
+    if (typeof supabaseService !== 'undefined' && supabaseService && supabaseService.isLoggedIn()) {
+      try {
+        onlineMembers = await supabaseService.getCampaignMembers(cleanId);
+      } catch (err) {
+        console.warn('Could not fetch online campaign members:', err);
+      }
+    }
+
+    // Merge with local saved campaign characters and local storage characters
+    const localSaved = campaignManager.getCampaignSavedCharacters(cleanId) || {};
+    const storedChars = (typeof storageManager.getCharacters === 'function' ? storageManager.getCharacters() : storageManager.characters) || [];
+    const localAttached = storedChars.filter(ch => {
+      const cId = String(ch.campaignId || '').toUpperCase().replace(/^#+/, '');
+      const cName = String(ch.campaign || '').trim().toLowerCase();
+      return (cleanId && cId === cleanId) || (campName && cName === campName.trim().toLowerCase());
+    });
+
+    const charMap = new Map();
+
+    // 1. Ingest online members first (most authoritative)
+    onlineMembers.forEach(m => {
+      const charData = m.character_data || {};
+      const name = String(m.character_name || charData.name || 'Hero').trim();
+      const id = String(m.character_id || charData.id || name).trim();
+      const pl = parseInt(m.power_level || charData.powerLevel || 10, 10);
+      const hp = charData.heroPoints ?? m.hero_points ?? 1;
+      const ppBudget = charData.powerPointsBudget ?? (pl * 15);
+      const ppSpent = charData.totalPowerPointsSpent || charData.powerPointsSpent || 0;
+
+      charMap.set(name.toLowerCase(), {
+        characterId: id,
+        characterName: name,
+        playerName: m.player_name || charData.playerName || 'Player',
+        powerLevel: pl,
+        heroPoints: hp,
+        powerPointsBudget: ppBudget,
+        powerPointsSpent: ppSpent,
+        isOnline: !!m.is_online,
+        lastSeen: m.last_seen || null,
+        characterData: charData,
+        isCloud: true
+      });
+    });
+
+    // 2. Ingest local saved campaign characters
+    Object.values(localSaved).forEach(sc => {
+      if (!sc || !sc.characterName) return;
+      const key = String(sc.characterName).trim().toLowerCase();
+      if (!charMap.has(key)) {
+        const cd = sc.characterData || {};
+        const pl = parseInt(cd.powerLevel || 10, 10);
+        charMap.set(key, {
+          characterId: sc.characterId || cd.id || sc.characterName,
+          characterName: sc.characterName,
+          playerName: sc.playerName || cd.playerName || 'Player',
+          powerLevel: pl,
+          heroPoints: cd.heroPoints ?? 1,
+          powerPointsBudget: cd.powerPointsBudget ?? (pl * 15),
+          powerPointsSpent: cd.totalPowerPointsSpent || cd.powerPointsSpent || 0,
+          isOnline: false,
+          lastSeen: sc.timestamp || null,
+          characterData: cd,
+          isCloud: false
+        });
+      }
+    });
+
+    // 3. Ingest local attached characters from active session or device storage
+    localAttached.forEach(ch => {
+      if (!ch || !ch.name) return;
+      const key = String(ch.name).trim().toLowerCase();
+      if (!charMap.has(key)) {
+        const pl = parseInt(ch.powerLevel || 10, 10);
+        charMap.set(key, {
+          characterId: ch.id || ch.name,
+          characterName: ch.name,
+          playerName: ch.playerName || 'Local Player',
+          powerLevel: pl,
+          heroPoints: ch.heroPoints ?? 1,
+          powerPointsBudget: ch.powerPointsBudget ?? (pl * 15),
+          powerPointsSpent: ch.totalPowerPointsSpent || ch.powerPointsSpent || 0,
+          isOnline: true,
+          lastSeen: new Date().toISOString(),
+          characterData: ch,
+          isCloud: false
+        });
+      }
+    });
+
+    const characters = Array.from(charMap.values());
+
+    if (characters.length === 0) {
+      container.innerHTML = `
+        <div style="text-align: center; color: var(--text-muted); padding: 3rem 1rem; font-size: 10pt; font-style: italic;">
+          No characters are currently attached to this campaign.<br><br>
+          When players apply, join, or attach heroes, they will automatically appear here.
+        </div>
+      `;
+      return;
+    }
+
+    container.innerHTML = characters.map(c => `
+      <div class="campaign-character-card" data-charname="${c.characterName.replace(/"/g, '&quot;')}" style="background: var(--bg-card); border: 1.5px solid var(--border-color); border-radius: 6px; padding: 0.75rem 1rem; margin-bottom: 0.65rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;">
+        <div style="display: flex; flex-direction: column; gap: 0.3rem;">
+          <div style="display: flex; align-items: center; gap: 0.55rem; flex-wrap: wrap;">
+            <strong style="font-size: 11pt; color: var(--text-bright);">${c.characterName}</strong>
+            <span style="font-size: 10pt; color: var(--hero-gold); font-weight: 800; background: rgba(234, 179, 8, 0.15); border: 1px solid rgba(234, 179, 8, 0.4); padding: 1px 6px; border-radius: 4px;">PL ${c.powerLevel}</span>
+            ${c.isOnline 
+              ? '<span style="font-size: 10pt; color: #10b981; font-weight: 800; background: rgba(16, 185, 129, 0.12); padding: 1px 6px; border-radius: 4px;">🟢 Online</span>' 
+              : '<span style="font-size: 10pt; color: var(--text-muted); font-weight: 700; background: rgba(255, 255, 255, 0.05); padding: 1px 6px; border-radius: 4px;">⚪ Offline</span>'}
+            <span style="font-size: 10pt; color: var(--text-muted);">Player: <strong>${c.playerName}</strong></span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 0.9rem; font-size: 10pt; color: var(--text-muted); flex-wrap: wrap;">
+            <span>⭐ Hero Points (HP): <strong style="color: var(--hero-gold); font-weight: 800; font-size: 10.5pt;">${c.heroPoints}</strong></span>
+            <span>⚡ Power Points (PP): <strong style="color: var(--hero-cyan); font-weight: 800; font-size: 10.5pt;">${c.powerPointsBudget}</strong> (Spent: ${c.powerPointsSpent})</span>
+            ${c.lastSeen ? `<span style="font-size: 10pt; opacity: 0.85;">🕒 Last synced: ${new Date(c.lastSeen).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>` : ''}
+          </div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 0.45rem; flex-wrap: wrap;">
+          <button type="button" class="btn btn-outline btn-gm-view-char" data-charname="${c.characterName.replace(/"/g, '&quot;')}" style="font-size: 10pt; font-weight: 700; padding: 3px 10px; color: var(--hero-blue); border-color: var(--hero-blue); cursor: pointer;" title="Inspect character sheet">
+            👁️ View Character
+          </button>
+          <button type="button" class="btn btn-primary btn-gm-award-hp" data-charname="${c.characterName.replace(/"/g, '&quot;')}" data-currenthp="${c.heroPoints}" style="font-size: 10pt; font-weight: 800; padding: 3px 10px; background: rgba(234, 179, 8, 0.2); color: var(--hero-gold); border: 1px solid var(--hero-gold); cursor: pointer;" title="Award or adjust Hero Points">
+            ⭐ Award HP
+          </button>
+          <button type="button" class="btn btn-primary btn-gm-award-pp" data-charname="${c.characterName.replace(/"/g, '&quot;')}" data-currentpp="${c.powerPointsBudget}" data-pl="${c.powerLevel}" style="font-size: 10pt; font-weight: 800; padding: 3px 10px; background: rgba(56, 189, 248, 0.2); color: var(--hero-cyan); border: 1px solid var(--hero-cyan); cursor: pointer;" title="Award Power Points">
+            ⚡ Award PP
+          </button>
+        </div>
+      </div>
+    `).join('');
+
+    // Attach button listeners
+    container.querySelectorAll('.btn-gm-view-char').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const name = e.currentTarget.dataset.charname;
+        const charObj = characters.find(c => c.characterName === name);
+        if (charObj && charObj.characterData) {
+          this.openCharacterInspectorModal(charObj.characterData);
+        }
+      });
+    });
+
+    container.querySelectorAll('.btn-gm-award-hp').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        const name = e.currentTarget.dataset.charname;
+        const curHP = parseInt(e.currentTarget.dataset.currenthp, 10) || 1;
+        const charObj = characters.find(c => c.characterName === name);
+        if (!charObj) return;
+
+        const input = await this.showPromptDialog({
+          title: `Award Hero Points (HP): ${name}`,
+          label: `Current Hero Points: ${curHP}\n\nEnter amount of HP to award (e.g. 1 to add +1 HP, or -1 to deduct):\n\nNote: Changes are synced directly to the campaign database and pushed to ${charObj.playerName}.`,
+          defaultValue: '1',
+          placeholder: '1',
+          confirmText: 'Award HP'
+        });
+        if (input === null) return;
+        const delta = parseInt(input, 10);
+        if (isNaN(delta) || delta === 0) return;
+
+        const newHP = Math.max(0, curHP + delta);
+        charObj.heroPoints = newHP;
+        if (charObj.characterData) {
+          charObj.characterData.heroPoints = newHP;
+          charObj.characterData.gmUpdates = {
+            lastAwardedAt: new Date().toISOString(),
+            lastAwardType: 'HP',
+            hpDelta: delta,
+            currentHP: newHP
+          };
+        }
+
+        // Update in Supabase
+        if (typeof supabaseService !== 'undefined' && supabaseService && supabaseService.isLoggedIn()) {
+          await supabaseService.updateCampaignMemberAwards({
+            campaignId: cleanId,
+            characterId: charObj.characterId,
+            characterName: charObj.characterName,
+            heroPoints: newHP,
+            characterData: charObj.characterData
+          });
+        }
+
+        // Update local saved campaign characters
+        campaignManager.saveCampaignSavedCharacter(cleanId, charObj.characterData, charObj.playerName);
+
+        // If local active character matches, update immediately
+        if (String(this.char.name || '').trim().toLowerCase() === name.trim().toLowerCase()) {
+          this.char.heroPoints = newHP;
+          this.saveAndAudit();
+          this.renderHeaderStatus();
+        }
+
+        // Broadcast to live session peers
+        campaignManager.broadcastMessage({
+          type: 'GM_AWARD_CHARACTER',
+          campaignId: cleanId,
+          characterId: charObj.characterId,
+          characterName: charObj.characterName,
+          playerName: charObj.playerName,
+          hpAwarded: delta,
+          ppAwarded: 0,
+          newHP,
+          newPP: charObj.powerPointsBudget,
+          timestamp: new Date().toISOString()
+        });
+
+        await this.showAlertDialog(
+          `Successfully awarded ${delta > 0 ? '+' : ''}${delta} Hero Point(s) to "${name}"!\n\nNew HP Total: ${newHP}\n\nThe update has been saved to the database and broadcasted.`,
+          { title: 'Hero Points Awarded' }
+        );
+        this.renderCampaignCharactersList(cleanId, campName);
+      });
+    });
+
+    container.querySelectorAll('.btn-gm-award-pp').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        const name = e.currentTarget.dataset.charname;
+        const curPP = parseInt(e.currentTarget.dataset.currentpp, 10) || 150;
+        const pl = parseInt(e.currentTarget.dataset.pl, 10) || 10;
+        const charObj = characters.find(c => c.characterName === name);
+        if (!charObj) return;
+
+        const input = await this.showPromptDialog({
+          title: `Award Power Points (PP): ${name}`,
+          label: `Current PP Budget: ${curPP} PP (Base: PL ${pl} × 15 = ${pl * 15})\n\nEnter amount of Power Points to award (e.g. 1, 2, 5):\n\nNote: Changes are synced directly to the campaign database and pushed to ${charObj.playerName}.`,
+          defaultValue: '1',
+          placeholder: '1',
+          confirmText: 'Award PP'
+        });
+        if (input === null) return;
+        const delta = parseInt(input, 10);
+        if (isNaN(delta) || delta === 0) return;
+
+        const newPP = Math.max(0, curPP + delta);
+        charObj.powerPointsBudget = newPP;
+        if (charObj.characterData) {
+          charObj.characterData.powerPointsBudget = newPP;
+          charObj.characterData.gmUpdates = {
+            lastAwardedAt: new Date().toISOString(),
+            lastAwardType: 'PP',
+            ppDelta: delta,
+            currentPP: newPP
+          };
+        }
+
+        // Update in Supabase
+        if (typeof supabaseService !== 'undefined' && supabaseService && supabaseService.isLoggedIn()) {
+          await supabaseService.updateCampaignMemberAwards({
+            campaignId: cleanId,
+            characterId: charObj.characterId,
+            characterName: charObj.characterName,
+            powerPointsBudget: newPP,
+            characterData: charObj.characterData
+          });
+        }
+
+        // Update local saved campaign characters
+        campaignManager.saveCampaignSavedCharacter(cleanId, charObj.characterData, charObj.playerName);
+
+        // If local active character matches, update immediately
+        if (String(this.char.name || '').trim().toLowerCase() === name.trim().toLowerCase()) {
+          this.char.powerPointsBudget = newPP;
+          this.saveAndAudit();
+          this.renderHeaderStatus();
+        }
+
+        // Broadcast to live session peers
+        campaignManager.broadcastMessage({
+          type: 'GM_AWARD_CHARACTER',
+          campaignId: cleanId,
+          characterId: charObj.characterId,
+          characterName: charObj.characterName,
+          playerName: charObj.playerName,
+          hpAwarded: 0,
+          ppAwarded: delta,
+          newHP: charObj.heroPoints,
+          newPP,
+          timestamp: new Date().toISOString()
+        });
+
+        await this.showAlertDialog(
+          `Successfully awarded +${delta} Power Point(s) to "${name}"!\n\nNew PP Budget: ${newPP} PP\n\nThe update has been saved to the database and broadcasted.`,
+          { title: 'Power Points Awarded' }
+        );
+        this.renderCampaignCharactersList(cleanId, campName);
+      });
+    });
+  }
+
+  handleGMAwardCharacterMessage(msg) {
+    if (!msg) return;
+    const cleanCampId = String(msg.campaignId || '').toUpperCase().replace(/^#+/, '');
+    const activeCampId = String(this.char.campaignId || '').toUpperCase().replace(/^#+/, '');
+    const activeName = String(this.char.name || '').trim().toLowerCase();
+    const msgCharName = String(msg.characterName || '').trim().toLowerCase();
+
+    // Check if active character matches
+    if (activeName === msgCharName && (!msg.campaignId || cleanCampId === activeCampId)) {
+      if (msg.newHP !== undefined) this.char.heroPoints = msg.newHP;
+      if (msg.newPP !== undefined) this.char.powerPointsBudget = msg.newPP;
+      this.saveAndAudit();
+      this.renderHeaderStatus();
+
+      const awards = [];
+      if (msg.hpAwarded) awards.push(`${msg.hpAwarded > 0 ? '+' : ''}${msg.hpAwarded} Hero Point(s) (Current HP: ${msg.newHP})`);
+      if (msg.ppAwarded) awards.push(`+${msg.ppAwarded} Power Point(s) (New PP Budget: ${msg.newPP})`);
+
+      this.showAlertDialog(
+        `👑 The GM has awarded updates to "${this.char.name}"!\n\n` +
+        awards.map(a => `• ${a}`).join('\n') +
+        `\n\nYour character sheet has been updated automatically.`,
+        { title: 'GM Award Received' }
+      );
+    }
+  }
+
+  async syncCampaignCharacterUpdates() {
+    if (typeof supabaseService === 'undefined' || !supabaseService || !supabaseService.isLoggedIn() || !supabaseService.client) return;
+    try {
+      const user = supabaseService.currentUser;
+      if (!user) return;
+      const { data: rows, error } = await supabaseService.client
+        .from('campaign_members')
+        .select('*')
+        .eq('user_id', user.id);
+
+      if (error || !rows || rows.length === 0) return;
+
+      let updatedAny = false;
+      const updatesSummary = [];
+
+      rows.forEach(row => {
+        const charData = row.character_data;
+        if (!charData) return;
+        const rowCharName = String(charData.name || row.character_name || '').trim().toLowerCase();
+
+        // 1. Sync with current active hero if matching
+        const curName = String(this.char.name || '').trim().toLowerCase();
+        if (curName && curName === rowCharName) {
+          const remoteHP = charData.heroPoints ?? row.hero_points;
+          const remotePP = charData.powerPointsBudget;
+          let changed = false;
+          let diffNotes = [];
+
+          if (remoteHP !== undefined && remoteHP !== this.char.heroPoints) {
+            const diff = remoteHP - (this.char.heroPoints ?? 1);
+            this.char.heroPoints = remoteHP;
+            diffNotes.push(`Hero Points: ${diff > 0 ? '+' : ''}${diff} (Now: ${remoteHP})`);
+            changed = true;
+          }
+          if (remotePP !== undefined && remotePP !== this.char.powerPointsBudget) {
+            const diff = remotePP - (this.char.powerPointsBudget ?? ((this.char.powerLevel || 10) * 15));
+            this.char.powerPointsBudget = remotePP;
+            diffNotes.push(`Power Points: ${diff > 0 ? '+' : ''}${diff} (Budget: ${remotePP} PP)`);
+            changed = true;
+          }
+          if (changed) {
+            this.saveAndAudit();
+            this.renderHeaderStatus();
+            updatedAny = true;
+            updatesSummary.push(`"${this.char.name}":\n  • ` + diffNotes.join('\n  • '));
+          }
+        }
+
+        // 2. Also sync local saved characters in storageManager
+        try {
+          const chars = (typeof storageManager.getCharacters === 'function' ? storageManager.getCharacters() : storageManager.characters) || [];
+          const match = chars.find(c => String(c.name || '').trim().toLowerCase() === rowCharName);
+          if (match) {
+            let chChanged = false;
+            if (row.hero_points !== undefined && match.heroPoints !== row.hero_points) {
+              match.heroPoints = row.hero_points;
+              chChanged = true;
+            }
+            if (charData.powerPointsBudget !== undefined && match.powerPointsBudget !== charData.powerPointsBudget) {
+              match.powerPointsBudget = charData.powerPointsBudget;
+              chChanged = true;
+            }
+            if (chChanged && typeof storageManager.saveCharacter === 'function') {
+              storageManager.saveCharacter(match);
+            }
+          }
+        } catch {}
+      });
+
+      if (updatedAny && updatesSummary.length > 0) {
+        this.showAlertDialog(
+          `👑 Online Sync Complete!\n\nGM-issued changes were retrieved from the campaign database and applied to your character:\n\n` +
+          updatesSummary.join('\n\n') +
+          `\n\nYour local character save has been updated.`,
+          { title: 'Campaign Sync' }
+        );
+      }
+    } catch (e) {
+      console.warn('Error during campaign character sync:', e);
+    }
   }
 
   openCharacterInspectorModal(characterData) {

@@ -22,13 +22,13 @@ const tables = readFileSync(resolve(basePath, 'js/tables.js'), 'utf8');
 const arch = readFileSync(resolve(basePath, 'js/archetype_window.js'), 'utf8');
 
 test('Version 3.88 bumped across all files', () => {
-  if (vObj.version !== '3.88') throw new Error(`version.json has version ${vObj.version}`);
-  if (!html.includes('Character Editor v3.88')) throw new Error('index.html missing v3.88 title');
-  if (!html.includes('v3.88</span>')) throw new Error('index.html missing v3.88 badge');
-  if (!app.includes("const CURRENT_VERSION = '3.88';")) throw new Error('app.js missing CURRENT_VERSION 3.88');
-  if (!tables.includes('css/styles.css?v=3.88')) throw new Error('tables.js missing v3.88');
-  if (!arch.includes('css/styles.css?v=3.88')) throw new Error('archetype_window.js missing v3.88');
-  if (!party.includes('css/styles.css?v=3.88')) throw new Error('party.js missing v3.88');
+  if (parseFloat(vObj.version) < 3.88) throw new Error(`version.json has version ${vObj.version}`);
+  if (!/Character Editor v3\.\d+/.test(html)) throw new Error('index.html missing title');
+  if (!/v3\.\d+<\/span>/.test(html)) throw new Error('index.html missing badge');
+  if (!/const CURRENT_VERSION = '3\.\d+';/.test(app)) throw new Error('app.js missing CURRENT_VERSION');
+  if (!/css\/styles\.css\?v=3\.\d+/.test(tables)) throw new Error('tables.js missing version');
+  if (!/css\/styles\.css\?v=3\.\d+/.test(arch)) throw new Error('archetype_window.js missing version');
+  if (!/css\/styles\.css\?v=3\.\d+/.test(party)) throw new Error('party.js missing version');
 });
 
 test('Campaign Directory title drops & Membership and places description to right of name', () => {

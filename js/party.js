@@ -1445,12 +1445,17 @@ export class CampaignTrackerManager {
   // =======================================================
   // GM HIATUS, CAMPAIGN DELETION & OWNERSHIP TRANSFER
   // =======================================================
+  isUserLoggedIn() {
+    if (typeof supabaseService !== 'undefined' && supabaseService && supabaseService.isLoggedIn()) {
+      return true;
+    }
+    const uname = this.getCurrentUsername();
+    return !!(uname && uname.trim());
+  }
+
   getCurrentUsername() {
-    if (typeof supabaseService !== 'undefined' && supabaseService) {
-      if (supabaseService.isLoggedIn()) {
-        return supabaseService.getUsername();
-      }
-      return '';
+    if (typeof supabaseService !== 'undefined' && supabaseService && supabaseService.isLoggedIn()) {
+      return supabaseService.getUsername();
     }
     if (typeof window !== 'undefined' && window.appController?.char?.playerName) {
       return window.appController.char.playerName.trim();
@@ -3919,7 +3924,11 @@ export class CampaignTrackerManager {
       `;
     }).join('');
 
-    const isLoggedIn = typeof supabaseService !== 'undefined' && supabaseService && supabaseService.isLoggedIn();
+    const isLoggedIn = this.isUserLoggedIn();
+    if (typeof supabaseService !== 'undefined' && supabaseService && supabaseService.isLoggedIn() && !this._isSyncingCampaigns) {
+      this._isSyncingCampaigns = true;
+      supabaseService.syncCloudCampaignsToLocal(this).finally(() => { this._isSyncingCampaigns = false; });
+    }
     const topDirectoryBar = `
       <div style="background: var(--bg-card); border: 1.5px solid rgba(56, 189, 248, 0.55); border-radius: 6px; padding: 0.75rem 0.85rem; margin-bottom: 0.75rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.65rem; box-shadow: 0 2px 10px rgba(56, 189, 248, 0.08);">
         <div style="display: flex; align-items: baseline; gap: 0.75rem; flex-wrap: wrap;">
@@ -4551,7 +4560,7 @@ export class CampaignTrackerManager {
 <head>
   <meta charset="UTF-8">
   <title>Mutants & Masterminds 3E - Party Conditions & Toughness Tracker</title>
-  <link rel="stylesheet" href="css/styles.css?v=3.91">
+  <link rel="stylesheet" href="css/styles.css?v=3.92">
   <style>
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -4728,7 +4737,7 @@ export class CampaignTrackerManager {
 <head>
   <meta charset="UTF-8">
   <title>Mutants & Masterminds 3E - Game Session Tracker</title>
-  <link rel="stylesheet" href="css/styles.css?v=3.91">
+  <link rel="stylesheet" href="css/styles.css?v=3.92">
   <style>
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;

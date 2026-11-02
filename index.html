@@ -6,8 +6,8 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Mutants & Masterminds 3E - Character Editor v3.91</title>
-  <link rel="stylesheet" href="css/styles.css?v=3.91">
+  <title>Mutants & Masterminds 3E - Character Editor v3.92</title>
+  <link rel="stylesheet" href="css/styles.css?v=3.92">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
@@ -93,7 +93,7 @@
 
           <div class="brand-title-centered">
             <span>Mutants & Masterminds 3E Character Editor</span>
-            <span id="header-version-tag" class="header-version-tag up-to-date" title="Current Version">v3.91</span>
+            <span id="header-version-tag" class="header-version-tag up-to-date" title="Current Version">v3.92</span>
             <button type="button" id="btn-header-update-alert" class="btn-header-update-alert" title="Check for updates / Update status" style="display: none;">!</button>
           </div>
 
@@ -175,7 +175,7 @@
           </div>
         </div>
 
-        <!-- ROW 2: PP "#/# used" | PL (Stepper & Lock) | HP | Right: Archetypes & Tables Buttons -->
+        <!-- ROW 3: PP "#/# used" | PL (Stepper & Lock) | Shifted Leftwards: Campaigns, Archetypes, Tables Buttons -->
         <div class="header-row-2">
           <div class="row-2-left">
             <div class="pp-status-badge">
@@ -197,13 +197,11 @@
             </div>
           </div>
 
-          <!-- Relocated Campaigns Button (where Spend HP was previously) -->
-          <button type="button" class="btn btn-outline" id="btn-open-campaigns" title="Open Campaign Tracker, Member Conditions & Live P2P Sync" style="padding: 0.35rem 1.1rem; min-height: 38px; font-size: 10pt; font-weight: 800; white-space: nowrap; color: var(--hero-blue); border-color: var(--hero-blue); display: inline-flex; align-items: center; gap: 0.4rem; cursor: pointer;">
-            🛡️ Campaigns
-          </button>
-
-          <!-- Second Row Right: Archetypes button AND Tables button side-by-side -->
-          <div class="row-2-right">
+          <!-- Shifted Leftwards Buttons: Campaigns, Archetypes, Tables (Tables won't exceed right margin) -->
+          <div class="row-2-right" style="display: flex; align-items: center; gap: 0.45rem; margin-left: 1.25rem; flex-shrink: 0;">
+            <button type="button" class="btn btn-outline" id="btn-open-campaigns" title="Open Campaign Tracker, Member Conditions & Live P2P Sync" style="padding: 0.35rem 1.1rem; min-height: 38px; font-size: 10pt; font-weight: 800; white-space: nowrap; color: var(--hero-blue); border-color: var(--hero-blue); display: inline-flex; align-items: center; gap: 0.4rem; cursor: pointer; margin-left: 0; margin-right: 0;">
+              🛡️ Campaigns
+            </button>
             <button class="btn-archetype" id="btn-open-archetypes" title="Launch Interactive Archetype Builder Wizard">
               ✨ Archetypes
             </button>
@@ -2090,6 +2088,6 @@
     </div>
   </div>
 
-  <script type="module" src="js/app.js?v=3.91"></script>
+  <script type="module" src="js/app.js?v=3.92"></script>
 </body>
 </html>

@@ -1,6 +1,6 @@
 {
-  "version": "3.91",
-  "updatedAt": "2026-11-02T15:08:35.325Z",
-  "releaseNotes": "Moved ability card dice icons to the left of the ability rank. Disabled campaign creation for logged-out users with explanatory text. Clarified Join Party and Leave Party terminology, ensuring GMs who leave a party retain campaign ownership without the 'joined' status remaining active.",
-  "updated": "2026-11-01"
+  "version": "3.92",
+  "updatedAt": "2026-11-02T15:35:47.445Z",
+  "releaseNotes": "Shifted the three buttons on header row 3 (Campaigns, Archetypes, Tables) leftwards to prevent the Tables button from exceeding the right margin. Enhanced campaign manager authentication and discovery: synchronous session restore, automatic cloud campaign synchronization with Supabase, and accurate GM/party membership detection so owned and joined campaigns display properly.",
+  "updated": "2026-11-02"
 }

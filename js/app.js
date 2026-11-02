@@ -41,7 +41,7 @@ import {
   tablesManager
 } from './tables.js';
 
-import { POWER_PROFILES_LIBRARY } from './power_profiles.js?v=3.91';
+import { POWER_PROFILES_LIBRARY } from './power_profiles.js?v=3.92';
 import { ARCHETYPES } from './archetypes.js';
 import { archetypeManager } from './archetype_window.js';
 import { campaignManager, partyManager, formatCharacterSheetHTML } from './party.js';
@@ -2204,7 +2204,7 @@ window.partyManager = partyManager;
   }
 
   async checkForUpdates({ isManual = false } = {}) {
-    const CURRENT_VERSION = '3.91';
+    const CURRENT_VERSION = '3.92';
     const versionEl = document.getElementById('header-version-tag');
     const updateBtn = document.getElementById('btn-header-update-alert');
     if (typeof window === 'undefined' || !window.location || !window.location.href || window.location.href === 'about:blank') return;
@@ -2941,6 +2941,8 @@ window.partyManager = partyManager;
       if (usernameLabel) usernameLabel.textContent = uname;
       if (dropdownUsername) dropdownUsername.textContent = uname;
       if (dropdownEmail) dropdownEmail.textContent = user.email || '';
+      partyManager.renderAllOpenViews();
+      this.updateCampaignDropdown();
 
       // When a (different) account signs in, the active player identity becomes that account's username
       if (this._lastAuthUserId !== user.id || (this.char && !String(this.char.playerName || '').trim())) {
@@ -3220,7 +3222,7 @@ window.partyManager = partyManager;
   }
 
   async openCreateCampaignDialog() {
-    if (typeof supabaseService !== 'undefined' && supabaseService && !supabaseService.isLoggedIn()) {
+    if (partyManager && !partyManager.isUserLoggedIn()) {
       const doAuth = await this.showConfirmDialog(
         'User must be logged in to create and manage campaigns.\n\nWould you like to open the Sign In / Register dialog now?',
         { title: 'Sign In Required', confirmText: 'Sign In / Register' }
@@ -4001,7 +4003,7 @@ window.partyManager = partyManager;
 <head>
   <meta charset="UTF-8">
   <title>Mutants &amp; Masterminds 3E - Campaign Messaging Client</title>
-  <link rel="stylesheet" href="css/styles.css?v=3.91">
+  <link rel="stylesheet" href="css/styles.css?v=3.92">
   <style>
     html, body { height: 100%; margin: 0; }
     body {
@@ -5490,6 +5492,19 @@ window.partyManager = partyManager;
             notes: c.description,
             isOnHiatus: !!c.is_on_hiatus,
             isCreator: true
+          });
+          campaignManager.saveToCampaignHistory({
+            campaignId: c.campaign_code || c.id,
+            campaignName: c.campaign_name,
+            creator_id: c.creator_id,
+            creatorName: c.creator_name,
+            powerLevel: c.power_level,
+            dontEnforcePL: c.dont_enforce_pl,
+            isPublic: !!c.is_public,
+            notes: c.notes || c.description || '',
+            isOnHiatus: !!c.is_on_hiatus,
+            isCreator: true,
+            isHost: true
           });
         });
         (pubCamps || []).forEach(c => {
@@ -7312,24 +7327,11 @@ window.partyManager = partyManager;
   }
 
   alignCampaignButton() {
-    const campBox = document.getElementById('header-campaign-box');
     const campBtn = document.getElementById('btn-open-campaigns');
-    const row2 = document.querySelector('.header-row-2');
-    const row2Left = document.querySelector('.row-2-left');
-    if (!campBox || !campBtn || !row2 || !row2Left) return;
-
-    const boxRect = campBox.getBoundingClientRect();
-    const row2Rect = row2.getBoundingClientRect();
-    const row2LeftRect = row2Left.getBoundingClientRect();
-
-    if (boxRect.width === 0 || row2Rect.width === 0) return;
-
-    const targetLeft = boxRect.left - row2Rect.left;
-    const currentLeft = row2LeftRect.right - row2Rect.left;
-    const marginNeeded = Math.max(12, Math.round(targetLeft - currentLeft));
-
-    campBtn.style.marginLeft = `${marginNeeded}px`;
-    campBtn.style.marginRight = '0';
+    if (campBtn) {
+      campBtn.style.marginLeft = '0';
+      campBtn.style.marginRight = '0';
+    }
   }
 
   renderHeaderStatus() {

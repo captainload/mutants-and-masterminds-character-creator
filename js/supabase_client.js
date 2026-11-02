@@ -15,6 +15,44 @@ class SupabaseService {
     this.currentProfile = null;
     this.authListeners = [];
     this.activeSubscriptions = [];
+
+    // Synchronously hydrate cached active account if present
+    try {
+      if (typeof sessionStorage !== 'undefined') {
+        const cached = sessionStorage.getItem('mm3e_active_auth_user');
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          if (parsed && parsed.id) {
+            this.currentUser = { id: parsed.id, email: parsed.email || '', user_metadata: { username: parsed.username } };
+            this.currentProfile = { id: parsed.id, username: parsed.username, email: parsed.email };
+          }
+        }
+      }
+      if (!this.currentUser && typeof localStorage !== 'undefined') {
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (key && key.startsWith('sb-') && key.endsWith('-auth-token')) {
+            const raw = localStorage.getItem(key);
+            if (raw) {
+              const data = JSON.parse(raw);
+              const u = data?.user || data?.currentSession?.user;
+              if (u && u.id) {
+                this.currentUser = u;
+                this.currentProfile = {
+                  id: u.id,
+                  username: u.user_metadata?.username || (u.email ? u.email.split('@')[0] : 'Player'),
+                  email: u.email
+                };
+                break;
+              }
+            }
+          }
+        }
+      }
+    } catch (e) {
+      console.warn('Sync auth restore error:', e);
+    }
+
     this.initClient();
   }
 
@@ -622,6 +660,71 @@ class SupabaseService {
 
     if (error) throw error;
     return data;
+  }
+
+  
+  async getMyParticipatedCampaigns() {
+    if (!this.client || !this.currentUser) return [];
+    try {
+      const { data: memberRows } = await this.client
+        .from('campaign_members')
+        .select('campaign_id')
+        .eq('user_id', this.currentUser.id);
+      
+      const memberCampIds = (memberRows || []).map(r => r.campaign_id).filter(Boolean);
+      if (memberCampIds.length > 0) {
+        const { data: camps } = await this.client
+          .from('campaigns')
+          .select('*')
+          .in('id', memberCampIds);
+        return camps || [];
+      }
+    } catch (e) {
+      console.warn('Error fetching participated campaigns:', e);
+    }
+    return [];
+  }
+
+  async syncCloudCampaignsToLocal(partyMgr) {
+    if (!this.client || !this.currentUser || !partyMgr) return;
+    try {
+      const created = await this.getMyCreatedCampaigns();
+      const participated = await this.getMyParticipatedCampaigns();
+      const publicCamps = await this.getPublicCampaigns();
+
+      [...created, ...participated, ...publicCamps].forEach(c => {
+        const cCode = c.campaign_code || c.id;
+        const isOwner = c.creator_id === this.currentUser?.id;
+        partyMgr.registerCampaignInfo({
+          campaignId: cCode,
+          campaignName: c.campaign_name,
+          powerLevel: c.power_level || 10,
+          dontEnforcePL: !!c.dont_enforce_pl,
+          creatorName: c.creator_name || (isOwner ? this.getUsername() : ''),
+          creator_id: c.creator_id,
+          isPublic: !!c.is_public
+        });
+        if (isOwner) {
+          const hist = partyMgr.getCampaignHistory();
+          const existing = hist.find(h => h.campaignId === cCode);
+          if (!existing) {
+            partyMgr.saveToCampaignHistory({
+              campaignId: cCode,
+              campaignName: c.campaign_name,
+              powerLevel: c.power_level || 10,
+              dontEnforcePL: !!c.dont_enforce_pl,
+              creatorName: c.creator_name || this.getUsername(),
+              creator_id: c.creator_id,
+              isCreator: true,
+              isHost: true
+            });
+          }
+        }
+      });
+      partyMgr.renderAllOpenViews();
+    } catch (e) {
+      console.warn('syncCloudCampaignsToLocal error:', e);
+    }
   }
 
   async getMyCreatedCampaigns() {

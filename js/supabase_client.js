@@ -659,6 +659,16 @@ class SupabaseService {
     return byName || null;
   }
 
+  async getCampaignById(id) {
+    if (!this.client || !id) return null;
+    const { data, error } = await this.client
+      .from('campaigns')
+      .select('*')
+      .eq('id', id)
+      .maybeSingle();
+    return error ? null : (data || null);
+  }
+
   async updateCampaignSettings(campaignId, { powerLevel, dontEnforcePL, isSessionActive, isPublic, notes }) {
     if (!this.client) this.ensureClient();
     if (!this.client || !campaignId) return null;
@@ -802,7 +812,11 @@ class SupabaseService {
       const participated = await this.getMyParticipatedCampaigns();
       const publicCamps = await this.getPublicCampaigns();
 
-      [...created, ...participated, ...publicCamps].forEach(c => {
+      const allCamps = [...created, ...participated, ...publicCamps];
+      const campByUuid = new Map();
+
+      allCamps.forEach(c => {
+        if (c.id) campByUuid.set(c.id, c);
         const cCode = c.campaign_code || c.id;
         const isOwner = c.creator_id === this.currentUser?.id;
         partyMgr.registerCampaignInfo({
@@ -831,6 +845,154 @@ class SupabaseService {
           }
         }
       });
+
+      // Synchronize join requests for campaigns where the current user is the GM / Creator
+      const myCreatedUuids = (created || []).map(c => c.id).filter(Boolean);
+      if (myCreatedUuids.length > 0) {
+        const { data: cloudReqs, error: reqErr } = await this.client
+          .from('join_requests')
+          .select('*')
+          .in('campaign_id', myCreatedUuids);
+
+        if (!reqErr && Array.isArray(cloudReqs) && cloudReqs.length > 0) {
+          const localReqs = partyMgr.getAllJoinRequestsStore();
+          const existingMsgs = partyMgr.getAllCampaignMessages();
+          let messagesUpdated = false;
+          let reqsUpdated = false;
+
+          for (const cr of cloudReqs) {
+            const camp = campByUuid.get(cr.campaign_id);
+            const campCode = camp?.campaign_code || cr.campaign_id;
+            const campName = camp?.campaign_name || campCode;
+            const gmName = camp?.creator_name || this.getUsername() || 'GM';
+            const charPL = cr.power_level || cr.character_data?.powerLevel || 10;
+            const charName = cr.character_name || cr.character_data?.heroName || 'Hero';
+
+            // 1. Sync into join requests store
+            const mappedRecord = {
+              id: cr.id,
+              campaignId: campCode,
+              campaign_id: campCode,
+              campaign_uuid: cr.campaign_id,
+              campaignName: campName,
+              gmName: gmName,
+              username: cr.username,
+              character_id: cr.character_id,
+              character_name: charName,
+              power_level: charPL,
+              character_data: cr.character_data,
+              status: cr.status || 'pending',
+              created_at: cr.created_at || new Date().toISOString(),
+              updated_at: cr.updated_at
+            };
+
+            const existingIdx = localReqs.findIndex(r => r.id === cr.id || (r.campaignId === campCode && r.username === cr.username && r.character_name === charName));
+            if (existingIdx >= 0) {
+              localReqs[existingIdx] = { ...localReqs[existingIdx], ...mappedRecord };
+              reqsUpdated = true;
+            } else {
+              localReqs.push(mappedRecord);
+              reqsUpdated = true;
+            }
+
+            // 2. Sync into campaign messages store for GM
+            const msgId = 'msg_join_req_' + cr.id;
+            const existingMsg = existingMsgs.find(m => m.id === msgId || (m.type === 'JOIN_REQUEST' && (m.requestId === cr.id || (m.campaignId === campCode && m.playerName === cr.username && m.characterName === charName))));
+
+            if (!existingMsg) {
+              const newMsg = {
+                id: msgId,
+                type: 'JOIN_REQUEST',
+                recipientRole: 'GM',
+                recipientUser: gmName,
+                campaignId: campCode,
+                campaignName: campName,
+                gmName: gmName,
+                playerName: cr.username,
+                characterName: charName,
+                requestId: cr.id,
+                text: `Player "${cr.username}" requested to join campaign "${campName}" (#${campCode}) with character "${charName}" (PL ${charPL}).`,
+                timestamp: cr.created_at || new Date().toISOString(),
+                displayTime: new Date(cr.created_at || Date.now()).toLocaleString(),
+                read: cr.status !== 'pending',
+                readBy: []
+              };
+              existingMsgs.unshift(newMsg);
+              messagesUpdated = true;
+            } else {
+              if (!existingMsg.requestId) {
+                existingMsg.requestId = cr.id;
+                messagesUpdated = true;
+              }
+              if (cr.status !== 'pending' && !existingMsg.read) {
+                existingMsg.read = true;
+                messagesUpdated = true;
+              }
+            }
+          }
+
+          if (reqsUpdated) {
+            partyMgr.saveAllJoinRequestsStore(localReqs);
+          }
+          if (messagesUpdated) {
+            partyMgr.saveAllCampaignMessages(existingMsgs);
+            partyMgr.updateHeaderBadge();
+          }
+        }
+      }
+
+      // Also query applicant requests submitted by the current user
+      try {
+        const { data: myAppReqs } = await this.client
+          .from('join_requests')
+          .select('*')
+          .eq('user_id', this.currentUser.id);
+
+        if (Array.isArray(myAppReqs) && myAppReqs.length > 0) {
+          const localReqs = partyMgr.getAllJoinRequestsStore();
+          let reqsUpdated = false;
+          for (const ar of myAppReqs) {
+            const camp = campByUuid.get(ar.campaign_id) || await this.getCampaignById(ar.campaign_id);
+            const campCode = camp?.campaign_code || ar.campaign_id;
+            const campName = camp?.campaign_name || campCode;
+            const gmName = camp?.creator_name || 'GM';
+            const charPL = ar.power_level || ar.character_data?.powerLevel || 10;
+            const charName = ar.character_name || ar.character_data?.heroName || 'Hero';
+
+            const mapped = {
+              id: ar.id,
+              campaignId: campCode,
+              campaign_id: campCode,
+              campaign_uuid: ar.campaign_id,
+              campaignName: campName,
+              gmName: gmName,
+              username: ar.username || this.getUsername(),
+              character_id: ar.character_id,
+              character_name: charName,
+              power_level: charPL,
+              character_data: ar.character_data,
+              status: ar.status || 'pending',
+              created_at: ar.created_at || new Date().toISOString(),
+              updated_at: ar.updated_at
+            };
+
+            const idx = localReqs.findIndex(r => r.id === ar.id || (r.campaignId === campCode && r.username === mapped.username && r.character_name === charName));
+            if (idx >= 0) {
+              localReqs[idx] = { ...localReqs[idx], ...mapped };
+              reqsUpdated = true;
+            } else {
+              localReqs.push(mapped);
+              reqsUpdated = true;
+            }
+          }
+          if (reqsUpdated) {
+            partyMgr.saveAllJoinRequestsStore(localReqs);
+          }
+        }
+      } catch (appErr) {
+        console.warn('Error syncing applicant join requests:', appErr);
+      }
+
       if (typeof partyMgr.renderAllOpenViews === 'function') {
         try { partyMgr.renderAllOpenViews(); } catch (e) { console.warn('renderAllOpenViews error:', e); }
       }

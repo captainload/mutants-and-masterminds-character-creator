@@ -2184,9 +2184,14 @@ export class CampaignTrackerManager {
     const ownedIds = new Set(
       this.getCampaignHistory()
         .filter(c => !!c.isCreator)
-        .map(c => c.campaignId)
+        .map(c => String(c.campaignId || '').toUpperCase().replace(/^#+/, ''))
     );
-    return all.filter(r => ownedIds.has(String(r.campaignId || r.campaign_id || '').toUpperCase().replace(/^#+/, '')));
+    const currentUsername = (this.getCurrentUsername() || '').trim().toLowerCase();
+    return all.filter(r => {
+      const rId = String(r.campaignId || r.campaign_id || '').toUpperCase().replace(/^#+/, '');
+      const rGm = String(r.gmName || '').trim().toLowerCase();
+      return ownedIds.has(rId) || (currentUsername && rGm === currentUsername);
+    });
   }
 
   respondToCampaignJoinRequest(requestId, status, gmName = '') {
@@ -2198,6 +2203,21 @@ export class CampaignTrackerManager {
     req.status = status;
     req.updated_at = new Date().toISOString();
     this.saveAllJoinRequestsStore(requests);
+
+    // Also mark any corresponding GM JOIN_REQUEST message as read
+    try {
+      const messages = this.getAllCampaignMessages();
+      let msgChanged = false;
+      messages.forEach(m => {
+        if (m.type === 'JOIN_REQUEST' && (m.requestId === requestId || m.id === 'msg_join_req_' + requestId)) {
+          m.read = true;
+          msgChanged = true;
+        }
+      });
+      if (msgChanged) {
+        this.saveAllCampaignMessages(messages);
+      }
+    } catch (e) {}
 
     const effGM = gmName || req.gmName || this.getCurrentUsername() || 'GM';
 

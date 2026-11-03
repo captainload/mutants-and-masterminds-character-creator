@@ -129,4 +129,120 @@ assert.ok(adminJs.includes('api.github.com/user'), 'js/admin.js must verify cred
 assert.ok(adminJs.includes('verifyAndSignIn'), 'js/admin.js must implement verifyAndSignIn');
 console.log('✓ Database Admin is strictly gated by GitHub project credentials (captainload).');
 
+// Test 6: Verify GM Join Request Synchronization into Messages & Requests Store
+console.log('Test 6: Verify GM Join Request Synchronization into Messages & Requests Store');
+const gmPartyMgr = new CampaignTrackerManager();
+gmPartyMgr.getCurrentUsername = () => 'psycros';
+
+const mockSupabase = {
+  client: {
+    from: (table) => {
+      if (table === 'campaigns') {
+        return {
+          select: () => ({
+            eq: () => ({
+              order: () => Promise.resolve({
+                data: [
+                  {
+                    id: '5818983e-9d76-4bcf-98c8-e74c2a48f690',
+                    campaign_code: 'TEST-6144',
+                    campaign_name: 'Test 1',
+                    creator_id: 'b99216b1-3d17-4dd2-9de4-ad1ffff3517d',
+                    creator_name: 'psycros',
+                    power_level: 10,
+                    is_public: true
+                  }
+                ],
+                error: null
+              })
+            })
+          })
+        };
+      }
+      if (table === 'join_requests') {
+        return {
+          select: () => ({
+            in: () => Promise.resolve({
+              data: [
+                {
+                  id: '92d2e280-6115-4964-9e5c-4023d8759c5d',
+                  campaign_id: '5818983e-9d76-4bcf-98c8-e74c2a48f690',
+                  user_id: '10ef10b5-5583-424c-bccb-1ba7ca8033a8',
+                  username: 'captainload',
+                  character_name: 'Hero',
+                  power_level: 7,
+                  character_data: { name: 'Hero', powerLevel: 7 },
+                  status: 'pending',
+                  created_at: new Date().toISOString()
+                }
+              ],
+              error: null
+            }),
+            eq: () => Promise.resolve({ data: [], error: null })
+          })
+        };
+      }
+      if (table === 'campaign_members') {
+        return {
+          select: () => ({
+            eq: () => Promise.resolve({ data: [], error: null })
+          })
+        };
+      }
+      return {};
+    }
+  },
+  currentUser: { id: 'b99216b1-3d17-4dd2-9de4-ad1ffff3517d', email: 'psycros@test.com' },
+  getUsername: () => 'psycros',
+  isLoggedIn: () => true,
+  getMyCreatedCampaigns: async function() {
+    return [
+      {
+        id: '5818983e-9d76-4bcf-98c8-e74c2a48f690',
+        campaign_code: 'TEST-6144',
+        campaign_name: 'Test 1',
+        creator_id: 'b99216b1-3d17-4dd2-9de4-ad1ffff3517d',
+        creator_name: 'psycros',
+        power_level: 10,
+        is_public: true
+      }
+    ];
+  },
+  getMyParticipatedCampaigns: async () => [],
+  getPublicCampaigns: async () => []
+};
+
+mockSupabase.syncCloudCampaignsToLocal = supabaseService.syncCloudCampaignsToLocal.bind(mockSupabase);
+
+await mockSupabase.syncCloudCampaignsToLocal(gmPartyMgr);
+
+const userMsgs = gmPartyMgr.getMessagesForCurrentUser();
+assert.ok(userMsgs.length > 0, 'psycros must receive messages');
+const joinReqMsg = userMsgs.find(m => m.type === 'JOIN_REQUEST');
+assert.ok(joinReqMsg, 'JOIN_REQUEST message must exist for psycros');
+assert.strictEqual(joinReqMsg.playerName, 'captainload');
+assert.strictEqual(joinReqMsg.characterName, 'Hero');
+assert.strictEqual(joinReqMsg.campaignId, 'TEST-6144');
+assert.strictEqual(joinReqMsg.recipientRole, 'GM');
+assert.strictEqual(joinReqMsg.read, false);
+assert.strictEqual(gmPartyMgr.getUnreadMessageCount() >= 1, true, 'Unread message count must be at least 1');
+
+// Verify join requests store
+const gmReqs = gmPartyMgr.getJoinRequestsForGM();
+assert.ok(gmReqs.length > 0, 'GM must have join requests in store');
+const targetReq = gmReqs.find(r => r.username === 'captainload');
+assert.ok(targetReq, 'Join request from captainload must be found in GM store');
+assert.strictEqual(targetReq.campaignId, 'TEST-6144');
+assert.strictEqual(targetReq.status, 'pending');
+
+// Test responding to join request
+gmPartyMgr.respondToCampaignJoinRequest(targetReq.id, 'approved', 'psycros');
+const updatedReq = gmPartyMgr.getAllJoinRequestsStore().find(r => r.id === targetReq.id);
+assert.strictEqual(updatedReq.status, 'approved', 'Request status must be updated to approved');
+
+// Ensure JOIN_REQUEST message was marked read
+const updatedJoinMsg = gmPartyMgr.getAllCampaignMessages().find(m => m.id === joinReqMsg.id);
+assert.strictEqual(updatedJoinMsg.read, true, 'JOIN_REQUEST message must be marked read once responded to');
+console.log('✓ Cloud join requests sync seamlessly to GM messages, increment unread count, and allow GM review/approval.');
+
 console.log('--- ALL v3.99 TESTS PASSED SUCCESSFULLY! ---');

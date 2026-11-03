@@ -2960,6 +2960,16 @@ window.partyManager = partyManager;
         try { partyManager?.renderAllOpenViews?.(); } catch (e) { console.warn('renderAllOpenViews auth error:', e); }
         try { this.updateCampaignDropdown?.(); } catch (e) { console.warn('updateCampaignDropdown auth error:', e); }
       }
+      if (typeof supabaseService !== 'undefined' && supabaseService && typeof supabaseService.isLoggedIn === 'function' && supabaseService.isLoggedIn()) {
+        supabaseService.syncCloudCampaignsToLocal(partyManager).then(() => {
+          this.renderCampaignMessagesModalIfOpen();
+          if (this._isInitialized) {
+            try { this.updateCampaignDropdown?.(); } catch (e) {}
+          }
+        }).catch(err => {
+          console.warn('syncCloudCampaignsToLocal error on auth update:', err);
+        });
+      }
 
       // When an account signs in: if the active character is attached to a campaign,
       // its local player name matches the online username. If not attached, user decides player name freely.
@@ -3981,6 +3991,13 @@ window.partyManager = partyManager;
         { doc }
       );
     }
+    if (typeof supabaseService !== 'undefined' && supabaseService && typeof supabaseService.isLoggedIn === 'function' && supabaseService.isLoggedIn()) {
+      supabaseService.syncCloudCampaignsToLocal(campaignManager).then(() => {
+        this.renderCampaignMessagesModalIfOpen();
+      }).catch(err => {
+        console.warn('syncCloudCampaignsToLocal error in openCampaignMessagesModal:', err);
+      });
+    }
   }
 
   renderCampaignMessagesModalIfOpen() {
@@ -4154,6 +4171,13 @@ window.partyManager = partyManager;
     this.renderMessagesInto(win.document);
     if (draft) this.applyComposeDraft(win.document, draft);
     try { win.focus(); } catch (e) {}
+    if (typeof supabaseService !== 'undefined' && supabaseService && typeof supabaseService.isLoggedIn === 'function' && supabaseService.isLoggedIn()) {
+      supabaseService.syncCloudCampaignsToLocal(campaignManager).then(() => {
+        this.renderCampaignMessagesModalIfOpen();
+      }).catch(err => {
+        console.warn('syncCloudCampaignsToLocal error in openMessagesPopout:', err);
+      });
+    }
     return win;
   }
 

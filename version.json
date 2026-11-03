@@ -1,6 +1,8 @@
 {
-  "version": "3.98",
+  "version": "3.99",
   "updatedAt": "2026-11-03T03:17:32.291Z",
   "releaseNotes": "Prompt to attach currently loaded character when applying to join campaigns with direction to load character first if declined, and provide individual and bulk tools to delete orphan campaigns.",
-  "updated": "2026-11-03"
+  "updated": "2026-11-03",
+  "releaseDate": "2026-11-03",
+  "description": "v3.99: Supabase Database Administration Console and centralized campaign data management"
 }

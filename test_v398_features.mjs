@@ -1,6 +1,6 @@
 import assert from 'assert';
-import { CampaignTrackerManager } from './js/party.js?v=3.98';
-import { supabaseService } from './js/supabase_client.js?v=3.98';
+import { CampaignTrackerManager } from './js/party.js?v=3.99';
+import { supabaseService } from './js/supabase_client.js?v=3.99';
 
 console.log('--- TEST SUITE: v3.98 Features ---');
 
@@ -264,10 +264,10 @@ assert(remaining.some(c => c.campaignId === 'CAP-1001'), 'captainload campaign m
 assert(remaining.some(c => c.campaignId === 'PSY-2002'), 'psycros campaign must be preserved');
 assert(!remaining.some(c => c.campaignId.startsWith('ORPH-')), 'No orphan campaigns should remain');
 
-// Verify HTML contains Purge button and orphan delete options
+// Verify player-facing browser does NOT expose orphan deletion to regular users
 const browserHTML = mgr.generateCampaignBrowserHTML();
-assert(browserHTML.includes('btn-purge-orphan-campaigns'), 'Campaign Browser toolbar must contain Purge Orphan Campaigns button');
-assert(browserHTML.includes('btn-delete-orphan-campaign'), 'Actions dropdown for non-owned campaign must contain Delete Campaign option');
+assert(!browserHTML.includes('btn-purge-orphan-campaigns'), 'Campaign Browser toolbar must not expose bulk purge to regular players');
+assert(!browserHTML.includes('btn-delete-orphan-campaign'), 'Actions dropdown for non-owned campaign must not expose delete to regular players');
 
 console.log('✓ Bulk purge accurately identifies and purges all orphan campaigns while preserving captainload and psycros campaigns.');
 

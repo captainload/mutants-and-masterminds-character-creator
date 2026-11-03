@@ -1,6 +1,6 @@
 import assert from 'assert';
-import { CampaignTrackerManager } from './js/party.js?v=3.98';
-import { supabaseService } from './js/supabase_client.js?v=3.98';
+import { CampaignTrackerManager } from './js/party.js?v=3.99';
+import { supabaseService } from './js/supabase_client.js?v=3.99';
 
 console.log('--- TEST SUITE: v3.97 Features ---');
 

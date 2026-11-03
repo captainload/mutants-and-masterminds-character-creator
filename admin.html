@@ -1,0 +1,1109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <title>Mutants & Masterminds 3E - Database Administration Console</title>
+  <link rel="stylesheet" href="css/styles.css?v=3.99">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    :root {
+      --admin-bg: #0b1120;
+      --admin-surface: #131d31;
+      --admin-surface-alt: #1a2742;
+      --admin-border: #233554;
+      --admin-gold: #f59e0b;
+      --admin-blue: #3b82f6;
+      --admin-cyan: #06b6d4;
+      --admin-red: #ef4444;
+      --admin-green: #10b981;
+      --admin-text: #f8fafc;
+      --admin-muted: #94a3b8;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: var(--admin-bg);
+      color: var(--admin-text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      font-size: 10pt;
+      line-height: 1.45;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Top Navigation Bar */
+    .admin-navbar {
+      background: linear-gradient(180deg, #162036 0%, #0d1525 100%);
+      border-bottom: 2px solid var(--admin-border);
+      padding: 0.65rem 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.45);
+    }
+
+    .admin-brand {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      text-decoration: none;
+      color: var(--admin-text);
+    }
+
+    .admin-brand-icon {
+      font-size: 18pt;
+      filter: drop-shadow(0 0 6px rgba(245, 158, 11, 0.5));
+    }
+
+    .admin-brand-title {
+      font-size: 13pt;
+      font-weight: 900;
+      letter-spacing: 0.5px;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .admin-badge {
+      background: linear-gradient(135deg, #f59e0b, #d97706);
+      color: #000;
+      font-size: 8pt;
+      font-weight: 900;
+      padding: 2px 7px;
+      border-radius: 4px;
+      letter-spacing: 0.6px;
+      text-transform: uppercase;
+    }
+
+    .admin-nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    /* Status Indicator */
+    .db-status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-size: 9pt;
+      font-weight: 700;
+      background: rgba(16, 185, 129, 0.12);
+      border: 1px solid rgba(16, 185, 129, 0.4);
+      color: #34d399;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #10b981;
+      box-shadow: 0 0 6px #10b981;
+      display: inline-block;
+    }
+
+    .status-dot.error {
+      background: var(--admin-red);
+      box-shadow: 0 0 6px var(--admin-red);
+    }
+
+    /* User Profile Chip */
+    .admin-user-chip {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: var(--admin-surface);
+      border: 1px solid var(--admin-border);
+      padding: 4px 10px;
+      border-radius: 6px;
+    }
+
+    .admin-avatar {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: var(--admin-blue);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 900;
+      font-size: 10pt;
+    }
+
+    /* Container */
+    .admin-container {
+      max-width: 1400px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 1.25rem 1.5rem 3rem 1.5rem;
+      box-sizing: border-box;
+      flex: 1;
+    }
+
+    /* Metrics Grid */
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .metric-card {
+      background: var(--admin-surface);
+      border: 1px solid var(--admin-border);
+      border-radius: 8px;
+      padding: 1rem 1.25rem;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.25);
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.15s ease, border-color 0.15s ease;
+    }
+
+    .metric-card:hover {
+      border-color: var(--admin-gold);
+      transform: translateY(-2px);
+    }
+
+    .metric-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 4px;
+      height: 100%;
+      background: var(--admin-blue);
+    }
+
+    .metric-card.gold::before { background: var(--admin-gold); }
+    .metric-card.green::before { background: var(--admin-green); }
+    .metric-card.red::before { background: var(--admin-red); }
+    .metric-card.cyan::before { background: var(--admin-cyan); }
+
+    .metric-label {
+      font-size: 9pt;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      color: var(--admin-muted);
+      margin-bottom: 0.35rem;
+    }
+
+    .metric-value {
+      font-size: 20pt;
+      font-weight: 900;
+      color: #fff;
+      line-height: 1.1;
+      display: flex;
+      align-items: baseline;
+      gap: 0.5rem;
+    }
+
+    .metric-subtext {
+      font-size: 8.5pt;
+      color: var(--admin-muted);
+      margin-top: 0.35rem;
+    }
+
+    /* Tabs */
+    .admin-tabs {
+      display: flex;
+      gap: 0.35rem;
+      border-bottom: 2px solid var(--admin-border);
+      margin-bottom: 1.25rem;
+      overflow-x: auto;
+    }
+
+    .admin-tab {
+      background: none;
+      border: none;
+      border-bottom: 3px solid transparent;
+      color: var(--admin-muted);
+      padding: 0.65rem 1.25rem;
+      font-size: 10pt;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: all 0.15s ease;
+      white-space: nowrap;
+    }
+
+    .admin-tab:hover {
+      color: var(--admin-text);
+      background: rgba(255,255,255,0.03);
+    }
+
+    .admin-tab.active {
+      color: var(--admin-gold);
+      border-bottom-color: var(--admin-gold);
+      background: rgba(245, 158, 11, 0.08);
+    }
+
+    .tab-badge {
+      background: rgba(255,255,255,0.12);
+      color: #fff;
+      font-size: 8pt;
+      padding: 1px 6px;
+      border-radius: 999px;
+      font-weight: 800;
+    }
+
+    .admin-tab.active .tab-badge {
+      background: var(--admin-gold);
+      color: #000;
+    }
+
+    /* Tab Panes */
+    .admin-pane {
+      display: none;
+    }
+
+    .admin-pane.active {
+      display: block;
+      animation: fadeIn 0.2s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Action Bar / Toolbar */
+    .table-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-bottom: 1rem;
+      flex-wrap: wrap;
+      background: var(--admin-surface);
+      border: 1px solid var(--admin-border);
+      padding: 0.75rem 1rem;
+      border-radius: 8px;
+    }
+
+    .search-input-box {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: var(--admin-bg);
+      border: 1px solid var(--admin-border);
+      padding: 0.4rem 0.75rem;
+      border-radius: 6px;
+      flex: 1;
+      max-width: 380px;
+    }
+
+    .search-input-box input {
+      background: none;
+      border: none;
+      outline: none;
+      color: #fff;
+      font-size: 10pt;
+      width: 100%;
+    }
+
+    .filter-select {
+      background: var(--admin-bg);
+      border: 1px solid var(--admin-border);
+      color: #fff;
+      font-size: 10pt;
+      padding: 0.4rem 0.75rem;
+      border-radius: 6px;
+      outline: none;
+      cursor: pointer;
+    }
+
+    /* Tables */
+    .admin-table-container {
+      background: var(--admin-surface);
+      border: 1px solid var(--admin-border);
+      border-radius: 8px;
+      overflow-x: auto;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+    }
+
+    .admin-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 10pt;
+      text-align: left;
+    }
+
+    .admin-table th {
+      background: #0f172a;
+      color: var(--admin-muted);
+      font-weight: 700;
+      text-transform: uppercase;
+      font-size: 8.5pt;
+      letter-spacing: 0.6px;
+      padding: 0.75rem 1rem;
+      border-bottom: 2px solid var(--admin-border);
+      white-space: nowrap;
+    }
+
+    .admin-table td {
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      vertical-align: middle;
+    }
+
+    .admin-table tbody tr:hover {
+      background: var(--admin-surface-alt);
+    }
+
+    /* Code Tags & Badges */
+    .code-tag {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-weight: 800;
+      color: var(--admin-cyan);
+      background: rgba(6, 182, 212, 0.12);
+      padding: 2px 7px;
+      border-radius: 4px;
+      border: 1px solid rgba(6, 182, 212, 0.3);
+      font-size: 9.5pt;
+      display: inline-block;
+    }
+
+    .badge-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 8.5pt;
+      font-weight: 800;
+      letter-spacing: 0.4px;
+    }
+
+    .badge-green {
+      background: rgba(16, 185, 129, 0.16);
+      border: 1px solid rgba(16, 185, 129, 0.45);
+      color: #34d399;
+    }
+
+    .badge-amber {
+      background: rgba(245, 158, 11, 0.16);
+      border: 1px solid rgba(245, 158, 11, 0.45);
+      color: #fbbf24;
+    }
+
+    .badge-red {
+      background: rgba(239, 68, 68, 0.16);
+      border: 1px solid rgba(239, 68, 68, 0.45);
+      color: #f87171;
+    }
+
+    .badge-gray {
+      background: rgba(148, 163, 184, 0.12);
+      border: 1px solid rgba(148, 163, 184, 0.3);
+      color: #cbd5e1;
+    }
+
+    /* Buttons */
+    .btn-admin {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.4rem 0.85rem;
+      border-radius: 6px;
+      font-size: 10pt;
+      font-weight: 700;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: all 0.15s ease;
+      text-decoration: none;
+    }
+
+    .btn-admin-primary {
+      background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+      color: #fff;
+    }
+    .btn-admin-primary:hover {
+      background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+    }
+
+    .btn-admin-gold {
+      background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+      color: #000;
+    }
+    .btn-admin-gold:hover {
+      background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+    }
+
+    .btn-admin-danger {
+      background: rgba(239, 68, 68, 0.15);
+      border-color: rgba(239, 68, 68, 0.5);
+      color: #f87171;
+    }
+    .btn-admin-danger:hover {
+      background: #ef4444;
+      color: #fff;
+    }
+
+    .btn-admin-outline {
+      background: transparent;
+      border-color: var(--admin-border);
+      color: var(--admin-text);
+    }
+    .btn-admin-outline:hover {
+      border-color: var(--admin-gold);
+      color: var(--admin-gold);
+      background: rgba(245, 158, 11, 0.05);
+    }
+
+    .btn-admin-sm {
+      padding: 2px 7px;
+      font-size: 9pt;
+      border-radius: 4px;
+    }
+
+    /* Action Buttons Group */
+    .table-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      flex-wrap: wrap;
+    }
+
+    /* Modal */
+    .admin-modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.75);
+      backdrop-filter: blur(4px);
+      z-index: 999;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+
+    .admin-modal-backdrop.open {
+      display: flex;
+    }
+
+    .admin-modal {
+      background: var(--admin-surface);
+      border: 1px solid var(--admin-border);
+      border-radius: 10px;
+      width: 100%;
+      max-width: 600px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      max-height: 90vh;
+      animation: modalSlide 0.2s ease-out;
+    }
+
+    @keyframes modalSlide {
+      from { transform: scale(0.95); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    .admin-modal-header {
+      background: #0f172a;
+      border-bottom: 1px solid var(--admin-border);
+      padding: 0.9rem 1.25rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .admin-modal-title {
+      font-size: 12pt;
+      font-weight: 800;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .admin-modal-close {
+      background: none;
+      border: none;
+      color: var(--admin-muted);
+      font-size: 14pt;
+      cursor: pointer;
+      line-height: 1;
+    }
+
+    .admin-modal-close:hover {
+      color: #fff;
+    }
+
+    .admin-modal-body {
+      padding: 1.25rem;
+      overflow-y: auto;
+      flex: 1;
+    }
+
+    .admin-modal-footer {
+      background: #0f172a;
+      border-top: 1px solid var(--admin-border);
+      padding: 0.75rem 1.25rem;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 0.75rem;
+    }
+
+    .form-group {
+      margin-bottom: 1rem;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 9.5pt;
+      font-weight: 700;
+      color: var(--admin-muted);
+      margin-bottom: 0.35rem;
+    }
+
+    .form-control {
+      width: 100%;
+      background: var(--admin-bg);
+      border: 1px solid var(--admin-border);
+      border-radius: 6px;
+      padding: 0.5rem 0.75rem;
+      color: #fff;
+      font-size: 10pt;
+      box-sizing: border-box;
+      outline: none;
+    }
+
+    .form-control:focus {
+      border-color: var(--admin-gold);
+    }
+
+    /* Auth Overlay */
+    #auth-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(11, 17, 32, 0.96);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+
+    .auth-card {
+      background: var(--admin-surface);
+      border: 2px solid var(--admin-gold);
+      border-radius: 12px;
+      max-width: 440px;
+      width: 100%;
+      padding: 2rem;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.7);
+      text-align: center;
+    }
+
+    .auth-logo {
+      font-size: 32pt;
+      margin-bottom: 0.5rem;
+    }
+
+    .auth-title {
+      font-size: 15pt;
+      font-weight: 900;
+      color: #fff;
+      margin-bottom: 0.35rem;
+    }
+
+    .auth-desc {
+      color: var(--admin-muted);
+      font-size: 9.5pt;
+      margin-bottom: 1.5rem;
+      line-height: 1.4;
+    }
+
+    .auth-card .form-group {
+      text-align: left;
+    }
+
+    /* JSON Viewer */
+    pre.json-view {
+      background: #080d19;
+      border: 1px solid var(--admin-border);
+      border-radius: 6px;
+      padding: 0.75rem;
+      color: #38bdf8;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 9pt;
+      max-height: 350px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Navbar -->
+  <header class="admin-navbar">
+    <a href="index.html" class="admin-brand" title="Return to Character Creator">
+      <span class="admin-brand-icon">⚡</span>
+      <div>
+        <div class="admin-brand-title">
+          <span>Mutants &amp; Masterminds 3E</span>
+          <span class="admin-badge">Database Admin</span>
+        </div>
+      </div>
+    </a>
+
+    <div class="admin-nav-actions">
+      <div id="connection-pill" class="db-status-pill">
+        <span class="status-dot"></span>
+        <span id="connection-status-text">Connecting to Supabase...</span>
+      </div>
+
+      <div id="admin-user-profile" class="admin-user-chip" style="display: none;">
+        <div class="admin-avatar" id="admin-avatar-initial">A</div>
+        <div>
+          <div style="font-weight: 800; font-size: 9.5pt; color: #fff;" id="admin-username-label">Admin</div>
+          <div style="font-size: 8pt; color: var(--admin-muted);" id="admin-email-label">admin@example.com</div>
+        </div>
+      </div>
+
+      <button type="button" class="btn-admin btn-admin-outline" id="btn-refresh-all" title="Reload all records from Supabase">
+        🔄 Refresh
+      </button>
+
+      <a href="index.html" class="btn-admin btn-admin-outline" title="Return to the Character Creator application">
+        ⬅️ Character App
+      </a>
+
+      <button type="button" class="btn-admin btn-admin-danger btn-admin-sm" id="btn-admin-signout" style="display: none;" title="Sign out of Admin Console">
+        🚪 Sign Out
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="admin-container">
+
+    <!-- KPI Summary Metrics -->
+    <section class="metrics-grid">
+      <div class="metric-card gold">
+        <div class="metric-label">Cloud Campaigns</div>
+        <div class="metric-value" id="stat-campaigns-count">0</div>
+        <div class="metric-subtext" id="stat-campaigns-sub">Active campaigns in Supabase</div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-label">Registered Users</div>
+        <div class="metric-value" id="stat-users-count">0</div>
+        <div class="metric-subtext" id="stat-users-sub">Unique player &amp; GM accounts</div>
+      </div>
+
+      <div class="metric-card cyan">
+        <div class="metric-label">Join Requests</div>
+        <div class="metric-value" id="stat-requests-count">0</div>
+        <div class="metric-subtext" id="stat-requests-sub"><span style="color: #fbbf24; font-weight: 700;" id="stat-requests-pending">0</span> pending GM review</div>
+      </div>
+
+      <div class="metric-card green">
+        <div class="metric-label">Live Game Sessions</div>
+        <div class="metric-value" id="stat-sessions-count">0</div>
+        <div class="metric-subtext">Active peer rooms running</div>
+      </div>
+
+      <div class="metric-card red">
+        <div class="metric-label">Browser Local Orphans</div>
+        <div class="metric-value" id="stat-orphans-count">0</div>
+        <div class="metric-subtext" id="stat-orphans-sub">Local test campaigns on this device</div>
+      </div>
+    </section>
+
+    <!-- Navigation Tabs -->
+    <nav class="admin-tabs" role="tablist">
+      <button type="button" class="admin-tab active" data-tab="tab-campaigns">
+        <span>🛡️ Campaigns</span>
+        <span class="tab-badge" id="badge-tab-campaigns">0</span>
+      </button>
+      <button type="button" class="admin-tab" data-tab="tab-users">
+        <span>👥 Users &amp; Profiles</span>
+        <span class="tab-badge" id="badge-tab-users">0</span>
+      </button>
+      <button type="button" class="admin-tab" data-tab="tab-requests">
+        <span>📥 Join Requests</span>
+        <span class="tab-badge" id="badge-tab-requests">0</span>
+      </button>
+      <button type="button" class="admin-tab" data-tab="tab-members">
+        <span>⚔️ Campaign Members</span>
+        <span class="tab-badge" id="badge-tab-members">0</span>
+      </button>
+      <button type="button" class="admin-tab" data-tab="tab-diagnostics">
+        <span>🧹 Local Storage &amp; Orphan Cleaner</span>
+        <span class="tab-badge" id="badge-tab-orphans">0</span>
+      </button>
+      <button type="button" class="admin-tab" data-tab="tab-backup">
+        <span>💾 Backup &amp; JSON Export</span>
+      </button>
+    </nav>
+
+    <!-- TAB 1: CAMPAIGNS -->
+    <section id="tab-campaigns" class="admin-pane active">
+      <div class="table-toolbar">
+        <div class="search-input-box">
+          <span>🔍</span>
+          <input type="text" id="filter-campaigns-query" placeholder="Filter by name, code (#TEST-1234), or GM...">
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+          <select id="filter-campaigns-session" class="filter-select">
+            <option value="all">All Sessions</option>
+            <option value="active">Active Sessions Only</option>
+            <option value="inactive">Inactive Only</option>
+          </select>
+
+          <button type="button" class="btn-admin btn-admin-gold" id="btn-create-campaign-modal">
+            ➕ Create Campaign
+          </button>
+        </div>
+      </div>
+
+      <div class="admin-table-container">
+        <table class="admin-table" id="table-campaigns">
+          <thead>
+            <tr>
+              <th>Code</th>
+              <th>Campaign Name</th>
+              <th>GM / Creator</th>
+              <th>PL</th>
+              <th>Enforce PL</th>
+              <th>Session Active</th>
+              <th>Created Date</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="tbody-campaigns">
+            <tr>
+              <td colspan="8" style="text-align: center; color: var(--admin-muted); padding: 2rem;">Loading campaigns from Supabase...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- TAB 2: USERS & PROFILES -->
+    <section id="tab-users" class="admin-pane">
+      <div class="table-toolbar">
+        <div class="search-input-box">
+          <span>🔍</span>
+          <input type="text" id="filter-users-query" placeholder="Search by username, email, or UUID...">
+        </div>
+        <div style="color: var(--admin-muted); font-size: 9pt;">
+          Unique accounts registered in Supabase auth database
+        </div>
+      </div>
+
+      <div class="admin-table-container">
+        <table class="admin-table" id="table-users">
+          <thead>
+            <tr>
+              <th>User ID (UUID)</th>
+              <th>Username</th>
+              <th>Email</th>
+              <th>Registered</th>
+              <th>Campaigns Owned</th>
+              <th>Join Requests</th>
+            </tr>
+          </thead>
+          <tbody id="tbody-users">
+            <tr>
+              <td colspan="6" style="text-align: center; color: var(--admin-muted); padding: 2rem;">Loading user profiles...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- TAB 3: JOIN REQUESTS -->
+    <section id="tab-requests" class="admin-pane">
+      <div class="table-toolbar">
+        <div class="search-input-box">
+          <span>🔍</span>
+          <input type="text" id="filter-requests-query" placeholder="Search by character, user, or campaign...">
+        </div>
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+          <select id="filter-requests-status" class="filter-select">
+            <option value="all">All Statuses</option>
+            <option value="pending" selected>Pending Only</option>
+            <option value="approved">Approved Only</option>
+            <option value="rejected">Rejected Only</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="admin-table-container">
+        <table class="admin-table" id="table-requests">
+          <thead>
+            <tr>
+              <th>Campaign</th>
+              <th>Applicant</th>
+              <th>Character</th>
+              <th>PL</th>
+              <th>Status</th>
+              <th>Submitted</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="tbody-requests">
+            <tr>
+              <td colspan="7" style="text-align: center; color: var(--admin-muted); padding: 2rem;">Loading join requests...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- TAB 4: CAMPAIGN MEMBERS -->
+    <section id="tab-members" class="admin-pane">
+      <div class="table-toolbar">
+        <div class="search-input-box">
+          <span>🔍</span>
+          <input type="text" id="filter-members-query" placeholder="Search members by character or player...">
+        </div>
+        <div style="color: var(--admin-muted); font-size: 9pt;">
+          Active party rosters recorded in the cloud
+        </div>
+      </div>
+
+      <div class="admin-table-container">
+        <table class="admin-table" id="table-members">
+          <thead>
+            <tr>
+              <th>Campaign</th>
+              <th>Player</th>
+              <th>Character</th>
+              <th>PL</th>
+              <th>Online</th>
+              <th>Last Seen</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="tbody-members">
+            <tr>
+              <td colspan="7" style="text-align: center; color: var(--admin-muted); padding: 2rem;">Loading campaign members...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- TAB 5: LOCAL STORAGE & ORPHAN DIAGNOSTICS -->
+    <section id="tab-diagnostics" class="admin-pane">
+      <div style="background: var(--admin-surface); border: 1px solid var(--admin-border); border-radius: 8px; padding: 1.25rem; margin-bottom: 1.25rem;">
+        <h3 style="margin-top: 0; color: #fff; display: flex; align-items: center; gap: 0.5rem; font-size: 11pt;">
+          <span>🧹</span> Browser Local Storage &amp; Orphan Campaign Diagnostics
+        </h3>
+        <p style="color: var(--admin-muted); font-size: 9.5pt; margin-bottom: 1rem; line-height: 1.5;">
+          This diagnostic scanner compares campaigns cached in your local browser (<code style="color: var(--admin-cyan);">mm3e_campaign_registry</code> and <code style="color: var(--admin-cyan);">mm3e_campaigns_history</code>) against the official Supabase cloud database. Orphan campaigns are legacy entries created during offline testing or before Supabase authentication, which neither <strong style="color: #fff;">captainload</strong> nor <strong style="color: #fff;">psycros</strong> own.
+        </p>
+
+        <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+          <button type="button" class="btn-admin btn-admin-danger" id="btn-purge-local-orphans">
+            🧹 Purge All Local Orphan Campaigns
+          </button>
+          <button type="button" class="btn-admin btn-admin-gold" id="btn-resync-cloud-cache">
+            🔄 Resync Browser Cache with Cloud
+          </button>
+          <button type="button" class="btn-admin btn-admin-outline" id="btn-scan-local-storage">
+            🔍 Re-Scan Local Storage
+          </button>
+        </div>
+      </div>
+
+      <div class="admin-table-container">
+        <table class="admin-table" id="table-local-campaigns">
+          <thead>
+            <tr>
+              <th>Campaign Code</th>
+              <th>Campaign Name</th>
+              <th>Stored GM</th>
+              <th>Status in Cloud</th>
+              <th>Storage Location</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="tbody-local-campaigns">
+            <tr>
+              <td colspan="6" style="text-align: center; color: var(--admin-muted); padding: 2rem;">Scanning browser storage...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- TAB 6: BACKUP & EXPORT -->
+    <section id="tab-backup" class="admin-pane">
+      <div style="background: var(--admin-surface); border: 1px solid var(--admin-border); border-radius: 8px; padding: 1.5rem; max-width: 800px;">
+        <h3 style="margin-top: 0; color: #fff; font-size: 12pt; display: flex; align-items: center; gap: 0.5rem;">
+          <span>💾</span> Complete Database Backup &amp; Snapshot Export
+        </h3>
+        <p style="color: var(--admin-muted); font-size: 9.5pt; line-height: 1.5; margin-bottom: 1.25rem;">
+          Export the entire contents of your Supabase database (<code style="color: var(--admin-cyan);">campaigns</code>, <code style="color: var(--admin-cyan);">profiles</code>, <code style="color: var(--admin-cyan);">join_requests</code>, <code style="color: var(--admin-cyan);">campaign_members</code>) into a single structured JSON file for safe archiving and offline inspection.
+        </p>
+
+        <button type="button" class="btn-admin btn-admin-primary" id="btn-export-database-json" style="padding: 0.65rem 1.25rem; font-size: 11pt;">
+          📥 Download Database Snapshot (.json)
+        </button>
+
+        <div style="margin-top: 2rem;">
+          <h4 style="color: var(--admin-text); font-size: 10pt; margin-bottom: 0.5rem;">Raw Cloud Database Inspector</h4>
+          <div style="display: flex; gap: 0.5rem; margin-bottom: 0.75rem;">
+            <button type="button" class="btn-admin btn-admin-outline btn-admin-sm btn-inspect-table active" data-table="campaigns">campaigns</button>
+            <button type="button" class="btn-admin btn-admin-outline btn-admin-sm btn-inspect-table" data-table="profiles">profiles</button>
+            <button type="button" class="btn-admin btn-admin-outline btn-admin-sm btn-inspect-table" data-table="join_requests">join_requests</button>
+            <button type="button" class="btn-admin btn-admin-outline btn-admin-sm btn-inspect-table" data-table="campaign_members">campaign_members</button>
+          </div>
+          <pre class="json-view" id="raw-json-display">// Select a table above to view raw JSON records</pre>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- AUTH OVERLAY (Sign in with Project Credentials) -->
+  <div id="auth-overlay" style="display: none;">
+    <div class="auth-card">
+      <div class="auth-logo">⚡</div>
+      <h2 class="auth-title">Database Admin Console</h2>
+      <p class="auth-desc">
+        Sign in using your existing project credentials (<strong style="color: var(--admin-gold);">captainload</strong> or <strong style="color: var(--admin-gold);">psycros</strong>) to access and administer the cloud database.
+      </p>
+
+      <form id="form-admin-login">
+        <div class="form-group">
+          <label for="admin-login-id">Email or Username</label>
+          <input type="text" id="admin-login-id" class="form-control" placeholder="captainload@gmail.com or username" required autocomplete="username">
+        </div>
+
+        <div class="form-group">
+          <label for="admin-login-pwd">Password</label>
+          <input type="password" id="admin-login-pwd" class="form-control" placeholder="••••••••" required autocomplete="current-password">
+        </div>
+
+        <div id="admin-login-error" style="display: none; color: #f87171; font-size: 9pt; margin-bottom: 1rem; text-align: left; background: rgba(239, 68, 68, 0.1); padding: 0.5rem; border-radius: 4px; border: 1px solid rgba(239, 68, 68, 0.3);"></div>
+
+        <button type="submit" class="btn-admin btn-admin-gold" style="width: 100%; justify-content: center; padding: 0.65rem; font-size: 11pt;">
+          Sign In as Administrator
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: CREATE CAMPAIGN -->
+  <div class="admin-modal-backdrop" id="modal-create-campaign">
+    <div class="admin-modal">
+      <div class="admin-modal-header">
+        <div class="admin-modal-title"><span>➕</span> Create New Campaign in Database</div>
+        <button type="button" class="admin-modal-close" data-close="modal-create-campaign">✕</button>
+      </div>
+      <div class="admin-modal-body">
+        <form id="form-create-campaign">
+          <div class="form-group">
+            <label for="new-camp-name">Campaign Name *</label>
+            <input type="text" id="new-camp-name" class="form-control" placeholder="e.g. Gotham Knights" required>
+          </div>
+          <div class="form-group">
+            <label for="new-camp-code">Campaign Code (4 letters + 4 digits, e.g. GOTH-1234)</label>
+            <input type="text" id="new-camp-code" class="form-control" placeholder="Leave blank to auto-generate">
+          </div>
+          <div class="form-group">
+            <label for="new-camp-pl">Power Level</label>
+            <input type="number" id="new-camp-pl" class="form-control" value="10" min="1" max="20" required>
+          </div>
+          <div class="form-group">
+            <label for="new-camp-creator">Assigned GM / Creator</label>
+            <select id="new-camp-creator" class="form-control"></select>
+          </div>
+          <div class="form-group" style="display: flex; align-items: center; gap: 0.5rem; margin-top: 1rem;">
+            <input type="checkbox" id="new-camp-enforce-pl" style="accent-color: var(--admin-gold); cursor: pointer;">
+            <label for="new-camp-enforce-pl" style="margin: 0; cursor: pointer; color: #fff;">Don't enforce Power Level limits</label>
+          </div>
+        </form>
+      </div>
+      <div class="admin-modal-footer">
+        <button type="button" class="btn-admin btn-admin-outline" data-close="modal-create-campaign">Cancel</button>
+        <button type="button" class="btn-admin btn-admin-gold" id="btn-save-new-campaign">Create Campaign</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: EDIT CAMPAIGN -->
+  <div class="admin-modal-backdrop" id="modal-edit-campaign">
+    <div class="admin-modal">
+      <div class="admin-modal-header">
+        <div class="admin-modal-title"><span>✏️</span> Edit Campaign Settings</div>
+        <button type="button" class="admin-modal-close" data-close="modal-edit-campaign">✕</button>
+      </div>
+      <div class="admin-modal-body">
+        <form id="form-edit-campaign">
+          <input type="hidden" id="edit-camp-id">
+          <div class="form-group">
+            <label>Campaign Code</label>
+            <input type="text" id="edit-camp-code" class="form-control" disabled style="opacity: 0.7;">
+          </div>
+          <div class="form-group">
+            <label for="edit-camp-name">Campaign Name *</label>
+            <input type="text" id="edit-camp-name" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label for="edit-camp-pl">Power Level</label>
+            <input type="number" id="edit-camp-pl" class="form-control" min="1" max="20" required>
+          </div>
+          <div class="form-group" style="display: flex; align-items: center; gap: 0.5rem;">
+            <input type="checkbox" id="edit-camp-enforce-pl" style="accent-color: var(--admin-gold); cursor: pointer;">
+            <label for="edit-camp-enforce-pl" style="margin: 0; cursor: pointer; color: #fff;">Don't enforce Power Level limits</label>
+          </div>
+          <div class="form-group" style="display: flex; align-items: center; gap: 0.5rem; margin-top: 0.5rem;">
+            <input type="checkbox" id="edit-camp-session-active" style="accent-color: var(--admin-green); cursor: pointer;">
+            <label for="edit-camp-session-active" style="margin: 0; cursor: pointer; color: #fff;">Live Game Session Active</label>
+          </div>
+        </form>
+      </div>
+      <div class="admin-modal-footer">
+        <button type="button" class="btn-admin btn-admin-outline" data-close="modal-edit-campaign">Cancel</button>
+        <button type="button" class="btn-admin btn-admin-primary" id="btn-save-edit-campaign">Save Changes</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: CHARACTER INSPECTOR -->
+  <div class="admin-modal-backdrop" id="modal-view-character">
+    <div class="admin-modal" style="max-width: 750px;">
+      <div class="admin-modal-header">
+        <div class="admin-modal-title"><span>📄</span> Character Sheet Inspection</div>
+        <button type="button" class="admin-modal-close" data-close="modal-view-character">✕</button>
+      </div>
+      <div class="admin-modal-body" id="modal-char-body">
+        <!-- Rendered character sheet or raw JSON -->
+      </div>
+      <div class="admin-modal-footer">
+        <button type="button" class="btn-admin btn-admin-outline" data-close="modal-view-character">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="js/admin.js?v=3.99"></script>
+</body>
+</html>

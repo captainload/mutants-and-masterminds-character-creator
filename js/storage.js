@@ -3,7 +3,7 @@
  * Supports auto-save, multi-character profiles, JSON export/import.
  */
 
-import { ARCHETYPES } from './archetypes.js?v=3.98';
+import { ARCHETYPES } from './archetypes.js?v=3.99';
 
 const STORAGE_KEY = 'mm3e_characters_collection';
 const CURRENT_CHAR_KEY = 'mm3e_active_character_id';

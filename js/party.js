@@ -5,7 +5,7 @@
  * GM join approval queues, character sheet inspection, and P2P fallback.
  */
 
-import { supabaseService } from './supabase_client.js?v=3.98';
+import { supabaseService } from './supabase_client.js?v=3.99';
 
 export function formatCharacterSheetHTML(char) {
   if (!char) return '<div style="padding:1rem;color:var(--text-muted);">No character data available.</div>';
@@ -4068,12 +4068,6 @@ export class CampaignTrackerManager {
                       <span class="menu-item-icon">🚪</span> Leave Party
                     </button>
                   ` : ''}
-                  ${!c.isCreator ? `
-                    <div class="menu-dropdown-separator" style="height: 1px; background-color: var(--border-color); margin: 0.35rem 0;"></div>
-                    <button type="button" class="menu-dropdown-item btn-delete-orphan-campaign" data-campid="${c.campaignId}" data-campname="${(c.campaignName || '').replace(/"/g, '&quot;')}" style="font-size: 10pt; color: var(--hero-red); font-weight: 700; cursor: pointer;">
-                      <span class="menu-item-icon">🗑️</span> Delete Campaign
-                    </button>
-                  ` : ''}
                 </div>
               </div>
 
@@ -4236,13 +4230,10 @@ export class CampaignTrackerManager {
                 <option value="pl_desc" ${bf.sortBy === 'pl_desc' ? 'selected' : ''}>⚡ Power Level (High to Low)</option>
               </select>
             </div>
-            <div style="display: inline-flex; align-items: center; gap: 0.85rem; flex-wrap: wrap;">
-              <button type="button" class="btn btn-outline btn-purge-orphan-campaigns" title="Purge campaigns where neither captainload nor psycros is the GM" style="font-size: 10pt; font-weight: 700; color: var(--hero-red); border-color: rgba(239, 68, 68, 0.45); padding: 1px 8px; cursor: pointer;">🧹 Purge Orphan Campaigns</button>
-              <label style="display: inline-flex; align-items: center; gap: 0.35rem; cursor: pointer; font-weight: 700; color: var(--text-bright);" title="When checked, filters out inactive campaigns that are currently on hiatus">
-                <input type="checkbox" class="chk-filter-hide-hiatus" ${bf.hideHiatus ? 'checked' : ''} style="cursor: pointer; accent-color: var(--hero-gold);" />
-                <span>⏸️ Hide "On Hiatus" (Inactive Campaigns)</span>
-              </label>
-            </div>
+            <label style="display: inline-flex; align-items: center; gap: 0.35rem; cursor: pointer; font-weight: 700; color: var(--text-bright);" title="When checked, filters out inactive campaigns that are currently on hiatus">
+              <input type="checkbox" class="chk-filter-hide-hiatus" ${bf.hideHiatus ? 'checked' : ''} style="cursor: pointer; accent-color: var(--hero-gold);" />
+              <span>⏸️ Hide "On Hiatus" (Inactive Campaigns)</span>
+            </label>
           </div>
         </div>
 
@@ -4538,26 +4529,6 @@ export class CampaignTrackerManager {
       });
     });
 
-    parentEl.querySelectorAll('.btn-delete-orphan-campaign').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        const campId = e.currentTarget.dataset.campid;
-        const campName = e.currentTarget.dataset.campname || '';
-        if (campId && typeof window !== 'undefined' && window.appController?.confirmAndDeleteOrphanCampaign) {
-          window.appController.confirmAndDeleteOrphanCampaign(campId, campName);
-        } else if (campId) {
-          this.deleteOrphanCampaign(campId, campName);
-        }
-      });
-    });
-
-    parentEl.querySelectorAll('.btn-purge-orphan-campaigns').forEach(btn => {
-      btn.addEventListener('click', () => {
-        if (typeof window !== 'undefined' && window.appController?.confirmAndPurgeOrphanCampaigns) {
-          window.appController.confirmAndPurgeOrphanCampaigns();
-        }
-      });
-    });
-
     parentEl.querySelectorAll('.btn-gm-review-diff').forEach(btn => {
       btn.addEventListener('click', (e) => {
         const charName = e.currentTarget.dataset.charname;
@@ -4824,7 +4795,7 @@ export class CampaignTrackerManager {
 <head>
   <meta charset="UTF-8">
   <title>Mutants & Masterminds 3E - Party Conditions & Toughness Tracker</title>
-  <link rel="stylesheet" href="css/styles.css?v=3.98">
+  <link rel="stylesheet" href="css/styles.css?v=3.99">
   <style>
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -5001,7 +4972,7 @@ export class CampaignTrackerManager {
 <head>
   <meta charset="UTF-8">
   <title>Mutants & Masterminds 3E - Game Session Tracker</title>
-  <link rel="stylesheet" href="css/styles.css?v=3.98">
+  <link rel="stylesheet" href="css/styles.css?v=3.99">
   <style>
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;

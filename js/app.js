@@ -39,19 +39,19 @@ import {
   HQ_SIZES_TABLE,
   HQ_FEATURES_LIST,
   tablesManager
-} from './tables.js?v=3.98';
+} from './tables.js?v=3.99';
 
-import { POWER_PROFILES_LIBRARY } from './power_profiles.js?v=3.98';
-import { ARCHETYPES } from './archetypes.js?v=3.98';
-import { archetypeManager } from './archetype_window.js?v=3.98';
-import { campaignManager, partyManager, formatCharacterSheetHTML } from './party.js?v=3.98';
-import { supabaseService } from './supabase_client.js?v=3.98';
-import { ARCHETYPE_CUSTOMIZATION_OPTIONS, buildCustomizedArchetype } from './archetype_builder.js?v=3.98';
-import { diceRoller } from './dice.js?v=3.98';
-import { DiscordConfig, discordIntegrator } from './discord.js?v=3.98';
-import { helpManager } from './help.js?v=3.98';
-import { storageManager, normalizeCharacter } from './storage.js?v=3.98';
-import { BASIC_CONDITIONS, COMBINED_CONDITIONS, calculateConditionModifiers } from './conditions.js?v=3.98';
+import { POWER_PROFILES_LIBRARY } from './power_profiles.js?v=3.99';
+import { ARCHETYPES } from './archetypes.js?v=3.99';
+import { archetypeManager } from './archetype_window.js?v=3.99';
+import { campaignManager, partyManager, formatCharacterSheetHTML } from './party.js?v=3.99';
+import { supabaseService } from './supabase_client.js?v=3.99';
+import { ARCHETYPE_CUSTOMIZATION_OPTIONS, buildCustomizedArchetype } from './archetype_builder.js?v=3.99';
+import { diceRoller } from './dice.js?v=3.99';
+import { DiscordConfig, discordIntegrator } from './discord.js?v=3.99';
+import { helpManager } from './help.js?v=3.99';
+import { storageManager, normalizeCharacter } from './storage.js?v=3.99';
+import { BASIC_CONDITIONS, COMBINED_CONDITIONS, calculateConditionModifiers } from './conditions.js?v=3.99';
 
 class AppController {
   constructor() {
@@ -2216,7 +2216,7 @@ window.partyManager = partyManager;
   }
 
   async checkForUpdates({ isManual = false } = {}) {
-    const CURRENT_VERSION = '3.98';
+    const CURRENT_VERSION = '3.99';
     const versionEl = document.getElementById('header-version-tag');
     const updateBtn = document.getElementById('btn-header-update-alert');
     if (typeof window === 'undefined' || !window.location || !window.location.href || window.location.href === 'about:blank') return;
@@ -3786,94 +3786,6 @@ window.partyManager = partyManager;
     }
   }
 
-  async confirmAndDeleteOrphanCampaign(campId, campName = '') {
-    const cleanId = String(campId || '').trim().toUpperCase().replace(/^#+/, '');
-    const info = campaignManager.getCampaignInfo(cleanId) || campaignManager.getCampaignHistory().find(c => c.campaignId === cleanId);
-    const displayCampName = campName || info?.campaignName || cleanId;
-
-    const confirmed = await this.showConfirmDialog(
-      `Are you sure you want to permanently delete and remove campaign "${displayCampName}" (#${cleanId})?\n\nThis will remove the campaign from your Campaign Browser and purge all associated local records.`,
-      {
-        title: 'Delete Campaign?',
-        confirmText: '🗑️ Delete Campaign',
-        cancelText: 'Cancel',
-        confirmClass: 'btn-danger'
-      }
-    );
-    if (!confirmed) return;
-
-    try {
-      campaignManager.deleteOrphanCampaign(cleanId, displayCampName);
-      this.updateCampaignDropdown?.();
-      this.alignCampaignButton?.();
-      campaignManager.renderAllOpenViews();
-      await this.showAlertDialog(`Campaign "${displayCampName}" has been deleted and removed from the Campaign Browser.`, { title: 'Campaign Deleted' });
-    } catch (err) {
-      console.error('Error deleting orphan campaign:', err);
-      await this.showAlertDialog(`Could not delete campaign: ${err.message}`, { title: 'Delete Failed' });
-    }
-  }
-
-  async confirmAndPurgeOrphanCampaigns() {
-    const knownGMs = ['captainload', 'psycros'];
-    const history = campaignManager.getCampaignHistory() || [];
-    const reg = campaignManager.getCampaignRegistry() || {};
-    const browsable = campaignManager.getBrowsableCampaigns() || [];
-
-    const orphanMap = new Map();
-    const checkAndAdd = (c) => {
-      if (!c || !c.campaignId) return;
-      const cleanId = String(c.campaignId).toUpperCase().replace(/^#+/, '');
-      const creator = String(c.creatorName || c.creator_name || '').trim().toLowerCase();
-      if (!knownGMs.includes(creator)) {
-        if (!orphanMap.has(cleanId)) {
-          orphanMap.set(cleanId, {
-            campaignId: cleanId,
-            campaignName: c.campaignName || cleanId,
-            creatorName: c.creatorName || 'Unknown / None'
-          });
-        }
-      }
-    };
-
-    browsable.forEach(checkAndAdd);
-    history.forEach(checkAndAdd);
-    Object.values(reg).forEach(checkAndAdd);
-
-    const orphanCamps = Array.from(orphanMap.values());
-    if (orphanCamps.length === 0) {
-      await this.showAlertDialog(
-        'No orphan campaigns found.\n\nAll campaigns in your browser and local storage are owned by your test GM accounts (captainload or psycros).',
-        { title: 'No Orphan Campaigns' }
-      );
-      return;
-    }
-
-    const campListStr = orphanCamps.map(c => `• "${c.campaignName}" (#${c.campaignId}) — GM: ${c.creatorName}`).join('\n');
-    const confirmed = await this.showConfirmDialog(
-      `Found ${orphanCamps.length} orphan campaign(s) not owned by captainload or psycros:\n\n${campListStr}\n\nAre you sure you want to permanently delete and purge all of these orphan campaigns?\n\nThis will remove them from your Campaign Browser and purge all associated local records.`,
-      {
-        title: 'Purge Orphan Campaigns?',
-        confirmText: `🗑️ Delete All ${orphanCamps.length} Campaigns`,
-        cancelText: 'Cancel',
-        confirmClass: 'btn-danger'
-      }
-    );
-    if (!confirmed) return;
-
-    for (const c of orphanCamps) {
-      campaignManager.deleteOrphanCampaign(c.campaignId, c.campaignName);
-    }
-
-    this.updateCampaignDropdown?.();
-    this.alignCampaignButton?.();
-    campaignManager.renderAllOpenViews();
-    await this.showAlertDialog(
-      `Successfully deleted and purged ${orphanCamps.length} orphan campaign(s) from your browser.`,
-      { title: 'Orphan Campaigns Purged' }
-    );
-  }
-
   async openTransferOwnershipDialog(campId, campName = '') {
     const cleanId = String(campId || '').trim().toUpperCase().replace(/^#+/, '');
     const info = campaignManager.getCampaignInfo(cleanId) || campaignManager.getCampaignHistory().find(c => c.campaignId === cleanId);
@@ -4162,7 +4074,7 @@ window.partyManager = partyManager;
 <head>
   <meta charset="UTF-8">
   <title>Mutants &amp; Masterminds 3E - Campaign Messaging Client</title>
-  <link rel="stylesheet" href="css/styles.css?v=3.98">
+  <link rel="stylesheet" href="css/styles.css?v=3.99">
   <style>
     html, body { height: 100%; margin: 0; }
     body {

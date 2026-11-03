@@ -2069,19 +2069,19 @@
         <div class="msg-client-compose-pane" id="msg-client-compose-pane" style="display: none;">
           <div class="msg-client-compose-dialog">
             <div class="modal-header-bar" style="border-radius: 6px 6px 0 0;">
-              <strong id="msg-compose-pane-title" style="font-size: 10pt; color: var(--hero-gold); font-weight: 800;">✉️ New Message</strong>
+              <strong id="msg-compose-pane-title" style="font-size: 11pt; color: var(--hero-gold); font-weight: 800;">✉️ New Message</strong>
               <button type="button" class="btn btn-outline" id="btn-close-compose-pane" style="min-height: 28px; padding: 0.1rem 0.5rem;" title="Close New Message Dialog">✕</button>
             </div>
             <div class="modal-scroll-body" style="padding: 1rem 1.15rem; flex: 1; overflow: visible;">
               <div style="display: flex; gap: 0.5rem; margin-bottom: 0.5rem; flex-wrap: wrap; align-items: center;">
-                <label style="font-size: 10pt; font-weight: 800; color: var(--text-muted);">To:</label>
-                <input type="text" id="msg-compose-recipient-input" placeholder="Enter exact username(s), comma-separated..." style="flex: 1.1; min-width: 170px; background: var(--bg-input); color: var(--text-bright); border: 1px solid var(--border-color); border-radius: 4px; padding: 0.3rem 0.55rem; font-size: 10pt;" />
+                <label style="font-size: 11pt; font-weight: 800; color: var(--text-muted);">To:</label>
+                <input type="text" id="msg-compose-recipient-input" placeholder="Enter exact username(s), comma-separated..." style="flex: 1.1; min-width: 170px; background: var(--bg-input); color: var(--text-bright); border: 1px solid var(--border-color); border-radius: 4px; padding: 0.35rem 0.6rem; font-size: 11pt;" />
                 
                 <!-- Known Users Multi-Select Checkbox Dropdown -->
                 <div class="known-users-multiselect-dropdown" id="msg-known-users-dropdown-container">
-                  <button type="button" class="btn btn-outline" id="btn-toggle-known-users-dropdown" style="width: 100%; display: flex; justify-content: space-between; align-items: center; font-size: 10pt; padding: 0.28rem 0.6rem; background: var(--bg-input); color: var(--text-bright); border: 1px solid var(--border-color); font-weight: 700;">
+                  <button type="button" class="btn btn-outline" id="btn-toggle-known-users-dropdown" style="width: 100%; display: flex; justify-content: space-between; align-items: center; font-size: 11pt; padding: 0.3rem 0.65rem; background: var(--bg-input); color: var(--text-bright); border: 1px solid var(--border-color); font-weight: 700;">
                     <span id="known-users-dropdown-label">👥 Known Users (Checkboxes)</span>
-                    <span style="font-size: 10pt; opacity: 0.8;">▼</span>
+                    <span style="font-size: 11pt; opacity: 0.8;">▼</span>
                   </button>
                   <div class="known-users-checkbox-menu" id="msg-known-users-checkbox-menu">
                     <div style="font-size: 10pt; color: var(--text-muted); font-style: italic; padding: 0.25rem;">No known users yet.</div>
@@ -2091,22 +2091,22 @@
 
                 <!-- CC Known Users Checkbox Dropdown (for copying replies/messages to additional known users) -->
                 <div class="known-users-multiselect-dropdown" id="msg-cc-dropdown-container" style="min-width: 185px; flex: 0.85;">
-                  <button type="button" class="btn btn-outline" id="btn-toggle-cc-dropdown" title="Select Known Users to CC on this message/reply" style="width: 100%; display: flex; justify-content: space-between; align-items: center; font-size: 10pt; padding: 0.28rem 0.6rem; background: var(--bg-input); color: var(--hero-cyan); border: 1px solid var(--hero-cyan); font-weight: 700;">
+                  <button type="button" class="btn btn-outline" id="btn-toggle-cc-dropdown" title="Select Known Users to CC on this message/reply" style="width: 100%; display: flex; justify-content: space-between; align-items: center; font-size: 11pt; padding: 0.3rem 0.65rem; background: var(--bg-input); color: var(--hero-cyan); border: 1px solid var(--hero-cyan); font-weight: 700;">
                     <span id="cc-users-dropdown-label">📋 CC: None</span>
-                    <span style="font-size: 10pt; opacity: 0.8;">▼</span>
+                    <span style="font-size: 11pt; opacity: 0.8;">▼</span>
                   </button>
                   <div class="known-users-checkbox-menu" id="msg-cc-checkbox-menu">
                     <div style="font-size: 10pt; color: var(--text-muted); font-style: italic; padding: 0.25rem;">No known users yet.</div>
                   </div>
                 </div>
 
-                <label style="font-size: 10pt; font-weight: 800; color: var(--text-muted); margin-left: 0.25rem;">Campaign:</label>
-                <select id="msg-compose-campaign-select" style="flex: 1.4; min-width: 240px; background: var(--bg-input); color: var(--text-bright); border: 1px solid var(--border-color); border-radius: 4px; padding: 0.3rem 0.5rem; font-size: 10pt; font-weight: 700;">
+                <label style="font-size: 11pt; font-weight: 800; color: var(--text-muted); margin-left: 0.25rem;">Campaign:</label>
+                <select id="msg-compose-campaign-select" style="flex: 1.4; min-width: 240px; background: var(--bg-input); color: var(--text-bright); border: 1px solid var(--border-color); border-radius: 4px; padding: 0.35rem 0.55rem; font-size: 11pt; font-weight: 700;">
                   <option value="">Direct Recipient(s) Only (To: / Known Users)</option>
                   <option value="CURRENT_CONNECTED">Participants of currently connected campaign (excludes yourself)</option>
                   <option value="ALL_OWNED">👑 Participants of all campaigns owned</option>
                 </select>
-                <label id="msg-compose-invite-chk-wrapper" style="display: none; align-items: center; gap: 0.4rem; font-size: 10pt; font-weight: 700; color: var(--hero-gold); cursor: pointer; margin-left: 0.35rem;" title="Send as a direct Campaign Invitation so the recipient can Accept or Decline directly without applying">
+                <label id="msg-compose-invite-chk-wrapper" style="display: none; align-items: center; gap: 0.4rem; font-size: 11pt; font-weight: 700; color: var(--hero-gold); cursor: pointer; margin-left: 0.35rem;" title="Send as a direct Campaign Invitation so the recipient can Accept or Decline directly without applying">
                   <input type="checkbox" id="msg-compose-chk-is-invitation" style="accent-color: var(--hero-gold); cursor: pointer;" /> 👑 Send as Campaign Invitation
                 </label>
               </div>

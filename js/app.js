@@ -4875,14 +4875,14 @@ window.partyManager = partyManager;
           <div class="msg-card-header-row" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.4rem; cursor: pointer;">
             <div style="display: flex; align-items: center; gap: 0.45rem; flex-wrap: wrap;">
               <button type="button" class="btn-msg-expand-arrow" data-msgid="${m.id}" title="${isExpanded ? 'Collapse message' : 'Expand message'}" style="background: none; border: none; color: var(--hero-cyan); font-size: 11pt; font-weight: 800; cursor: pointer; padding: 0 4px; line-height: 1; user-select: none;">${isExpanded ? '▼' : '▶'}</button>
-              ${isUnread ? '<span style="background: var(--hero-blue); color: #fff; font-size: 10pt; font-weight: 800; padding: 1px 6px; border-radius: 4px;">NEW</span>' : ''}
-              <span class="msg-campaign-badge" style="font-size: 10pt; font-weight: 700; color: ${cleanMCampId && cleanMCampId !== 'DIRECT' ? (isUserGMForCampaign ? 'var(--hero-gold)' : 'var(--hero-cyan)') : 'var(--text-muted)'}; background: rgba(255,255,255,0.06); padding: 1px 7px; border-radius: 4px;">
+              ${isUnread ? '<span class="msg-new-badge" style="background: var(--hero-blue); color: #fff; font-size: 11pt; font-weight: 800; padding: 2px 7px; border-radius: 4px;">NEW</span>' : ''}
+              <span class="msg-campaign-badge" style="font-size: 11pt; font-weight: 700; color: ${cleanMCampId && cleanMCampId !== 'DIRECT' ? (isUserGMForCampaign ? 'var(--hero-gold)' : 'var(--hero-cyan)') : 'var(--text-muted)'}; background: rgba(255,255,255,0.06); padding: 2px 8px; border-radius: 4px;">
                 ${cleanMCampId && cleanMCampId !== 'DIRECT' ? `${isUserGMForCampaign ? '👑 ' : ''}Campaign: <strong>${this.escapeHTML(m.campaignName || cleanMCampId)}</strong>` : 'Direct Message'}
               </span>
-              <span class="msg-from-badge" style="font-size: 10pt; font-weight: 700; color: var(--hero-blue); background: rgba(59, 130, 246, 0.14); padding: 1px 7px; border-radius: 4px;">From: ${fromFormatted}</span>
-              <span class="msg-to-badge" style="font-size: 10pt; font-weight: 700; color: #a855f7; background: rgba(168, 85, 247, 0.14); padding: 1px 7px; border-radius: 4px;">To: ${toFormatted}</span>
+              <span class="msg-from-badge" style="font-size: 11pt; font-weight: 700; color: var(--hero-blue); background: rgba(59, 130, 246, 0.14); padding: 2px 8px; border-radius: 4px;">From: ${fromFormatted}</span>
+              <span class="msg-to-badge" style="font-size: 11pt; font-weight: 700; color: #a855f7; background: rgba(168, 85, 247, 0.14); padding: 2px 8px; border-radius: 4px;">To: ${toFormatted}</span>
             </div>
-            <span style="font-size: 10pt; color: var(--text-muted);">${m.displayTime || ''}</span>
+            <span class="msg-timestamp" style="font-size: 11pt; color: var(--text-muted);">${m.displayTime || ''}</span>
           </div>
 
           <!-- Collapsible Section: The whole message except the first row -->
@@ -4894,25 +4894,25 @@ window.partyManager = partyManager;
             </div>
             <div class="msg-actions-bar" style="display: flex; justify-content: flex-end; align-items: center; gap: 0.45rem; flex-wrap: wrap; margin-top: 0.4rem;">
               ${replyTarget ? `
-                <button type="button" class="btn btn-outline btn-msg-reply-user" data-replyuser="${replyTarget}" data-campid="${cleanMCampId !== 'DIRECT' ? cleanMCampId : ''}" title="${activeFolder === 'sent' ? `Message ${replyTarget}` : `Reply to ${replyTarget} (tagged with campaign)`}" style="font-size: 10pt; padding: 2px 8px; color: var(--hero-gold); border-color: var(--hero-gold); font-weight: 700;">${activeFolder === 'sent' ? `✉️ Message ${replyTarget}` : `↩️ Reply to ${replyTarget}`}</button>
+                <button type="button" class="btn btn-outline btn-msg-reply-user" data-replyuser="${replyTarget}" data-campid="${cleanMCampId !== 'DIRECT' ? cleanMCampId : ''}" title="${activeFolder === 'sent' ? `Message ${replyTarget}` : `Reply to ${replyTarget} (tagged with campaign)`}" style="font-size: 11pt; padding: 2px 9px; color: var(--hero-gold); border-color: var(--hero-gold); font-weight: 700;">${activeFolder === 'sent' ? `✉️ Message ${replyTarget}` : `↩️ Reply to ${replyTarget}`}</button>
               ` : ''}
               ${m.type === 'CAMPAIGN_INVITATION' && m.invitationStatus === 'pending' ? `
-                <button type="button" class="btn btn-primary btn-msg-accept-invite" data-campid="${m.campaignId}" data-msgid="${m.id}" style="font-size: 10pt; padding: 2px 9px; font-weight: 800; background: var(--hero-green); border-color: var(--hero-green);">✅ Accept Invitation</button>
-                <button type="button" class="btn btn-outline btn-msg-decline-invite" data-campid="${m.campaignId}" data-msgid="${m.id}" style="font-size: 10pt; padding: 2px 9px; font-weight: 800; color: var(--hero-red); border-color: var(--hero-red);">❌ Decline Invitation</button>
+                <button type="button" class="btn btn-primary btn-msg-accept-invite" data-campid="${m.campaignId}" data-msgid="${m.id}" style="font-size: 11pt; padding: 2px 9px; font-weight: 800; background: var(--hero-green); border-color: var(--hero-green);">✅ Accept Invitation</button>
+                <button type="button" class="btn btn-outline btn-msg-decline-invite" data-campid="${m.campaignId}" data-msgid="${m.id}" style="font-size: 11pt; padding: 2px 9px; font-weight: 800; color: var(--hero-red); border-color: var(--hero-red);">❌ Decline Invitation</button>
               ` : (m.type === 'CAMPAIGN_INVITATION' && m.invitationStatus ? `
-                <span style="font-size: 10pt; font-weight: 800; color: ${m.invitationStatus === 'accepted' ? 'var(--hero-green)' : 'var(--hero-red)'};">[Invitation ${m.invitationStatus.toUpperCase()}]</span>
+                <span class="msg-status-badge" style="font-size: 11pt; font-weight: 800; color: ${m.invitationStatus === 'accepted' ? 'var(--hero-green)' : 'var(--hero-red)'};">[Invitation ${m.invitationStatus.toUpperCase()}]</span>
               ` : '')}
               ${isPendingOffer ? `
-                <button type="button" class="btn btn-primary btn-msg-accept-transfer" data-campid="${m.campaignId}" data-msgid="${m.id}" style="font-size: 10pt; padding: 2px 9px; font-weight: 800; background: var(--hero-green); border-color: var(--hero-green);">✅ Accept Ownership</button>
-                <button type="button" class="btn btn-outline btn-msg-refuse-transfer" data-campid="${m.campaignId}" data-msgid="${m.id}" style="font-size: 10pt; padding: 2px 9px; font-weight: 800; color: var(--hero-red); border-color: var(--hero-red);">❌ Refuse Ownership</button>
+                <button type="button" class="btn btn-primary btn-msg-accept-transfer" data-campid="${m.campaignId}" data-msgid="${m.id}" style="font-size: 11pt; padding: 2px 9px; font-weight: 800; background: var(--hero-green); border-color: var(--hero-green);">✅ Accept Ownership</button>
+                <button type="button" class="btn btn-outline btn-msg-refuse-transfer" data-campid="${m.campaignId}" data-msgid="${m.id}" style="font-size: 11pt; padding: 2px 9px; font-weight: 800; color: var(--hero-red); border-color: var(--hero-red);">❌ Refuse Ownership</button>
               ` : (m.type === 'OWNERSHIP_TRANSFER_OFFER' && m.offerStatus ? `
-                <span style="font-size: 10pt; font-weight: 800; color: var(--text-muted);">[Offer ${m.offerStatus.toUpperCase()}]</span>
+                <span class="msg-status-badge" style="font-size: 11pt; font-weight: 800; color: var(--text-muted);">[Offer ${m.offerStatus.toUpperCase()}]</span>
               ` : '')}
               ${m.type === 'JOIN_REQUEST' ? `
-                <button type="button" class="btn btn-outline btn-msg-open-requests" data-campid="${m.campaignId}" data-msgid="${m.id}" style="font-size: 10pt; padding: 2px 8px; color: var(--hero-blue); border-color: var(--hero-blue); font-weight: 700;">🛡️ Review Join Requests</button>
+                <button type="button" class="btn btn-outline btn-msg-open-requests" data-campid="${m.campaignId}" data-msgid="${m.id}" style="font-size: 11pt; padding: 2px 9px; color: var(--hero-blue); border-color: var(--hero-blue); font-weight: 700;">🛡️ Review Join Requests</button>
               ` : ''}
               ${activeFolder !== 'sent' ? `
-                <button type="button" class="btn btn-outline btn-msg-mark-read" data-msgid="${m.id}" style="font-size: 10pt; padding: 2px 8px; ${isUnread ? 'color: var(--hero-blue); border-color: var(--hero-blue); font-weight: 700;' : 'opacity: 0.65; cursor: default;'}" ${isUnread ? '' : 'disabled title="Already marked as read"'}>
+                <button type="button" class="btn btn-outline btn-msg-mark-read" data-msgid="${m.id}" style="font-size: 11pt; padding: 2px 9px; ${isUnread ? 'color: var(--hero-blue); border-color: var(--hero-blue); font-weight: 700;' : 'opacity: 0.65; cursor: default;'}" ${isUnread ? '' : 'disabled title="Already marked as read"'}>
                   ${isUnread ? '✓ Mark Read' : '✓ Read'}
                 </button>
               ` : ''}

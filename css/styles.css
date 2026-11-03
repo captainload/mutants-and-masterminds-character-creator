@@ -3437,6 +3437,31 @@ html[data-theme="light"] .tracker-section-campaign-browser {
   font-weight: 800;
 }
 
+
+.campaign-message-card .msg-card-header-row {
+  font-size: 11pt;
+}
+
+.msg-campaign-badge,
+.msg-from-badge,
+.msg-to-badge,
+.msg-new-badge,
+.msg-timestamp,
+.msg-status-badge {
+  font-size: 11pt;
+}
+
+.msg-campaign-badge,
+.msg-from-badge,
+.msg-to-badge {
+  padding: 2px 8px;
+}
+
+.campaign-message-card .msg-actions-bar .btn,
+.campaign-message-card .msg-actions-bar span {
+  font-size: 11pt;
+}
+
 /* Modal Popup Dialog for New Message */
 .msg-client-compose-pane {
   position: fixed;

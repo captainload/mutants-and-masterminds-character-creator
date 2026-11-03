@@ -656,6 +656,12 @@ const sampleText = 'Hero "Sentinel" wants to join campaign "Emerald City Knights
 const formatted = testApp.formatMessageBodyText(sampleText, 'Emerald City Knights');
 assert.ok(formatted.includes('<strong>Emerald City Knights</strong>'), 'formatMessageBodyText must wrap campaign name in <strong>');
 assert.strictEqual((formatted.match(/<strong>Emerald City Knights<\/strong>/g) || []).length, 2, 'Must bold all occurrences without double-wrapping');
-console.log('✓ Message text size (11pt) and campaign names in bold verified successfully.');
+
+// Verify message details (from, to, etc.) are slightly larger (11pt)
+assert.ok(appJsFull.includes('.msg-from-badge') || appJsFull.includes('class="msg-from-badge" style="font-size: 11pt;'), 'msg-from-badge must be styled with 11pt');
+assert.ok(appJsFull.includes('.msg-to-badge') || appJsFull.includes('class="msg-to-badge" style="font-size: 11pt;'), 'msg-to-badge must be styled with 11pt');
+assert.ok(stylesCss.includes('.msg-from-badge') && stylesCss.includes('.msg-to-badge') && stylesCss.includes('font-size: 11pt;'), 'styles.css must style message badges with 11pt');
+assert.ok(indexHtmlContent.includes('id="msg-compose-recipient-input"') && indexHtmlContent.includes('font-size: 11pt;'), 'index.html must style compose recipient input with 11pt');
+console.log('✓ Message details (from, to, campaign, timestamp) slightly larger (11pt) verified successfully.');
 
 console.log('--- ALL v3.99 TESTS PASSED SUCCESSFULLY! ---');

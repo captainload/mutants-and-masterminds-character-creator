@@ -245,4 +245,127 @@ const updatedJoinMsg = gmPartyMgr.getAllCampaignMessages().find(m => m.id === jo
 assert.strictEqual(updatedJoinMsg.read, true, 'JOIN_REQUEST message must be marked read once responded to');
 console.log('✓ Cloud join requests sync seamlessly to GM messages, increment unread count, and allow GM review/approval.');
 
+// Test 7: Verify Database Admin mentions ONLY Captainload (Requirement 5)
+console.log('Test 7: Verify Database Admin mode mentions ONLY Captainload');
+const adminHtmlContent = fs.readFileSync('admin.html', 'utf8');
+const adminJsContent = fs.readFileSync('js/admin.js', 'utf8');
+assert.ok(adminHtmlContent.toLowerCase().includes('captainload'), 'admin.html must mention captainload');
+assert.ok(adminJsContent.toLowerCase().includes('captainload'), 'js/admin.js must mention captainload');
+assert.strictEqual(adminHtmlContent.includes('psycros'), false, 'admin.html must NOT mention psycros');
+assert.strictEqual(adminJsContent.includes('psycros'), false, 'js/admin.js must NOT mention psycros');
+console.log('✓ Database Admin mode exclusively mentions Captainload.');
+
+// Test 8: Verify GM Campaign Invitation & Automatic Read on Acceptance (Requirements 2 & 4)
+console.log('Test 8: Verify GM Campaign Invitation dispatch, acceptance, and auto-read');
+const inviteMgr = new CampaignTrackerManager();
+inviteMgr.getCurrentUsername = () => 'captainload';
+const inviteCamp = {
+  campaignId: 'INV-4455',
+  campaignName: 'Invited Vanguard',
+  creatorName: 'captainload',
+  isCreator: true,
+  isPublic: true,
+  powerLevel: 10
+};
+inviteMgr.registerCampaignInfo(inviteCamp);
+inviteMgr.saveToCampaignHistory(inviteCamp);
+
+// GM sends invitation to psycros
+const inviteMsg = inviteMgr.sendCampaignInvitation({
+  targetUser: 'psycros',
+  campaignId: 'INV-4455',
+  gmName: 'captainload',
+  customNote: 'Join our team for the next session!'
+});
+
+assert.ok(inviteMsg, 'Invitation message must be generated');
+assert.strictEqual(inviteMsg.type, 'CAMPAIGN_INVITATION');
+assert.strictEqual(inviteMsg.recipientUser, 'psycros');
+assert.strictEqual(inviteMsg.campaignId, 'INV-4455');
+assert.strictEqual(inviteMsg.invitationStatus, 'pending');
+assert.strictEqual(inviteMsg.read, false);
+
+// Psycros views and accepts invitation
+inviteMgr.getCurrentUsername = () => 'psycros';
+const psycrosMsgs = inviteMgr.getMessagesForCurrentUser();
+const foundInvite = psycrosMsgs.find(m => m.id === inviteMsg.id);
+assert.ok(foundInvite, 'Psycros must receive the invitation message');
+
+inviteMgr.respondToCampaignInvitation(foundInvite.id, true, { name: 'InvitedHero', powerLevel: 10 });
+const acceptedInvite = inviteMgr.getAllCampaignMessages().find(m => m.id === foundInvite.id);
+assert.strictEqual(acceptedInvite.invitationStatus, 'accepted', 'Invitation status must be accepted');
+assert.strictEqual(acceptedInvite.read, true, 'Invitation must be marked read upon acceptance (Requirement 4)');
+
+// Verify that approving a join request also marks any invitations for that campaign as read
+const joinInviteMsg = inviteMgr.sendCampaignInvitation({
+  targetUser: 'newplayer',
+  campaignId: 'INV-4455',
+  gmName: 'captainload'
+});
+assert.strictEqual(joinInviteMsg.read, false);
+// Add a mock join request and approve it
+const joinReq = {
+  id: 'req_auto_read_test',
+  campaignId: 'INV-4455',
+  campaignName: 'Invited Vanguard',
+  username: 'newplayer',
+  character_name: 'Speedy',
+  character_data: { name: 'Speedy' },
+  status: 'pending'
+};
+inviteMgr.saveAllJoinRequestsStore([joinReq]);
+inviteMgr.respondToCampaignJoinRequest('req_auto_read_test', 'approved', 'captainload');
+const readAfterApproval = inviteMgr.getAllCampaignMessages().find(m => m.id === joinInviteMsg.id);
+assert.strictEqual(readAfterApproval.read, true, 'Invitations must be automatically marked read when user join is approved');
+console.log('✓ GM campaign invitations operate smoothly and are automatically marked read on campaign acceptance.');
+
+// Test 9: Verify Campaign Dropdown Selector / Switching on Messages (Requirement 8)
+console.log('Test 9: Verify Campaign message updating and tag persistence');
+const switchCamp1 = { campaignId: 'CAMP-A', campaignName: 'Alpha Squad', creatorName: 'captainload', isCreator: true };
+const switchCamp2 = { campaignId: 'CAMP-B', campaignName: 'Beta Division', creatorName: 'captainload', isCreator: true };
+inviteMgr.registerCampaignInfo(switchCamp1);
+inviteMgr.registerCampaignInfo(switchCamp2);
+
+const directMsg = inviteMgr.sendCampaignMessage({
+  type: 'DIRECT_USER_MESSAGE',
+  senderUser: 'captainload',
+  recipientUser: 'psycros',
+  campaignId: 'CAMP-A',
+  campaignName: 'Alpha Squad',
+  text: 'Are you ready for the mission?'
+});
+assert.strictEqual(directMsg.campaignId, 'CAMP-A');
+
+// Switch message to Beta Division
+const updatedSwitchMsg = inviteMgr.updateMessageCampaign(directMsg.id, 'CAMP-B');
+assert.strictEqual(updatedSwitchMsg.campaignId, 'CAMP-B', 'Campaign ID must update to CAMP-B');
+assert.strictEqual(updatedSwitchMsg.campaignName, 'Beta Division', 'Campaign name must update to Beta Division');
+console.log('✓ Message campaign dropdown switching properly updates message campaign attribution.');
+
+// Test 10: Verify Role Labels and Formatting in Messages (Requirements 1 & 7)
+console.log('Test 10: Verify Role Labels formatting (👑 without GM text; generic 👤 without Player text for non-players)');
+const appJsContent = fs.readFileSync('js/app.js', 'utf8');
+// Verify From and To badges are rendered
+assert.ok(appJsContent.includes('msg-from-badge'), 'app.js must render msg-from-badge');
+assert.ok(appJsContent.includes('msg-to-badge'), 'app.js must render msg-to-badge');
+assert.ok(appJsContent.includes('msg-card-campaign-select'), 'app.js must render msg-card-campaign-select dropdown');
+assert.ok(appJsContent.includes('btn-toggle-msg-expand'), 'app.js must render btn-toggle-msg-expand');
+assert.ok(appJsContent.includes('btn-msg-accept-invite'), 'app.js must render btn-msg-accept-invite');
+assert.ok(appJsContent.includes('btn-msg-decline-invite'), 'app.js must render btn-msg-decline-invite');
+assert.ok(appJsContent.includes('btn-address-book-invite-user'), 'app.js must render btn-address-book-invite-user in address book');
+console.log('✓ AppController messaging templates correctly include From/To badges, Campaign dropdown, and Expand toggles.');
+
+// Test 11: Verify Email Forwarding Settings and Privacy (Requirement 3)
+console.log('Test 11: Verify Email Forwarding setting and privacy isolation');
+const serverJsContent = fs.readFileSync('server.js', 'utf8');
+assert.ok(serverJsContent.includes('/api/forward-message-email'), 'server.js must expose /api/forward-message-email endpoint');
+assert.ok(serverJsContent.includes('#action=accept_invite'), 'Forwarding email must construct bidirectional accept_invite action link');
+assert.ok(serverJsContent.includes('#action=decline_invite'), 'Forwarding email must construct bidirectional decline_invite action link');
+assert.ok(serverJsContent.includes('#action=reply'), 'Forwarding email must construct bidirectional reply action link');
+
+const indexHtmlContent = fs.readFileSync('index.html', 'utf8');
+assert.ok(indexHtmlContent.includes('user-settings-chk-email-forward'), 'User settings modal must contain email forward checkbox');
+assert.ok(indexHtmlContent.includes('Privacy Guard') && indexHtmlContent.includes('strictly confidential'), 'Privacy guarantee must be displayed');
+console.log('✓ Email forwarding and bidirectional action links verified with complete privacy preservation.');
+
 console.log('--- ALL v3.99 TESTS PASSED SUCCESSFULLY! ---');

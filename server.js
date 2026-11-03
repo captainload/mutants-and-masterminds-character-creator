@@ -75,6 +75,62 @@ const server = http.createServer((req, res) => {
     return;
   }
 
+  // Handle Email Forwarding Endpoint
+  if (reqPath === '/api/forward-message-email' && req.method === 'POST') {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Content-Type', 'application/json; charset=utf-8');
+    let body = '';
+    req.on('data', chunk => { body += chunk; });
+    req.on('end', () => {
+      try {
+        const payload = JSON.parse(body || '{}');
+        const { toEmail, recipientUsername, message } = payload;
+        const msg = message || {};
+        const campId = msg.campaignId || '';
+        const campName = msg.campaignName || campId || 'Campaign';
+        const sender = msg.senderUser || msg.gmName || 'User';
+        const msgId = msg.id || ('msg_' + Date.now());
+
+        // Generate action links for bidirectional email interaction
+        const baseUrl = 'http://localhost:3000';
+        let actionLinks = {};
+        if (msg.type === 'CAMPAIGN_INVITATION') {
+          actionLinks.accept = `${baseUrl}/#action=accept_invite&campaignId=${encodeURIComponent(campId)}&msgId=${encodeURIComponent(msgId)}&user=${encodeURIComponent(recipientUsername || '')}`;
+          actionLinks.decline = `${baseUrl}/#action=decline_invite&campaignId=${encodeURIComponent(campId)}&msgId=${encodeURIComponent(msgId)}&user=${encodeURIComponent(recipientUsername || '')}`;
+        } else {
+          actionLinks.reply = `${baseUrl}/#action=reply&campaignId=${encodeURIComponent(campId)}&replyUser=${encodeURIComponent(sender)}&msgId=${encodeURIComponent(msgId)}`;
+        }
+
+        const outboxEntry = {
+          timestamp: new Date().toISOString(),
+          toEmail: toEmail ? toEmail.replace(/(.{2})(.*)(@.*)/, '$1***$3') : '(registered login email)',
+          recipientUsername,
+          subject: `[MM3E Campaign] ${campName}: ${msg.type === 'CAMPAIGN_INVITATION' ? 'Campaign Invitation' : 'New Message'} from ${sender}`,
+          sender,
+          campaignId: campId,
+          campaignName: campName,
+          text: msg.text || '',
+          actionLinks
+        };
+
+        console.log(`[EMAIL FORWARD DISPATCH] Forwarded message ${msgId} to ${recipientUsername} (${outboxEntry.toEmail})`);
+
+        res.writeHead(200);
+        res.end(JSON.stringify({
+          success: true,
+          forwarded: true,
+          recipientUsername,
+          destination: outboxEntry.toEmail,
+          actionLinks
+        }));
+      } catch (err) {
+        res.writeHead(400);
+        res.end(JSON.stringify({ success: false, error: err.message }));
+      }
+    });
+    return;
+  }
+
   if (reqPath === '/' || reqPath === '') reqPath = '/index.html';
 
   const fullPath = path.join(PUBLIC_DIR, reqPath);

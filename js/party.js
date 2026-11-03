@@ -2237,6 +2237,9 @@ export class CampaignTrackerManager {
       if (req.character_data) {
         this.saveCampaignSavedCharacter(req.campaignId, req.character_data, req.username);
       }
+      // When a user is accepted to a campaign, automatically mark any invitation message for this campaign as read
+      this.markCampaignInvitationsRead(req.campaignId, req.username);
+
       this.sendCampaignMessage({
         type: 'PLAYER_CHARACTER_JOINED',
         recipientRole: 'PARTICIPANTS',
@@ -2304,6 +2307,7 @@ export class CampaignTrackerManager {
     senderUser = '',
     offerId = '',
     offerStatus = '',
+    invitationStatus = '',
     requestId = '',
     excludedUser = '',
     recipientUsers = [],
@@ -2335,6 +2339,7 @@ export class CampaignTrackerManager {
       characterName: (characterName || '').trim(),
       offerId: offerId || '',
       offerStatus: offerStatus || '',
+      invitationStatus: invitationStatus || '',
       requestId: requestId || '',
       excludedUser: (excludedUser || '').trim(),
       recipientUsers: Array.isArray(recipientUsers) ? recipientUsers : [],
@@ -2373,6 +2378,209 @@ export class CampaignTrackerManager {
     });
     this.saveAllCampaignMessages(messages);
     this.updateHeaderBadge();
+  }
+
+  updateMessageCampaign(msgId, newCampId) {
+    const cleanId = String(newCampId || '').trim().toUpperCase().replace(/^#+/, '');
+    const messages = this.getAllCampaignMessages();
+    const msg = messages.find(m => m.id === msgId);
+    if (!msg) return null;
+
+    if (!cleanId || cleanId === 'DIRECT') {
+      msg.campaignId = 'DIRECT';
+      msg.campaignName = 'Direct Message';
+    } else {
+      const info = this.getCampaignInfo(cleanId) || {};
+      const histMatch = this.getCampaignHistory().find(c => String(c.campaignId || '').toUpperCase().replace(/^#+/, '') === cleanId) || {};
+      msg.campaignId = cleanId;
+      msg.campaignName = histMatch.campaignName || info.campaignName || cleanId;
+      if (histMatch.creatorName || info.creatorName) {
+        msg.gmName = histMatch.creatorName || info.creatorName;
+      }
+    }
+    this.saveAllCampaignMessages(messages);
+    this.updateHeaderBadge();
+    return msg;
+  }
+
+  isUserPlayerInCampaign(username = '', campaignId = '') {
+    if (!username || !campaignId) return false;
+    const cleanId = String(campaignId).trim().toUpperCase().replace(/^#+/, '');
+    if (cleanId === 'DIRECT') return false;
+    const cleanUser = String(username).trim().toLowerCase();
+
+    // 1. Check saved characters for this campaign
+    try {
+      const saved = this.getCampaignSavedCharacters(cleanId);
+      if (Array.isArray(saved) && saved.some(c => (c.playerName || c.username || '').trim().toLowerCase() === cleanUser)) {
+        return true;
+      }
+    } catch {}
+
+    // 2. Check approved join requests
+    try {
+      const reqs = this.getAllJoinRequestsStore();
+      if (reqs.some(r => String(r.campaignId || '').toUpperCase().replace(/^#+/, '') === cleanId &&
+                         (r.username || '').trim().toLowerCase() === cleanUser &&
+                         r.status === 'approved')) {
+        return true;
+      }
+    } catch {}
+
+    // 3. Check campaign history
+    try {
+      const hist = this.getCampaignHistory();
+      const match = hist.find(c => String(c.campaignId || '').toUpperCase().replace(/^#+/, '') === cleanId);
+      if (match && !match.isCreator && (match.playerName || '').toLowerCase() === cleanUser) {
+        return true;
+      }
+    } catch {}
+
+    return false;
+  }
+
+  markCampaignInvitationsRead(campaignId = '', username = '') {
+    const cleanId = String(campaignId || '').trim().toUpperCase().replace(/^#+/, '');
+    const cleanUser = String(username || this.getCurrentUsername() || '').trim().toLowerCase();
+    const messages = this.getAllCampaignMessages();
+    let updated = false;
+
+    messages.forEach(m => {
+      const mCampId = String(m.campaignId || '').trim().toUpperCase().replace(/^#+/, '');
+      const mPlayer = (m.playerName || m.recipientUser || '').trim().toLowerCase();
+      const mRecip = (m.recipientUser || '').trim().toLowerCase();
+      if (mCampId === cleanId && (!cleanUser || mPlayer === cleanUser || mRecip === cleanUser)) {
+        if (m.type === 'CAMPAIGN_INVITATION' || m.type === 'JOIN_REQUEST') {
+          if (!m.read) {
+            m.read = true;
+            updated = true;
+          }
+          if (m.type === 'CAMPAIGN_INVITATION' && m.invitationStatus === 'pending') {
+            m.invitationStatus = 'accepted';
+            updated = true;
+          }
+        }
+      }
+    });
+
+    if (updated) {
+      this.saveAllCampaignMessages(messages);
+      this.updateHeaderBadge();
+    }
+  }
+
+  sendCampaignInvitation({ targetUser = '', campaignId = '', gmName = '', customNote = '' } = {}) {
+    const cleanId = String(campaignId || '').trim().toUpperCase().replace(/^#+/, '');
+    const cleanUser = String(targetUser || '').trim();
+    if (!cleanUser || !cleanId) throw new Error('Recipient username and campaign are required.');
+
+    const effGM = gmName || this.getCurrentUsername() || 'GM';
+    const info = this.getCampaignInfo(cleanId) || {};
+    const hist = this.getCampaignHistory().find(c => String(c.campaignId || '').toUpperCase().replace(/^#+/, '') === cleanId) || {};
+    const campName = hist.campaignName || info.campaignName || cleanId;
+
+    const msg = this.sendCampaignMessage({
+      type: 'CAMPAIGN_INVITATION',
+      recipientRole: 'USER',
+      recipientUser: cleanUser,
+      senderUser: effGM,
+      campaignId: cleanId,
+      campaignName: campName,
+      gmName: effGM,
+      playerName: cleanUser,
+      invitationStatus: 'pending',
+      text: customNote || `👑 ${effGM} has invited you to join campaign "${campName}" (#${cleanId})! You can accept this invitation to join the party directly, or decline.`
+    });
+
+    try {
+      if (typeof window !== 'undefined' && window.appController?.forwardMessageToEmail) {
+        window.appController.forwardMessageToEmail(msg, cleanUser);
+      }
+    } catch (e) {
+      console.warn('Email forwarding trigger warning:', e);
+    }
+
+    return msg;
+  }
+
+  respondToCampaignInvitation(msgId, accept = true, characterData = null) {
+    const messages = this.getAllCampaignMessages();
+    const msg = messages.find(m => m.id === msgId);
+    if (!msg) throw new Error('Invitation message not found.');
+
+    const cleanId = String(msg.campaignId || '').trim().toUpperCase().replace(/^#+/, '');
+    const effUser = msg.recipientUser || msg.playerName || this.getCurrentUsername() || 'Player';
+
+    if (accept) {
+      msg.invitationStatus = 'accepted';
+      msg.read = true;
+      this.saveAllCampaignMessages(messages);
+
+      // Save character to campaign
+      const char = characterData || (typeof window !== 'undefined' ? window.appController?.char : null);
+      if (char) {
+        this.saveCampaignSavedCharacter(cleanId, char, effUser);
+      }
+
+      // Automatically mark any invitation message received for that campaign as read
+      this.markCampaignInvitationsRead(cleanId, effUser);
+
+      // Notify GM
+      this.sendCampaignMessage({
+        type: 'CAMPAIGN_INVITATION_ACCEPTED',
+        recipientRole: 'GM',
+        recipientUser: msg.gmName || msg.senderUser,
+        senderUser: effUser,
+        campaignId: cleanId,
+        campaignName: msg.campaignName,
+        gmName: msg.gmName,
+        playerName: effUser,
+        characterName: char?.name || 'Hero',
+        text: `Player "${effUser}" accepted your invitation to join campaign "${msg.campaignName}" (#${cleanId}) with character "${char?.name || 'Hero'}".`
+      });
+
+      // Sync to cloud if Supabase is connected
+      if (typeof supabaseService !== 'undefined' && supabaseService?.client && supabaseService.isLoggedIn()) {
+        const charPayload = char || { name: 'Hero', powerLevel: 10 };
+        supabaseService.getCampaignByNameOrCode(cleanId).then(camp => {
+          if (camp) {
+            supabaseService.client.from('campaign_members').upsert([{
+              campaign_id: camp.id,
+              user_id: supabaseService.currentUser?.id,
+              character_id: char?.id || 'hero',
+              character_name: char?.name || 'Hero',
+              player_name: effUser,
+              power_level: char?.powerLevel || camp.power_level || 10,
+              character_data: charPayload,
+              is_online: true,
+              last_seen: new Date().toISOString()
+            }], { onConflict: 'campaign_id,user_id' }).then(() => {
+              supabaseService.syncCloudCampaignsToLocal(this);
+            });
+          }
+        }).catch(err => console.warn('Supabase invitation accept error:', err));
+      }
+    } else {
+      msg.invitationStatus = 'declined';
+      msg.read = true;
+      this.saveAllCampaignMessages(messages);
+
+      this.sendCampaignMessage({
+        type: 'CAMPAIGN_INVITATION_DECLINED',
+        recipientRole: 'GM',
+        recipientUser: msg.gmName || msg.senderUser,
+        senderUser: effUser,
+        campaignId: cleanId,
+        campaignName: msg.campaignName,
+        gmName: msg.gmName,
+        playerName: effUser,
+        text: `Player "${effUser}" declined the invitation to join campaign "${msg.campaignName}" (#${cleanId}).`
+      });
+    }
+
+    this.updateHeaderBadge();
+    this.renderAllOpenViews();
+    return msg;
   }
 
   /**

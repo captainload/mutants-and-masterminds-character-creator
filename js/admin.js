@@ -1,7 +1,7 @@
 /**
  * Mutants & Masterminds 3E - Database Administration Console Controller (v3.99)
  * Gated strictly by GitHub project credentials (captainload).
- * Character editor test accounts (psycros, captainload@gmail.com) are excluded from admin access.
+ * Character editor player accounts are excluded from admin access.
  */
 
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from './supabase_client.js?v=3.99';
@@ -885,7 +885,7 @@ class DatabaseAdminController {
     if (!tbody) return;
 
     this.localCampaigns = [];
-    const knownGMs = ['captainload', 'psycros'];
+    const knownGMs = ['captainload'];
     const cloudCodes = new Set(this.campaigns.map(c => String(c.campaign_code || '').toUpperCase()));
     const cloudIds = new Set(this.campaigns.map(c => String(c.id || '').toUpperCase()));
 

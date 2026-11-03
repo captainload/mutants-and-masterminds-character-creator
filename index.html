@@ -970,6 +970,36 @@
         </div>
       </div>
 
+      <!-- Email Forwarding & Notifications Card -->
+      <div class="card-box" style="margin-bottom: 1.25rem;">
+        <div class="card-box-header">
+          <div class="card-box-title" style="font-size: 14px;">
+            <span>📬</span> Email Forwarding &amp; Notifications
+          </div>
+        </div>
+        <div style="padding: 0.9rem;">
+          <label style="display: flex; align-items: flex-start; gap: 0.6rem; cursor: pointer; margin-bottom: 0.6rem;">
+            <input type="checkbox" id="user-settings-chk-email-forward" style="width: 17px; height: 17px; margin-top: 2px; accent-color: var(--hero-blue); cursor: pointer;" />
+            <div style="font-size: 10.5pt; color: var(--text-bright); font-weight: 700;">
+              Forward campaign messages &amp; invitations to my login email
+              <div id="user-settings-forward-email-preview" style="font-size: 10pt; color: var(--text-muted); font-weight: normal; margin-top: 2px;">
+                Destination: (Your registered login email)
+              </div>
+            </div>
+          </label>
+          <p style="font-size: 10pt; color: var(--text-muted); margin-bottom: 0.75rem; line-height: 1.45;">
+            When enabled, incoming campaign messages, GM invitations, and join requests are sent directly to your standard email address so you don't need to stay logged into the app. Forwarded emails include secure one-click action links (to accept or decline invitations, or reply to the sender).
+          </p>
+          <div style="font-size: 10pt; color: var(--hero-gold); background: rgba(234, 179, 8, 0.1); border: 1px solid rgba(234, 179, 8, 0.3); border-radius: 4px; padding: 0.4rem 0.6rem;">
+            🔒 <strong>Privacy Guard</strong>: Your email address is strictly confidential and is <em>never</em> shared or shown to other users or GMs in the app.
+          </div>
+          <div style="display: flex; justify-content: flex-end; align-items: center; gap: 0.5rem; margin-top: 0.75rem;">
+            <span id="user-settings-email-forward-saved-msg" style="font-size: 10pt; color: var(--hero-green); font-weight: 700; display: none;">✓ Setting Saved!</span>
+            <button type="button" class="btn btn-primary" id="btn-save-email-forward-setting" style="font-size: 10pt; font-weight: 700; padding: 0.35rem 0.9rem;">💾 Save Email Setting</button>
+          </div>
+        </div>
+      </div>
+
       <!-- Password & Security Card -->
       <div class="card-box" style="margin-bottom: 1.25rem;">
         <div class="card-box-header">
@@ -2067,12 +2097,15 @@
                   </div>
                 </div>
 
-                <label style="font-size: 10pt; font-weight: 800; color: var(--text-muted); margin-left: 0.25rem;">Recipient Scope:</label>
+                <label style="font-size: 10pt; font-weight: 800; color: var(--text-muted); margin-left: 0.25rem;">Campaign:</label>
                 <select id="msg-compose-campaign-select" style="flex: 1.4; min-width: 240px; background: var(--bg-input); color: var(--text-bright); border: 1px solid var(--border-color); border-radius: 4px; padding: 0.3rem 0.5rem; font-size: 10pt; font-weight: 700;">
                   <option value="">Direct Recipient(s) Only (To: / Known Users)</option>
                   <option value="CURRENT_CONNECTED">Participants of currently connected campaign (excludes yourself)</option>
                   <option value="ALL_OWNED">👑 Participants of all campaigns owned</option>
                 </select>
+                <label id="msg-compose-invite-chk-wrapper" style="display: none; align-items: center; gap: 0.4rem; font-size: 10pt; font-weight: 700; color: var(--hero-gold); cursor: pointer; margin-left: 0.35rem;" title="Send as a direct Campaign Invitation so the recipient can Accept or Decline directly without applying">
+                  <input type="checkbox" id="msg-compose-chk-is-invitation" style="accent-color: var(--hero-gold); cursor: pointer;" /> 👑 Send as Campaign Invitation
+                </label>
               </div>
               <div style="margin-bottom: 0.5rem;">
                 <textarea id="msg-compose-text-input" class="textarea-msg-compose" rows="5" placeholder="Type your message here (shows 5 rows by default, expands up to 10 visible rows before scrolling)..."></textarea>

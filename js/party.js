@@ -5,7 +5,7 @@
  * GM join approval queues, character sheet inspection, and P2P fallback.
  */
 
-import { supabaseService } from './supabase_client.js?v=3.97';
+import { supabaseService } from './supabase_client.js?v=3.98';
 
 export function formatCharacterSheetHTML(char) {
   if (!char) return '<div style="padding:1rem;color:var(--text-muted);">No character data available.</div>';
@@ -1711,6 +1711,129 @@ export class CampaignTrackerManager {
     }
 
     // 7. Clear campaign state
+    const current = this.getCampaignState();
+    if (current && ((cleanId && current.campaignId === cleanId) || (campName && (current.campaignName || '').trim().toLowerCase() === campName.trim().toLowerCase()))) {
+      this.leaveCampaign();
+    }
+
+    // 8. Re-render all views
+    this.renderAllOpenViews();
+    if (typeof window !== 'undefined' && window.appController) {
+      window.appController.updateCampaignDropdown?.();
+      window.appController.alignCampaignButton?.();
+    }
+
+    return true;
+  }
+
+  /**
+   * Deletes an orphan campaign (a campaign not owned by an active GM or where creator is unavailable).
+   * Completely purges the campaign from registry, history, join requests, characters, and cloud.
+   */
+  deleteOrphanCampaign(campaignId, campaignName = '') {
+    const cleanId = String(campaignId || '').trim().toUpperCase().replace(/^#+/, '');
+    if (!cleanId) return false;
+
+    const hist = this.getCampaignHistory();
+    const match = hist.find(c => c.campaignId === cleanId);
+    const info = this.getCampaignInfo(cleanId) || match || {};
+    const campName = campaignName || match?.campaignName || info.campaignName || cleanId;
+
+    if (this.isSessionActive(cleanId)) {
+      this.endSession(cleanId);
+    }
+
+    // 1. Remove from registry
+    try {
+      const reg = this.getCampaignRegistry();
+      delete reg[cleanId];
+      const serializedReg = JSON.stringify(reg);
+      if (typeof localStorage !== 'undefined') {
+        localStorage.setItem('mm3e_campaign_registry', serializedReg);
+      } else {
+        this._sharedFallback['mm3e_campaign_registry'] = serializedReg;
+      }
+    } catch (e) {}
+
+    // 2. Remove from campaign history completely
+    try {
+      const history = this.getCampaignHistory().filter(c => {
+        const matchId = cleanId && c.campaignId === cleanId;
+        const matchName = campName && (c.campaignName || '').trim().toLowerCase() === campName.trim().toLowerCase();
+        return !matchId && !matchName;
+      });
+      const serialized = JSON.stringify(history);
+      if (typeof localStorage !== 'undefined') {
+        localStorage.setItem('mm3e_campaigns_history', serialized);
+      } else {
+        this._memoryFallback['mm3e_campaigns_history'] = serialized;
+      }
+    } catch (e) {}
+
+    // 3. Remove join requests for this campaign
+    try {
+      const reqs = this.getAllJoinRequestsStore().filter(r => {
+        const rId = String(r.campaignId || '').trim().toUpperCase().replace(/^#+/, '');
+        return rId !== cleanId;
+      });
+      this.saveAllJoinRequestsStore(reqs);
+    } catch (e) {}
+
+    // 4. Clean up campaign characters store
+    try {
+      if (typeof localStorage !== 'undefined') {
+        localStorage.removeItem(`mm3e_campaign_characters_${cleanId}`);
+      }
+    } catch (e) {}
+
+    // 5. Delete from Supabase cloud database if possible
+    if (typeof supabaseService !== 'undefined' && supabaseService && typeof supabaseService.deleteCampaign === 'function') {
+      supabaseService.deleteCampaign(cleanId).catch(err => console.warn('Cloud campaign deletion error:', err));
+    }
+
+    // 6. Detach active character and stored characters
+    if (typeof window !== 'undefined' && window.appController) {
+      const app = window.appController;
+      if (app.char) {
+        const curId = String(app.char.campaignId || '').trim().toUpperCase().replace(/^#+/, '');
+        const curName = String(app.char.campaign || app.char.lastCampaign || '').trim().toLowerCase();
+        if (curId === cleanId || curName === campName.trim().toLowerCase()) {
+          app.char.campaign = '';
+          app.char.campaignId = '';
+          app.char.lastCampaign = '';
+          if (app.primaryChar) {
+            app.primaryChar.campaign = '';
+            app.primaryChar.campaignId = '';
+            app.primaryChar.lastCampaign = '';
+          }
+          const campInput = document.getElementById('header-campaign-name');
+          if (campInput) campInput.value = '';
+          app.saveAndAudit();
+        }
+      }
+      try {
+        const chars = (typeof storageManager !== 'undefined' ? storageManager.getCharacters() : (app.storage?.getCharacters() || [])) || [];
+        chars.forEach(ch => {
+          const chId = String(ch.campaignId || '').trim().toUpperCase().replace(/^#+/, '');
+          const chName = String(ch.campaign || ch.lastCampaign || '').trim().toLowerCase();
+          if (chId === cleanId || chName === campName.trim().toLowerCase()) {
+            ch.campaign = '';
+            ch.campaignId = '';
+            ch.lastCampaign = '';
+            if (Array.isArray(ch.alts)) {
+              ch.alts.forEach(alt => {
+                alt.campaign = '';
+                alt.campaignId = '';
+                alt.lastCampaign = '';
+              });
+            }
+            if (typeof storageManager !== 'undefined') storageManager.saveCharacter(ch);
+          }
+        });
+      } catch (e) {}
+    }
+
+    // 7. Clear campaign state if currently active
     const current = this.getCampaignState();
     if (current && ((cleanId && current.campaignId === cleanId) || (campName && (current.campaignName || '').trim().toLowerCase() === campName.trim().toLowerCase()))) {
       this.leaveCampaign();
@@ -3945,6 +4068,12 @@ export class CampaignTrackerManager {
                       <span class="menu-item-icon">🚪</span> Leave Party
                     </button>
                   ` : ''}
+                  ${!c.isCreator ? `
+                    <div class="menu-dropdown-separator" style="height: 1px; background-color: var(--border-color); margin: 0.35rem 0;"></div>
+                    <button type="button" class="menu-dropdown-item btn-delete-orphan-campaign" data-campid="${c.campaignId}" data-campname="${(c.campaignName || '').replace(/"/g, '&quot;')}" style="font-size: 10pt; color: var(--hero-red); font-weight: 700; cursor: pointer;">
+                      <span class="menu-item-icon">🗑️</span> Delete Campaign
+                    </button>
+                  ` : ''}
                 </div>
               </div>
 
@@ -4107,10 +4236,13 @@ export class CampaignTrackerManager {
                 <option value="pl_desc" ${bf.sortBy === 'pl_desc' ? 'selected' : ''}>⚡ Power Level (High to Low)</option>
               </select>
             </div>
-            <label style="display: inline-flex; align-items: center; gap: 0.35rem; cursor: pointer; font-weight: 700; color: var(--text-bright);" title="When checked, filters out inactive campaigns that are currently on hiatus">
-              <input type="checkbox" class="chk-filter-hide-hiatus" ${bf.hideHiatus ? 'checked' : ''} style="cursor: pointer; accent-color: var(--hero-gold);" />
-              <span>⏸️ Hide "On Hiatus" (Inactive Campaigns)</span>
-            </label>
+            <div style="display: inline-flex; align-items: center; gap: 0.85rem; flex-wrap: wrap;">
+              <button type="button" class="btn btn-outline btn-purge-orphan-campaigns" title="Purge campaigns where neither captainload nor psycros is the GM" style="font-size: 10pt; font-weight: 700; color: var(--hero-red); border-color: rgba(239, 68, 68, 0.45); padding: 1px 8px; cursor: pointer;">🧹 Purge Orphan Campaigns</button>
+              <label style="display: inline-flex; align-items: center; gap: 0.35rem; cursor: pointer; font-weight: 700; color: var(--text-bright);" title="When checked, filters out inactive campaigns that are currently on hiatus">
+                <input type="checkbox" class="chk-filter-hide-hiatus" ${bf.hideHiatus ? 'checked' : ''} style="cursor: pointer; accent-color: var(--hero-gold);" />
+                <span>⏸️ Hide "On Hiatus" (Inactive Campaigns)</span>
+              </label>
+            </div>
           </div>
         </div>
 
@@ -4406,6 +4538,26 @@ export class CampaignTrackerManager {
       });
     });
 
+    parentEl.querySelectorAll('.btn-delete-orphan-campaign').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const campId = e.currentTarget.dataset.campid;
+        const campName = e.currentTarget.dataset.campname || '';
+        if (campId && typeof window !== 'undefined' && window.appController?.confirmAndDeleteOrphanCampaign) {
+          window.appController.confirmAndDeleteOrphanCampaign(campId, campName);
+        } else if (campId) {
+          this.deleteOrphanCampaign(campId, campName);
+        }
+      });
+    });
+
+    parentEl.querySelectorAll('.btn-purge-orphan-campaigns').forEach(btn => {
+      btn.addEventListener('click', () => {
+        if (typeof window !== 'undefined' && window.appController?.confirmAndPurgeOrphanCampaigns) {
+          window.appController.confirmAndPurgeOrphanCampaigns();
+        }
+      });
+    });
+
     parentEl.querySelectorAll('.btn-gm-review-diff').forEach(btn => {
       btn.addEventListener('click', (e) => {
         const charName = e.currentTarget.dataset.charname;
@@ -4672,7 +4824,7 @@ export class CampaignTrackerManager {
 <head>
   <meta charset="UTF-8">
   <title>Mutants & Masterminds 3E - Party Conditions & Toughness Tracker</title>
-  <link rel="stylesheet" href="css/styles.css?v=3.97">
+  <link rel="stylesheet" href="css/styles.css?v=3.98">
   <style>
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -4849,7 +5001,7 @@ export class CampaignTrackerManager {
 <head>
   <meta charset="UTF-8">
   <title>Mutants & Masterminds 3E - Game Session Tracker</title>
-  <link rel="stylesheet" href="css/styles.css?v=3.97">
+  <link rel="stylesheet" href="css/styles.css?v=3.98">
   <style>
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;

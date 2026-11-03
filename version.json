@@ -1,6 +1,6 @@
 {
-  "version": "3.97",
-  "updatedAt": "2026-11-03T02:24:29.625Z",
-  "releaseNotes": "Fix delete campaign to completely remove campaigns from registry, history, and cloud database, and fix leave party to reliably detach characters, update membership status, and sync with cloud.",
+  "version": "3.98",
+  "updatedAt": "2026-11-03T03:17:32.291Z",
+  "releaseNotes": "Prompt to attach currently loaded character when applying to join campaigns with direction to load character first if declined, and provide individual and bulk tools to delete orphan campaigns.",
   "updated": "2026-11-03"
 }

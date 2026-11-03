@@ -848,6 +848,18 @@ class SupabaseService {
         }
       });
 
+      // Server-side synchronization: Prune local campaign history of any entries with no GM or not verified on server
+      try {
+        const validCodes = new Set(allCamps.map(c => (c.campaign_code || c.id || '').toUpperCase().replace(/^#+/, '')));
+        const cleanHistory = partyMgr.getCampaignHistory().filter(h => {
+          const hCode = String(h.campaignId || '').toUpperCase().replace(/^#+/, '');
+          return validCodes.has(hCode) && (h.creatorName || '').trim().length > 0;
+        });
+        if (typeof partyMgr.saveAllCampaignHistory === 'function') {
+          partyMgr.saveAllCampaignHistory(cleanHistory);
+        }
+      } catch (e) {}
+
       // Synchronize join requests for campaigns where the current user is the GM / Creator
       const myCreatedUuids = (created || []).map(c => c.id).filter(Boolean);
       if (myCreatedUuids.length > 0) {

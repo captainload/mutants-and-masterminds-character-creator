@@ -3455,6 +3455,15 @@ window.partyManager = partyManager;
     }
 
     const localInfo = campaignManager.getCampaignInfo(parsed.campaignId) || campaignManager.getCampaignInfo(parsed.campaignName);
+    const effGM = cloudCamp?.creator_name || localInfo?.creatorName || '';
+    if (!cloudCamp && (!localInfo || !effGM)) {
+      await this.showAlertDialog(
+        `Campaign "${campInput}" does not exist on the server.\n\nPlease check the campaign name or ID and try again.`,
+        { title: 'Campaign Not Found' }
+      );
+      return;
+    }
+
     const cleanCampId = (localInfo?.campaignId || parsed.campaignId).toUpperCase().replace(/^#+/, '');
     const campName = cloudCamp?.name || localInfo?.campaignName || parsed.campaignName;
     const campPL = cloudCamp?.power_level ?? localInfo?.powerLevel ?? parsed.powerLevel ?? 10;
@@ -3663,6 +3672,43 @@ window.partyManager = partyManager;
       });
 
       partyManager.updateCurrentPlayer(this.char, this.primaryChar, this.activeAltId);
+
+      // Compare player's local character copy with online campaign copy
+      let onlineCharCopy = null;
+      if (typeof supabaseService !== 'undefined' && supabaseService && supabaseService.client) {
+        try {
+          const members = await supabaseService.getCampaignMembers(cleanCampId);
+          const myMem = members.find(m => 
+            (supabaseService.currentUser && m.user_id === supabaseService.currentUser.id) ||
+            ((m.character_name || '').toLowerCase() === charName.toLowerCase())
+          );
+          if (myMem?.character_data) {
+            onlineCharCopy = myMem.character_data;
+          }
+        } catch (e) {}
+      }
+      if (!onlineCharCopy) {
+        const savedRec = campaignManager.getCampaignSavedCharacter(cleanCampId, this.char.id || charName, charName);
+        if (savedRec?.characterData) {
+          onlineCharCopy = savedRec.characterData;
+        }
+      }
+
+      if (onlineCharCopy) {
+        const diffs = campaignManager.compareCharacterCopies(onlineCharCopy, this.char);
+        if (diffs && diffs.length > 0) {
+          const localMem = partyManager.getLocalMember();
+          if (localMem) {
+            localMem.hasDiffAlert = true;
+            localMem.diffSummary = diffs;
+            localMem.savedTimestamp = 'Last Session Online Copy';
+            localMem.incomingTimestamp = new Date().toLocaleString();
+            localMem.incomingCharacterData = this.char;
+          }
+          campaignManager.recordMemberDiffAlert(cleanCampId, charName, diffs, this.char);
+        }
+      }
+
       partyManager.broadcastLocalMemberData();
 
       partyManager.addSessionEvent({
@@ -3776,6 +3822,200 @@ window.partyManager = partyManager;
     campaignManager.renderAllOpenViews();
     this.updateCampaignDropdown?.();
     this.alignCampaignButton?.();
+  }
+
+  async confirmAndAttachCharacterToCampaign(campId, campName = '') {
+    const cleanId = String(campId || '').trim().toUpperCase().replace(/^#+/, '');
+    const info = campaignManager.getCampaignInfo(cleanId) || campaignManager.getCampaignHistory().find(c => c.campaignId === cleanId);
+    const displayCampName = campName || info?.campaignName || cleanId;
+    const charName = (this.char?.name || this.char?.heroName || '').trim();
+
+    if (!charName) {
+      await this.showAlertDialog(
+        'Please load or create a character first before attaching it to the campaign.',
+        { title: 'No Character Loaded' }
+      );
+      return;
+    }
+
+    const confirmed = await this.showConfirmDialog(
+      `Do you want to attach your currently loaded character "${charName}" (PL ${this.char.powerLevel || 10}) to campaign "${displayCampName}" (#${cleanId})?`,
+      {
+        title: 'Attach Character to Campaign',
+        confirmText: `Attach "${charName}"`,
+        cancelText: 'Cancel',
+        confirmClass: 'btn-primary'
+      }
+    );
+    if (!confirmed) return;
+
+    this.char.campaign = displayCampName;
+    this.char.lastCampaign = displayCampName;
+    this.char.campaignId = cleanId;
+    const campInput = document.getElementById('header-campaign-name');
+    if (campInput) campInput.value = displayCampName;
+    this.saveAndAudit();
+
+    // Upsert into Supabase campaign_members if connected
+    if (typeof supabaseService !== 'undefined' && supabaseService && supabaseService.client && supabaseService.currentUser) {
+      try {
+        await supabaseService.upsertCampaignMember({
+          campaignId: cleanId,
+          character: this.char,
+          characterData: this.char
+        });
+      } catch (e) {
+        console.warn('Error upserting attached character to Supabase:', e);
+      }
+    }
+
+    campaignManager.saveCampaignSavedCharacter(cleanId, this.char, this.char.playerName || (typeof supabaseService !== 'undefined' ? supabaseService?.getUsername?.() : '') || charName);
+    campaignManager.renderAllOpenViews();
+    await this.showAlertDialog(`"${charName}" has been attached to campaign "${displayCampName}"!`, { title: 'Character Attached' });
+  }
+
+  async confirmAndRemoveCharacterFromParty(campId, charName = '') {
+    const cleanId = String(campId || '').trim().toUpperCase().replace(/^#+/, '');
+    const info = campaignManager.getCampaignInfo(cleanId) || campaignManager.getCampaignHistory().find(c => c.campaignId === cleanId);
+    const displayCampName = info?.campaignName || cleanId;
+    const effCharName = charName || this.char?.name || 'Character';
+
+    const confirmed = await this.showConfirmDialog(
+      `Remove character "${effCharName}" from the party for campaign "${displayCampName}"?\n\n` +
+      `• You will remain a member of this campaign.\n` +
+      `• You can attach a character to the party again whenever you wish.\n` +
+      `• Your character remains preserved in your character library.`,
+      {
+        title: `Remove ${effCharName} from Party?`,
+        confirmText: `Remove from Party`,
+        cancelText: 'Cancel',
+        confirmClass: 'btn-danger'
+      }
+    );
+    if (!confirmed) return;
+
+    // Detach current character locally if it matches
+    if (this.char && (this.char.name === effCharName || !charName)) {
+      this.char.campaign = '';
+      this.char.campaignId = '';
+      this.char.lastCampaign = '';
+      if (this.primaryChar) {
+        this.primaryChar.campaign = '';
+        this.primaryChar.campaignId = '';
+        this.primaryChar.lastCampaign = '';
+      }
+      const campInput = document.getElementById('header-campaign-name');
+      if (campInput) campInput.value = '';
+      this.saveAndAudit();
+    }
+
+    // Detach stored characters matching this name and campaign
+    try {
+      const chars = (typeof storageManager !== 'undefined' && typeof storageManager.getCharacters === 'function')
+        ? storageManager.getCharacters()
+        : (this.storage?.getCharacters ? this.storage.getCharacters() : []);
+      chars.forEach(ch => {
+        if (ch.name === effCharName) {
+          ch.campaign = '';
+          ch.campaignId = '';
+          ch.lastCampaign = '';
+          if (typeof storageManager !== 'undefined' && typeof storageManager.saveCharacter === 'function') {
+            storageManager.saveCharacter(ch);
+          }
+        }
+      });
+    } catch (e) {}
+
+    // In campaign tracker, remove from active party roster
+    campaignManager.removeCharacterFromPartyRoster(cleanId, effCharName);
+
+    // If Supabase connected, update campaign_members to detach character
+    if (typeof supabaseService !== 'undefined' && supabaseService && supabaseService.client && supabaseService.currentUser) {
+      try {
+        await supabaseService.client
+          .from('campaign_members')
+          .update({
+            character_id: null,
+            character_name: null,
+            character_data: null,
+            is_online: false,
+            last_seen: new Date().toISOString()
+          })
+          .eq('campaign_id', cleanId)
+          .eq('user_id', supabaseService.currentUser.id);
+      } catch (e) {
+        console.warn('Error clearing character in campaign_members:', e);
+      }
+    }
+
+    campaignManager.renderAllOpenViews();
+    await this.showAlertDialog(`"${effCharName}" was removed from the party for "${displayCampName}".`, { title: 'Removed from Party' });
+  }
+
+  async showCharacterChangeReport(charName, memberId = '') {
+    const state = campaignManager.getCampaignState();
+    const members = campaignManager.getPartyMembers();
+    const mem = members.find(m => m.characterName === charName || (memberId && m.id === memberId));
+    if (!mem) return;
+
+    const diffs = mem.diffSummary || [];
+    const savedTime = mem.savedTimestamp || 'Last Session Snapshot';
+    const incomingTime = mem.incomingTimestamp || 'Current Connection';
+    const hasDiff = diffs.length > 0;
+
+    if (hasDiff && state.isHost) {
+      const wantApprove = await this.showConfirmDialog(
+        `Character Change Report for "${charName}":\n\n` +
+        `Player: ${mem.playerName || 'Player'}\n` +
+        `GM Saved Snapshot: ${savedTime}\n` +
+        `Player Local Copy: ${incomingTime}\n\n` +
+        `Changes detected since last session:\n• ${diffs.join('\n• ')}\n\n` +
+        `Would you like to approve these changes and update campaign records?`,
+        {
+          title: `📋 Change Report: ${charName}`,
+          confirmText: '✅ Approve Changes',
+          cancelText: 'Close (Keep Pending)',
+          confirmClass: 'btn-primary'
+        }
+      );
+
+      if (wantApprove) {
+        await this.approveCharacterChanges(state.campaignId, charName);
+      }
+    } else {
+      await this.showAlertDialog(
+        hasDiff
+          ? `Character Change Report for "${charName}":\n\n• ${diffs.join('\n• ')}`
+          : `No changes detected for "${charName}" compared to the last session snapshot.`,
+        { title: `📋 Change Report: ${charName}` }
+      );
+    }
+  }
+
+  async approveCharacterChanges(campaignId, charName) {
+    const cleanId = String(campaignId || '').trim().toUpperCase().replace(/^#+/, '');
+    const members = campaignManager.getPartyMembers();
+    const mem = members.find(m => m.characterName === charName);
+    if (!mem) return;
+
+    const approvedChar = mem.incomingCharacterData || mem.characterData;
+    campaignManager.approveCharacterChanges(cleanId, charName);
+
+    // Update Supabase campaign_members if connected
+    if (typeof supabaseService !== 'undefined' && supabaseService && supabaseService.client && approvedChar) {
+      try {
+        await supabaseService.updateCampaignMemberAwards({
+          campaignId: cleanId,
+          characterName: charName,
+          characterData: approvedChar
+        });
+      } catch (e) {
+        console.warn('Error updating approved character in Supabase:', e);
+      }
+    }
+
+    campaignManager.renderAllOpenViews();
+    await this.showAlertDialog(`Changes for "${charName}" have been approved and saved to campaign records!`, { title: 'Changes Approved' });
   }
 
   async toggleCampaignHiatus(campId, putOnHiatus = true) {

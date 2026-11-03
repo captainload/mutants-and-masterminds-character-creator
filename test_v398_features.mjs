@@ -221,8 +221,8 @@ orphanList.forEach(oc => {
   });
 });
 
-// Verify all 5 are currently present
-assert.strictEqual(mgr.getBrowsableCampaigns().length, 5, 'Should have 5 campaigns total before purge');
+// Verify all 5 are currently present in history
+assert.strictEqual(mgr.getCampaignHistory().length, 5, 'Should have 5 campaigns total before purge');
 
 // Simulate bulk purge logic
 const knownGMs = ['captainload', 'psycros'];

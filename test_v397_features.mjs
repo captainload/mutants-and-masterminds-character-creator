@@ -213,7 +213,7 @@ assert(histAfter && histAfter.isCreator, 'GM must still own campaign in history 
 const browserHTML = mgr.generateCampaignBrowserHTML();
 assert(browserHTML.includes('👑 GM (Owner)'), 'GM without attached character must be marked GM (Owner)');
 assert(!browserHTML.includes('👑 GM • 🌟 In Party'), 'GM without attached character must NOT be marked In Party');
-assert(browserHTML.includes('🔗 Join Party'), 'Card must show Join Party button when GM is not in party');
+assert(browserHTML.includes('Attach Character') || browserHTML.includes('Join Campaign'), 'Card must show Attach Character or Join Campaign button when GM is not in party');
 
 console.log('✓ GM leaving party keeps campaign ownership while properly removing party membership status.');
 

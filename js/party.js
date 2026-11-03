@@ -192,6 +192,15 @@ export class CampaignTrackerManager {
     }
   }
 
+  escapeHTML(str) {
+    return String(str ?? '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
   getSavedCoords() {
     try {
       const raw = typeof localStorage !== 'undefined' ? localStorage.getItem(this.coordsKey) : this._memoryFallback[this.coordsKey];
@@ -270,6 +279,8 @@ export class CampaignTrackerManager {
         notes,
         createdAtMs,
         pendingTransfer,
+        isJoinedOrCreated: campaignData.isJoinedOrCreated !== undefined ? !!campaignData.isJoinedOrCreated : !!existing.isJoinedOrCreated,
+        isMember: campaignData.isMember !== undefined ? !!campaignData.isMember : !!existing.isMember,
         lastJoined: new Date().toLocaleDateString(),
         lastJoinedMs: Date.now()
       };
@@ -294,6 +305,18 @@ export class CampaignTrackerManager {
     } catch {
       return [];
     }
+  }
+
+  saveAllCampaignHistory(history) {
+    try {
+      const serialized = JSON.stringify(Array.isArray(history) ? history : []);
+      if (typeof localStorage !== 'undefined') {
+        localStorage.setItem('mm3e_campaigns_history', serialized);
+      } else {
+        this._memoryFallback['mm3e_campaigns_history'] = serialized;
+      }
+      this.renderAllOpenViews();
+    } catch (e) {}
   }
 
   removeFromCampaignHistory(campaignId) {
@@ -612,8 +635,9 @@ export class CampaignTrackerManager {
     const sAb = saved.abilities || {};
     const iAb = incoming.abilities || {};
     abilities.forEach(k => {
-      const sVal = parseInt(sAb[k] ?? 0, 10);
-      const iVal = parseInt(iAb[k] ?? 0, 10);
+      const full = abilityLabels[k]?.toLowerCase();
+      const sVal = parseInt(sAb[k] ?? (full ? sAb[full] : undefined) ?? 0, 10);
+      const iVal = parseInt(iAb[k] ?? (full ? iAb[full] : undefined) ?? 0, 10);
       if (sVal !== iVal) {
         diffs.push(`${abilityLabels[k] || k.toUpperCase()}: ${sVal} → ${iVal}`);
       }
@@ -717,36 +741,60 @@ export class CampaignTrackerManager {
       mem.diffSummary = diffs;
       mem.savedTimestamp = savedTime;
       mem.incomingTimestamp = incomingTime;
+      mem.incomingCharacterData = incomingChar;
       this.savePartyMembers(members);
+      this.renderAllOpenViews();
+    }
+  }
+
+  recordMemberDiffAlert(campaignId, charName, diffs, incomingChar = null) {
+    const clean = String(campaignId || '').trim().toUpperCase().replace(/^#+/, '');
+    const members = this.getPartyMembers();
+    const mem = members.find(m => (m.characterName || '').toLowerCase() === String(charName || '').toLowerCase());
+    if (mem) {
+      mem.hasDiffAlert = true;
+      mem.diffSummary = diffs;
+      mem.savedTimestamp = 'Last Session Online Copy';
+      mem.incomingTimestamp = new Date().toLocaleString();
+      if (incomingChar) mem.incomingCharacterData = incomingChar;
+      this.savePartyMembers(members);
+      this.renderAllOpenViews();
+    }
+  }
+
+  approveCharacterChanges(campaignId, charName) {
+    const clean = String(campaignId || '').trim().toUpperCase().replace(/^#+/, '');
+    const members = this.getPartyMembers();
+    const mem = members.find(m => (m.characterName || '').toLowerCase() === String(charName || '').toLowerCase());
+    if (!mem) return false;
+
+    const approvedChar = mem.incomingCharacterData || mem.characterData;
+    if (approvedChar) {
+      this.saveCampaignSavedCharacter(clean, approvedChar, mem.playerName || 'Player', new Date().toISOString());
+      mem.characterData = approvedChar;
     }
 
-    const alertKey = `${clean}_${charId}_${diffs.join('|')}`;
-    if (this._lastAlertedDiffKey === alertKey) return;
-    this._lastAlertedDiffKey = alertKey;
+    delete mem.hasDiffAlert;
+    delete mem.diffSummary;
+    delete mem.incomingCharacterData;
+    this.savePartyMembers(members);
+    this.renderAllOpenViews();
+    return true;
+  }
 
-    if (typeof window !== 'undefined' && window.appController && window.appController.showConfirmDialog) {
-      const message = `Player "${player}" connected to campaign #${clean} with character "${charName}".\r\n\r\nChanges were detected compared to your campaign's saved copy from the end of the last session:\r\n\r\n` +
-        `📅 GM Saved Copy Timestamp: ${savedTime}\r\n` +
-        `📅 Player Local Copy Timestamp: ${incomingTime}\r\n\r\n` +
-        `Detected Differences:\r\n• ${diffs.join('\r\n• ')}\r\n\r\n` +
-        `Would you like to accept these changes and update your campaign records?`;
-
-      const accepted = await window.appController.showConfirmDialog(message, {
-        title: `⚠️ Character Changes: ${charName}`,
-        confirmText: 'Accept Changes',
-        cancelText: 'Keep GM Copy'
-      });
-
-      if (accepted) {
-        this.saveCampaignSavedCharacter(clean, incomingChar, player, clientTimestamp || new Date().toISOString());
-        if (mem) {
-          delete mem.hasDiffAlert;
-          delete mem.diffSummary;
-          this.savePartyMembers(members);
-        }
-        this.renderAllOpenViews();
-      }
-    }
+  removeCharacterFromPartyRoster(campaignId, charName) {
+    const clean = String(campaignId || '').trim().toUpperCase().replace(/^#+/, '');
+    const members = this.getPartyMembers();
+    const targetName = String(charName || '').trim().toLowerCase();
+    const updated = members.filter(m => {
+      const mCamp = String(m.campaignId || '').trim().toUpperCase().replace(/^#+/, '');
+      const mName = String(m.characterName || '').trim().toLowerCase();
+      if (clean && mCamp && mCamp !== clean) return true;
+      return mName !== targetName;
+    });
+    this.savePartyMembers(updated);
+    this.renderAllOpenViews();
+    return true;
   }
 
   getCampaignInfo(idOrName) {
@@ -930,7 +978,21 @@ export class CampaignTrackerManager {
     });
     if (hasAttachedChar) return true;
 
-    // 2. Check approved join requests store (only active approved request for this username)
+    // 2. Check campaign history for recorded membership
+    try {
+      const history = this.getCampaignHistory();
+      const histMatch = history.find(h => {
+        const cId = String(h.campaignId || '').trim().toUpperCase().replace(/^#+/, '');
+        const cName = String(h.campaignName || '').trim().toLowerCase();
+        const matchesCamp = (cleanId && cId === cleanId) || (cleanName && cName === cleanName);
+        if (!matchesCamp) return false;
+        if (h.isJoinedOrCreated || h.isMember) return true;
+        return false;
+      });
+      if (histMatch) return true;
+    } catch {}
+
+    // 3. Check approved join requests store (only active approved request for this username)
     try {
       const reqs = this.getAllJoinRequestsStore();
       const approvedReq = reqs.find(r => {
@@ -945,7 +1007,7 @@ export class CampaignTrackerManager {
       if (approvedReq) return true;
     } catch {}
 
-    // 3. Check active party members
+    // 4. Check active party members
     const members = this.getPartyMembers();
     const isMemberInParty = members.some(m => {
       const mCampId = String(m.campaignId || '').toUpperCase().replace(/^#+/, '');
@@ -1130,6 +1192,11 @@ export class CampaignTrackerManager {
       const effNotes = String(c.notes ?? regEntry.notes ?? '');
       const effHiatus = c.isOnHiatus !== undefined ? !!c.isOnHiatus : !!regEntry.isOnHiatus;
 
+      // Server-side verification: Every valid campaign must have an assigned GM/creator. Never display phantom/non-existent campaigns.
+      if (!effCreatorName) {
+        return;
+      }
+
       // Determine GM / Creator rights dynamically for current user
       const isCreator = this.isUserCreatorOfCampaign({
         campaignId: cleanId,
@@ -1139,7 +1206,7 @@ export class CampaignTrackerManager {
       });
 
       // Determine membership: either creator or joined as participant
-      const isMember = isCreator || this.isUserMemberOfCampaign(cleanId, c.campaignName || regEntry.campaignName);
+      const isMember = isCreator || !!c.isJoinedOrCreated || !!c.isMember || this.isUserMemberOfCampaign(cleanId, c.campaignName || regEntry.campaignName);
 
       // SECURITY & PRIVACY RULE:
       // Non-public campaigns can ONLY be seen by the GM / Creator who created them, or members who joined them.
@@ -1271,6 +1338,9 @@ export class CampaignTrackerManager {
     const isCreator = this.isUserCreatorOfCampaign(historyMatch || regInfo || { campaignId: cleanId, creatorName: regInfo.creatorName });
 
     const effCreatorName = info?.creatorName || historyMatch?.creatorName || regInfo?.creatorName || '';
+    if (!effCreatorName && !isCreator) {
+      throw new Error(`Campaign "${effName}" (#${cleanId}) does not exist on the server. Only verified campaigns with an assigned GM can be joined.`);
+    }
     const membershipEntry = {
       isConnected: false,
       campaignId: cleanId,
@@ -4153,7 +4223,34 @@ export class CampaignTrackerManager {
           <div class="party-member-card" style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 0.75rem 1rem; margin-bottom: 0.65rem; display: flex; flex-direction: column; gap: 0.45rem;">
             <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.4rem;">
               <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
-                <strong style="font-size: 1.05rem; color: var(--text-bright);">${m.characterName}</strong>
+                ${state.isHost ? `
+                  <div class="menu-dropdown-container gm-member-dropdown" style="position: relative; display: inline-block;">
+                    <button type="button" class="btn btn-outline gm-member-toggle" data-charname="${m.characterName}" data-memberid="${m.id}" title="GM Options & Change Report" style="border: none; background: none; padding: 0; font-size: 1.05rem; font-weight: 800; color: var(--text-bright); cursor: pointer; display: inline-flex; align-items: center; gap: 0.35rem;">
+                      <span>${m.characterName}</span>
+                      ${m.hasDiffAlert ? '<span class="party-char-alert-badge" title="Character updated since last session!" style="background: #ef4444; color: #fff; font-size: 10pt; font-weight: 900; width: 18px; height: 18px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center;">!</span>' : ''}
+                      <span style="font-size: 10pt; color: var(--text-muted);">▾</span>
+                    </button>
+                    <div class="menu-dropdown-panel gm-member-panel" style="position: absolute; top: calc(100% + 4px); left: 0; min-width: 230px; border-radius: 6px; z-index: 2500; padding: 0.35rem 0; display: none; background: var(--bg-card); border: 1px solid var(--border-color); box-shadow: 0 4px 12px rgba(0,0,0,0.4);">
+                      <div class="menu-dropdown-heading" style="font-size: 10pt; font-weight: 800; text-transform: uppercase; color: var(--hero-gold); padding: 0.35rem 0.85rem 0.2rem 0.85rem;">${m.characterName} Options</div>
+                      <button type="button" class="menu-dropdown-item btn-gm-view-change-report" data-charname="${m.characterName}" data-memberid="${m.id}" style="font-size: 10pt; color: ${m.hasDiffAlert ? 'var(--hero-gold)' : 'var(--text-bright)'}; font-weight: 700; cursor: pointer;">
+                        <span class="menu-item-icon">📋</span> Report (Changes since last session)
+                      </button>
+                      ${m.hasDiffAlert ? `
+                        <button type="button" class="menu-dropdown-item btn-gm-approve-character-changes" data-charname="${m.characterName}" data-memberid="${m.id}" style="font-size: 10pt; color: var(--hero-green); font-weight: 800; cursor: pointer;">
+                          <span class="menu-item-icon">✅</span> Approve Changes
+                        </button>
+                      ` : ''}
+                      <button type="button" class="menu-dropdown-item btn-inspect-member-sheet" data-memberid="${m.id}" style="font-size: 10pt; color: var(--hero-blue); font-weight: 700; cursor: pointer;">
+                        <span class="menu-item-icon">👁️</span> View Character Sheet
+                      </button>
+                    </div>
+                  </div>
+                ` : `
+                  <strong style="font-size: 1.05rem; color: var(--text-bright); display: inline-flex; align-items: center; gap: 0.35rem;">
+                    <span>${m.characterName}</span>
+                    ${m.hasDiffAlert ? '<span class="party-char-alert-badge" title="Character updated since last session!" style="background: #ef4444; color: #fff; font-size: 10pt; font-weight: 900; width: 18px; height: 18px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center;">!</span>' : ''}
+                  </strong>
+                `}
                 ${altBadge}
                 <span style="font-size: 10pt; color: var(--text-muted); font-weight: 600;">Player: ${m.playerName}</span>
               </div>
@@ -4219,22 +4316,26 @@ export class CampaignTrackerManager {
       const attached = storedChars.filter(ch => (ch.campaignId && ch.campaignId.toUpperCase().replace(/^#+/, '') === c.campaignId) || (ch.campaign && ch.campaign.trim().toLowerCase() === (c.campaignName || '').toLowerCase()));
       const attachedStr = attached.map(ch => ch.name || 'Hero').join(', ') || 'None';
       const isCreator = !!c.isCreator;
-      // Party membership: user currently has a character in the party
-      const isInParty = attached.length > 0 || (!isCreator && this.isUserMemberOfCampaign(c.campaignId, c.campaignName));
+      const isMember = isCreator || !!c.isJoinedOrCreated || this.isUserMemberOfCampaign(c.campaignId, c.campaignName);
+      const hasCharInParty = attached.length > 0;
+      const attachedCharName = attached[0]?.name || '';
       const pendingReqCount = isCreator ? this.getJoinRequestsForGM(c.campaignId).filter(r => r.status === 'pending').length : 0;
 
       return `
-        <div class="campaign-browser-card" data-campid="${c.campaignId}" style="background: var(--bg-card); border: 1px solid ${isOnHiatus ? 'rgba(245, 158, 11, 0.45)' : (isCreator || isInParty ? 'rgba(59, 130, 246, 0.5)' : 'var(--border-color)')}; border-radius: 6px; padding: 0.65rem 0.85rem; margin-bottom: 0.55rem; display: flex; flex-direction: column; gap: 0.45rem;">
+        <div class="campaign-browser-card" data-campid="${c.campaignId}" style="background: var(--bg-card); border: 1px solid ${isOnHiatus ? 'rgba(245, 158, 11, 0.45)' : (isCreator || isMember ? 'rgba(59, 130, 246, 0.5)' : 'var(--border-color)')}; border-radius: 6px; padding: 0.65rem 0.85rem; margin-bottom: 0.55rem; display: flex; flex-direction: column; gap: 0.45rem;">
           <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.45rem;">
             <div style="display: flex; align-items: center; gap: 0.45rem; flex-wrap: wrap;">
               ${isCreator
-                ? (isInParty
-                  ? `<span class="badge-gm-owned-campaign badge-joined-campaign" data-gm-owned="1" title="Campaign you own as GM with characters in party (shown first)" style="font-size: 10pt; font-weight: 800; color: var(--hero-gold); background: rgba(234, 179, 8, 0.18); border: 1px solid rgba(234, 179, 8, 0.55); padding: 1px 6px; border-radius: 4px;">👑 GM • 🌟 In Party</span>`
+                ? (hasCharInParty
+                  ? `<span class="badge-gm-owned-campaign badge-joined-campaign" data-gm-owned="1" title="Campaign you own as GM with character in party (shown first)" style="font-size: 10pt; font-weight: 800; color: var(--hero-gold); background: rgba(234, 179, 8, 0.18); border: 1px solid rgba(234, 179, 8, 0.55); padding: 1px 6px; border-radius: 4px;">👑 GM • 🌟 In Party</span>`
                   : `<span class="badge-gm-owned-campaign" data-gm-owned="1" title="Campaign you own as GM (shown first)" style="font-size: 10pt; font-weight: 800; color: var(--hero-gold); background: rgba(234, 179, 8, 0.18); border: 1px solid rgba(234, 179, 8, 0.55); padding: 1px 6px; border-radius: 4px;">👑 GM (Owner)</span>`
                 )
-                : (isInParty
-                  ? `<span class="badge-joined-campaign" data-gm-owned="0" title="Campaign you participate in as a Player" style="font-size: 10pt; font-weight: 800; color: var(--hero-blue); background: rgba(59, 130, 246, 0.16); border: 1px solid rgba(59, 130, 246, 0.45); padding: 1px 6px; border-radius: 4px;">🌟 In Party</span>`
-                  : `<span style="font-size: 10pt; font-weight: 700; color: var(--hero-green); background: rgba(16, 185, 129, 0.14); border: 1px solid rgba(16, 185, 129, 0.4); padding: 1px 6px; border-radius: 4px;">🌐 Open to Join</span>`
+                : (hasCharInParty
+                  ? `<span class="badge-joined-campaign" data-gm-owned="0" title="Campaign you participate in as a Player with character in party" style="font-size: 10pt; font-weight: 800; color: var(--hero-blue); background: rgba(59, 130, 246, 0.16); border: 1px solid rgba(59, 130, 246, 0.45); padding: 1px 6px; border-radius: 4px;">🌟 In Party</span>`
+                  : (isMember
+                    ? `<span style="font-size: 10pt; font-weight: 800; color: var(--hero-blue); background: rgba(59, 130, 246, 0.12); border: 1px solid rgba(59, 130, 246, 0.35); padding: 1px 6px; border-radius: 4px;">👤 Member</span>`
+                    : `<span style="font-size: 10pt; font-weight: 700; color: var(--hero-green); background: rgba(16, 185, 129, 0.14); border: 1px solid rgba(16, 185, 129, 0.4); padding: 1px 6px; border-radius: 4px;">🌐 Open to Join</span>`
+                  )
                 )
               }
               <strong style="font-size: 10.5pt; color: var(--text-bright);">${c.isCreator ? '👑 ' : ''}${c.campaignName}</strong>
@@ -4243,41 +4344,42 @@ export class CampaignTrackerManager {
               ${isPublic ? '<span style="font-size: 10pt; font-weight: 700; color: #10b981; background: rgba(16, 185, 129, 0.12); padding: 1px 5px; border-radius: 3px;">🌐 Public</span>' : '<span style="font-size: 10pt; color: var(--text-muted); background: rgba(255,255,255,0.05); padding: 1px 5px; border-radius: 3px;">🔒 Private</span>'}
               ${c.isCreator ? '<span style="font-size: 10pt; font-weight: 800; color: var(--hero-gold); background: rgba(234, 179, 8, 0.15); padding: 1px 5px; border-radius: 3px;">👑 GM (Owner)</span>' : (c.isJoinedOrCreated ? '<span style="font-size: 10pt; font-weight: 700; color: var(--hero-blue); background: rgba(59, 130, 246, 0.15); padding: 1px 5px; border-radius: 3px;">Player</span>' : '')}
               ${c.creatorName ? `<span style="font-size: 10pt; color: var(--text-muted);">GM: <strong>${c.creatorName}</strong></span>` : ''}
-              ${isInParty ? `<span style="font-size: 10pt; color: var(--text-muted);">Attached: ${attachedStr}</span>` : ''}
+              ${hasCharInParty ? `<span style="font-size: 10pt; color: var(--text-muted);">Attached: ${attachedStr}</span>` : ''}
             </div>
             <div style="display: flex; align-items: center; gap: 0.45rem; flex-wrap: wrap;">
               ${isOnHiatus ? '<span style="color: var(--hero-gold); font-weight: 800; font-size: 10pt;">⏸️ On Hiatus</span>' : (isLive ? '<span style="color: #10b981; font-weight: 800; font-size: 10pt;">🟢 Session Running</span>' : '<span style="color: var(--text-muted); font-size: 10pt;">⚪ No Session Running</span>')}
-              ${isCur ? '<span style="font-size: 10pt; font-weight: 800; color: var(--hero-green);">[In Session]</span>' : (isLive && isInParty ? `
+              ${isCur ? '<span style="font-size: 10pt; font-weight: 800; color: var(--hero-green);">[In Session]</span>' : (isLive && hasCharInParty ? `
                 <button type="button" class="btn btn-primary btn-join-game-session" data-campid="${c.campaignId}" style="font-size: 10pt; padding: 2px 8px; font-weight: 800; background: var(--hero-green); border-color: var(--hero-green); cursor: pointer;">🎮 Join Session</button>
               ` : '')}
-              ${!isInParty ? (isCreator ? `
-                <button type="button" class="btn btn-outline btn-gm-join-party" data-campid="${c.campaignId}" style="font-size: 10pt; padding: 2px 8px; font-weight: 800; color: var(--hero-blue); border-color: var(--hero-blue); cursor: pointer;">🔗 Join Party</button>
-              ` : `
-                <button type="button" class="btn btn-primary btn-browser-apply-campaign" data-campid="${c.campaignId}" data-campname="${(c.campaignName || '').replace(/"/g, '&quot;')}" style="font-size: 10pt; padding: 2px 8px; font-weight: 800; background: var(--hero-blue); border-color: var(--hero-blue); cursor: pointer;">📝 Apply to Join Party</button>
-              `) : ''}
+              ${!isMember ? `
+                <button type="button" class="btn btn-primary btn-browser-apply-campaign" data-campid="${c.campaignId}" data-campname="${(c.campaignName || '').replace(/"/g, '&quot;')}" style="font-size: 10pt; padding: 2px 8px; font-weight: 800; background: var(--hero-blue); border-color: var(--hero-blue); cursor: pointer;">📝 Apply to Join</button>
+              ` : (!hasCharInParty ? `
+                <button type="button" class="btn btn-outline btn-browser-attach-char" data-campid="${c.campaignId}" data-campname="${(c.campaignName || '').replace(/"/g, '&quot;')}" style="font-size: 10pt; padding: 2px 8px; font-weight: 800; color: var(--hero-blue); border-color: var(--hero-blue); cursor: pointer;">📎 Attach Character</button>
+              ` : '')}
 
               <!-- Dropdown 1: Campaign Actions -->
               <div class="menu-dropdown-container campaign-actions-dropdown" style="position: relative; display: inline-block;">
                 <button type="button" class="btn btn-outline campaign-actions-toggle" data-campid="${c.campaignId}" title="Campaign Actions" style="font-size: 10pt; padding: 2px 9px; font-weight: 700; color: var(--hero-blue); border-color: rgba(59, 130, 246, 0.55); background: rgba(59, 130, 246, 0.08); cursor: pointer; display: inline-flex; align-items: center; gap: 0.3rem;">
                   <span>⚡ Actions ▾</span>
                 </button>
-                <div class="menu-dropdown-panel campaign-actions-panel" style="position: absolute; top: calc(100% + 4px); right: 0; left: auto; min-width: 200px; border-radius: 6px; z-index: 2500; padding: 0.35rem 0;">
+                <div class="menu-dropdown-panel campaign-actions-panel" style="position: absolute; top: calc(100% + 4px); right: 0; left: auto; min-width: 220px; border-radius: 6px; z-index: 2500; padding: 0.35rem 0;">
                   <div class="menu-dropdown-heading" style="font-size: 10pt; font-weight: 800; text-transform: uppercase; color: var(--text-muted); padding: 0.35rem 0.85rem 0.2rem 0.85rem;">Campaign Actions</div>
-                  ${isLive && isInParty ? `
+                  ${isLive && hasCharInParty ? `
                     <button type="button" class="menu-dropdown-item btn-join-game-session" data-campid="${c.campaignId}" style="font-size: 10pt; color: var(--hero-green); font-weight: 700; cursor: pointer;">
                       <span class="menu-item-icon">🎮</span> Join Game Session
                     </button>
                   ` : ''}
-                  ${!isInParty ? (isCreator ? `
-                    <button type="button" class="menu-dropdown-item btn-gm-join-party" data-campid="${c.campaignId}" style="font-size: 10pt; color: var(--hero-blue); font-weight: 700; cursor: pointer;">
-                      <span class="menu-item-icon">🔗</span> Join Party
-                    </button>
-                  ` : `
+                  ${!isMember ? `
                     <button type="button" class="menu-dropdown-item btn-browser-apply-campaign" data-campid="${c.campaignId}" data-campname="${(c.campaignName || '').replace(/"/g, '&quot;')}" style="font-size: 10pt; color: var(--hero-blue); font-weight: 700; cursor: pointer;">
-                      <span class="menu-item-icon">📝</span> Apply to Join Party
+                      <span class="menu-item-icon">📝</span> Apply to Join
                     </button>
-                  `) : ''}
-                  ${attached.length > 0 ? `
+                  ` : ''}
+                  ${isMember && !hasCharInParty ? `
+                    <button type="button" class="menu-dropdown-item btn-browser-attach-char" data-campid="${c.campaignId}" data-campname="${(c.campaignName || '').replace(/"/g, '&quot;')}" style="font-size: 10pt; color: var(--hero-blue); font-weight: 700; cursor: pointer;">
+                      <span class="menu-item-icon">📎</span> Attach Character
+                    </button>
+                  ` : ''}
+                  ${hasCharInParty ? `
                     <button type="button" class="menu-dropdown-item btn-load-attached-char" data-campid="${c.campaignId}" style="font-size: 10pt; color: var(--hero-purple); font-weight: 700; cursor: pointer;">
                       <span class="menu-item-icon">🦸</span> Load Hero (${attachedStr})
                     </button>
@@ -4290,12 +4392,20 @@ export class CampaignTrackerManager {
                       <span class="menu-item-icon">✉️</span> Message GM (${c.creatorName})
                     </button>
                   ` : ''}
-                  ${isInParty ? `
+                  ${hasCharInParty ? `
                     <div class="menu-dropdown-separator" style="height: 1px; background-color: var(--border-color); margin: 0.35rem 0;"></div>
-                    <button type="button" class="menu-dropdown-item btn-leave-campaign-membership" data-campid="${c.campaignId}" data-campname="${(c.campaignName || '').replace(/"/g, '&quot;')}" style="font-size: 10pt; color: var(--hero-red); font-weight: 700; cursor: pointer;">
-                      <span class="menu-item-icon">🚪</span> Leave Party
+                    <button type="button" class="menu-dropdown-item btn-remove-char-from-party" data-campid="${c.campaignId}" data-charname="${(attachedCharName || '').replace(/"/g, '&quot;')}" style="font-size: 10pt; color: var(--hero-gold, #f59e0b); font-weight: 700; cursor: pointer;">
+                      <span class="menu-item-icon">👤❌</span> Remove ${this.escapeHTML(attachedCharName || 'Character')} from Party
                     </button>
                   ` : ''}
+                  ${isMember && !c.isCreator ? `
+                    <div class="menu-dropdown-separator" style="height: 1px; background-color: var(--border-color); margin: 0.35rem 0;"></div>
+                    <button type="button" class="menu-dropdown-item btn-leave-campaign-membership" data-campid="${c.campaignId}" data-campname="${(c.campaignName || '').replace(/"/g, '&quot;')}" style="font-size: 10pt; color: var(--hero-red); font-weight: 700; cursor: pointer;">
+                      <span class="menu-item-icon">🚪</span> Leave Campaign
+                    </button>
+                  ` : ''}
+                </div>
+              </div>
                 </div>
               </div>
 
@@ -4396,11 +4506,11 @@ export class CampaignTrackerManager {
       <div style="background: var(--bg-card); border: 1.5px solid rgba(56, 189, 248, 0.55); border-radius: 6px; padding: 0.75rem 0.85rem; margin-bottom: 0.75rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.65rem; box-shadow: 0 2px 10px rgba(56, 189, 248, 0.08);">
         <div style="display: flex; align-items: baseline; gap: 0.75rem; flex-wrap: wrap;">
           <span style="font-weight: 800; color: var(--text-bright); font-size: 1.05rem; white-space: nowrap;">Campaign Directory</span>
-          <span style="font-size: 10pt; color: var(--text-muted);">Apply to join a party by name or paste a GM's Campaign Link, or create and advertise your own campaign.</span>
+          <span style="font-size: 10pt; color: var(--text-muted);">Apply to join a campaign by name or paste a GM's Campaign Link, or create and advertise your own campaign.</span>
         </div>
         <div style="display: flex; align-items: center; gap: 0.45rem; flex-wrap: wrap;">
           <input type="text" class="input-join-campaign-link" placeholder="Paste campaign link or campaign name..." style="background: var(--bg-input); color: var(--text-bright); border: 1px solid var(--border-color); border-radius: 4px; padding: 0.28rem 0.6rem; font-size: 10pt; min-width: 350px;" />
-          <button type="button" class="btn btn-outline btn-trigger-join-campaign" style="font-size: 10pt; font-weight: 700; padding: 0.25rem 0.75rem; color: var(--hero-blue); border-color: var(--hero-blue);">🔗 Join Party</button>
+          <button type="button" class="btn btn-outline btn-trigger-join-campaign" style="font-size: 10pt; font-weight: 700; padding: 0.25rem 0.75rem; color: var(--hero-blue); border-color: var(--hero-blue);">🔗 Join Campaign</button>
           ${isLoggedIn ? `
             <button type="button" class="btn btn-primary btn-trigger-create-campaign" style="font-size: 10pt; font-weight: 800; padding: 0.25rem 0.75rem; cursor: pointer;">➕ Create Campaign</button>
           ` : `
@@ -4594,6 +4704,68 @@ export class CampaignTrackerManager {
         }
       });
     }
+    // GM Party Member Dropdown & Change Report (v3.99)
+    parentEl.querySelectorAll('.gm-member-toggle').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const container = e.currentTarget.closest('.gm-member-dropdown');
+        const panel = container?.querySelector('.gm-member-panel');
+        if (panel) {
+          const isShown = panel.style.display === 'block';
+          if (doc) {
+            doc.querySelectorAll('.gm-member-panel').forEach(p => { p.style.display = 'none'; });
+          }
+          panel.style.display = isShown ? 'none' : 'block';
+        }
+      });
+    });
+
+    parentEl.querySelectorAll('.btn-gm-view-change-report').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const charName = e.currentTarget.dataset.charname;
+        const memberId = e.currentTarget.dataset.memberid;
+        if (doc) doc.querySelectorAll('.gm-member-panel').forEach(p => { p.style.display = 'none'; });
+        if (typeof window !== 'undefined' && window.appController) {
+          window.appController.showCharacterChangeReport(charName, memberId);
+        }
+      });
+    });
+
+    parentEl.querySelectorAll('.btn-gm-approve-character-changes').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const charName = e.currentTarget.dataset.charname;
+        const state = this.getCampaignState();
+        if (doc) doc.querySelectorAll('.gm-member-panel').forEach(p => { p.style.display = 'none'; });
+        if (typeof window !== 'undefined' && window.appController) {
+          window.appController.approveCharacterChanges(state.campaignId, charName);
+        }
+      });
+    });
+
+    // Attach Character to Campaign button (v3.99)
+    parentEl.querySelectorAll('.btn-browser-attach-char').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const campId = e.currentTarget.dataset.campid;
+        const campName = e.currentTarget.dataset.campname || '';
+        if (campId && typeof window !== 'undefined' && window.appController) {
+          window.appController.confirmAndAttachCharacterToCampaign(campId, campName);
+        }
+      });
+    });
+
+    // Remove Character from Party button (v3.99)
+    parentEl.querySelectorAll('.btn-remove-char-from-party').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const campId = e.currentTarget.dataset.campid;
+        const charName = e.currentTarget.dataset.charname || '';
+        if (campId && typeof window !== 'undefined' && window.appController) {
+          window.appController.confirmAndRemoveCharacterFromParty(campId, charName);
+        }
+      });
+    });
+
     parentEl.querySelectorAll('.btn-remove-party-member').forEach(btn => {
       btn.addEventListener('click', (e) => {
         const id = e.currentTarget.dataset.id;

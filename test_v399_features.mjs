@@ -368,4 +368,154 @@ assert.ok(indexHtmlContent.includes('user-settings-chk-email-forward'), 'User se
 assert.ok(indexHtmlContent.includes('Privacy Guard') && indexHtmlContent.includes('strictly confidential'), 'Privacy guarantee must be displayed');
 console.log('✓ Email forwarding and bidirectional action links verified with complete privacy preservation.');
 
+// Test 12: Prevent joining non-existent campaigns & filter campaigns with no GM
+console.log('Test 12: Verify non-existent campaign rejection and no-GM browser filtering');
+const ghostMgr = new CampaignTrackerManager();
+ghostMgr.getCurrentUsername = () => 'tester_hero';
+assert.throws(() => {
+  ghostMgr.joinCampaign({ campaignId: 'NON-EXISTENT-999', campaignName: 'Ghost Realm' });
+}, /does not exist on the server/i, 'joinCampaign must throw an error when attempting to join a non-existent campaign');
+
+// Ensure campaigns without a GM are never shown in browser
+ghostMgr.registerCampaignInfo({ campaignId: 'GHOST-001', campaignName: 'Ghost Camp', creatorName: '' });
+const browsable = ghostMgr.getBrowsableCampaigns();
+assert.strictEqual(browsable.some(c => c.campaignId === 'GHOST-001'), false, 'Campaigns without GM must not be browsable');
+console.log('✓ Joining non-existent campaigns is rejected, and campaigns with no GM are filtered from the browser.');
+
+// Test 13: Verify "Join Party" is changed to "Join Campaign"
+console.log('Test 13: Verify "Join Party" text is renamed to "Join Campaign"');
+const partyJsContent = fs.readFileSync('js/party.js', 'utf8');
+assert.strictEqual(partyJsContent.includes('🔗 Join Party'), false, 'party.js must not contain "🔗 Join Party"');
+assert.strictEqual(partyJsContent.includes('Apply to join a party by name'), false, 'party.js must not contain "Apply to join a party by name"');
+assert.ok(partyJsContent.includes('🔗 Join Campaign'), 'party.js must contain "🔗 Join Campaign"');
+assert.ok(partyJsContent.includes('Apply to join a campaign by name'), 'party.js must contain "Apply to join a campaign by name"');
+console.log('✓ "Join Party" successfully renamed to "Join Campaign".');
+
+// Test 14: Actions dropdown modifications (Attach Character, Remove from Party, Leave Campaign, Apply to Join)
+console.log('Test 14: Verify Actions dropdown commands');
+const actionsMgr = new CampaignTrackerManager();
+actionsMgr.getCurrentUsername = () => 'speedster_guy';
+
+// Create a campaign owned by captainload
+const testCamp = {
+  campaignId: 'ACT-100',
+  campaignName: 'Action Squad',
+  creatorName: 'captainload',
+  isCreator: false,
+  isPublic: true,
+  powerLevel: 10
+};
+actionsMgr.registerCampaignInfo(testCamp);
+actionsMgr.saveToCampaignHistory(testCamp);
+
+// Case A: User is not yet a member
+let browserHTML = actionsMgr.generateCampaignBrowserHTML();
+let act100Card = browserHTML.split('<div class="campaign-browser-card"').find(chunk => chunk.includes('ACT-100')) || '';
+assert.ok(act100Card.includes('btn-browser-apply-campaign'), 'Non-member must see Apply to Join');
+assert.ok(act100Card.includes('Apply to Join'), 'Label must say Apply to Join');
+assert.strictEqual(act100Card.includes('btn-browser-attach-char'), false, 'Non-member must NOT see Attach Character');
+
+// Case B: User becomes member without character in party
+actionsMgr.saveToCampaignHistory({
+  ...testCamp,
+  isJoinedOrCreated: true
+});
+browserHTML = actionsMgr.generateCampaignBrowserHTML();
+act100Card = browserHTML.split('<div class="campaign-browser-card"').find(chunk => chunk.includes('ACT-100')) || '';
+assert.ok(act100Card.includes('btn-browser-attach-char'), 'Campaign member without character must see Attach Character');
+assert.ok(act100Card.includes('Attach Character'), 'Label must say Attach Character');
+assert.ok(act100Card.includes('btn-leave-campaign-membership'), 'Member must see Leave Campaign');
+
+// Case C: Character is in party
+const mockCharInParty = {
+  id: 'speed_char_1',
+  name: 'Lightning',
+  campaignId: 'ACT-100',
+  campaign: 'Action Squad',
+  powerLevel: 10
+};
+// Add to stored characters
+globalThis.storageManager = {
+  getCharacters: () => [mockCharInParty]
+};
+browserHTML = actionsMgr.generateCampaignBrowserHTML();
+act100Card = browserHTML.split('<div class="campaign-browser-card"').find(chunk => chunk.includes('ACT-100')) || '';
+assert.ok(act100Card.includes('btn-remove-char-from-party'), 'Member with character in party must see Remove Character from Party');
+assert.ok(act100Card.includes('Remove Lightning from Party'), 'Label must name the character to remove');
+assert.ok(act100Card.includes('btn-leave-campaign-membership'), 'Member must see Leave Campaign');
+console.log('✓ Actions menu correctly surfaces Attach character, Remove from party, Leave campaign, and Apply to join.');
+
+// Test 15: Character change detection between sessions, "!" badge, and GM Report / Approval
+console.log('Test 15: Verify character change detection, "!" badge, and GM Report / Approval');
+const sessionMgr = new CampaignTrackerManager();
+sessionMgr.getCurrentUsername = () => 'captainload';
+sessionMgr.saveCampaignState({
+  isConnected: true,
+  campaignId: 'ACT-100',
+  campaignName: 'Action Squad',
+  isHost: true,
+  isCreator: true
+});
+
+// Approved copy from end of last session:
+const baselineChar = {
+  name: 'Lightning',
+  playerName: 'speedster_guy',
+  powerLevel: 10,
+  powerPoints: { spent: 150, total: 150 },
+  abilities: { agility: 5, strength: 2, stamina: 3 },
+  powers: [{ name: 'Super-Speed', rank: 10 }]
+};
+sessionMgr.saveCampaignSavedCharacter('ACT-100', baselineChar, 'speedster_guy');
+
+// Player joins session with updated character:
+const updatedChar = {
+  name: 'Lightning',
+  playerName: 'speedster_guy',
+  powerLevel: 10,
+  powerPoints: { spent: 152, total: 152 },
+  abilities: { agility: 6, strength: 2, stamina: 3 },
+  powers: [{ name: 'Super-Speed', rank: 11 }]
+};
+
+sessionMgr.savePartyMembers([{
+  id: 'party_mem_1',
+  characterName: 'Lightning',
+  playerName: 'speedster_guy',
+  heroPoints: 1,
+  bruises: 0,
+  conditions: [],
+  characterData: baselineChar,
+  lastUpdated: new Date().toLocaleTimeString()
+}]);
+
+// Compare and record diff alert
+const diffs = sessionMgr.compareCharacterCopies(baselineChar, updatedChar);
+assert.ok(diffs.length > 0, 'Differences must be detected');
+assert.ok(diffs.some(d => d.includes('Agility')), 'Agility change must be noted');
+assert.ok(diffs.some(d => d.includes('Super-Speed')), 'Super-Speed rank change must be noted');
+
+sessionMgr.recordMemberDiffAlert('ACT-100', 'Lightning', diffs, updatedChar);
+
+// Verify party tracker HTML renders "!" badge and GM Report dropdown
+const trackerHTML = sessionMgr.generateSessionTrackerHTML();
+assert.ok(trackerHTML.includes('party-char-alert-badge'), 'Party member card must show alert badge');
+assert.ok(trackerHTML.includes('!</span>'), 'Alert badge must contain "!" icon');
+assert.ok(trackerHTML.includes('btn-gm-view-change-report'), 'GM dropdown must contain Report button');
+assert.ok(trackerHTML.includes('Report (Changes since last session)'), 'Report button label must be present');
+assert.ok(trackerHTML.includes('btn-gm-approve-character-changes'), 'GM dropdown must contain Approve Changes button');
+
+// GM approves changes
+const approved = sessionMgr.approveCharacterChanges('ACT-100', 'Lightning');
+assert.strictEqual(approved, true, 'Changes must be approved');
+
+// Re-render tracker HTML: alert badge must now be gone
+const trackerAfterApprove = sessionMgr.generateSessionTrackerHTML();
+assert.strictEqual(trackerAfterApprove.includes('party-char-alert-badge'), false, 'Alert badge must be cleared after approval');
+
+// Verify saved campaign snapshot now reflects updated character
+const savedAfter = sessionMgr.getCampaignSavedCharacter('ACT-100', 'Lightning', 'Lightning');
+assert.strictEqual(savedAfter.characterData.abilities.agility, 6, 'Saved snapshot must reflect approved changes');
+console.log('✓ Character change detection, "!" icon, GM change report, and approval flow verified successfully.');
+
 console.log('--- ALL v3.99 TESTS PASSED SUCCESSFULLY! ---');

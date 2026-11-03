@@ -2217,7 +2217,7 @@ window.partyManager = partyManager;
   }
 
   async checkForUpdates({ isManual = false } = {}) {
-    const CURRENT_VERSION = '3.99';
+    const CURRENT_VERSION = '4.00';
     const versionEl = document.getElementById('header-version-tag');
     const updateBtn = document.getElementById('btn-header-update-alert');
     if (typeof window === 'undefined' || !window.location || !window.location.href || window.location.href === 'about:blank') return;
@@ -4830,72 +4830,58 @@ window.partyManager = partyManager;
       const fromFormatted = formatEntity(fromName);
       const toFormatted = toUsers.map(u => formatEntity(u)).join(', ');
 
-      // Campaign dropdown options
-      const currentMsgVal = cleanMCampId && cleanMCampId !== 'DIRECT' ? `CAMP:${cleanMCampId}` : '';
-      const hasInScope = scopeChoices.some(sc => sc.value === currentMsgVal);
-      let campaignOptions = scopeChoices.map(sc => `
-        <option value="${sc.value}" ${sc.value === currentMsgVal ? 'selected' : ''}>${sc.label}</option>
-      `).join('');
-      if (currentMsgVal && !hasInScope) {
-        campaignOptions = `<option value="${currentMsgVal}" selected>${isUserGMForCampaign ? '👑 ' : ''}Campaign: ${this.escapeHTML(m.campaignName || cleanMCampId)} (#${cleanMCampId})</option>` + campaignOptions;
-      }
-
-      // Collapsible body text if longer than a single line
       const rawText = String(m.text || '');
-      const isLong = rawText.includes('\n') || rawText.length > 70;
+      this._expandedMsgIds = this._expandedMsgIds || new Set();
+      const isExpanded = this._expandedMsgIds.has(m.id);
 
       return `
         <div class="campaign-message-card ${isUnread ? 'msg-unread' : 'msg-read'}" data-msgid="${m.id}" data-replyuser="${replyTarget}" data-campid="${cleanMCampId !== 'DIRECT' ? cleanMCampId : ''}">
-          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.4rem; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 0.35rem;">
+          <!-- First row: Always visible, starts with expand/collapse arrow -->
+          <div class="msg-card-header-row" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.4rem; cursor: pointer;">
             <div style="display: flex; align-items: center; gap: 0.45rem; flex-wrap: wrap;">
+              <button type="button" class="btn-msg-expand-arrow" data-msgid="${m.id}" title="${isExpanded ? 'Collapse message' : 'Expand message'}" style="background: none; border: none; color: var(--hero-cyan); font-size: 11pt; font-weight: 800; cursor: pointer; padding: 0 4px; line-height: 1; user-select: none;">${isExpanded ? '▼' : '▶'}</button>
               ${isUnread ? '<span style="background: var(--hero-blue); color: #fff; font-size: 10pt; font-weight: 800; padding: 1px 6px; border-radius: 4px;">NEW</span>' : ''}
-              <div style="display: inline-flex; align-items: center; gap: 0.3rem;">
-                <label style="font-size: 10pt; font-weight: 700; color: var(--text-muted);">Campaign:</label>
-                <select class="msg-card-campaign-select" data-msgid="${m.id}" title="Select campaign this message refers to" style="font-size: 10pt; font-weight: 700; padding: 1px 6px; border-radius: 4px; background: var(--bg-card, #1e293b); color: ${isUserGMForCampaign ? 'var(--hero-gold)' : 'var(--hero-cyan)'}; border: 1px solid rgba(255,255,255,0.2); cursor: pointer;">
-                  ${campaignOptions}
-                </select>
-              </div>
+              <span class="msg-campaign-badge" style="font-size: 10pt; font-weight: 700; color: ${cleanMCampId && cleanMCampId !== 'DIRECT' ? (isUserGMForCampaign ? 'var(--hero-gold)' : 'var(--hero-cyan)') : 'var(--text-muted)'}; background: rgba(255,255,255,0.06); padding: 1px 7px; border-radius: 4px;">
+                ${cleanMCampId && cleanMCampId !== 'DIRECT' ? `${isUserGMForCampaign ? '👑 ' : ''}Campaign: ${this.escapeHTML(m.campaignName || cleanMCampId)}` : 'Direct Message'}
+              </span>
               <span class="msg-from-badge" style="font-size: 10pt; font-weight: 700; color: var(--hero-blue); background: rgba(59, 130, 246, 0.14); padding: 1px 7px; border-radius: 4px;">From: ${fromFormatted}</span>
               <span class="msg-to-badge" style="font-size: 10pt; font-weight: 700; color: #a855f7; background: rgba(168, 85, 247, 0.14); padding: 1px 7px; border-radius: 4px;">To: ${toFormatted}</span>
             </div>
             <span style="font-size: 10pt; color: var(--text-muted);">${m.displayTime || ''}</span>
           </div>
-          <div class="msg-body-wrapper" style="font-size: 10pt; color: var(--text-bright); line-height: 1.4; margin: 0.3rem 0;">
-            ${isLong ? `
-              <div class="msg-body-content msg-body-collapsed" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; cursor: pointer;" title="Click to expand">
-                ${this.escapeHTML(rawText)}
-              </div>
-              <button type="button" class="btn btn-outline btn-toggle-msg-expand" style="font-size: 10pt; padding: 1px 7px; margin-top: 4px; color: var(--hero-cyan); border-color: rgba(56, 189, 248, 0.35); font-weight: 600;">▼ Expand</button>
-            ` : `
+
+          <!-- Collapsible Section: The whole message except the first row -->
+          <div class="msg-card-collapsible-section" style="${isExpanded ? 'display: block;' : 'display: none;'}; border-top: 1px solid rgba(255,255,255,0.06); margin-top: 0.35rem; padding-top: 0.35rem;">
+            <div class="msg-body-wrapper" style="font-size: 10pt; color: var(--text-bright); line-height: 1.4; margin: 0.3rem 0;">
               <div class="msg-body-content" style="white-space: pre-wrap; word-break: break-word;">
                 ${this.escapeHTML(rawText)}
               </div>
-            `}
-          </div>
-          <div style="display: flex; justify-content: flex-end; align-items: center; gap: 0.45rem; flex-wrap: wrap;">
-            ${replyTarget ? `
-              <button type="button" class="btn btn-outline btn-msg-reply-user" data-replyuser="${replyTarget}" data-campid="${cleanMCampId !== 'DIRECT' ? cleanMCampId : ''}" title="${activeFolder === 'sent' ? `Message ${replyTarget}` : `Reply to ${replyTarget} (tagged with campaign)`}" style="font-size: 10pt; padding: 2px 8px; color: var(--hero-gold); border-color: var(--hero-gold); font-weight: 700;">${activeFolder === 'sent' ? `✉️ Message ${replyTarget}` : `↩️ Reply to ${replyTarget}`}</button>
-            ` : ''}
-            ${m.type === 'CAMPAIGN_INVITATION' && m.invitationStatus === 'pending' ? `
-              <button type="button" class="btn btn-primary btn-msg-accept-invite" data-campid="${m.campaignId}" data-msgid="${m.id}" style="font-size: 10pt; padding: 2px 9px; font-weight: 800; background: var(--hero-green); border-color: var(--hero-green);">✅ Accept Invitation</button>
-              <button type="button" class="btn btn-outline btn-msg-decline-invite" data-campid="${m.campaignId}" data-msgid="${m.id}" style="font-size: 10pt; padding: 2px 9px; font-weight: 800; color: var(--hero-red); border-color: var(--hero-red);">❌ Decline Invitation</button>
-            ` : (m.type === 'CAMPAIGN_INVITATION' && m.invitationStatus ? `
-              <span style="font-size: 10pt; font-weight: 800; color: ${m.invitationStatus === 'accepted' ? 'var(--hero-green)' : 'var(--hero-red)'};">[Invitation ${m.invitationStatus.toUpperCase()}]</span>
-            ` : '')}
-            ${isPendingOffer ? `
-              <button type="button" class="btn btn-primary btn-msg-accept-transfer" data-campid="${m.campaignId}" data-msgid="${m.id}" style="font-size: 10pt; padding: 2px 9px; font-weight: 800; background: var(--hero-green); border-color: var(--hero-green);">✅ Accept Ownership</button>
-              <button type="button" class="btn btn-outline btn-msg-refuse-transfer" data-campid="${m.campaignId}" data-msgid="${m.id}" style="font-size: 10pt; padding: 2px 9px; font-weight: 800; color: var(--hero-red); border-color: var(--hero-red);">❌ Refuse Ownership</button>
-            ` : (m.type === 'OWNERSHIP_TRANSFER_OFFER' && m.offerStatus ? `
-              <span style="font-size: 10pt; font-weight: 800; color: var(--text-muted);">[Offer ${m.offerStatus.toUpperCase()}]</span>
-            ` : '')}
-            ${m.type === 'JOIN_REQUEST' ? `
-              <button type="button" class="btn btn-outline btn-msg-open-requests" data-campid="${m.campaignId}" data-msgid="${m.id}" style="font-size: 10pt; padding: 2px 8px; color: var(--hero-blue); border-color: var(--hero-blue); font-weight: 700;">🛡️ Review Join Requests</button>
-            ` : ''}
-            ${activeFolder !== 'sent' ? `
-              <button type="button" class="btn btn-outline btn-msg-mark-read" data-msgid="${m.id}" style="font-size: 10pt; padding: 2px 8px; ${isUnread ? 'color: var(--hero-blue); border-color: var(--hero-blue); font-weight: 700;' : 'opacity: 0.65; cursor: default;'}" ${isUnread ? '' : 'disabled title="Already marked as read"'}>
-                ${isUnread ? '✓ Mark Read' : '✓ Read'}
-              </button>
-            ` : ''}
+            </div>
+            <div class="msg-actions-bar" style="display: flex; justify-content: flex-end; align-items: center; gap: 0.45rem; flex-wrap: wrap; margin-top: 0.4rem;">
+              ${replyTarget ? `
+                <button type="button" class="btn btn-outline btn-msg-reply-user" data-replyuser="${replyTarget}" data-campid="${cleanMCampId !== 'DIRECT' ? cleanMCampId : ''}" title="${activeFolder === 'sent' ? `Message ${replyTarget}` : `Reply to ${replyTarget} (tagged with campaign)`}" style="font-size: 10pt; padding: 2px 8px; color: var(--hero-gold); border-color: var(--hero-gold); font-weight: 700;">${activeFolder === 'sent' ? `✉️ Message ${replyTarget}` : `↩️ Reply to ${replyTarget}`}</button>
+              ` : ''}
+              ${m.type === 'CAMPAIGN_INVITATION' && m.invitationStatus === 'pending' ? `
+                <button type="button" class="btn btn-primary btn-msg-accept-invite" data-campid="${m.campaignId}" data-msgid="${m.id}" style="font-size: 10pt; padding: 2px 9px; font-weight: 800; background: var(--hero-green); border-color: var(--hero-green);">✅ Accept Invitation</button>
+                <button type="button" class="btn btn-outline btn-msg-decline-invite" data-campid="${m.campaignId}" data-msgid="${m.id}" style="font-size: 10pt; padding: 2px 9px; font-weight: 800; color: var(--hero-red); border-color: var(--hero-red);">❌ Decline Invitation</button>
+              ` : (m.type === 'CAMPAIGN_INVITATION' && m.invitationStatus ? `
+                <span style="font-size: 10pt; font-weight: 800; color: ${m.invitationStatus === 'accepted' ? 'var(--hero-green)' : 'var(--hero-red)'};">[Invitation ${m.invitationStatus.toUpperCase()}]</span>
+              ` : '')}
+              ${isPendingOffer ? `
+                <button type="button" class="btn btn-primary btn-msg-accept-transfer" data-campid="${m.campaignId}" data-msgid="${m.id}" style="font-size: 10pt; padding: 2px 9px; font-weight: 800; background: var(--hero-green); border-color: var(--hero-green);">✅ Accept Ownership</button>
+                <button type="button" class="btn btn-outline btn-msg-refuse-transfer" data-campid="${m.campaignId}" data-msgid="${m.id}" style="font-size: 10pt; padding: 2px 9px; font-weight: 800; color: var(--hero-red); border-color: var(--hero-red);">❌ Refuse Ownership</button>
+              ` : (m.type === 'OWNERSHIP_TRANSFER_OFFER' && m.offerStatus ? `
+                <span style="font-size: 10pt; font-weight: 800; color: var(--text-muted);">[Offer ${m.offerStatus.toUpperCase()}]</span>
+              ` : '')}
+              ${m.type === 'JOIN_REQUEST' ? `
+                <button type="button" class="btn btn-outline btn-msg-open-requests" data-campid="${m.campaignId}" data-msgid="${m.id}" style="font-size: 10pt; padding: 2px 8px; color: var(--hero-blue); border-color: var(--hero-blue); font-weight: 700;">🛡️ Review Join Requests</button>
+              ` : ''}
+              ${activeFolder !== 'sent' ? `
+                <button type="button" class="btn btn-outline btn-msg-mark-read" data-msgid="${m.id}" style="font-size: 10pt; padding: 2px 8px; ${isUnread ? 'color: var(--hero-blue); border-color: var(--hero-blue); font-weight: 700;' : 'opacity: 0.65; cursor: default;'}" ${isUnread ? '' : 'disabled title="Already marked as read"'}>
+                  ${isUnread ? '✓ Mark Read' : '✓ Read'}
+                </button>
+              ` : ''}
+            </div>
           </div>
         </div>
       `;
@@ -4946,57 +4932,42 @@ window.partyManager = partyManager;
 
     updateSelectionUI();
 
-    // Campaign Dropdown on each message card (Requirement 8)
-    container.querySelectorAll('.msg-card-campaign-select').forEach(sel => {
-      sel.addEventListener('click', (e) => e.stopPropagation());
-      sel.addEventListener('change', (e) => {
-        e.stopPropagation();
-        const msgId = e.currentTarget.dataset.msgid;
-        let val = e.currentTarget.value;
-        if (val.startsWith('CAMP:')) val = val.slice(5);
-        campaignManager.updateMessageCampaign(msgId, val);
-        this.renderCampaignMessagesModalIfOpen();
-      });
-    });
-
-    // Message Body Collapsing & Expanding (Requirement 6)
-    container.querySelectorAll('.btn-toggle-msg-expand').forEach(btn => {
+    // Expand / Collapse modal arrows at start of first row
+    container.querySelectorAll('.btn-msg-expand-arrow').forEach(btn => {
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
-        const wrapper = e.currentTarget.closest('.msg-body-wrapper');
-        const content = wrapper?.querySelector('.msg-body-content');
-        if (!content) return;
-        const isCollapsed = content.classList.contains('msg-body-collapsed');
-        if (isCollapsed) {
-          content.classList.remove('msg-body-collapsed');
-          content.style.whiteSpace = 'pre-wrap';
-          content.style.overflow = 'visible';
-          content.style.textOverflow = 'clip';
-          e.currentTarget.textContent = '▲ Collapse';
+        const msgId = e.currentTarget.dataset.msgid;
+        const card = e.currentTarget.closest('.campaign-message-card');
+        const section = card?.querySelector('.msg-card-collapsible-section');
+        if (!section) return;
+        const isCurrentlyHidden = section.style.display === 'none';
+        if (isCurrentlyHidden) {
+          section.style.display = 'block';
+          e.currentTarget.textContent = '▼';
+          e.currentTarget.title = 'Collapse message';
+          if (msgId) {
+            this._expandedMsgIds = this._expandedMsgIds || new Set();
+            this._expandedMsgIds.add(msgId);
+          }
         } else {
-          content.classList.add('msg-body-collapsed');
-          content.style.whiteSpace = 'nowrap';
-          content.style.overflow = 'hidden';
-          content.style.textOverflow = 'ellipsis';
-          e.currentTarget.textContent = '▼ Expand';
+          section.style.display = 'none';
+          e.currentTarget.textContent = '▶';
+          e.currentTarget.title = 'Expand message';
+          if (msgId && this._expandedMsgIds) {
+            this._expandedMsgIds.delete(msgId);
+          }
         }
       });
     });
 
-    container.querySelectorAll('.msg-body-content.msg-body-collapsed').forEach(content => {
-      content.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const wrapper = content.closest('.msg-body-wrapper');
-        const btn = wrapper?.querySelector('.btn-toggle-msg-expand');
-        content.classList.remove('msg-body-collapsed');
-        content.style.whiteSpace = 'pre-wrap';
-        content.style.overflow = 'visible';
-        content.style.textOverflow = 'clip';
-        if (btn) btn.textContent = '▲ Collapse';
+    container.querySelectorAll('.msg-card-header-row').forEach(row => {
+      row.addEventListener('click', (e) => {
+        if (e.target.closest('button') || e.target.closest('a') || e.target.closest('select')) return;
+        const arrow = row.querySelector('.btn-msg-expand-arrow');
+        arrow?.click();
       });
     });
 
-    // Campaign Invitation Accept & Decline (Requirements 2, 4)
     container.querySelectorAll('.btn-msg-accept-invite').forEach(btn => {
       btn.addEventListener('click', async (e) => {
         e.stopPropagation();

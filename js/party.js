@@ -4423,8 +4423,6 @@ export class CampaignTrackerManager {
                   ` : ''}
                 </div>
               </div>
-                </div>
-              </div>
 
               <!-- Dropdown 2: GM Tools -->
               ${c.isCreator ? `

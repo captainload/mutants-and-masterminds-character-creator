@@ -1,8 +1,8 @@
 {
-  "version": "3.99",
-  "updatedAt": "2026-11-03T03:17:32.291Z",
-  "releaseNotes": "Prompt to attach currently loaded character when applying to join campaigns with direction to load character first if declined, and provide individual and bulk tools to delete orphan campaigns.",
+  "version": "4.00",
+  "updatedAt": "2026-11-03T11:35:00.000Z",
+  "releaseNotes": "Inbox and Sent folders dropdown, full message expand/collapse arrows, GM Tools layout fix, and user notes sizing.",
   "updated": "2026-11-03",
   "releaseDate": "2026-11-03",
-  "description": "v3.99: Supabase Database Administration Console and centralized campaign data management"
+  "description": "v4.00: Folders (Inbox/Sent), Expand/Collapse message arrows, GM Tools placement, and user notes sizing"
 }

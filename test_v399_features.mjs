@@ -348,12 +348,13 @@ const appJsContent = fs.readFileSync('js/app.js', 'utf8');
 // Verify From and To badges are rendered
 assert.ok(appJsContent.includes('msg-from-badge'), 'app.js must render msg-from-badge');
 assert.ok(appJsContent.includes('msg-to-badge'), 'app.js must render msg-to-badge');
-assert.ok(appJsContent.includes('msg-card-campaign-select'), 'app.js must render msg-card-campaign-select dropdown');
-assert.ok(appJsContent.includes('btn-toggle-msg-expand'), 'app.js must render btn-toggle-msg-expand');
+assert.ok(appJsContent.includes('msg-campaign-badge'), 'app.js must render msg-campaign-badge');
+assert.ok(appJsContent.includes('btn-msg-expand-arrow'), 'app.js must render btn-msg-expand-arrow modal arrows');
+assert.ok(appJsContent.includes('msg-card-collapsible-section'), 'app.js must wrap message content in msg-card-collapsible-section');
 assert.ok(appJsContent.includes('btn-msg-accept-invite'), 'app.js must render btn-msg-accept-invite');
 assert.ok(appJsContent.includes('btn-msg-decline-invite'), 'app.js must render btn-msg-decline-invite');
 assert.ok(appJsContent.includes('btn-address-book-invite-user'), 'app.js must render btn-address-book-invite-user in address book');
-console.log('✓ AppController messaging templates correctly include From/To badges, Campaign dropdown, and Expand toggles.');
+console.log('✓ AppController messaging templates correctly include From/To badges, Campaign badge, and modal arrow expand toggles.');
 
 // Test 11: Verify Email Forwarding Settings and Privacy (Requirement 3)
 console.log('Test 11: Verify Email Forwarding setting and privacy isolation');
@@ -578,5 +579,31 @@ assert.ok(stylesCssContent.includes('max-height: 4.2em'), '.address-book-user-no
 
 assert.ok(appJsForLabels.includes('autoResizeUserNotes'), 'app.js must include autoResizeUserNotes dynamic handler');
 console.log('✓ User Notes row sizing (1 row default, expands up to 3 rows before scrolling) verified.');
+
+// Test 19: Verify v4.00 Versioning, GM Tools layout, and expand/collapse modal arrows
+console.log('Test 19: Verify v4.00 Versioning, GM Tools layout, and expand/collapse modal arrows');
+const vJson = JSON.parse(fs.readFileSync('version.json', 'utf8'));
+assert.strictEqual(vJson.version, '4.00', 'version.json must be v4.00');
+
+const idxHtml = fs.readFileSync('index.html', 'utf8');
+assert.ok(idxHtml.includes('v4.00'), 'index.html must display v4.00');
+assert.ok(idxHtml.includes('js/app.js?v=4.00'), 'index.html must include app.js?v=4.00 cache-buster');
+
+const partyJsForGMTools = fs.readFileSync('js/party.js', 'utf8');
+// Check that Campaign Actions dropdown does not prematurely close before GM Tools dropdown
+const gmToolsPos = partyJsForGMTools.indexOf('campaign-gm-tools-dropdown');
+assert.ok(gmToolsPos > 0, 'party.js must include campaign-gm-tools-dropdown');
+const endOfActions = partyJsForGMTools.indexOf('btn-leave-campaign-membership');
+const middleSnippet = partyJsForGMTools.slice(endOfActions, gmToolsPos);
+// Count closing </div> tags between btn-leave-campaign-membership and campaign-gm-tools-dropdown
+const closeDivMatches = middleSnippet.match(/<\/div>/g) || [];
+// Exactly 2 </div> tags: campaign-actions-panel and campaign-actions-dropdown container
+assert.strictEqual(closeDivMatches.length, 2, 'Must close exactly the actions panel and actions dropdown container before GM Tools dropdown');
+
+const appJsFull = fs.readFileSync('js/app.js', 'utf8');
+assert.ok(appJsFull.includes('btn-msg-expand-arrow'), 'app.js must render expand/collapse modal arrows');
+assert.ok(appJsFull.includes('msg-card-collapsible-section'), 'app.js must wrap full message content except first row');
+assert.strictEqual(appJsFull.includes('msg-card-campaign-select'), false, 'app.js must NOT render recipient scope dropdown in inbox messages');
+console.log('✓ v4.00 Versioning, GM Tools layout, and Expand/Collapse modal arrows verified successfully.');
 
 console.log('--- ALL v3.99 TESTS PASSED SUCCESSFULLY! ---');

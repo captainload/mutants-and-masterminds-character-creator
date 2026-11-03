@@ -1,6 +1,6 @@
 {
-  "version": "3.95",
-  "updatedAt": "2026-11-03T00:50:00.000Z",
-  "releaseNotes": "Alphabetize Ranged Damage in catalog, calculate power range brackets accurately according to M&M 3E rules, prevent ReferenceError in campaign browser cards, and ensure campaigns are visible in campaign browser.",
+  "version": "3.96",
+  "updatedAt": "2026-11-03T02:05:04.570Z",
+  "releaseNotes": "Fix UI controls unresponsiveness by normalizing character skills format from legacy/object data and guarding migration methods and header controls.",
   "updated": "2026-11-03"
 }

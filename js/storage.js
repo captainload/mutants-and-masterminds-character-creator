@@ -3,10 +3,63 @@
  * Supports auto-save, multi-character profiles, JSON export/import.
  */
 
-import { ARCHETYPES } from './archetypes.js?v=3.95';
+import { ARCHETYPES } from './archetypes.js?v=3.96';
 
 const STORAGE_KEY = 'mm3e_characters_collection';
 const CURRENT_CHAR_KEY = 'mm3e_active_character_id';
+
+export function normalizeCharacter(char) {
+  if (!char || typeof char !== 'object') return char;
+
+  if (!char.abilities || typeof char.abilities !== 'object') {
+    char.abilities = { str: 0, sta: 0, agi: 0, dex: 0, fgt: 0, int: 0, awe: 0, pre: 0 };
+  }
+  if (!char.defenses || typeof char.defenses !== 'object') {
+    char.defenses = { dodge: 0, parry: 0, fortitude: 0, toughness: 0, will: 0 };
+  }
+
+  // Normalize skills: convert legacy object { skillId: ranks } or { skillId: { ranks } } to array
+  if (char.skills && typeof char.skills === 'object' && !Array.isArray(char.skills)) {
+    const converted = [];
+    for (const [key, val] of Object.entries(char.skills)) {
+      const ranks = typeof val === 'object' && val !== null ? (parseInt(val.ranks, 10) || 0) : (parseInt(val, 10) || 0);
+      const specialty = typeof val === 'object' && val !== null ? (val.specialty || '') : '';
+      converted.push({
+        id: key,
+        instanceId: `sk_${key}_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`,
+        name: key,
+        ranks,
+        specialty
+      });
+    }
+    char.skills = converted;
+  } else if (!Array.isArray(char.skills)) {
+    char.skills = [];
+  }
+
+  if (!Array.isArray(char.advantages)) {
+    char.advantages = [];
+  }
+  if (!Array.isArray(char.powers)) {
+    char.powers = [];
+  }
+  if (!Array.isArray(char.gear)) {
+    char.gear = [];
+  }
+  if (!Array.isArray(char.alts)) {
+    char.alts = [];
+  } else {
+    char.alts.forEach(alt => normalizeCharacter(alt));
+  }
+  if (!Array.isArray(char.historyLog)) {
+    char.historyLog = [];
+  }
+  if (!Array.isArray(char.complications)) {
+    char.complications = [];
+  }
+
+  return char;
+}
 
 export class StorageManager {
   constructor() {
@@ -69,7 +122,8 @@ export class StorageManager {
     try {
       if (typeof localStorage === 'undefined') return [];
       const raw = localStorage.getItem(STORAGE_KEY);
-      return raw ? JSON.parse(raw) : [];
+      const list = raw ? JSON.parse(raw) : [];
+      return Array.isArray(list) ? list.map(c => normalizeCharacter(c)) : [];
     } catch (e) {
       console.error('Error loading characters from localStorage', e);
       return [];
@@ -87,7 +141,8 @@ export class StorageManager {
   }
 
   getActiveCharacter() {
-    return this.characters.find(c => c.id === this.activeId) || this.characters[0];
+    const char = this.characters.find(c => c.id === this.activeId) || this.characters[0];
+    return normalizeCharacter(char);
   }
 
   getCharacters() {
@@ -102,11 +157,12 @@ export class StorageManager {
   }
 
   saveCharacter(updatedChar) {
-    const idx = this.characters.findIndex(c => c.id === updatedChar.id);
+    const norm = normalizeCharacter(JSON.parse(JSON.stringify(updatedChar)));
+    const idx = this.characters.findIndex(c => c.id === norm.id);
     if (idx !== -1) {
-      this.characters[idx] = JSON.parse(JSON.stringify(updatedChar));
+      this.characters[idx] = norm;
     } else {
-      this.characters.push(JSON.parse(JSON.stringify(updatedChar)));
+      this.characters.push(norm);
     }
     this.saveAll();
   }

@@ -39,19 +39,19 @@ import {
   HQ_SIZES_TABLE,
   HQ_FEATURES_LIST,
   tablesManager
-} from './tables.js?v=3.95';
+} from './tables.js?v=3.96';
 
-import { POWER_PROFILES_LIBRARY } from './power_profiles.js?v=3.95';
-import { ARCHETYPES } from './archetypes.js?v=3.95';
-import { archetypeManager } from './archetype_window.js?v=3.95';
-import { campaignManager, partyManager, formatCharacterSheetHTML } from './party.js?v=3.95';
-import { supabaseService } from './supabase_client.js?v=3.95';
-import { ARCHETYPE_CUSTOMIZATION_OPTIONS, buildCustomizedArchetype } from './archetype_builder.js?v=3.95';
-import { diceRoller } from './dice.js?v=3.95';
-import { DiscordConfig, discordIntegrator } from './discord.js?v=3.95';
-import { helpManager } from './help.js?v=3.95';
-import { storageManager } from './storage.js?v=3.95';
-import { BASIC_CONDITIONS, COMBINED_CONDITIONS, calculateConditionModifiers } from './conditions.js?v=3.95';
+import { POWER_PROFILES_LIBRARY } from './power_profiles.js?v=3.96';
+import { ARCHETYPES } from './archetypes.js?v=3.96';
+import { archetypeManager } from './archetype_window.js?v=3.96';
+import { campaignManager, partyManager, formatCharacterSheetHTML } from './party.js?v=3.96';
+import { supabaseService } from './supabase_client.js?v=3.96';
+import { ARCHETYPE_CUSTOMIZATION_OPTIONS, buildCustomizedArchetype } from './archetype_builder.js?v=3.96';
+import { diceRoller } from './dice.js?v=3.96';
+import { DiscordConfig, discordIntegrator } from './discord.js?v=3.96';
+import { helpManager } from './help.js?v=3.96';
+import { storageManager, normalizeCharacter } from './storage.js?v=3.96';
+import { BASIC_CONDITIONS, COMBINED_CONDITIONS, calculateConditionModifiers } from './conditions.js?v=3.96';
 
 class AppController {
   constructor() {
@@ -63,6 +63,7 @@ class AppController {
     this._isInitialized = false;
 
     this.char = storageManager.getActiveCharacter();
+    normalizeCharacter(this.char);
     if (!this.char.alts) this.char.alts = [];
     this.primaryChar = this.char;
     this.activeAltId = null;
@@ -503,13 +504,13 @@ class AppController {
     });
 
     // Hero Points Stepper
-    document.getElementById('btn-hp-plus').addEventListener('click', () => {
+    document.getElementById('btn-hp-plus')?.addEventListener('click', () => {
       this.char.heroPoints = (this.char.heroPoints || 0) + 1;
       this.saveAndAudit();
       this.renderHeaderStatus();
     });
 
-    document.getElementById('btn-hp-minus').addEventListener('click', () => {
+    document.getElementById('btn-hp-minus')?.addEventListener('click', () => {
       if ((this.char.heroPoints || 0) > 0) {
         this.char.heroPoints--;
         discordIntegrator.sendHeroPointSpend(this.char.name, 'Hero Point Expended', 'Manually deducted from character sheet');
@@ -528,12 +529,12 @@ class AppController {
       }
     });
 
-    document.getElementById('btn-quick-spend-hp').addEventListener('click', () => {
+    document.getElementById('btn-quick-spend-hp')?.addEventListener('click', () => {
       this.openModal('modal-hero-point');
     });
 
     // Archetypes Button (Row 2 Right) - Toggle modal / popout, restore popout if closed while popped out
-    document.getElementById('btn-open-archetypes').addEventListener('click', () => {
+    document.getElementById('btn-open-archetypes')?.addEventListener('click', () => {
       const archModal = document.getElementById('modal-archetype-wizard');
       const isModalActive = archModal && archModal.classList.contains('active');
       const isPopoutActive = typeof archetypeManager !== 'undefined' && archetypeManager.popoutWindow && !archetypeManager.popoutWindow.closed;
@@ -561,7 +562,7 @@ class AppController {
     });
 
     // Tables Button (Row 2 Right) - Toggle modal / popout, restore popout if closed while popped out
-    document.getElementById('btn-open-tables').addEventListener('click', () => {
+    document.getElementById('btn-open-tables')?.addEventListener('click', () => {
       const tablesModal = document.getElementById('modal-tables');
       const isModalActive = tablesModal && tablesModal.classList.contains('active');
       const isPopoutActive = typeof tablesManager !== 'undefined' && tablesManager.popoutWindow && !tablesManager.popoutWindow.closed;
@@ -1128,7 +1129,7 @@ class AppController {
   // 5. INTERACTIVE ARCHETYPE BUILDER WIZARD
   // =======================================================
   setupArchetypeWizard() {
-    document.getElementById('btn-close-archetype-wizard').addEventListener('click', () => {
+    document.getElementById('btn-close-archetype-wizard')?.addEventListener('click', () => {
       if (typeof archetypeManager !== 'undefined') archetypeManager.setClosedWhilePoppedOut(false);
       this.closeModal('modal-archetype-wizard');
       this.resetWizardState();
@@ -1139,14 +1140,14 @@ class AppController {
       this.openArchetypePopout({ reset: false });
     });
 
-    document.getElementById('btn-wizard-back').addEventListener('click', () => {
+    document.getElementById('btn-wizard-back')?.addEventListener('click', () => {
       if (this.wizardState.step > 1) {
         this.wizardState.step--;
         this.renderWizardStep();
       }
     });
 
-    document.getElementById('btn-wizard-next').addEventListener('click', async () => {
+    document.getElementById('btn-wizard-next')?.addEventListener('click', async () => {
       if (this.wizardState.step === 1) {
         if (!this.wizardState.selectedArchetypeId) {
           window.focus();
@@ -1882,14 +1883,14 @@ class AppController {
       });
     });
 
-    document.getElementById('btn-tables-expand-all').addEventListener('click', () => {
+    document.getElementById('btn-tables-expand-all')?.addEventListener('click', () => {
       document.querySelectorAll('.collapsible-content').forEach(c => c.classList.remove('collapsed'));
     });
-    document.getElementById('btn-tables-collapse-all').addEventListener('click', () => {
+    document.getElementById('btn-tables-collapse-all')?.addEventListener('click', () => {
       document.querySelectorAll('.collapsible-content').forEach(c => c.classList.add('collapsed'));
     });
 
-    document.getElementById('btn-close-tables').addEventListener('click', () => {
+    document.getElementById('btn-close-tables')?.addEventListener('click', () => {
       if (typeof tablesManager !== 'undefined') tablesManager.setClosedWhilePoppedOut(false);
       this.closeModal('modal-tables');
     });
@@ -1899,7 +1900,7 @@ class AppController {
       this.closeModal('modal-tables');
     });
 
-    document.getElementById('btn-tables-popout').addEventListener('click', () => {
+    document.getElementById('btn-tables-popout')?.addEventListener('click', () => {
       this.closeModal('modal-tables');
       if (typeof tablesManager !== 'undefined') tablesManager.openPopout();
     });
@@ -2214,7 +2215,7 @@ window.partyManager = partyManager;
   }
 
   async checkForUpdates({ isManual = false } = {}) {
-    const CURRENT_VERSION = '3.95';
+    const CURRENT_VERSION = '3.96';
     const versionEl = document.getElementById('header-version-tag');
     const updateBtn = document.getElementById('btn-header-update-alert');
     if (typeof window === 'undefined' || !window.location || !window.location.href || window.location.href === 'about:blank') return;
@@ -2442,11 +2443,11 @@ window.partyManager = partyManager;
   // 10. HERO POINT SPEND MODAL
   // =======================================================
   setupHeroPointModal() {
-    document.getElementById('btn-close-hp-modal').addEventListener('click', () => {
+    document.getElementById('btn-close-hp-modal')?.addEventListener('click', () => {
       this.closeModal('modal-hero-point');
     });
 
-    document.getElementById('btn-hp-exec-reroll').addEventListener('click', async () => {
+    document.getElementById('btn-hp-exec-reroll')?.addEventListener('click', async () => {
       if ((this.char.heroPoints || 0) <= 0) {
         await this.showAlertDialog('You have no Hero Points left!', { title: 'Hero Points' });
         return;
@@ -4036,7 +4037,7 @@ window.partyManager = partyManager;
 <head>
   <meta charset="UTF-8">
   <title>Mutants &amp; Masterminds 3E - Campaign Messaging Client</title>
-  <link rel="stylesheet" href="css/styles.css?v=3.95">
+  <link rel="stylesheet" href="css/styles.css?v=3.96">
   <style>
     html, body { height: 100%; margin: 0; }
     body {
@@ -6095,7 +6096,7 @@ window.partyManager = partyManager;
   // 13. GEAR & HEADQUARTERS (HQ) TAB
   // =======================================================
   setupGearAndHQ() {
-    document.getElementById('btn-add-item-gear').addEventListener('click', async () => {
+    document.getElementById('btn-add-item-gear')?.addEventListener('click', async () => {
       const name = document.getElementById('new-item-name').value.trim();
       const cost = parseInt(document.getElementById('new-item-cost').value, 10) || 1;
       const desc = document.getElementById('new-item-desc').value.trim();
@@ -6126,14 +6127,14 @@ window.partyManager = partyManager;
       this.renderGearTab(auditCharacter(this.char));
     });
 
-    document.getElementById('btn-hq-tough-plus').addEventListener('click', () => {
+    document.getElementById('btn-hq-tough-plus')?.addEventListener('click', () => {
       if (!this.char.hq) this.char.hq = {};
       this.char.hq.toughness = (this.char.hq.toughness || 8) + 1;
       this.saveAndAudit();
       this.renderGearTab(auditCharacter(this.char));
     });
 
-    document.getElementById('btn-hq-tough-minus').addEventListener('click', () => {
+    document.getElementById('btn-hq-tough-minus')?.addEventListener('click', () => {
       if (!this.char.hq) this.char.hq = {};
       this.char.hq.toughness = Math.max(1, (this.char.hq.toughness || 8) - 1);
       this.saveAndAudit();
@@ -7304,6 +7305,7 @@ window.partyManager = partyManager;
   }
 
   loadCharacterToUI() {
+    normalizeCharacter(this.char);
     this.syncPlayerNameWithCampaignAttachment();
     this.updatePlayerDropdown();
     setTimeout(() => this.checkActiveSessionOffer(), 400);
@@ -8992,7 +8994,7 @@ window.partyManager = partyManager;
   // =======================================================
   migrateLanguagesSkillToAdvantage(char) {
     if (!char) return;
-    if (char.skills && char.skills.some(s => s.id === 'languages')) {
+    if (char.skills && Array.isArray(char.skills) && char.skills.some(s => s && s.id === 'languages')) {
       const legacyLangSkills = char.skills.filter(s => s.id === 'languages');
       const extractedLangs = legacyLangSkills.map(s => s.specialty).filter(Boolean);
       char.skills = char.skills.filter(s => s.id !== 'languages');
@@ -9025,7 +9027,7 @@ window.partyManager = partyManager;
 
   migrateSkillMasteryToAdvantage(char) {
     if (!char) return;
-    if (char.skills && char.skills.some(s => s.id === 'skill_mastery')) {
+    if (char.skills && Array.isArray(char.skills) && char.skills.some(s => s && s.id === 'skill_mastery')) {
       const legacySmSkills = char.skills.filter(s => s.id === 'skill_mastery');
       const chosenSkills = legacySmSkills.map(s => s.specialty).filter(Boolean);
       char.skills = char.skills.filter(s => s.id !== 'skill_mastery');

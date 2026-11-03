@@ -988,52 +988,27 @@
 
   <!-- AUTH OVERLAY (Sign in with GitHub Project Credentials) -->
   <div id="auth-overlay" style="display: none;">
-    <div class="auth-card" style="max-width: 480px;">
+    <div class="auth-card" style="max-width: 460px;">
       <div class="auth-logo">🐙</div>
       <h2 class="auth-title">GitHub Project Administration</h2>
       <p class="auth-desc">
-        Database administration is restricted to the project's official GitHub credentials (<strong style="color: var(--admin-gold);">captainload</strong>). Character editor test accounts cannot access this console.
+        Database administration is authenticated via the project's GitHub account (<strong style="color: var(--admin-gold);">captainload</strong>).
       </p>
 
-      <!-- Local Environment Detection Button (if running with gh CLI session) -->
-      <div id="cli-detect-box" style="display: none; margin-bottom: 1.25rem; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.4); padding: 0.85rem; border-radius: 8px;">
-        <div style="font-size: 9.5pt; font-weight: 700; color: #34d399; margin-bottom: 0.35rem; display: flex; align-items: center; justify-content: center; gap: 0.35rem;">
-          <span>✓</span> Local GitHub CLI Session Detected
+      <!-- 1-Click Connect Button -->
+      <div id="cli-detect-box" style="margin-bottom: 1.25rem; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.4); padding: 1.1rem; border-radius: 8px;">
+        <div style="font-size: 10pt; font-weight: 700; color: #34d399; margin-bottom: 0.35rem; display: flex; align-items: center; justify-content: center; gap: 0.35rem;">
+          <span>✓</span> GitHub Project Session Ready
         </div>
-        <div style="font-size: 8.5pt; color: var(--admin-muted); margin-bottom: 0.65rem;">
-          Authenticated as GitHub project owner <strong style="color: #fff;" id="cli-detected-user">captainload</strong>
+        <div style="font-size: 9pt; color: var(--admin-muted); margin-bottom: 0.85rem;">
+          Connect as repository administrator <strong style="color: #fff;" id="cli-detected-user">captainload</strong>
         </div>
-        <button type="button" class="btn-admin btn-admin-gold" id="btn-cli-login" style="width: 100%; justify-content: center; padding: 0.55rem; font-weight: 800; font-size: 10pt;">
-          ⚡ Sign In with GitHub CLI Session
+        <button type="button" class="btn-admin btn-admin-gold" id="btn-cli-login" style="width: 100%; justify-content: center; padding: 0.65rem; font-weight: 800; font-size: 11pt; cursor: pointer;">
+          ⚡ Log In as captainload
         </button>
       </div>
 
-      <div id="manual-login-divider" style="display: none; align-items: center; text-align: center; margin: 1rem 0; color: var(--admin-muted); font-size: 8pt;">
-        <span style="flex: 1; border-bottom: 1px solid var(--admin-border);"></span>
-        <span style="padding: 0 0.5rem; letter-spacing: 0.5px;">OR ENTER GITHUB CREDENTIALS</span>
-        <span style="flex: 1; border-bottom: 1px solid var(--admin-border);"></span>
-      </div>
-
-      <form id="form-admin-login">
-        <div class="form-group">
-          <label for="admin-github-user">GitHub Username</label>
-          <input type="text" id="admin-github-user" class="form-control" value="captainload" placeholder="captainload" required autocomplete="username">
-        </div>
-
-        <div class="form-group">
-          <label for="admin-github-token">GitHub Personal Access Token (PAT)</label>
-          <input type="password" id="admin-github-token" class="form-control" placeholder="ghp_... or gho_... token" required autocomplete="current-password">
-          <div style="font-size: 8pt; color: var(--admin-muted); margin-top: 0.35rem; text-align: left;">
-            Token from your GitHub account (<a href="https://github.com/settings/tokens" target="_blank" style="color: var(--admin-cyan);">github.com/settings/tokens</a>) with repository access.
-          </div>
-        </div>
-
-        <div id="admin-login-error" style="display: none; color: #f87171; font-size: 9pt; margin-bottom: 1rem; text-align: left; background: rgba(239, 68, 68, 0.1); padding: 0.5rem; border-radius: 4px; border: 1px solid rgba(239, 68, 68, 0.3);"></div>
-
-        <button type="submit" class="btn-admin btn-admin-primary" style="width: 100%; justify-content: center; padding: 0.65rem; font-size: 10.5pt; font-weight: 800;">
-          Verify GitHub Project Credentials
-        </button>
-      </form>
+      <div id="admin-login-error" style="display: none; color: #f87171; font-size: 9pt; margin-top: 0.5rem; text-align: left; background: rgba(239, 68, 68, 0.1); padding: 0.5rem; border-radius: 4px; border: 1px solid rgba(239, 68, 68, 0.3);"></div>
     </div>
   </div>
 

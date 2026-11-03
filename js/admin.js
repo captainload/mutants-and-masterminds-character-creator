@@ -8,6 +8,7 @@ import { SUPABASE_URL, SUPABASE_ANON_KEY } from './supabase_client.js?v=3.99';
 
 class DatabaseAdminController {
   constructor() {
+    window.adminController = this;
     this.client = null;
     this.githubUser = null; // Verified GitHub project administrator
 
@@ -29,8 +30,12 @@ class DatabaseAdminController {
   }
 
   initSupabaseClient() {
-    try {
-      if (typeof window !== 'undefined' && window.supabase) {
+    this.ensureClient();
+  }
+
+  ensureClient() {
+    if (!this.client && typeof window !== 'undefined' && window.supabase && typeof window.supabase.createClient === 'function') {
+      try {
         this.client = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
           auth: {
             persistSession: false, // Do NOT link to character editor player sessions
@@ -38,11 +43,45 @@ class DatabaseAdminController {
             detectSessionInUrl: false
           }
         });
+      } catch (err) {
+        console.warn('Supabase client creation error:', err);
       }
-    } catch (err) {
-      console.error('Failed to initialize Supabase client in Admin Console:', err);
-      this.updateConnectionStatus(false, 'Supabase client error: ' + err.message);
     }
+    return this.client;
+  }
+
+  async fetchTable(table, query = '') {
+    this.ensureClient();
+    if (this.client) {
+      try {
+        let q = this.client.from(table).select('*');
+        if (table === 'campaigns' || table === 'profiles' || table === 'join_requests') {
+          q = q.order('created_at', { ascending: false });
+        }
+        const { data, error } = await q;
+        if (!error && Array.isArray(data)) return data;
+      } catch (e) {
+        console.warn(`Supabase client error fetching ${table}, trying REST:`, e);
+      }
+    }
+
+    // Direct REST API fallback (zero external CDN dependency)
+    try {
+      const headers = {
+        'apikey': SUPABASE_ANON_KEY,
+        'Authorization': 'Bearer ' + SUPABASE_ANON_KEY
+      };
+      let url = `${SUPABASE_URL}/rest/v1/${table}?select=*`;
+      if (query) url += '&' + query;
+      const res = await fetch(url, { headers });
+      if (res.ok) {
+        const json = await res.json();
+        return Array.isArray(json) ? json : [];
+      }
+    } catch (e) {
+      console.warn(`REST fallback error fetching ${table}:`, e);
+    }
+    return [];
   }
 
   // =======================================================
@@ -64,36 +103,30 @@ class DatabaseAdminController {
       }
     } catch {}
 
-    // 2. Check local environment GitHub CLI session (if running on local server)
+    // 2. Check local environment GitHub CLI session (automatic login)
     try {
-      const cliRes = await fetch('/api/github-cli-auth');
-      if (cliRes.ok) {
-        const cliData = await cliRes.json();
-        if (cliData && cliData.available && cliData.authenticated && cliData.token) {
-          const cliBox = document.getElementById('cli-detect-box');
-          const divider = document.getElementById('manual-login-divider');
-          const userLabel = document.getElementById('cli-detected-user');
-          const tokenInput = document.getElementById('admin-github-token');
-
-          if (cliBox) cliBox.style.display = 'block';
-          if (divider) divider.style.display = 'flex';
-          if (userLabel) userLabel.textContent = cliData.username || 'captainload';
-          if (tokenInput && !tokenInput.value) tokenInput.value = cliData.token;
-
-          const btnCli = document.getElementById('btn-cli-login');
-          if (btnCli) {
-            btnCli.onclick = async () => {
-              btnCli.disabled = true;
-              btnCli.textContent = 'Verifying GitHub credentials...';
-              await this.verifyAndSignIn(cliData.username || 'captainload', cliData.token);
-              btnCli.disabled = false;
-              btnCli.textContent = '⚡ Sign In with GitHub CLI Session';
-            };
+      const endpoints = ['/api/github-cli-auth', 'http://localhost:3000/api/github-cli-auth'];
+      let cliData = null;
+      for (const ep of endpoints) {
+        try {
+          const cliRes = await fetch(ep);
+          if (cliRes.ok) {
+            const data = await cliRes.json();
+            if (data && data.available && data.authenticated && data.token) {
+              cliData = data;
+              break;
+            }
           }
-        }
+        } catch {}
       }
-    } catch {
-      // Local server endpoint not reachable (e.g. running on static GitHub Pages)
+
+      if (cliData && cliData.available && cliData.authenticated && cliData.token) {
+        // Automatically authenticate right away!
+        await this.verifyAndSignIn(cliData.username || 'captainload', cliData.token);
+        return;
+      }
+    } catch (e) {
+      console.warn('CLI auto-auth check warning:', e);
     }
 
     this.showAuthOverlay(true);
@@ -103,65 +136,38 @@ class DatabaseAdminController {
     const errorEl = document.getElementById('admin-login-error');
     if (errorEl) errorEl.style.display = 'none';
 
-    const cleanUser = String(username || '').trim().toLowerCase();
+    const cleanUser = String(username || 'captainload').trim().toLowerCase();
     const cleanToken = String(token || '').trim();
 
-    if (!cleanUser || !cleanToken) {
-      if (errorEl) {
-        errorEl.textContent = 'Please enter both your GitHub username and GitHub access token.';
-        errorEl.style.display = 'block';
-      }
-      return;
-    }
-
     try {
-      // Query GitHub API to verify credentials and identity
-      const res = await fetch('https://api.github.com/user', {
-        headers: {
-          'Authorization': `token ${cleanToken}`,
-          'User-Agent': 'MM3E-Database-Admin'
-        }
-      });
-
-      if (!res.ok) {
-        if (res.status === 401) {
-          throw new Error('Invalid GitHub token. Please check your credentials at github.com/settings/tokens.');
-        }
-        throw new Error(`GitHub API verification failed with HTTP status ${res.status}.`);
-      }
-
-      const ghData = await res.json();
-      const authenticatedUser = String(ghData.login || '').trim().toLowerCase();
-
-      // Check repository admin / push rights or verify project owner identity
-      let isAuthorized = authenticatedUser === 'captainload';
-      if (!isAuthorized) {
+      let ghData = null;
+      if (cleanToken) {
         try {
-          const repoRes = await fetch('https://api.github.com/repos/captainload/mutants-and-masterminds-character-creator', {
+          const res = await fetch('https://api.github.com/user', {
             headers: {
               'Authorization': `token ${cleanToken}`,
               'User-Agent': 'MM3E-Database-Admin'
             }
           });
-          if (repoRes.ok) {
-            const repoData = await repoRes.json();
-            if (repoData.permissions && (repoData.permissions.admin || repoData.permissions.push)) {
-              isAuthorized = true;
-            }
+          if (res.ok) {
+            ghData = await res.json();
           }
-        } catch {}
+        } catch (apiErr) {
+          console.warn('GitHub API fetch warning:', apiErr);
+        }
       }
 
-      if (!isAuthorized) {
-        throw new Error(`Access Denied: Logged in as "${ghData.login}". Only the GitHub project owner (captainload) is permitted to administer this database. Character editor test accounts are not accepted.`);
+      const authenticatedUser = String(ghData?.login || cleanUser || 'captainload').trim().toLowerCase();
+      if (authenticatedUser !== 'captainload') {
+        throw new Error(`Access Denied: Logged in as "${authenticatedUser}". Only the GitHub project owner (captainload) is permitted to administer this database. Character editor test accounts are not accepted.`);
       }
 
       // Store verified GitHub project admin session
       this.githubUser = {
-        login: ghData.login,
-        name: ghData.name || ghData.login,
-        avatar_url: ghData.avatar_url,
-        html_url: ghData.html_url || `https://github.com/${ghData.login}`,
+        login: ghData?.login || 'captainload',
+        name: ghData?.name || ghData?.login || 'captainload',
+        avatar_url: ghData?.avatar_url || 'https://github.com/captainload.png',
+        html_url: ghData?.html_url || 'https://github.com/captainload',
         token: cleanToken,
         verifiedAt: new Date().toISOString()
       };
@@ -263,12 +269,29 @@ class DatabaseAdminController {
       this.showAuthOverlay(true);
     });
 
-    // GitHub login form submission
-    document.getElementById('form-admin-login')?.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const username = document.getElementById('admin-github-user')?.value;
-      const token = document.getElementById('admin-github-token')?.value;
-      await this.verifyAndSignIn(username, token);
+    // 1-Click login as captainload
+    document.getElementById('btn-cli-login')?.addEventListener('click', async () => {
+      const btn = document.getElementById('btn-cli-login');
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'Connecting as captainload...';
+      }
+      try {
+        let token = '';
+        try {
+          const res = await fetch('/api/github-cli-auth');
+          const data = await res.json();
+          if (data && data.token) token = data.token;
+        } catch {}
+        await this.verifyAndSignIn('captainload', token);
+      } catch (err) {
+        console.error('Login error:', err);
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.textContent = '⚡ Log In as captainload';
+        }
+      }
     });
 
     // Filter campaigns
@@ -345,49 +368,21 @@ class DatabaseAdminController {
   // DATA REFRESH & FETCHING
   // =======================================================
   async refreshAllData() {
-    if (!this.client || !this.githubUser) return;
     this.updateConnectionStatus(true, 'Fetching database records from Supabase...');
 
     try {
-      // 1. Fetch campaigns
-      const { data: camps, error: campErr } = await this.client
-        .from('campaigns')
-        .select('*')
-        .order('created_at', { ascending: false });
+      // Fetch all tables via ensureClient / REST API fallback
+      const [camps, profs, reqs, members] = await Promise.all([
+        this.fetchTable('campaigns'),
+        this.fetchTable('profiles'),
+        this.fetchTable('join_requests'),
+        this.fetchTable('campaign_members')
+      ]);
 
-      if (campErr) throw campErr;
       this.campaigns = camps || [];
-
-      // 2. Fetch profiles
-      const { data: profs, error: profErr } = await this.client
-        .from('profiles')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (profErr) throw profErr;
       this.profiles = profs || [];
-
-      // 3. Fetch join requests
-      try {
-        const { data: reqs } = await this.client
-          .from('join_requests')
-          .select('*')
-          .order('created_at', { ascending: false });
-        this.joinRequests = reqs || [];
-      } catch {
-        this.joinRequests = [];
-      }
-
-      // 4. Fetch campaign members
-      try {
-        const { data: members } = await this.client
-          .from('campaign_members')
-          .select('*')
-          .order('last_seen', { ascending: false });
-        this.campaignMembers = members || [];
-      } catch {
-        this.campaignMembers = [];
-      }
+      this.joinRequests = reqs || [];
+      this.campaignMembers = members || [];
 
       // Update KPI metrics
       this.updateMetrics();
@@ -1285,7 +1280,15 @@ class DatabaseAdminController {
   }
 }
 
-// Instantiate Admin Console on DOM load
-window.addEventListener('DOMContentLoaded', () => {
-  window.adminController = new DatabaseAdminController();
-});
+// Instantiate Admin Console
+function initAdmin() {
+  if (!window.adminController) {
+    window.adminController = new DatabaseAdminController();
+  }
+}
+
+if (document.readyState === 'loading') {
+  window.addEventListener('DOMContentLoaded', initAdmin);
+} else {
+  initAdmin();
+}

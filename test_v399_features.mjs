@@ -75,7 +75,8 @@ assert.ok(adminHtml.includes('tab-requests'), 'Join Requests tab must exist');
 assert.ok(adminHtml.includes('tab-members'), 'Members tab must exist');
 assert.ok(adminHtml.includes('tab-diagnostics'), 'Diagnostics tab must exist');
 assert.ok(adminHtml.includes('tab-backup'), 'Backup tab must exist');
-assert.ok(adminHtml.includes('form-admin-login'), 'Admin login form must exist');
+assert.ok(adminHtml.includes('auth-overlay'), 'Admin auth overlay must exist');
+assert.ok(adminHtml.includes('btn-cli-login'), 'Admin login button must exist');
 
 // Check key controller methods in js/admin.js
 assert.ok(adminJs.includes('refreshAllData'), 'refreshAllData must exist in js/admin.js');

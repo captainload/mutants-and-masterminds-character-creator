@@ -1,7 +1,7 @@
 /**
  * Mutants & Masterminds 3E - Database Administration Console Controller (v3.99)
- * Provides centralized administration of Supabase campaigns, profiles, join requests,
- * party rosters, and local browser storage orphan diagnosis.
+ * Gated strictly by GitHub project credentials (captainload).
+ * Character editor test accounts (psycros, captainload@gmail.com) are excluded from admin access.
  */
 
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from './supabase_client.js?v=3.99';
@@ -9,10 +9,9 @@ import { SUPABASE_URL, SUPABASE_ANON_KEY } from './supabase_client.js?v=3.99';
 class DatabaseAdminController {
   constructor() {
     this.client = null;
-    this.currentUser = null;
-    this.currentProfile = null;
+    this.githubUser = null; // Verified GitHub project administrator
 
-    // In-memory data caches
+    // In-memory database records
     this.campaigns = [];
     this.profiles = [];
     this.joinRequests = [];
@@ -34,9 +33,9 @@ class DatabaseAdminController {
       if (typeof window !== 'undefined' && window.supabase) {
         this.client = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
           auth: {
-            persistSession: true,
-            autoRefreshToken: true,
-            detectSessionInUrl: true
+            persistSession: false, // Do NOT link to character editor player sessions
+            autoRefreshToken: false,
+            detectSessionInUrl: false
           }
         });
       }
@@ -46,65 +45,175 @@ class DatabaseAdminController {
     }
   }
 
+  // =======================================================
+  // GITHUB PROJECT AUTHENTICATION
+  // =======================================================
   async checkSessionAndLoad() {
-    if (!this.client) {
-      this.showAuthOverlay(true);
+    // 1. Check existing verified GitHub session in sessionStorage
+    try {
+      const stored = sessionStorage.getItem('mm3e_admin_github_session');
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (parsed && (parsed.login || '').toLowerCase() === 'captainload') {
+          this.githubUser = parsed;
+          this.updateAdminHeader();
+          this.showAuthOverlay(false);
+          await this.refreshAllData();
+          return;
+        }
+      }
+    } catch {}
+
+    // 2. Check local environment GitHub CLI session (if running on local server)
+    try {
+      const cliRes = await fetch('/api/github-cli-auth');
+      if (cliRes.ok) {
+        const cliData = await cliRes.json();
+        if (cliData && cliData.available && cliData.authenticated && cliData.token) {
+          const cliBox = document.getElementById('cli-detect-box');
+          const divider = document.getElementById('manual-login-divider');
+          const userLabel = document.getElementById('cli-detected-user');
+          const tokenInput = document.getElementById('admin-github-token');
+
+          if (cliBox) cliBox.style.display = 'block';
+          if (divider) divider.style.display = 'flex';
+          if (userLabel) userLabel.textContent = cliData.username || 'captainload';
+          if (tokenInput && !tokenInput.value) tokenInput.value = cliData.token;
+
+          const btnCli = document.getElementById('btn-cli-login');
+          if (btnCli) {
+            btnCli.onclick = async () => {
+              btnCli.disabled = true;
+              btnCli.textContent = 'Verifying GitHub credentials...';
+              await this.verifyAndSignIn(cliData.username || 'captainload', cliData.token);
+              btnCli.disabled = false;
+              btnCli.textContent = '⚡ Sign In with GitHub CLI Session';
+            };
+          }
+        }
+      }
+    } catch {
+      // Local server endpoint not reachable (e.g. running on static GitHub Pages)
+    }
+
+    this.showAuthOverlay(true);
+  }
+
+  async verifyAndSignIn(username, token) {
+    const errorEl = document.getElementById('admin-login-error');
+    if (errorEl) errorEl.style.display = 'none';
+
+    const cleanUser = String(username || '').trim().toLowerCase();
+    const cleanToken = String(token || '').trim();
+
+    if (!cleanUser || !cleanToken) {
+      if (errorEl) {
+        errorEl.textContent = 'Please enter both your GitHub username and GitHub access token.';
+        errorEl.style.display = 'block';
+      }
       return;
     }
 
     try {
-      const { data: { session }, error } = await this.client.auth.getSession();
-      if (session && session.user) {
-        this.currentUser = session.user;
-        await this.loadCurrentProfile();
-        this.updateAdminHeader();
-        this.showAuthOverlay(false);
-        await this.refreshAllData();
-      } else {
-        // Check fallback cached active user
-        const cached = sessionStorage.getItem('mm3e_active_auth_user');
-        if (cached) {
-          try {
-            const parsed = JSON.parse(cached);
-            if (parsed && parsed.email) {
-              const loginInput = document.getElementById('admin-login-id');
-              if (loginInput) loginInput.value = parsed.email || parsed.username || '';
-            }
-          } catch {}
+      // Query GitHub API to verify credentials and identity
+      const res = await fetch('https://api.github.com/user', {
+        headers: {
+          'Authorization': `token ${cleanToken}`,
+          'User-Agent': 'MM3E-Database-Admin'
         }
-        this.showAuthOverlay(true);
-      }
-    } catch (err) {
-      console.warn('Session check error in Admin Console:', err);
-      this.showAuthOverlay(true);
-    }
-  }
+      });
 
-  async loadCurrentProfile() {
-    if (!this.client || !this.currentUser) return;
-    try {
-      const { data } = await this.client
-        .from('profiles')
-        .select('*')
-        .eq('id', this.currentUser.id)
-        .maybeSingle();
-      this.currentProfile = data || {
-        id: this.currentUser.id,
-        username: this.currentUser.user_metadata?.username || (this.currentUser.email ? this.currentUser.email.split('@')[0] : 'Admin'),
-        email: this.currentUser.email
+      if (!res.ok) {
+        if (res.status === 401) {
+          throw new Error('Invalid GitHub token. Please check your credentials at github.com/settings/tokens.');
+        }
+        throw new Error(`GitHub API verification failed with HTTP status ${res.status}.`);
+      }
+
+      const ghData = await res.json();
+      const authenticatedUser = String(ghData.login || '').trim().toLowerCase();
+
+      // Check repository admin / push rights or verify project owner identity
+      let isAuthorized = authenticatedUser === 'captainload';
+      if (!isAuthorized) {
+        try {
+          const repoRes = await fetch('https://api.github.com/repos/captainload/mutants-and-masterminds-character-creator', {
+            headers: {
+              'Authorization': `token ${cleanToken}`,
+              'User-Agent': 'MM3E-Database-Admin'
+            }
+          });
+          if (repoRes.ok) {
+            const repoData = await repoRes.json();
+            if (repoData.permissions && (repoData.permissions.admin || repoData.permissions.push)) {
+              isAuthorized = true;
+            }
+          }
+        } catch {}
+      }
+
+      if (!isAuthorized) {
+        throw new Error(`Access Denied: Logged in as "${ghData.login}". Only the GitHub project owner (captainload) is permitted to administer this database. Character editor test accounts are not accepted.`);
+      }
+
+      // Store verified GitHub project admin session
+      this.githubUser = {
+        login: ghData.login,
+        name: ghData.name || ghData.login,
+        avatar_url: ghData.avatar_url,
+        html_url: ghData.html_url || `https://github.com/${ghData.login}`,
+        token: cleanToken,
+        verifiedAt: new Date().toISOString()
       };
-    } catch {
-      this.currentProfile = {
-        id: this.currentUser.id,
-        username: this.currentUser.user_metadata?.username || 'Admin',
-        email: this.currentUser.email
-      };
+
+      try {
+        sessionStorage.setItem('mm3e_admin_github_session', JSON.stringify(this.githubUser));
+      } catch {}
+
+      this.updateAdminHeader();
+      this.showAuthOverlay(false);
+      await this.refreshAllData();
+    } catch (err) {
+      console.error('GitHub authentication failed:', err);
+      if (errorEl) {
+        errorEl.textContent = err.message || 'GitHub verification failed.';
+        errorEl.style.display = 'block';
+      }
     }
   }
 
   showAuthOverlay(show = true) {
     const overlay = document.getElementById('auth-overlay');
     if (overlay) overlay.style.display = show ? 'flex' : 'none';
+  }
+
+  updateAdminHeader() {
+    const chip = document.getElementById('admin-user-profile');
+    const userLabel = document.getElementById('admin-username-label');
+    const emailLabel = document.getElementById('admin-email-label');
+    const avatarInitial = document.getElementById('admin-avatar-initial');
+    const avatarImg = document.getElementById('admin-avatar-img');
+    const signoutBtn = document.getElementById('btn-admin-signout');
+
+    if (this.githubUser) {
+      if (chip) chip.style.display = 'flex';
+      if (signoutBtn) signoutBtn.style.display = 'inline-flex';
+      if (userLabel) userLabel.textContent = this.githubUser.login;
+      if (emailLabel) emailLabel.textContent = `github.com/${this.githubUser.login}`;
+
+      if (this.githubUser.avatar_url && avatarImg) {
+        avatarImg.src = this.githubUser.avatar_url;
+        avatarImg.style.display = 'block';
+        if (avatarInitial) avatarInitial.style.display = 'none';
+      } else if (avatarInitial) {
+        avatarInitial.textContent = '🐙';
+        avatarInitial.style.display = 'flex';
+        if (avatarImg) avatarImg.style.display = 'none';
+      }
+    } else {
+      if (chip) chip.style.display = 'none';
+      if (signoutBtn) signoutBtn.style.display = 'none';
+    }
   }
 
   updateConnectionStatus(isConnected, message) {
@@ -129,26 +238,6 @@ class DatabaseAdminController {
     }
   }
 
-  updateAdminHeader() {
-    const chip = document.getElementById('admin-user-profile');
-    const userLabel = document.getElementById('admin-username-label');
-    const emailLabel = document.getElementById('admin-email-label');
-    const avatar = document.getElementById('admin-avatar-initial');
-    const signoutBtn = document.getElementById('btn-admin-signout');
-
-    if (this.currentUser) {
-      if (chip) chip.style.display = 'flex';
-      if (signoutBtn) signoutBtn.style.display = 'inline-flex';
-      const name = this.currentProfile?.username || this.currentUser.user_metadata?.username || 'Admin';
-      if (userLabel) userLabel.textContent = name;
-      if (emailLabel) emailLabel.textContent = this.currentUser.email || '';
-      if (avatar) avatar.textContent = name.charAt(0).toUpperCase();
-    } else {
-      if (chip) chip.style.display = 'none';
-      if (signoutBtn) signoutBtn.style.display = 'none';
-    }
-  }
-
   // =======================================================
   // EVENT WIRING
   // =======================================================
@@ -166,21 +255,20 @@ class DatabaseAdminController {
       this.refreshAllData();
     });
 
-    // Sign out
-    document.getElementById('btn-admin-signout')?.addEventListener('click', async () => {
-      if (this.client) {
-        await this.client.auth.signOut();
-      }
-      this.currentUser = null;
-      this.currentProfile = null;
+    // Sign out (clears GitHub admin session)
+    document.getElementById('btn-admin-signout')?.addEventListener('click', () => {
+      this.githubUser = null;
+      try { sessionStorage.removeItem('mm3e_admin_github_session'); } catch {}
       this.updateAdminHeader();
       this.showAuthOverlay(true);
     });
 
-    // Admin login form
+    // GitHub login form submission
     document.getElementById('form-admin-login')?.addEventListener('submit', async (e) => {
       e.preventDefault();
-      await this.handleAdminLogin();
+      const username = document.getElementById('admin-github-user')?.value;
+      const token = document.getElementById('admin-github-token')?.value;
+      await this.verifyAndSignIn(username, token);
     });
 
     // Filter campaigns
@@ -254,66 +342,11 @@ class DatabaseAdminController {
   }
 
   // =======================================================
-  // AUTHENTICATION
-  // =======================================================
-  async handleAdminLogin() {
-    const errorEl = document.getElementById('admin-login-error');
-    if (errorEl) errorEl.style.display = 'none';
-
-    const loginId = document.getElementById('admin-login-id')?.value.trim();
-    const password = document.getElementById('admin-login-pwd')?.value;
-
-    if (!loginId || !password) {
-      if (errorEl) {
-        errorEl.textContent = 'Please enter both email/username and password.';
-        errorEl.style.display = 'block';
-      }
-      return;
-    }
-
-    try {
-      let email = loginId;
-      if (!loginId.includes('@')) {
-        // Resolve email from username
-        const { data: profs } = await this.client
-          .from('profiles')
-          .select('email')
-          .ilike('username', loginId)
-          .limit(1);
-        if (profs && profs[0]?.email) {
-          email = profs[0].email;
-        } else {
-          throw new Error(`Username "${loginId}" not found in database. Please sign in with your email.`);
-        }
-      }
-
-      const { data, error } = await this.client.auth.signInWithPassword({
-        email,
-        password
-      });
-
-      if (error) throw error;
-
-      this.currentUser = data.user;
-      await this.loadCurrentProfile();
-      this.updateAdminHeader();
-      this.showAuthOverlay(false);
-      await this.refreshAllData();
-    } catch (err) {
-      console.error('Admin login failed:', err);
-      if (errorEl) {
-        errorEl.textContent = err.message || 'Login failed. Please check credentials.';
-        errorEl.style.display = 'block';
-      }
-    }
-  }
-
-  // =======================================================
   // DATA REFRESH & FETCHING
   // =======================================================
   async refreshAllData() {
-    if (!this.client) return;
-    this.updateConnectionStatus(true, 'Fetching latest database records...');
+    if (!this.client || !this.githubUser) return;
+    this.updateConnectionStatus(true, 'Fetching database records from Supabase...');
 
     try {
       // 1. Fetch campaigns
@@ -335,14 +368,13 @@ class DatabaseAdminController {
       this.profiles = profs || [];
 
       // 3. Fetch join requests
-      const { data: reqs, error: reqErr } = await this.client
-        .from('join_requests')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (!reqErr && reqs) {
-        this.joinRequests = reqs;
-      } else {
+      try {
+        const { data: reqs } = await this.client
+          .from('join_requests')
+          .select('*')
+          .order('created_at', { ascending: false });
+        this.joinRequests = reqs || [];
+      } catch {
         this.joinRequests = [];
       }
 
@@ -473,7 +505,6 @@ class DatabaseAdminController {
       `;
     }).join('');
 
-    // Wire buttons in table
     tbody.querySelectorAll('.btn-toggle-session').forEach(btn => {
       btn.addEventListener('click', (e) => {
         const campId = e.currentTarget.dataset.id;
@@ -1045,7 +1076,7 @@ class DatabaseAdminController {
       app: 'Mutants & Masterminds 3E Database Admin',
       version: '3.99',
       exported_at: new Date().toISOString(),
-      exported_by: this.currentUser?.email || 'admin',
+      exported_by: this.githubUser ? `github:${this.githubUser.login}` : 'admin',
       database_tables: {
         campaigns: this.campaigns,
         profiles: this.profiles,
@@ -1086,7 +1117,6 @@ class DatabaseAdminController {
     const selectCreator = document.getElementById('new-camp-creator');
     if (!modal || !selectCreator) return;
 
-    // Populate creator options from registered profiles
     selectCreator.innerHTML = this.profiles.map(p => `
       <option value="${p.id}" data-name="${this.escapeHTML(p.username)}">
         ${this.escapeHTML(p.username)} (${p.email || 'No email'})
@@ -1114,7 +1144,6 @@ class DatabaseAdminController {
     }
 
     if (!code) {
-      // Auto-generate code: 4 uppercase letters + 4 digits
       const prefix = name.replace(/[^a-zA-Z]/g, '').slice(0, 4).toUpperCase().padEnd(4, 'X');
       const num = Math.floor(1000 + Math.random() * 9000);
       code = `${prefix}-${num}`;
@@ -1126,7 +1155,7 @@ class DatabaseAdminController {
         .insert([{
           campaign_code: code,
           campaign_name: name,
-          creator_id: creatorId || this.currentUser.id,
+          creator_id: creatorId || 'admin',
           creator_name: creatorName,
           power_level: pl,
           dont_enforce_pl: !enforcePL,

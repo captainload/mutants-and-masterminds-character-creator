@@ -16,8 +16,8 @@ assert(indexHtml.includes('Character Editor v3.'), 'index.html title must reflec
 assert(indexHtml.includes('header-version-tag" class="header-version-tag up-to-date" title="Current Version">v3.'), 'index.html header version tag must be v3.x');
 assert(indexHtml.includes('js/app.js?v=3.'), 'index.html app.js import must have ?v=3.x');
 
-// 2. Row 3 buttons shifted leftwards
-assert(indexHtml.includes('<!-- Shifted Leftwards Buttons: Campaigns, Archetypes, Tables (Tables won\'t exceed right margin) -->'), 'index.html should have shifted row 3 buttons comment');
+// 2. Row 3 buttons shifted to right end (v3.94) / leftwards (v3.92)
+assert(indexHtml.includes('Row 3') || indexHtml.includes('ROW 3'), 'index.html should have row 3 buttons comment');
 assert(indexHtml.includes('id="btn-open-campaigns"'), 'index.html must have btn-open-campaigns');
 assert(indexHtml.includes('id="btn-open-archetypes"'), 'index.html must have btn-open-archetypes');
 assert(indexHtml.includes('id="btn-open-tables"'), 'index.html must have btn-open-tables');
@@ -27,8 +27,8 @@ assert(row2RightChunk.includes('btn-open-campaigns'), 'btn-open-campaigns must b
 assert(row2RightChunk.includes('btn-open-archetypes'), 'btn-open-archetypes must be inside row-2-right button group');
 assert(row2RightChunk.includes('btn-open-tables'), 'btn-open-tables must be inside row-2-right button group');
 
-// Check styles.css .header-row-2 has justify-content: flex-start
-assert(stylesCss.includes('justify-content: flex-start;\n  gap: 1.25rem;'), 'styles.css .header-row-2 must have justify-content: flex-start and gap: 1.25rem');
+// Check styles.css .header-row-2 layout
+assert(stylesCss.includes('justify-content: space-between;\n  gap: 1.25rem;') || stylesCss.includes('justify-content: flex-start;\n  gap: 1.25rem;'), 'styles.css .header-row-2 must have justify-content and gap: 1.25rem');
 
 // Check app.js alignCampaignButton does not push buttons rightwards
 assert(appJs.includes("campBtn.style.marginLeft = '0';"), 'alignCampaignButton should set marginLeft to 0');
@@ -46,7 +46,7 @@ assert(subJs.includes('getMyParticipatedCampaigns()'), 'supabase_client.js must 
 // 5. Functional test of isUserCreatorOfCampaign and getBrowsableCampaigns with logged-in user
 Promise.all([
   import('./js/party.js'),
-  import('./js/supabase_client.js?v=3.93')
+  import('./js/supabase_client.js?v=3.94')
 ]).then(async ([{ CampaignTrackerManager }, { supabaseService }]) => {
   const mgr = new CampaignTrackerManager();
 

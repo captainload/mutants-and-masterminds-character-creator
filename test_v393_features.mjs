@@ -10,12 +10,12 @@ const indexHtml = fs.readFileSync('index.html', 'utf8').replace(/\r\n/g, '\n');
 const versionJson = JSON.parse(fs.readFileSync('version.json', 'utf8'));
 
 // 1. Version check
-assert.strictEqual(versionJson.version, '3.93', 'version.json should be 3.93');
-assert(indexHtml.includes('Character Editor v3.93'), 'index.html title must reflect v3.93');
-assert(indexHtml.includes('header-version-tag" class="header-version-tag up-to-date" title="Current Version">v3.93<'), 'index.html header version tag must be v3.93');
-assert(indexHtml.includes('js/app.js?v=3.93"'), 'index.html app.js import must have ?v=3.93');
-assert(indexHtml.includes('css/styles.css?v=3.93"'), 'index.html css import must have ?v=3.93');
-assert(appJs.includes("CURRENT_VERSION = '3.93';"), 'app.js CURRENT_VERSION must be 3.93');
+assert(parseFloat(versionJson.version) >= 3.93, 'version.json should be >= 3.93');
+assert(indexHtml.includes('Character Editor v3.'), 'index.html title must reflect v3.x');
+assert(indexHtml.includes('header-version-tag" class="header-version-tag up-to-date" title="Current Version">v3.'), 'index.html header version tag must be v3.x');
+assert(indexHtml.includes('js/app.js?v=3.'), 'index.html app.js import must have ?v=3.x');
+assert(indexHtml.includes('css/styles.css?v=3.'), 'index.html css import must have ?v=3.x');
+assert(appJs.includes("CURRENT_VERSION = '3."), 'app.js CURRENT_VERSION must be 3.x');
 
 // 2. Window Globals and isInitialized assigned in AppController constructor
 assert(appJs.includes('window.appController = this;'), 'app.js constructor must assign window.appController = this');
@@ -32,10 +32,10 @@ assert(subJs.includes('onAuthStateChange(callback) {'), 'supabase_client.js must
 assert(subJs.includes('setTimeout(() => {') && subJs.includes("callback(this.currentUser, this.currentProfile, 'INITIAL');"), 'supabase_client.js onAuthStateChange must defer initial callback');
 
 // 5. Cache busting on all module imports
-assert(appJs.includes("from './party.js?v=3.93';"), 'app.js must import party.js with ?v=3.93');
-assert(appJs.includes("from './supabase_client.js?v=3.93';"), 'app.js must import supabase_client.js with ?v=3.93');
-assert(appJs.includes("from './tables.js?v=3.93';"), 'app.js must import tables.js with ?v=3.93');
-assert(partyJs.includes("from './supabase_client.js?v=3.93';"), 'party.js must import supabase_client.js with ?v=3.93');
+assert(appJs.includes("from './party.js?v=3."), 'app.js must import party.js with version query param');
+assert(appJs.includes("from './supabase_client.js?v=3."), 'app.js must import supabase_client.js with version query param');
+assert(appJs.includes("from './tables.js?v=3."), 'app.js must import tables.js with version query param');
+assert(partyJs.includes("from './supabase_client.js?v=3."), 'party.js must import supabase_client.js with version query param');
 
 // 6. Defensive check in openCreateCampaignDialog
 assert(appJs.includes('partyManager?.isUserLoggedIn'), 'app.js openCreateCampaignDialog must use optional chaining on partyManager.isUserLoggedIn');

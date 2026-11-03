@@ -506,8 +506,24 @@ class SupabaseService {
   // =======================================================
   // CAMPAIGNS (CREATION, OWNERSHIP & SETTINGS)
   // =======================================================
+  async ensureSession() {
+    if (!this.client) this.ensureClient();
+    if (!this.currentUser && this.client) {
+      try {
+        const { data } = await this.client.auth.getSession();
+        if (data?.session?.user) {
+          this.currentUser = data.session.user;
+          await this.loadProfile();
+        }
+      } catch {}
+    }
+    return this.currentUser;
+  }
+
   async createCampaign({ name, campaignCode, powerLevel = 10, dontEnforcePL = false, isPublic = false, notes = '' }) {
+    if (!this.client) this.ensureClient();
     if (!this.client) throw new Error('Supabase client is not available.');
+    await this.ensureSession();
     if (!this.currentUser) throw new Error('You must be signed in to create a campaign.');
 
     const cleanName = String(name || '').trim();
@@ -527,38 +543,63 @@ class SupabaseService {
     const code = (campaignCode || cleanName.replace(/[^a-zA-Z]/g, '').slice(0, 4).toUpperCase() + '-' + Math.floor(1000 + Math.random() * 9000)).toUpperCase().replace(/^#+/, '');
     const creatorName = this.getUsername();
 
-    const payload = {
+    const basePayload = {
       campaign_code: code,
       campaign_name: cleanName,
       creator_id: this.currentUser.id,
       creator_name: creatorName,
       power_level: parseInt(powerLevel, 10) || 10,
       dont_enforce_pl: !!dontEnforcePL,
-      is_public: !!isPublic,
-      description: String(notes || '').trim(),
       is_session_active: false
     };
 
-    const { data, error } = await this.client
+    let data = null;
+    let error = null;
+
+    // Try full payload first (in case is_public and description exist in PostgreSQL table)
+    const fullPayload = {
+      ...basePayload,
+      is_public: !!isPublic,
+      description: String(notes || '').trim()
+    };
+
+    const res1 = await this.client
       .from('campaigns')
-      .insert([payload])
+      .insert([fullPayload])
       .select()
       .single();
+
+    if (res1.error && (res1.error.message?.includes('is_public') || res1.error.message?.includes('description') || res1.error.code === '42703')) {
+      // Schema fallback: table does not have is_public or description columns
+      const res2 = await this.client
+        .from('campaigns')
+        .insert([basePayload])
+        .select()
+        .single();
+      data = res2.data;
+      error = res2.error;
+    } else {
+      data = res1.data;
+      error = res1.error;
+    }
 
     if (error) throw error;
     return data;
   }
 
   async getPublicCampaigns() {
+    if (!this.client) this.ensureClient();
     if (!this.client) return [];
     try {
       const { data, error } = await this.client
         .from('campaigns')
         .select('*')
-        .eq('is_public', true)
         .order('created_at', { ascending: false });
-      if (error) return [];
-      return data || [];
+      if (error) {
+        console.warn('Error fetching public campaigns:', error);
+        return [];
+      }
+      return (data || []).filter(c => c.is_public === undefined || c.is_public === true);
     } catch {
       return [];
     }
@@ -619,6 +660,7 @@ class SupabaseService {
   }
 
   async updateCampaignSettings(campaignId, { powerLevel, dontEnforcePL, isSessionActive, isPublic, notes }) {
+    if (!this.client) this.ensureClient();
     if (!this.client || !campaignId) return null;
     const updates = { updated_at: new Date().toISOString() };
     if (powerLevel !== undefined) updates.power_level = parseInt(powerLevel, 10);
@@ -627,12 +669,25 @@ class SupabaseService {
     if (isPublic !== undefined) updates.is_public = !!isPublic;
     if (notes !== undefined) updates.description = String(notes || '');
 
-    const { data, error } = await this.client
+    let { data, error } = await this.client
       .from('campaigns')
       .update(updates)
       .eq('id', campaignId)
       .select()
       .maybeSingle();
+
+    if (error && (error.message?.includes('is_public') || error.message?.includes('description') || error.code === '42703')) {
+      delete updates.is_public;
+      delete updates.description;
+      const res2 = await this.client
+        .from('campaigns')
+        .update(updates)
+        .eq('id', campaignId)
+        .select()
+        .maybeSingle();
+      data = res2.data;
+      error = res2.error;
+    }
 
     if (error) throw error;
     return data;

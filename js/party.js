@@ -5,7 +5,7 @@
  * GM join approval queues, character sheet inspection, and P2P fallback.
  */
 
-import { supabaseService } from './supabase_client.js?v=3.93';
+import { supabaseService } from './supabase_client.js?v=3.94';
 
 export function formatCharacterSheetHTML(char) {
   if (!char) return '<div style="padding:1rem;color:var(--text-muted);">No character data available.</div>';
@@ -4568,7 +4568,7 @@ export class CampaignTrackerManager {
 <head>
   <meta charset="UTF-8">
   <title>Mutants & Masterminds 3E - Party Conditions & Toughness Tracker</title>
-  <link rel="stylesheet" href="css/styles.css?v=3.93">
+  <link rel="stylesheet" href="css/styles.css?v=3.94">
   <style>
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -4745,7 +4745,7 @@ export class CampaignTrackerManager {
 <head>
   <meta charset="UTF-8">
   <title>Mutants & Masterminds 3E - Game Session Tracker</title>
-  <link rel="stylesheet" href="css/styles.css?v=3.93">
+  <link rel="stylesheet" href="css/styles.css?v=3.94">
   <style>
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;

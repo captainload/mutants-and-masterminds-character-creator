@@ -39,19 +39,19 @@ import {
   HQ_SIZES_TABLE,
   HQ_FEATURES_LIST,
   tablesManager
-} from './tables.js?v=3.93';
+} from './tables.js?v=3.94';
 
-import { POWER_PROFILES_LIBRARY } from './power_profiles.js?v=3.93';
-import { ARCHETYPES } from './archetypes.js?v=3.93';
-import { archetypeManager } from './archetype_window.js?v=3.93';
-import { campaignManager, partyManager, formatCharacterSheetHTML } from './party.js?v=3.93';
-import { supabaseService } from './supabase_client.js?v=3.93';
-import { ARCHETYPE_CUSTOMIZATION_OPTIONS, buildCustomizedArchetype } from './archetype_builder.js?v=3.93';
-import { diceRoller } from './dice.js?v=3.93';
-import { DiscordConfig, discordIntegrator } from './discord.js?v=3.93';
-import { helpManager } from './help.js?v=3.93';
-import { storageManager } from './storage.js?v=3.93';
-import { BASIC_CONDITIONS, COMBINED_CONDITIONS, calculateConditionModifiers } from './conditions.js?v=3.93';
+import { POWER_PROFILES_LIBRARY } from './power_profiles.js?v=3.94';
+import { ARCHETYPES } from './archetypes.js?v=3.94';
+import { archetypeManager } from './archetype_window.js?v=3.94';
+import { campaignManager, partyManager, formatCharacterSheetHTML } from './party.js?v=3.94';
+import { supabaseService } from './supabase_client.js?v=3.94';
+import { ARCHETYPE_CUSTOMIZATION_OPTIONS, buildCustomizedArchetype } from './archetype_builder.js?v=3.94';
+import { diceRoller } from './dice.js?v=3.94';
+import { DiscordConfig, discordIntegrator } from './discord.js?v=3.94';
+import { helpManager } from './help.js?v=3.94';
+import { storageManager } from './storage.js?v=3.94';
+import { BASIC_CONDITIONS, COMBINED_CONDITIONS, calculateConditionModifiers } from './conditions.js?v=3.94';
 
 class AppController {
   constructor() {
@@ -118,6 +118,7 @@ class AppController {
     this.migrateSkillMasteryToAdvantage(this.char);
     this.repairTruncatedPowerNotes(this.char);
     this.setupUpdateChecker();
+    this.syncPlayerNameWithCampaignAttachment();
     this.renderAll();
     this._isInitialized = true;
     try { partyManager?.renderAllOpenViews?.(); } catch (e) {}
@@ -2213,7 +2214,7 @@ window.partyManager = partyManager;
   }
 
   async checkForUpdates({ isManual = false } = {}) {
-    const CURRENT_VERSION = '3.93';
+    const CURRENT_VERSION = '3.94';
     const versionEl = document.getElementById('header-version-tag');
     const updateBtn = document.getElementById('btn-header-update-alert');
     if (typeof window === 'undefined' || !window.location || !window.location.href || window.location.href === 'about:blank') return;
@@ -2405,7 +2406,10 @@ window.partyManager = partyManager;
         const id = e.currentTarget.dataset.id;
         storageManager.setActiveCharacter(id);
         this.char = storageManager.getActiveCharacter();
-        this.renderAll();
+        if (!this.char.alts) this.char.alts = [];
+        this.primaryChar = this.char;
+        this.activeAltId = null;
+        this.loadCharacterToUI();
         this.closeModal('modal-load-character');
       });
 
@@ -2955,17 +2959,25 @@ window.partyManager = partyManager;
         try { this.updateCampaignDropdown?.(); } catch (e) { console.warn('updateCampaignDropdown auth error:', e); }
       }
 
-      // When a (different) account signs in, the active player identity becomes that account's username
-      if (this._lastAuthUserId !== user.id || (this.char && !String(this.char.playerName || '').trim())) {
-        this._lastAuthUserId = user.id;
-        const pInput = document.getElementById('header-player-name');
-        if (pInput) pInput.value = uname;
-        if (this.char && this.char.playerName !== uname) {
-          this.char.playerName = uname;
-          if (this.primaryChar && this.primaryChar !== this.char) this.primaryChar.playerName = uname;
-          this.saveAndAudit();
-          this.updatePlayerDropdown?.();
+      // When an account signs in: if the active character is attached to a campaign,
+      // its local player name matches the online username. If not attached, user decides player name freely.
+      if (this.isCharacterAttachedToCampaign(this.char)) {
+        if (this._lastAuthUserId !== user.id || (this.char && !String(this.char.playerName || '').trim())) {
+          this._lastAuthUserId = user.id;
+          const pInput = document.getElementById('header-player-name');
+          if (pInput) pInput.value = uname;
+          if (this.char && this.char.playerName !== uname) {
+            this.char.playerName = uname;
+            if (this.primaryChar && this.primaryChar !== this.char) this.primaryChar.playerName = uname;
+            this.saveAndAudit();
+            this.updatePlayerDropdown?.();
+          }
         }
+      } else {
+        this._lastAuthUserId = user.id;
+        // Non-campaign character: keep local player name as user decided
+        const pInput = document.getElementById('header-player-name');
+        if (pInput) pInput.value = this.char?.playerName || '';
       }
     } else {
       this._lastAuthUserId = null;
@@ -3288,8 +3300,11 @@ window.partyManager = partyManager;
                 dontEnforcePL: false
               });
             } catch (cloudErr) {
-              await this.showAlertDialog(cloudErr.message, { title: 'Cannot Create Campaign' });
-              return;
+              const proceedLocal = await this.showConfirmDialog(
+                `Failed to create campaign in cloud database:\n${cloudErr.message || 'Cloud database rejected creation'}\n\nWould you like to create it as a local campaign instead?`,
+                { title: 'Cloud Database Notice', confirmText: 'Create Locally' }
+              );
+              if (!proceedLocal) return;
             }
           }
 
@@ -4021,7 +4036,7 @@ window.partyManager = partyManager;
 <head>
   <meta charset="UTF-8">
   <title>Mutants &amp; Masterminds 3E - Campaign Messaging Client</title>
-  <link rel="stylesheet" href="css/styles.css?v=3.93">
+  <link rel="stylesheet" href="css/styles.css?v=3.94">
   <style>
     html, body { height: 100%; margin: 0; }
     body {
@@ -7256,7 +7271,40 @@ window.partyManager = partyManager;
     return auditCharacter(this.char);
   }
 
+  isCharacterAttachedToCampaign(char = this.char) {
+    if (!char) return false;
+    const campId = String(char.campaignId || '').trim();
+    const campName = String(char.campaign || char.lastCampaign || '').trim();
+    if (campId) return true;
+    if (campName && campName !== 'Earth-Prime' && campName !== 'None') return true;
+    return false;
+  }
+
+  syncPlayerNameWithCampaignAttachment() {
+    if (!this.char) return;
+    const isCampaign = this.isCharacterAttachedToCampaign(this.char);
+    if (isCampaign) {
+      const onlineUname = (typeof supabaseService !== 'undefined' && supabaseService && typeof supabaseService.isLoggedIn === 'function' && supabaseService.isLoggedIn())
+        ? (supabaseService.getUsername() || '')
+        : '';
+      if (onlineUname) {
+        this.char.playerName = onlineUname;
+        if (this.primaryChar && this.primaryChar !== this.char) {
+          this.primaryChar.playerName = onlineUname;
+        }
+        const pInput = document.getElementById('header-player-name');
+        if (pInput) pInput.value = onlineUname;
+        this.saveAndAudit();
+      }
+    } else {
+      // Not attached to campaign: local player name can be whatever user decides
+      const pInput = document.getElementById('header-player-name');
+      if (pInput) pInput.value = this.char.playerName || '';
+    }
+  }
+
   loadCharacterToUI() {
+    this.syncPlayerNameWithCampaignAttachment();
     this.updatePlayerDropdown();
     setTimeout(() => this.checkActiveSessionOffer(), 400);
     this.repairTruncatedPowerNotes(this.char);

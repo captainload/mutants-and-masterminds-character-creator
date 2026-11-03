@@ -1,6 +1,6 @@
 {
-  "version": "3.93",
+  "version": "3.94",
   "updatedAt": "2026-11-02T15:35:47.445Z",
-  "releaseNotes": "Guard against early auth render race, assign window controllers in constructor, add defensive checks across modules, and update all module cache busting.",
+  "releaseNotes": "Sync local player name with online username for campaign characters, preserve custom player name for non-campaign characters, move Campaigns button to right of Tables and shift group to right end of row 3, and fix campaign creation against cloud database schema.",
   "updated": "2026-11-02"
 }

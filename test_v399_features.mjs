@@ -666,6 +666,7 @@ console.log('✓ Message details (from, to, campaign, timestamp) slightly larger
 
 // Test 21: Campaign Browser Session Logs Dropdown & Split Pane Log Viewer
 console.log('Test 21: Verify Campaign Browser Session Logs dropdown & split viewer');
+supabaseService.getUsername = () => 'captainload';
 const logsMgr = new CampaignTrackerManager();
 logsMgr.getCurrentUsername = () => 'captainload';
 
@@ -674,15 +675,38 @@ const testCampLogs = {
   campaignName: 'Metro Defense',
   creatorName: 'captainload',
   isCreator: true,
+  isJoinedOrCreated: true,
   isPublic: true,
   powerLevel: 10
 };
 logsMgr.registerCampaignInfo(testCampLogs);
 logsMgr.saveToCampaignHistory(testCampLogs);
 
-// Verify default/saved session logs
+// Verify initially empty - no bogus logs fabricated if none recorded
+const initialLogs = logsMgr.getCampaignSessionLogs('LOGS-900');
+assert.strictEqual(initialLogs.length, 0, 'Must not seed bogus session logs when none are recorded');
+
+// Check browser HTML shows clean empty state
+const emptyBrowserHTML = logsMgr.generateCampaignBrowserHTML();
+assert.ok(emptyBrowserHTML.includes('No previous session logs recorded yet.'), 'Empty logs state must be displayed');
+
+// Save authentic session logs
+logsMgr.saveCampaignSessionLog('LOGS-900', {
+  id: 'slog_test_1',
+  title: 'Session 1: Warehouse Reconnaissance',
+  date: '10/12/2026',
+  time: '7:00 PM',
+  notes: 'Players conducted surveillance at the docks.'
+});
+logsMgr.saveCampaignSessionLog('LOGS-900', {
+  id: 'slog_test_2',
+  title: 'Session 2: Infiltration',
+  date: '10/19/2026',
+  time: '7:30 PM',
+  notes: 'Party breached the perimeter and accessed logs.'
+});
 const logs = logsMgr.getCampaignSessionLogs('LOGS-900');
-assert.ok(Array.isArray(logs) && logs.length >= 3, 'Must have at least 3 session logs');
+assert.ok(Array.isArray(logs) && logs.length === 2, 'Must have saved authentic session logs');
 assert.ok(logs[0].title && logs[0].date && logs[0].notes, 'Session log must contain title, date, and notes');
 
 // Verify Campaign Browser HTML has campaign-logs-dropdown and replaces attach button for members

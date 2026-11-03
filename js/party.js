@@ -524,19 +524,6 @@ export class CampaignTrackerManager {
           this.saveCampaignSavedCharacter(cleanId, m.characterData, m.playerName, sessionEndTimestamp);
         }
       });
-
-      // Save session log for this completed session
-      const sessRolls = this.getSessionRolls ? this.getSessionRolls(cleanId) : [];
-      const memberNames = members.map(m => m.characterData?.name || m.playerName || 'Hero').join(', ');
-      this.saveCampaignSessionLog(cleanId, {
-        title: `Session Recap: ${info?.campaignName || histMatch?.campaignName || current.campaignName || cleanId} (${new Date().toLocaleDateString()})`,
-        date: new Date().toLocaleDateString(),
-        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        notes: `Session concluded for "${info?.campaignName || histMatch?.campaignName || current.campaignName || cleanId}".\nParticipating heroes: ${memberNames || 'None recorded'}.\nTotal rolls logged: ${sessRolls.length}.`,
-        gmName: info?.creatorName || histMatch?.creatorName || this.getCurrentUsername() || 'GM',
-        characters: members.map(m => ({ name: m.characterData?.name || 'Hero', player: m.playerName })),
-        rollsCount: sessRolls.length
-      });
     }
     this.broadcastMessage({
       type: 'SESSION_ENDED',
@@ -566,45 +553,6 @@ export class CampaignTrackerManager {
   // =======================================================
   // CAMPAIGN SESSION LOGS STORE & BROWSER VIEWER (v4.00)
   // =======================================================
-  getDefaultSessionLogsForCampaign(cleanId, campaignName = '') {
-    const cName = campaignName || cleanId || 'Campaign';
-    return [
-      {
-        id: `slog_${cleanId}_1`,
-        campaignId: cleanId,
-        title: `Session 1: Incident at Downtown`,
-        date: '10/12/2026',
-        time: '7:00 PM',
-        notes: `The team assembled in ${cName} to investigate anomalous power surges. Rogue automatons were neutralized and civilian infrastructure secured.`,
-        gmName: 'GM',
-        characters: [{ name: 'Vigilant', player: 'Player 1' }, { name: 'Apex', player: 'Player 2' }],
-        rollsCount: 14
-      },
-      {
-        id: `slog_${cleanId}_2`,
-        campaignId: cleanId,
-        title: `Session 2: Shadows in the Underground`,
-        date: '10/19/2026',
-        time: '7:30 PM',
-        notes: `Investigation within ${cName} led to the discovery of an encrypted datapad in subterranean tunnels. Decrypted communications revealed covert syndicate movements.`,
-        gmName: 'GM',
-        characters: [{ name: 'Vigilant', player: 'Player 1' }, { name: 'Apex', player: 'Player 2' }],
-        rollsCount: 22
-      },
-      {
-        id: `slog_${cleanId}_3`,
-        campaignId: cleanId,
-        title: `Session 3: Confrontation at the Citadel`,
-        date: '10/26/2026',
-        time: '8:00 PM',
-        notes: `High-stakes battle against an elite strike force in ${cName}. The heroes repelled the offensive and contained the experimental energy core.`,
-        gmName: 'GM',
-        characters: [{ name: 'Vigilant', player: 'Player 1' }, { name: 'Apex', player: 'Player 2' }],
-        rollsCount: 31
-      }
-    ];
-  }
-
   getCampaignSessionLogs(campaignId) {
     if (!campaignId) return [];
     const clean = String(campaignId).trim().toUpperCase().replace(/^#+/, '');
@@ -626,10 +574,7 @@ export class CampaignTrackerManager {
       return histMatch.sessionLogs;
     }
 
-    // Default session logs
-    const defaultLogs = this.getDefaultSessionLogsForCampaign(clean, info.campaignName || histMatch?.campaignName);
-    this.saveCampaignSessionLogs(clean, defaultLogs);
-    return defaultLogs;
+    return [];
   }
 
   saveCampaignSessionLogs(campaignId, logs) {
@@ -4667,7 +4612,7 @@ export class CampaignTrackerManager {
                 <div class="menu-dropdown-container campaign-logs-dropdown" style="position: relative; display: inline-block;">
                   <button type="button" class="btn btn-outline campaign-logs-toggle" data-campid="${c.campaignId}" title="View previous session logs" style="font-size: 10pt; padding: 2px 9px; font-weight: 700; color: var(--hero-purple, #a855f7); border-color: rgba(168, 85, 247, 0.55); background: rgba(168, 85, 247, 0.08); cursor: pointer; display: inline-flex; align-items: center; gap: 0.3rem;">
                     <span>📜 Logs ▾</span>
-                    ${cLogs.length > 0 ? `<span style="background: rgba(168, 85, 247, 0.25); color: #d8b4fe; font-size: 9pt; font-weight: 800; padding: 0px 5px; border-radius: 999px;">${cLogs.length}</span>` : ''}
+                    ${cLogs.length > 0 ? `<span style="background: rgba(168, 85, 247, 0.25); color: #d8b4fe; font-size: 10pt; font-weight: 800; padding: 0px 5px; border-radius: 999px;">${cLogs.length}</span>` : ''}
                   </button>
                   <div class="menu-dropdown-panel campaign-logs-panel" style="position: absolute; top: calc(100% + 4px); right: 0; left: auto; min-width: 260px; max-height: calc(6 * 44px + 36px); overflow-y: auto; border-radius: 6px; z-index: 2500; padding: 0.35rem 0;">
                     <div class="menu-dropdown-heading" style="font-size: 10pt; font-weight: 800; text-transform: uppercase; color: var(--hero-purple, #a855f7); padding: 0.35rem 0.85rem 0.2rem 0.85rem;">Previous Session Logs</div>
@@ -4676,7 +4621,7 @@ export class CampaignTrackerManager {
                     ` : cLogs.map(log => `
                       <button type="button" class="menu-dropdown-item btn-view-session-log" data-campid="${c.campaignId}" data-logid="${log.id}" style="font-size: 10pt; color: var(--text-bright); font-weight: 600; cursor: pointer; display: flex; flex-direction: column; align-items: flex-start; gap: 2px; padding: 0.45rem 0.85rem; border-bottom: 1px solid rgba(255,255,255,0.05); text-align: left; width: 100%;">
                         <span style="font-weight: 700; color: var(--hero-cyan);">${this.escapeHTML(log.title || 'Session Log')}</span>
-                        <span style="font-size: 9pt; color: var(--text-muted);">${this.escapeHTML(log.date || '')} ${log.time ? '• ' + this.escapeHTML(log.time) : ''}</span>
+                        <span style="font-size: 10pt; color: var(--text-muted);">${this.escapeHTML(log.date || '')} ${log.time ? '• ' + this.escapeHTML(log.time) : ''}</span>
                       </button>
                     `).join('')}
                   </div>

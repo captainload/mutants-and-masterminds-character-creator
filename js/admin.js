@@ -133,7 +133,7 @@ class DatabaseAdminController {
           const cliRes = await fetch(ep);
           if (cliRes.ok) {
             const data = await cliRes.json();
-            if (data && data.available && data.authenticated && data.token) {
+            if (data && data.available && data.authenticated) {
               cliData = data;
               break;
             }
@@ -141,9 +141,9 @@ class DatabaseAdminController {
         } catch {}
       }
 
-      if (cliData && cliData.available && cliData.authenticated && cliData.token) {
+      if (cliData && cliData.available && cliData.authenticated) {
         // Automatically authenticate right away!
-        await this.verifyAndSignIn(cliData.username || 'captainload', cliData.token);
+        await this.verifyAndSignIn(cliData.username || 'captainload');
         return;
       }
     } catch (e) {
@@ -183,13 +183,12 @@ class DatabaseAdminController {
         throw new Error(`Access Denied: Logged in as "${authenticatedUser}". Only the GitHub project owner (captainload) is permitted to administer this database. Character editor test accounts are not accepted.`);
       }
 
-      // Store verified GitHub project admin session
+      // Store verified GitHub project admin session (sanitized, no secrets stored)
       this.githubUser = {
         login: ghData?.login || 'captainload',
         name: ghData?.name || ghData?.login || 'captainload',
         avatar_url: ghData?.avatar_url || 'https://github.com/captainload.png',
         html_url: ghData?.html_url || 'https://github.com/captainload',
-        token: cleanToken,
         verifiedAt: new Date().toISOString()
       };
 
@@ -298,13 +297,17 @@ class DatabaseAdminController {
         btn.textContent = 'Connecting as captainload...';
       }
       try {
-        let token = '';
+        let isAuth = false;
         try {
           const res = await fetch('/api/github-cli-auth');
           const data = await res.json();
-          if (data && data.token) token = data.token;
+          if (data && data.authenticated && (data.username || '').toLowerCase() === 'captainload') isAuth = true;
         } catch {}
-        await this.verifyAndSignIn('captainload', token);
+        if (isAuth) {
+          await this.verifyAndSignIn('captainload');
+        } else {
+          throw new Error('Local GitHub CLI is not authenticated as captainload.');
+        }
       } catch (err) {
         console.error('Login error:', err);
       } finally {

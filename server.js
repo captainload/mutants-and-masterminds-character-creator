@@ -32,24 +32,35 @@ const server = http.createServer((req, res) => {
 
   // Handle GitHub CLI auth status endpoint for local admin console
   if (reqPath === '/api/github-cli-auth') {
-    res.setHeader('Access-Control-Allow-Origin', '*');
+    const origin = req.headers.origin || '';
+    if (origin && origin !== 'http://localhost:3000' && origin !== 'http://127.0.0.1:3000') {
+      res.writeHead(403, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: 'Access forbidden: cross-origin requests denied' }));
+      return;
+    }
+    const ip = req.socket.remoteAddress || '';
+    if (!ip.includes('127.0.0.1') && !ip.includes('::1')) {
+      res.writeHead(403, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: 'Access forbidden: loopback access only' }));
+      return;
+    }
+    res.setHeader('Access-Control-Allow-Origin', origin || 'http://localhost:3000');
     res.setHeader('Content-Type', 'application/json; charset=utf-8');
     try {
       // Find gh.exe or gh in PATH / WinGet
       const wingetGh = 'C:\\Users\\admin\\AppData\\Local\\Microsoft\\WinGet\\Packages\\GitHub.cli_Microsoft.Winget.Source_8wekyb3d8bbwe\\bin\\gh.exe';
       const ghBin = fs.existsSync(wingetGh) ? `"${wingetGh}"` : 'gh';
-      const token = execSync(`${ghBin} auth token`, { encoding: 'utf8', timeout: 3000 }).trim();
       const status = execSync(`${ghBin} auth status`, { encoding: 'utf8', timeout: 3000 });
       let username = 'captainload';
       const userMatch = status.match(/account\s+([a-zA-Z0-9_-]+)/i);
       if (userMatch) username = userMatch[1];
+      const isCaptainload = username.toLowerCase() === 'captainload';
 
       res.writeHead(200);
       res.end(JSON.stringify({
         available: true,
-        authenticated: true,
+        authenticated: isCaptainload,
         username,
-        token,
         projectOwner: 'captainload',
         repo: 'captainload/mutants-and-masterminds-character-creator'
       }));

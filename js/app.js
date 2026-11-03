@@ -2956,6 +2956,11 @@ window.partyManager = partyManager;
       if (usernameLabel) usernameLabel.textContent = uname;
       if (dropdownUsername) dropdownUsername.textContent = uname;
       if (dropdownEmail) dropdownEmail.textContent = user.email || '';
+      const isProjectAdmin = uname.toLowerCase() === 'captainload' || String(user.email || '').toLowerCase().includes('captainload');
+      const adminLink = document.getElementById('btn-header-database-admin');
+      if (adminLink) {
+        adminLink.style.display = isProjectAdmin ? 'flex' : 'none';
+      }
       if (this._isInitialized) {
         try { partyManager?.renderAllOpenViews?.(); } catch (e) { console.warn('renderAllOpenViews auth error:', e); }
         try { this.updateCampaignDropdown?.(); } catch (e) { console.warn('updateCampaignDropdown auth error:', e); }
@@ -3015,6 +3020,8 @@ window.partyManager = partyManager;
       if (usernameLabel) usernameLabel.textContent = 'User';
       if (dropdownUsername) dropdownUsername.textContent = 'User';
       if (dropdownEmail) dropdownEmail.textContent = '';
+      const adminLink = document.getElementById('btn-header-database-admin');
+      if (adminLink) adminLink.style.display = 'none';
       if (this._isInitialized) {
         try { partyManager?.renderAllOpenViews?.(); } catch (e) { console.warn('renderAllOpenViews logout error:', e); }
         try { this.updateCampaignDropdown?.(); } catch (e) { console.warn('updateCampaignDropdown logout error:', e); }

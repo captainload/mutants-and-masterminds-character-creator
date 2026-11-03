@@ -225,15 +225,17 @@ class SupabaseService {
 
   persistActiveAuthUser() {
     try {
-      if (typeof sessionStorage === 'undefined') return;
       if (this.currentUser) {
-        sessionStorage.setItem('mm3e_active_auth_user', JSON.stringify({
+        const payload = JSON.stringify({
           id: this.currentUser.id,
           email: this.currentUser.email || '',
           username: this.getUsername()
-        }));
+        });
+        if (typeof sessionStorage !== 'undefined') sessionStorage.setItem('mm3e_active_auth_user', payload);
+        if (typeof localStorage !== 'undefined') localStorage.setItem('mm3e_active_auth_user', payload);
       } else {
-        sessionStorage.removeItem('mm3e_active_auth_user');
+        if (typeof sessionStorage !== 'undefined') sessionStorage.removeItem('mm3e_active_auth_user');
+        if (typeof localStorage !== 'undefined') localStorage.removeItem('mm3e_active_auth_user');
       }
     } catch {}
   }

@@ -88,6 +88,27 @@ class DatabaseAdminController {
   // GITHUB PROJECT AUTHENTICATION
   // =======================================================
   async checkSessionAndLoad() {
+    // 0. Check who is logged into the character editor
+    let activeEditorUser = null;
+    try {
+      const rawActive = (typeof localStorage !== 'undefined' ? localStorage.getItem('mm3e_active_auth_user') : null) ||
+                        (typeof sessionStorage !== 'undefined' ? sessionStorage.getItem('mm3e_active_auth_user') : null);
+      if (rawActive) activeEditorUser = JSON.parse(rawActive);
+    } catch {}
+
+    const editorUname = String(activeEditorUser?.username || '').trim().toLowerCase();
+    // If the browser session is explicitly logged into the character editor as another user (not captainload),
+    // require explicit admin authentication rather than auto-logging in.
+    if (editorUname && editorUname !== 'captainload') {
+      const errEl = document.getElementById('admin-login-error');
+      if (errEl) {
+        errEl.textContent = `You are currently logged into the character editor as "${activeEditorUser.username}". Database Admin requires GitHub project administrator credentials (captainload).`;
+        errEl.style.display = 'block';
+      }
+      this.showAuthOverlay(true);
+      return;
+    }
+
     // 1. Check existing verified GitHub session in sessionStorage
     try {
       const stored = sessionStorage.getItem('mm3e_admin_github_session');

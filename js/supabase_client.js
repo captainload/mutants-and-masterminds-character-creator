@@ -693,6 +693,55 @@ class SupabaseService {
     return data;
   }
 
+  async deleteCampaign(campaignId) {
+    if (!this.client) this.ensureClient();
+    if (!this.client || !campaignId) return false;
+    try {
+      await this.ensureSession();
+      if (!this.currentUser) return false;
+      const cleanId = String(campaignId).toUpperCase().replace(/^#+/, '');
+      let targetIds = [campaignId, cleanId];
+      try {
+        const { data: camps } = await this.client
+          .from('campaigns')
+          .select('id, campaign_code, creator_id')
+          .or(`campaign_code.eq.${cleanId},id.eq.${campaignId}`);
+        if (camps && camps.length > 0) {
+          camps.forEach(c => {
+            if (c.id) targetIds.push(c.id);
+            if (c.campaign_code) targetIds.push(c.campaign_code);
+          });
+        }
+      } catch {}
+      targetIds = Array.from(new Set(targetIds.filter(Boolean)));
+
+      // 1. Delete associated campaign members and join requests
+      for (const tId of targetIds) {
+        try {
+          await this.client.from('campaign_members').delete().eq('campaign_id', tId);
+        } catch {}
+        try {
+          await this.client.from('join_requests').delete().eq('campaign_id', tId);
+        } catch {}
+      }
+
+      // 2. Delete campaign from campaigns table
+      for (const tId of targetIds) {
+        try {
+          await this.client.from('campaigns').delete().eq('id', tId).eq('creator_id', this.currentUser.id);
+        } catch {}
+        try {
+          await this.client.from('campaigns').delete().eq('campaign_code', tId).eq('creator_id', this.currentUser.id);
+        } catch {}
+      }
+
+      return true;
+    } catch (e) {
+      console.warn('Failed to delete campaign from Supabase:', e);
+      return false;
+    }
+  }
+
   // =======================================================
   // JOIN REQUESTS & GM APPROVAL WORKFLOW
   // =======================================================
@@ -934,12 +983,44 @@ class SupabaseService {
   }
 
   async removeCampaignMember(campaignId, userId) {
+    if (!this.client) this.ensureClient();
     if (!this.client || !campaignId || !userId) return;
-    await this.client
-      .from('campaign_members')
-      .delete()
-      .eq('campaign_id', campaignId)
-      .eq('user_id', userId);
+    try {
+      const cleanId = String(campaignId).toUpperCase().replace(/^#+/, '');
+      let targetIds = [campaignId, cleanId];
+      try {
+        const { data: camps } = await this.client
+          .from('campaigns')
+          .select('id, campaign_code')
+          .or(`campaign_code.eq.${cleanId},id.eq.${campaignId}`);
+        if (camps && camps.length > 0) {
+          camps.forEach(c => {
+            if (c.id) targetIds.push(c.id);
+            if (c.campaign_code) targetIds.push(c.campaign_code);
+          });
+        }
+      } catch {}
+      targetIds = Array.from(new Set(targetIds.filter(Boolean)));
+
+      for (const tId of targetIds) {
+        try {
+          await this.client
+            .from('campaign_members')
+            .delete()
+            .eq('campaign_id', tId)
+            .eq('user_id', userId);
+        } catch {}
+        try {
+          await this.client
+            .from('join_requests')
+            .delete()
+            .eq('campaign_id', tId)
+            .eq('user_id', userId);
+        } catch {}
+      }
+    } catch (e) {
+      console.warn('Failed to remove campaign member from Supabase:', e);
+    }
   }
 
   async markMemberOffline(campaignId) {

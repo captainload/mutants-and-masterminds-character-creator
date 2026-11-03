@@ -39,19 +39,19 @@ import {
   HQ_SIZES_TABLE,
   HQ_FEATURES_LIST,
   tablesManager
-} from './tables.js?v=3.96';
+} from './tables.js?v=3.97';
 
-import { POWER_PROFILES_LIBRARY } from './power_profiles.js?v=3.96';
-import { ARCHETYPES } from './archetypes.js?v=3.96';
-import { archetypeManager } from './archetype_window.js?v=3.96';
-import { campaignManager, partyManager, formatCharacterSheetHTML } from './party.js?v=3.96';
-import { supabaseService } from './supabase_client.js?v=3.96';
-import { ARCHETYPE_CUSTOMIZATION_OPTIONS, buildCustomizedArchetype } from './archetype_builder.js?v=3.96';
-import { diceRoller } from './dice.js?v=3.96';
-import { DiscordConfig, discordIntegrator } from './discord.js?v=3.96';
-import { helpManager } from './help.js?v=3.96';
-import { storageManager, normalizeCharacter } from './storage.js?v=3.96';
-import { BASIC_CONDITIONS, COMBINED_CONDITIONS, calculateConditionModifiers } from './conditions.js?v=3.96';
+import { POWER_PROFILES_LIBRARY } from './power_profiles.js?v=3.97';
+import { ARCHETYPES } from './archetypes.js?v=3.97';
+import { archetypeManager } from './archetype_window.js?v=3.97';
+import { campaignManager, partyManager, formatCharacterSheetHTML } from './party.js?v=3.97';
+import { supabaseService } from './supabase_client.js?v=3.97';
+import { ARCHETYPE_CUSTOMIZATION_OPTIONS, buildCustomizedArchetype } from './archetype_builder.js?v=3.97';
+import { diceRoller } from './dice.js?v=3.97';
+import { DiscordConfig, discordIntegrator } from './discord.js?v=3.97';
+import { helpManager } from './help.js?v=3.97';
+import { storageManager, normalizeCharacter } from './storage.js?v=3.97';
+import { BASIC_CONDITIONS, COMBINED_CONDITIONS, calculateConditionModifiers } from './conditions.js?v=3.97';
 
 class AppController {
   constructor() {
@@ -62,6 +62,7 @@ class AppController {
     window.archetypeManager = archetypeManager;
     this._isInitialized = false;
 
+    this.storage = storageManager;
     this.char = storageManager.getActiveCharacter();
     normalizeCharacter(this.char);
     if (!this.char.alts) this.char.alts = [];
@@ -2215,7 +2216,7 @@ window.partyManager = partyManager;
   }
 
   async checkForUpdates({ isManual = false } = {}) {
-    const CURRENT_VERSION = '3.96';
+    const CURRENT_VERSION = '3.97';
     const versionEl = document.getElementById('header-version-tag');
     const updateBtn = document.getElementById('btn-header-update-alert');
     if (typeof window === 'undefined' || !window.location || !window.location.href || window.location.href === 'about:blank') return;
@@ -3633,11 +3634,11 @@ window.partyManager = partyManager;
 
   async confirmAndLeaveCampaign(campId, campName = '') {
     const cleanId = String(campId || '').trim().toUpperCase().replace(/^#+/, '');
-    const info = campaignManager.getCampaignInfo(cleanId);
+    const info = campaignManager.getCampaignInfo(cleanId) || campaignManager.getCampaignHistory().find(c => c.campaignId === cleanId);
     const displayCampName = campName || info?.campaignName || cleanId;
     const cleanName = displayCampName.trim().toLowerCase();
 
-        const confirmed = await this.showConfirmDialog(
+    const confirmed = await this.showConfirmDialog(
       `Are you sure you want to leave the party for campaign "${displayCampName}"?\n\n` +
       `⚠️ Please Note: This will only prevent you from having characters in this campaign's party — a GM user will still own and manage the campaign.\n\n` +
       `Your campaign characters will remain intact in your character library, and you will still be able to restore characters from campaign backups at any time.`,
@@ -3653,7 +3654,7 @@ window.partyManager = partyManager;
     const detachedNames = [];
     // Detach currently active character if attached to this campaign
     const curCampId = String(this.char.campaignId || '').trim().toUpperCase().replace(/^#+/, '');
-    const curCampName = String(this.char.campaign || '').trim().toLowerCase();
+    const curCampName = String(this.char.campaign || this.char.lastCampaign || '').trim().toLowerCase();
     if ((cleanId && curCampId === cleanId) || (cleanName && curCampName === cleanName)) {
       if (this.char.name) detachedNames.push(this.char.name);
       this.char.campaign = '';
@@ -3674,12 +3675,19 @@ window.partyManager = partyManager;
       const chars = (typeof storageManager.getCharacters === 'function' ? storageManager.getCharacters() : storageManager.characters) || [];
       chars.forEach(ch => {
         const chId = String(ch.campaignId || '').trim().toUpperCase().replace(/^#+/, '');
-        const chName = String(ch.campaign || '').trim().toLowerCase();
+        const chName = String(ch.campaign || ch.lastCampaign || '').trim().toLowerCase();
         if ((cleanId && chId === cleanId) || (cleanName && chName === cleanName)) {
           if (ch.name && !detachedNames.includes(ch.name)) detachedNames.push(ch.name);
           ch.campaign = '';
           ch.campaignId = '';
           ch.lastCampaign = '';
+          if (Array.isArray(ch.alts)) {
+            ch.alts.forEach(alt => {
+              alt.campaign = '';
+              alt.campaignId = '';
+              alt.lastCampaign = '';
+            });
+          }
           if (typeof storageManager.saveCharacter === 'function') {
             storageManager.saveCharacter(ch);
           }
@@ -3700,6 +3708,8 @@ window.partyManager = partyManager;
 
     campaignManager.leaveCampaignPermanent(cleanId, displayCampName);
     campaignManager.renderAllOpenViews();
+    this.updateCampaignDropdown?.();
+    this.alignCampaignButton?.();
   }
 
   async toggleCampaignHiatus(campId, putOnHiatus = true) {
@@ -3731,7 +3741,7 @@ window.partyManager = partyManager;
 
   async confirmAndDeleteCampaignByGM(campId, campName = '') {
     const cleanId = String(campId || '').trim().toUpperCase().replace(/^#+/, '');
-    const info = campaignManager.getCampaignInfo(cleanId);
+    const info = campaignManager.getCampaignInfo(cleanId) || campaignManager.getCampaignHistory().find(c => c.campaignId === cleanId);
     const displayCampName = campName || info?.campaignName || cleanId;
 
     const confirmed = await this.showConfirmDialog(
@@ -3745,8 +3755,16 @@ window.partyManager = partyManager;
     );
     if (!confirmed) return;
 
-    campaignManager.deleteCampaignByGM(cleanId, supabaseService.getUsername() || this.char.playerName || 'GM');
-    await this.showAlertDialog(`Campaign "${displayCampName}" has been cancelled and deleted.`, { title: 'Campaign Deleted' });
+    try {
+      campaignManager.deleteCampaignByGM(cleanId, supabaseService.getUsername() || this.char.playerName || 'GM');
+      this.updateCampaignDropdown?.();
+      this.alignCampaignButton?.();
+      campaignManager.renderAllOpenViews();
+      await this.showAlertDialog(`Campaign "${displayCampName}" has been cancelled and deleted.`, { title: 'Campaign Deleted' });
+    } catch (err) {
+      console.error('Error deleting campaign:', err);
+      await this.showAlertDialog(`Could not delete campaign: ${err.message}`, { title: 'Delete Campaign Failed' });
+    }
   }
 
   async openTransferOwnershipDialog(campId, campName = '') {
@@ -4037,7 +4055,7 @@ window.partyManager = partyManager;
 <head>
   <meta charset="UTF-8">
   <title>Mutants &amp; Masterminds 3E - Campaign Messaging Client</title>
-  <link rel="stylesheet" href="css/styles.css?v=3.96">
+  <link rel="stylesheet" href="css/styles.css?v=3.97">
   <style>
     html, body { height: 100%; margin: 0; }
     body {

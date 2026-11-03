@@ -5,7 +5,7 @@
  * GM join approval queues, character sheet inspection, and P2P fallback.
  */
 
-import { supabaseService } from './supabase_client.js?v=3.96';
+import { supabaseService } from './supabase_client.js?v=3.97';
 
 export function formatCharacterSheetHTML(char) {
   if (!char) return '<div style="padding:1rem;color:var(--text-muted);">No character data available.</div>';
@@ -909,31 +909,28 @@ export class CampaignTrackerManager {
     const currentUsername = (this.getCurrentUsername() || '').trim().toLowerCase();
     if (!currentUsername) return false;
 
-    // 1. If user is the creator, they are by definition a member
-    if (this.isUserCreatorOfCampaign({ campaignId: cleanId, campaignName: cleanName })) {
-      return true;
-    }
-
-    // 2. Check if the user has an active or stored character attached to this campaign
-    if (typeof window !== 'undefined' && window.appController) {
-      const char = window.appController.char;
-      if (char) {
-        const charCampId = String(char.campaignId || '').toUpperCase().replace(/^#+/, '');
-        const charCampName = String(char.campaign || '').trim().toLowerCase();
-        if ((cleanId && charCampId === cleanId) || (cleanName && charCampName === cleanName)) {
-          return true;
-        }
+    // 1. Check if the user has an active or stored character currently attached to this campaign
+    const allChars = [];
+    if (typeof window !== 'undefined' && window.appController?.char) {
+      allChars.push(window.appController.char);
+      if (window.appController.primaryChar && window.appController.primaryChar !== window.appController.char) {
+        allChars.push(window.appController.primaryChar);
       }
-      const storedChars = window.appController.storage?.getCharacters?.() || [];
-      const hasStored = storedChars.some(ch => {
-        const chCampId = String(ch.campaignId || '').toUpperCase().replace(/^#+/, '');
-        const chCampName = String(ch.campaign || '').trim().toLowerCase();
-        return (cleanId && chCampId === cleanId) || (cleanName && chCampName === cleanName);
-      });
-      if (hasStored) return true;
+    }
+    if (typeof storageManager !== 'undefined') {
+      (storageManager.getCharacters() || []).forEach(c => allChars.push(c));
+    } else if (typeof window !== 'undefined' && window.appController?.storage?.getCharacters) {
+      (window.appController.storage.getCharacters() || []).forEach(c => allChars.push(c));
     }
 
-    // 2b. Check approved join requests & saved campaign characters
+    const hasAttachedChar = allChars.some(ch => {
+      const chCampId = String(ch.campaignId || '').toUpperCase().replace(/^#+/, '');
+      const chCampName = String(ch.campaign || ch.lastCampaign || '').trim().toLowerCase();
+      return (cleanId && chCampId === cleanId) || (cleanName && chCampName === cleanName);
+    });
+    if (hasAttachedChar) return true;
+
+    // 2. Check approved join requests store (only active approved request for this username)
     try {
       const reqs = this.getAllJoinRequestsStore();
       const approvedReq = reqs.find(r => {
@@ -948,43 +945,17 @@ export class CampaignTrackerManager {
       if (approvedReq) return true;
     } catch {}
 
-    try {
-      const savedChars = this.getCampaignSavedCharacters(cleanId);
-      if (savedChars && Object.keys(savedChars).length > 0) {
-        if (!currentUsername) return true;
-        const hasCharForUser = Object.values(savedChars).some(sc => {
-          const pName = String(sc.playerName || sc.username || '').trim().toLowerCase();
-          return pName && pName === currentUsername;
-        });
-        if (hasCharForUser) return true;
-      }
-    } catch {}
-
-    // 3. Check history entries, but ONLY entries belonging to this user
-    const history = this.getCampaignHistory();
-    const userHistoryMatch = history.find(c => {
-      const cId = String(c.campaignId || '').trim().toUpperCase().replace(/^#+/, '');
-      const cName = String(c.campaignName || '').trim().toLowerCase();
-      const matchesCamp = (cleanId && cId === cleanId) || (cleanName && cName === cleanName);
+    // 3. Check active party members
+    const members = this.getPartyMembers();
+    const isMemberInParty = members.some(m => {
+      const mCampId = String(m.campaignId || '').toUpperCase().replace(/^#+/, '');
+      const mCampName = String(m.campaign || '').trim().toLowerCase();
+      const matchesCamp = (cleanId && mCampId === cleanId) || (cleanName && mCampName === cleanName);
       if (!matchesCamp) return false;
-      const histCreator = String(c.creatorName || '').trim().toLowerCase();
-      const histPlayer = String(c.playerName || '').trim().toLowerCase();
-      const histUser = String(c.userKey || c.forUser || '').trim().toLowerCase();
-      if (currentUsername) {
-        return histUser === currentUsername || histCreator === currentUsername || histPlayer === currentUsername;
-      }
-      return true;
+      const pName = String(m.playerName || '').trim().toLowerCase();
+      return currentUsername && pName === currentUsername;
     });
-    if (userHistoryMatch) return true;
-
-    // 4. Check active party members if connected
-    const current = this.getCampaignState();
-    if (current.isConnected && current.campaignId && current.campaignId.replace(/^#+/, '') === cleanId) {
-      const members = this.getPartyMembers();
-      if (members.some(m => String(m.playerName || '').trim().toLowerCase() === currentUsername)) {
-        return true;
-      }
-    }
+    if (isMemberInParty) return true;
 
     return false;
   }
@@ -1398,6 +1369,7 @@ export class CampaignTrackerManager {
   leaveCampaignPermanent(campaignId, campaignName = '') {
     const cleanId = String(campaignId || '').trim().toUpperCase().replace(/^#+/, '');
     const cleanName = String(campaignName || '').trim().toLowerCase();
+    const currentUsername = (this.getCurrentUsername() || '').trim().toLowerCase();
 
     const current = this.getCampaignState();
     if (current && ((cleanId && current.campaignId === cleanId) || (cleanName && (current.campaignName || '').trim().toLowerCase() === cleanName))) {
@@ -1416,13 +1388,15 @@ export class CampaignTrackerManager {
       }
     }
 
-    // Remove from campaign history unless user is creator
+    // Remove from campaign history UNLESS user is the GM / Creator of the campaign
     try {
       const history = this.getCampaignHistory().filter(c => {
         const matchId = cleanId && c.campaignId === cleanId;
         const matchName = cleanName && (c.campaignName || '').trim().toLowerCase() === cleanName;
+        if (!matchId && !matchName) return true;
+        // Keep in history ONLY if user is creator (so GM still sees their campaign in browser)
         if (c.isCreator || this.isUserCreatorOfCampaign(c)) return true;
-        return !matchId && !matchName;
+        return false;
       });
       const serialized = JSON.stringify(history);
       if (typeof localStorage !== 'undefined') {
@@ -1432,14 +1406,44 @@ export class CampaignTrackerManager {
       }
     } catch (e) {}
 
+    // Remove approved join request for this user from join requests store
+    try {
+      const reqs = this.getAllJoinRequestsStore().filter(r => {
+        const rId = String(r.campaignId || '').trim().toUpperCase().replace(/^#+/, '');
+        const rUser = String(r.username || '').trim().toLowerCase();
+        const matchesCamp = rId === cleanId || (cleanName && String(r.campaignName || '').trim().toLowerCase() === cleanName);
+        if (matchesCamp && (!currentUsername || rUser === currentUsername)) {
+          return false;
+        }
+        return true;
+      });
+      this.saveAllJoinRequestsStore(reqs);
+    } catch (e) {}
+
     // Remove any party members tied to this campaign
     const members = this.getPartyMembers().filter(m => {
       const mId = String(m.campaignId || '').trim().toUpperCase().replace(/^#+/, '');
       const mName = String(m.campaign || '').trim().toLowerCase();
-      return !((cleanId && mId === cleanId) || (cleanName && mName === cleanName));
+      const matchesCamp = (cleanId && mId === cleanId) || (cleanName && mName === cleanName);
+      if (matchesCamp) return false;
+      if (m.isLocal && (!m.campaignId || m.campaignId === cleanId)) return false;
+      return true;
     });
     this.savePartyMembers(members);
+
+    // Call Supabase to remove member from campaign_members table in cloud
+    if (typeof supabaseService !== 'undefined' && supabaseService && supabaseService.isLoggedIn()) {
+      const user = supabaseService.getUser();
+      if (user && user.id) {
+        supabaseService.removeCampaignMember(cleanId, user.id).catch(() => {});
+      }
+    }
+
     this.renderAllOpenViews();
+    if (typeof window !== 'undefined' && window.appController) {
+      window.appController.updateCampaignDropdown?.();
+      window.appController.alignCampaignButton?.();
+    }
   }
 
   // =======================================================
@@ -1584,7 +1588,11 @@ export class CampaignTrackerManager {
     const match = hist.find(c => c.campaignId === cleanId);
     const info = this.getCampaignInfo(cleanId) || match || {};
     if (!this.isUserCreatorOfCampaign(info || match || { campaignId: cleanId })) {
-      throw new Error('Only the GM can delete this campaign.');
+      const uName = (this.getCurrentUsername() || '').trim().toLowerCase();
+      const cCreator = (info?.creatorName || match?.creatorName || '').trim().toLowerCase();
+      if (!uName || !cCreator || uName !== cCreator) {
+        throw new Error('Only the GM can delete this campaign.');
+      }
     }
 
     if (this.isSessionActive(cleanId)) {
@@ -1593,24 +1601,26 @@ export class CampaignTrackerManager {
     const campName = match?.campaignName || info.campaignName || cleanId;
     const effectiveGM = gmName || match?.creatorName || info.creatorName || this.getCurrentUsername() || 'GM';
 
-    this.sendCampaignMessage({
-      type: 'CAMPAIGN_CANCELLED',
-      recipientRole: 'PARTICIPANTS',
-      campaignId: cleanId,
-      campaignName: campName,
-      gmName: effectiveGM,
-      playerName: 'All Campaign Players',
-      text: `Campaign "${campName}" (#${cleanId}) has been cancelled and deleted by GM ${effectiveGM}.`
-    });
+    try {
+      this.sendCampaignMessage({
+        type: 'CAMPAIGN_CANCELLED',
+        recipientRole: 'PARTICIPANTS',
+        campaignId: cleanId,
+        campaignName: campName,
+        gmName: effectiveGM,
+        playerName: 'All Campaign Players',
+        text: `Campaign "${campName}" (#${cleanId}) has been cancelled and deleted by GM ${effectiveGM}.`
+      });
 
-    this.broadcastMessage({
-      type: 'CAMPAIGN_DELETED',
-      campaignId: cleanId,
-      campaignName: campName,
-      gmName: effectiveGM
-    });
+      this.broadcastMessage({
+        type: 'CAMPAIGN_DELETED',
+        campaignId: cleanId,
+        campaignName: campName,
+        gmName: effectiveGM
+      });
+    } catch (e) {}
 
-    // Remove from registry and history
+    // 1. Remove from registry
     try {
       const reg = this.getCampaignRegistry();
       delete reg[cleanId];
@@ -1622,7 +1632,97 @@ export class CampaignTrackerManager {
       }
     } catch (e) {}
 
-    this.leaveCampaignPermanent(cleanId, campName);
+    // 2. Remove from campaign history - MUST REMOVE REGARDLESS OF isCreator
+    try {
+      const history = this.getCampaignHistory().filter(c => {
+        const matchId = cleanId && c.campaignId === cleanId;
+        const matchName = campName && (c.campaignName || '').trim().toLowerCase() === campName.trim().toLowerCase();
+        return !matchId && !matchName;
+      });
+      const serialized = JSON.stringify(history);
+      if (typeof localStorage !== 'undefined') {
+        localStorage.setItem('mm3e_campaigns_history', serialized);
+      } else {
+        this._memoryFallback['mm3e_campaigns_history'] = serialized;
+      }
+    } catch (e) {}
+
+    // 3. Remove join requests for this campaign
+    try {
+      const reqs = this.getAllJoinRequestsStore().filter(r => {
+        const rId = String(r.campaignId || '').trim().toUpperCase().replace(/^#+/, '');
+        return rId !== cleanId;
+      });
+      this.saveAllJoinRequestsStore(reqs);
+    } catch (e) {}
+
+    // 4. Clean up campaign characters store
+    try {
+      if (typeof localStorage !== 'undefined') {
+        localStorage.removeItem(`mm3e_campaign_characters_${cleanId}`);
+      }
+    } catch (e) {}
+
+    // 5. Delete from Supabase cloud database
+    if (typeof supabaseService !== 'undefined' && supabaseService && typeof supabaseService.deleteCampaign === 'function') {
+      supabaseService.deleteCampaign(cleanId).catch(err => console.warn('Cloud campaign deletion error:', err));
+    }
+
+    // 6. Detach active character and stored characters
+    if (typeof window !== 'undefined' && window.appController) {
+      const app = window.appController;
+      if (app.char) {
+        const curId = String(app.char.campaignId || '').trim().toUpperCase().replace(/^#+/, '');
+        const curName = String(app.char.campaign || app.char.lastCampaign || '').trim().toLowerCase();
+        if (curId === cleanId || curName === campName.trim().toLowerCase()) {
+          app.char.campaign = '';
+          app.char.campaignId = '';
+          app.char.lastCampaign = '';
+          if (app.primaryChar) {
+            app.primaryChar.campaign = '';
+            app.primaryChar.campaignId = '';
+            app.primaryChar.lastCampaign = '';
+          }
+          const campInput = document.getElementById('header-campaign-name');
+          if (campInput) campInput.value = '';
+          app.saveAndAudit();
+        }
+      }
+      try {
+        const chars = (typeof storageManager !== 'undefined' ? storageManager.getCharacters() : (app.storage?.getCharacters() || [])) || [];
+        chars.forEach(ch => {
+          const chId = String(ch.campaignId || '').trim().toUpperCase().replace(/^#+/, '');
+          const chName = String(ch.campaign || ch.lastCampaign || '').trim().toLowerCase();
+          if (chId === cleanId || chName === campName.trim().toLowerCase()) {
+            ch.campaign = '';
+            ch.campaignId = '';
+            ch.lastCampaign = '';
+            if (Array.isArray(ch.alts)) {
+              ch.alts.forEach(alt => {
+                alt.campaign = '';
+                alt.campaignId = '';
+                alt.lastCampaign = '';
+              });
+            }
+            if (typeof storageManager !== 'undefined') storageManager.saveCharacter(ch);
+          }
+        });
+      } catch (e) {}
+    }
+
+    // 7. Clear campaign state
+    const current = this.getCampaignState();
+    if (current && ((cleanId && current.campaignId === cleanId) || (campName && (current.campaignName || '').trim().toLowerCase() === campName.trim().toLowerCase()))) {
+      this.leaveCampaign();
+    }
+
+    // 8. Re-render all views
+    this.renderAllOpenViews();
+    if (typeof window !== 'undefined' && window.appController) {
+      window.appController.updateCampaignDropdown?.();
+      window.appController.alignCampaignButton?.();
+    }
+
     return true;
   }
 
@@ -3749,7 +3849,11 @@ export class CampaignTrackerManager {
 
   generateCampaignBrowserHTML() {
     const browserCampaigns = this.getBrowsableCampaigns();
-    const storedChars = (typeof window !== 'undefined' && window.appController?.storage?.getCharacters()) || [];
+    const allStoredChars = (typeof storageManager !== 'undefined' ? storageManager.getCharacters() : (typeof window !== 'undefined' && window.appController?.storage?.getCharacters ? window.appController.storage.getCharacters() : [])) || [];
+    if (typeof window !== 'undefined' && window.appController?.char && !allStoredChars.some(c => c.id === window.appController.char.id)) {
+      allStoredChars.push(window.appController.char);
+    }
+    const storedChars = allStoredChars;
     const bf = this.browserFilters || { query: '', searchName: true, searchDesc: true, searchPL: false, plMin: 1, plMax: 20, sortBy: 'default', hideHiatus: false };
     const state = this.getCampaignState();
 
@@ -4568,7 +4672,7 @@ export class CampaignTrackerManager {
 <head>
   <meta charset="UTF-8">
   <title>Mutants & Masterminds 3E - Party Conditions & Toughness Tracker</title>
-  <link rel="stylesheet" href="css/styles.css?v=3.96">
+  <link rel="stylesheet" href="css/styles.css?v=3.97">
   <style>
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -4745,7 +4849,7 @@ export class CampaignTrackerManager {
 <head>
   <meta charset="UTF-8">
   <title>Mutants & Masterminds 3E - Game Session Tracker</title>
-  <link rel="stylesheet" href="css/styles.css?v=3.96">
+  <link rel="stylesheet" href="css/styles.css?v=3.97">
   <style>
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;

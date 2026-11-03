@@ -1,6 +1,6 @@
 {
-  "version": "3.96",
-  "updatedAt": "2026-11-03T02:05:04.570Z",
-  "releaseNotes": "Fix UI controls unresponsiveness by normalizing character skills format from legacy/object data and guarding migration methods and header controls.",
+  "version": "3.97",
+  "updatedAt": "2026-11-03T02:24:29.625Z",
+  "releaseNotes": "Fix delete campaign to completely remove campaigns from registry, history, and cloud database, and fix leave party to reliably detach characters, update membership status, and sync with cloud.",
   "updated": "2026-11-03"
 }

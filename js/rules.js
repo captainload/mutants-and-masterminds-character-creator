@@ -3,7 +3,7 @@
  * Official rules text from Green Ronin Publishing M&M 3e Deluxe Hero's Handbook.
  */
 
-import { MEASUREMENTS_TABLE } from './tables.js?v=3.96';
+import { MEASUREMENTS_TABLE } from './tables.js?v=3.97';
 
 export const ABILITIES = [
   { id: 'str', name: 'Strength', short: 'STR', desc: 'Strength measures sheer muscle and physical power of your character. It affects the damage you deal in close combat, how far you can jump, your athletic prowess, and how much weight you can lift and carry.' },

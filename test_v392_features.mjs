@@ -46,7 +46,7 @@ assert(subJs.includes('getMyParticipatedCampaigns()'), 'supabase_client.js must 
 // 5. Functional test of isUserCreatorOfCampaign and getBrowsableCampaigns with logged-in user
 Promise.all([
   import('./js/party.js'),
-  import('./js/supabase_client.js?v=3.96')
+  import('./js/supabase_client.js?v=3.97')
 ]).then(async ([{ CampaignTrackerManager }, { supabaseService }]) => {
   const mgr = new CampaignTrackerManager();
 

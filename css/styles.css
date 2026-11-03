@@ -3537,7 +3537,8 @@ html[data-theme="light"] .campaign-browser-toolbar select {
   border-color: #cbd5e1 !important;
 }
 .campaign-actions-panel,
-.campaign-gm-panel {
+.campaign-gm-panel,
+.campaign-logs-panel {
   position: absolute;
   top: calc(100% + 4px);
   right: 0;
@@ -3556,27 +3557,32 @@ html[data-theme="light"] .campaign-browser-toolbar select {
   border-color: rgba(234, 179, 8, 0.45);
 }
 .campaign-actions-panel.show,
-.campaign-gm-panel.show {
+.campaign-gm-panel.show,
+.campaign-logs-panel.show {
   display: block !important;
   animation: dropdownFadeIn 0.15s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .campaign-browser-card:has(.campaign-actions-panel.show),
-.campaign-browser-card:has(.campaign-gm-panel.show) {
+.campaign-browser-card:has(.campaign-gm-panel.show),
+.campaign-browser-card:has(.campaign-logs-panel.show) {
   z-index: 50;
 }
 html[data-theme="light"] .campaign-actions-panel,
-html[data-theme="light"] .campaign-gm-panel {
+html[data-theme="light"] .campaign-gm-panel,
+html[data-theme="light"] .campaign-logs-panel {
   background-color: #ffffff !important;
   color: #0f172a !important;
   border-color: #cbd5e1 !important;
   box-shadow: 0 10px 28px rgba(0, 0, 0, 0.15) !important;
 }
 html[data-theme="light"] .campaign-actions-panel .menu-dropdown-heading,
-html[data-theme="light"] .campaign-gm-panel .menu-dropdown-heading {
+html[data-theme="light"] .campaign-gm-panel .menu-dropdown-heading,
+html[data-theme="light"] .campaign-logs-panel .menu-dropdown-heading {
   color: #64748b !important;
 }
 html[data-theme="light"] .campaign-actions-panel .menu-dropdown-item,
-html[data-theme="light"] .campaign-gm-panel .menu-dropdown-item {
+html[data-theme="light"] .campaign-gm-panel .menu-dropdown-item,
+html[data-theme="light"] .campaign-logs-panel .menu-dropdown-item {
   color: #1e293b !important;
 }
 html[data-theme="light"] .campaign-actions-panel .menu-dropdown-item:hover,
@@ -3833,4 +3839,81 @@ html[data-theme="light"] .campaign-character-card {
   background: #ffffff !important;
   border-color: rgba(59, 130, 246, 0.3) !important;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06) !important;
+}
+
+.campaign-logs-panel {
+  max-height: calc(6 * 44px + 36px);
+  overflow-y: auto;
+  border-color: rgba(168, 85, 247, 0.45);
+}
+
+/* Campaign Browser Split Pane & Session Log Viewer (v4.00) */
+#campaign-tracker-content,
+#party-tracker-popout-content {
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+  height: 100% !important;
+}
+
+.campaign-browser-split-wrapper {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+}
+
+.campaign-browser-top-pane {
+  min-height: 100px;
+  overflow-y: auto;
+  box-sizing: border-box;
+}
+
+.campaign-browser-split-divider {
+  height: 8px;
+  min-height: 8px;
+  background: var(--border-color);
+  cursor: row-resize;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+  transition: background 0.15s ease;
+  flex-shrink: 0;
+  z-index: 10;
+}
+
+.campaign-browser-split-divider:hover,
+.campaign-browser-split-divider.active-dragging {
+  background: var(--hero-blue) !important;
+}
+
+.campaign-browser-split-divider .divider-handle {
+  width: 36px;
+  height: 3px;
+  background: rgba(255, 255, 255, 0.4);
+  border-radius: 2px;
+}
+
+.campaign-browser-log-pane {
+  min-height: 100px;
+  overflow: hidden;
+  background: var(--bg-card);
+  border-top: 1px solid var(--border-color);
+  box-sizing: border-box;
+}
+
+.session-log-viewer-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 0.85rem 1.15rem;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.session-log-viewer-body {
+  flex: 1;
+  overflow-y: auto;
 }

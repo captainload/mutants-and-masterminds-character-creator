@@ -664,4 +664,92 @@ assert.ok(stylesCss.includes('.msg-from-badge') && stylesCss.includes('.msg-to-b
 assert.ok(indexHtmlContent.includes('id="msg-compose-recipient-input"') && indexHtmlContent.includes('font-size: 11pt;'), 'index.html must style compose recipient input with 11pt');
 console.log('✓ Message details (from, to, campaign, timestamp) slightly larger (11pt) verified successfully.');
 
+// Test 21: Campaign Browser Session Logs Dropdown & Split Pane Log Viewer
+console.log('Test 21: Verify Campaign Browser Session Logs dropdown & split viewer');
+const logsMgr = new CampaignTrackerManager();
+logsMgr.getCurrentUsername = () => 'captainload';
+
+const testCampLogs = {
+  campaignId: 'LOGS-900',
+  campaignName: 'Metro Defense',
+  creatorName: 'captainload',
+  isCreator: true,
+  isPublic: true,
+  powerLevel: 10
+};
+logsMgr.registerCampaignInfo(testCampLogs);
+logsMgr.saveToCampaignHistory(testCampLogs);
+
+// Verify default/saved session logs
+const logs = logsMgr.getCampaignSessionLogs('LOGS-900');
+assert.ok(Array.isArray(logs) && logs.length >= 3, 'Must have at least 3 session logs');
+assert.ok(logs[0].title && logs[0].date && logs[0].notes, 'Session log must contain title, date, and notes');
+
+// Verify Campaign Browser HTML has campaign-logs-dropdown and replaces attach button for members
+const browserHTMLWithLogs = logsMgr.generateCampaignBrowserHTML();
+assert.ok(browserHTMLWithLogs.includes('campaign-logs-dropdown'), 'Browser must include campaign-logs-dropdown');
+assert.ok(browserHTMLWithLogs.includes('campaign-logs-toggle'), 'Browser must include campaign-logs-toggle');
+assert.ok(browserHTMLWithLogs.includes('btn-view-session-log'), 'Logs panel must include btn-view-session-log');
+assert.ok(browserHTMLWithLogs.includes('max-height: calc(6 * 44px + 36px)'), 'Logs dropdown must limit height to 6 entries before scrolling');
+
+// Verify split wrapper structure in HTML
+assert.ok(browserHTMLWithLogs.includes('campaign-browser-split-wrapper'), 'Browser HTML must contain campaign-browser-split-wrapper');
+assert.ok(browserHTMLWithLogs.includes('campaign-browser-top-pane'), 'Browser HTML must contain campaign-browser-top-pane');
+assert.ok(browserHTMLWithLogs.includes('campaign-browser-split-divider'), 'Browser HTML must contain campaign-browser-split-divider');
+assert.ok(browserHTMLWithLogs.includes('campaign-browser-log-pane'), 'Browser HTML must contain campaign-browser-log-pane');
+
+// Mock DOM elements to test split interactions (open log, double click divider, close, switch logs)
+const mockElements = {};
+const mockDoc = {
+  querySelector: (sel) => mockElements[sel] || null,
+  querySelectorAll: (sel) => mockElements[sel] ? [mockElements[sel]] : [],
+  addEventListener: () => {},
+  removeEventListener: () => {}
+};
+
+const mockWrapper = {
+  style: {},
+  ownerDocument: mockDoc,
+  querySelector: (s) => mockElements[s] || null,
+  querySelectorAll: (s) => mockElements[s] ? [mockElements[s]] : [],
+  getBoundingClientRect: () => ({ height: 600, top: 100 })
+};
+const mockTopPane = { style: {}, getBoundingClientRect: () => ({ height: 300, top: 100 }) };
+const mockDivider = { style: {}, addEventListener: (evt, fn) => { mockDivider['on_' + evt] = fn; }, classList: { add: () => {}, remove: () => {} } };
+const mockLogPane = { innerHTML: '', style: {} };
+
+mockElements['#campaign-browser-split-wrapper'] = mockWrapper;
+mockElements['#campaign-browser-top-pane'] = mockTopPane;
+mockElements['#campaign-browser-split-divider'] = mockDivider;
+mockElements['#campaign-browser-log-pane'] = mockLogPane;
+
+// 1. Open first session log
+logsMgr.openSessionLogInBrowser('LOGS-900', logs[0].id, { ownerDocument: mockDoc, querySelector: (s) => mockElements[s], querySelectorAll: (s) => mockElements[s] ? [mockElements[s]] : [] });
+assert.strictEqual(mockDivider.style.display, 'flex', 'Divider must be visible when log is opened');
+assert.strictEqual(mockLogPane.style.display, 'flex', 'Log pane must be visible when log is opened');
+assert.ok(mockLogPane.innerHTML.includes(logs[0].title), 'Log pane must display the selected log title');
+assert.ok(mockLogPane.innerHTML.includes('btn-close-log-viewer'), 'Log pane must contain ✕ close button');
+
+// 2. Double-click divider restores default 50/50 position
+assert.ok(typeof mockDivider.on_dblclick === 'function', 'Divider must have dblclick listener');
+mockDivider.on_dblclick({ preventDefault: () => {}, stopPropagation: () => {} });
+assert.strictEqual(logsMgr._logDividerTopRatio, 0.5, 'Double click must reset ratio to 0.5');
+assert.strictEqual(mockTopPane.style.flex, '1 1 50%', 'Top pane must restore to 50% flex');
+assert.strictEqual(mockLogPane.style.flex, '1 1 50%', 'Log pane must restore to 50% flex');
+
+// 3. Switch between session logs while pane remains open
+logsMgr.openSessionLogInBrowser('LOGS-900', logs[1].id, { ownerDocument: mockDoc, querySelector: (s) => mockElements[s], querySelectorAll: (s) => mockElements[s] ? [mockElements[s]] : [] });
+assert.strictEqual(mockLogPane.style.display, 'flex', 'Log pane must remain open when switching logs');
+assert.ok(mockLogPane.innerHTML.includes(logs[1].title), 'Log pane must update to second log title');
+
+// 4. Click ✕ close button to close log viewer
+logsMgr.closeSessionLogViewer({ ownerDocument: mockDoc, querySelector: (s) => mockElements[s], querySelectorAll: (s) => mockElements[s] ? [mockElements[s]] : [] });
+assert.strictEqual(mockDivider.style.display, 'none', 'Divider must hide on close');
+assert.strictEqual(mockLogPane.style.display, 'none', 'Log pane must hide on close');
+assert.strictEqual(mockTopPane.style.flex, '1 1 100%', 'Top pane must expand to 100% on close');
+
+// Verify Attach Character remains in Actions menu
+assert.ok(browserHTMLWithLogs.includes('Attach Character'), 'Attach Character must remain available under Actions');
+console.log('✓ Campaign Browser Session Logs dropdown & split viewer verified successfully.');
+
 console.log('--- ALL v3.99 TESTS PASSED SUCCESSFULLY! ---');

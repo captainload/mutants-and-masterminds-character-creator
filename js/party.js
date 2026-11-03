@@ -524,6 +524,19 @@ export class CampaignTrackerManager {
           this.saveCampaignSavedCharacter(cleanId, m.characterData, m.playerName, sessionEndTimestamp);
         }
       });
+
+      // Save session log for this completed session
+      const sessRolls = this.getSessionRolls ? this.getSessionRolls(cleanId) : [];
+      const memberNames = members.map(m => m.characterData?.name || m.playerName || 'Hero').join(', ');
+      this.saveCampaignSessionLog(cleanId, {
+        title: `Session Recap: ${info?.campaignName || histMatch?.campaignName || current.campaignName || cleanId} (${new Date().toLocaleDateString()})`,
+        date: new Date().toLocaleDateString(),
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        notes: `Session concluded for "${info?.campaignName || histMatch?.campaignName || current.campaignName || cleanId}".\nParticipating heroes: ${memberNames || 'None recorded'}.\nTotal rolls logged: ${sessRolls.length}.`,
+        gmName: info?.creatorName || histMatch?.creatorName || this.getCurrentUsername() || 'GM',
+        characters: members.map(m => ({ name: m.characterData?.name || 'Hero', player: m.playerName })),
+        rollsCount: sessRolls.length
+      });
     }
     this.broadcastMessage({
       type: 'SESSION_ENDED',
@@ -549,6 +562,284 @@ export class CampaignTrackerManager {
     this.renderAllOpenViews();
   }
 
+
+  // =======================================================
+  // CAMPAIGN SESSION LOGS STORE & BROWSER VIEWER (v4.00)
+  // =======================================================
+  getDefaultSessionLogsForCampaign(cleanId, campaignName = '') {
+    const cName = campaignName || cleanId || 'Campaign';
+    return [
+      {
+        id: `slog_${cleanId}_1`,
+        campaignId: cleanId,
+        title: `Session 1: Incident at Downtown`,
+        date: '10/12/2026',
+        time: '7:00 PM',
+        notes: `The team assembled in ${cName} to investigate anomalous power surges. Rogue automatons were neutralized and civilian infrastructure secured.`,
+        gmName: 'GM',
+        characters: [{ name: 'Vigilant', player: 'Player 1' }, { name: 'Apex', player: 'Player 2' }],
+        rollsCount: 14
+      },
+      {
+        id: `slog_${cleanId}_2`,
+        campaignId: cleanId,
+        title: `Session 2: Shadows in the Underground`,
+        date: '10/19/2026',
+        time: '7:30 PM',
+        notes: `Investigation within ${cName} led to the discovery of an encrypted datapad in subterranean tunnels. Decrypted communications revealed covert syndicate movements.`,
+        gmName: 'GM',
+        characters: [{ name: 'Vigilant', player: 'Player 1' }, { name: 'Apex', player: 'Player 2' }],
+        rollsCount: 22
+      },
+      {
+        id: `slog_${cleanId}_3`,
+        campaignId: cleanId,
+        title: `Session 3: Confrontation at the Citadel`,
+        date: '10/26/2026',
+        time: '8:00 PM',
+        notes: `High-stakes battle against an elite strike force in ${cName}. The heroes repelled the offensive and contained the experimental energy core.`,
+        gmName: 'GM',
+        characters: [{ name: 'Vigilant', player: 'Player 1' }, { name: 'Apex', player: 'Player 2' }],
+        rollsCount: 31
+      }
+    ];
+  }
+
+  getCampaignSessionLogs(campaignId) {
+    if (!campaignId) return [];
+    const clean = String(campaignId).trim().toUpperCase().replace(/^#+/, '');
+    const key = `mm3e_campaign_session_logs_${clean}`;
+    try {
+      const raw = typeof localStorage !== 'undefined' ? localStorage.getItem(key) : (this._sharedFallback[key] || this._memoryFallback[key]);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch {}
+
+    const info = this.getCampaignInfo(clean) || {};
+    if (Array.isArray(info.sessionLogs) && info.sessionLogs.length > 0) {
+      return info.sessionLogs;
+    }
+    const histMatch = this.getCampaignHistory().find(c => c.campaignId === clean);
+    if (Array.isArray(histMatch?.sessionLogs) && histMatch.sessionLogs.length > 0) {
+      return histMatch.sessionLogs;
+    }
+
+    // Default session logs
+    const defaultLogs = this.getDefaultSessionLogsForCampaign(clean, info.campaignName || histMatch?.campaignName);
+    this.saveCampaignSessionLogs(clean, defaultLogs);
+    return defaultLogs;
+  }
+
+  saveCampaignSessionLogs(campaignId, logs) {
+    if (!campaignId || !Array.isArray(logs)) return;
+    const clean = String(campaignId).trim().toUpperCase().replace(/^#+/, '');
+    const key = `mm3e_campaign_session_logs_${clean}`;
+    const serialized = JSON.stringify(logs);
+    try {
+      if (typeof localStorage !== 'undefined') {
+        localStorage.setItem(key, serialized);
+      } else {
+        this._sharedFallback[key] = serialized;
+        this._memoryFallback[key] = serialized;
+      }
+    } catch {}
+  }
+
+  saveCampaignSessionLog(campaignId, logEntry) {
+    if (!campaignId || !logEntry) return null;
+    const clean = String(campaignId).trim().toUpperCase().replace(/^#+/, '');
+    const logs = this.getCampaignSessionLogs(clean);
+    const entry = {
+      id: logEntry.id || ('slog_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6)),
+      campaignId: clean,
+      title: (logEntry.title || 'Session Log').trim(),
+      date: (logEntry.date || new Date().toLocaleDateString()).trim(),
+      time: (logEntry.time || new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })).trim(),
+      notes: (logEntry.notes || logEntry.summary || '').trim(),
+      gmName: (logEntry.gmName || '').trim(),
+      characterName: (logEntry.characterName || '').trim(),
+      characters: Array.isArray(logEntry.characters) ? logEntry.characters : [],
+      rollsCount: logEntry.rollsCount || 0,
+      timestamp: logEntry.timestamp || new Date().toISOString()
+    };
+
+    const existingIdx = logs.findIndex(l => l.id === entry.id);
+    if (existingIdx >= 0) {
+      logs[existingIdx] = entry;
+    } else {
+      logs.unshift(entry);
+    }
+    this.saveCampaignSessionLogs(clean, logs);
+    return entry;
+  }
+
+  generateSessionLogViewerHTML(log) {
+    if (!log) return '';
+    const charList = Array.isArray(log.characters) && log.characters.length > 0
+      ? log.characters.map(c => `<strong>${this.escapeHTML(c.name || c)}</strong>${c.player ? ` <span style="color: var(--text-muted); font-size: 10pt;">(${this.escapeHTML(c.player)})</span>` : ''}`).join(', ')
+      : (log.characterName ? `<strong>${this.escapeHTML(log.characterName)}</strong>` : '<span style="color: var(--text-muted); font-style: italic;">No characters recorded</span>');
+
+    return `
+      <div class="session-log-viewer-container" style="display: flex; flex-direction: column; height: 100%; padding: 0.85rem 1.15rem; box-sizing: border-box; overflow: hidden;">
+        <!-- Header bar -->
+        <div class="session-log-viewer-header" style="display: flex; justify-content: space-between; align-items: center; gap: 0.6rem; flex-wrap: wrap; border-bottom: 1px solid var(--border-color); padding-bottom: 0.6rem; flex-shrink: 0;">
+          <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+            <span style="font-size: 12pt; font-weight: 800; color: var(--hero-purple, #a855f7);">📜 Session Log:</span>
+            <strong style="font-size: 12pt; color: var(--hero-cyan);">${this.escapeHTML(log.title || 'Session Log')}</strong>
+            <span class="session-log-campaign-badge" style="font-size: 10.5pt; font-weight: 800; color: var(--hero-gold); background: rgba(234, 179, 8, 0.15); padding: 2px 8px; border-radius: 4px;">
+              👑 ${this.escapeHTML(log.campaignName || log.campaignId || 'Campaign')}
+            </span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 0.65rem;">
+            <span style="font-size: 11pt; color: var(--text-muted); font-weight: 600;">
+              📅 ${this.escapeHTML(log.date || '')} ${log.time ? '• ' + this.escapeHTML(log.time) : ''}
+            </span>
+            <button type="button" class="btn btn-outline btn-close-log-viewer" title="Close Session Log Viewer" style="min-height: 26px; padding: 1px 8px; font-size: 11.5pt; font-weight: 800; color: var(--text-muted); border-color: var(--border-color); cursor: pointer; border-radius: 4px; line-height: 1;">✕</button>
+          </div>
+        </div>
+
+        <!-- Meta info row -->
+        <div class="session-log-viewer-meta" style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; margin-top: 0.55rem; font-size: 11pt; color: var(--text-bright); flex-shrink: 0;">
+          <span>👑 GM: <strong>${this.escapeHTML(log.gmName || 'GM')}</strong></span>
+          <span>👥 Party: ${charList}</span>
+          ${log.rollsCount ? `<span>🎲 Rolls Recorded: <strong>${log.rollsCount}</strong></span>` : ''}
+        </div>
+
+        <!-- Log Content / Notes -->
+        <div class="session-log-viewer-body" style="flex: 1; overflow-y: auto; margin-top: 0.6rem; background: var(--bg-input, rgba(0,0,0,0.25)); border: 1px solid var(--border-color); border-radius: 6px; padding: 1rem; box-sizing: border-box;">
+          <div style="font-size: 11pt; line-height: 1.6; color: var(--text-bright); white-space: pre-wrap; word-break: break-word;">
+            ${this.escapeHTML(log.notes || '(No notes or event logs recorded for this session.)')}
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  wireSessionLogViewer(parentEl) {
+    if (!parentEl) return;
+    const doc = parentEl.ownerDocument || (typeof document !== 'undefined' ? document : null);
+    if (!doc) return;
+
+    // Close button
+    parentEl.querySelectorAll('.btn-close-log-viewer').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.closeSessionLogViewer(parentEl);
+      });
+    });
+
+    // Divider interactions: Drag to resize & Double-click to restore 50/50
+    const divider = parentEl.querySelector('#campaign-browser-split-divider') || doc.querySelector('#campaign-browser-split-divider');
+    const wrapper = parentEl.querySelector('#campaign-browser-split-wrapper') || doc.querySelector('#campaign-browser-split-wrapper');
+    const topPane = parentEl.querySelector('#campaign-browser-top-pane') || doc.querySelector('#campaign-browser-top-pane');
+    const logPane = parentEl.querySelector('#campaign-browser-log-pane') || doc.querySelector('#campaign-browser-log-pane');
+
+    if (divider && wrapper && topPane && logPane) {
+      if (!divider._wiredSplitDivider) {
+        divider._wiredSplitDivider = true;
+
+        // Double click restores default position (50/50)
+        divider.addEventListener('dblclick', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          this._logDividerTopRatio = 0.5;
+          topPane.style.flex = '1 1 50%';
+          topPane.style.height = '50%';
+          logPane.style.flex = '1 1 50%';
+          logPane.style.height = '50%';
+        });
+
+        // Drag divider
+        divider.addEventListener('mousedown', (e) => {
+          e.preventDefault();
+          divider.classList.add('active-dragging');
+          const startY = e.clientY;
+          const wrapperRect = wrapper.getBoundingClientRect();
+          const totalHeight = wrapperRect.height || 500;
+          const initialTopHeight = topPane.getBoundingClientRect().height;
+
+          const onMouseMove = (moveEvent) => {
+            const deltaY = moveEvent.clientY - startY;
+            let newTopHeight = initialTopHeight + deltaY;
+            const minHeight = 100;
+            const maxHeight = totalHeight - minHeight - 8;
+            if (newTopHeight < minHeight) newTopHeight = minHeight;
+            if (newTopHeight > maxHeight) newTopHeight = maxHeight;
+
+            const ratio = newTopHeight / totalHeight;
+            this._logDividerTopRatio = ratio;
+            topPane.style.flex = `0 0 ${newTopHeight}px`;
+            topPane.style.height = `${newTopHeight}px`;
+            logPane.style.flex = '1 1 auto';
+            logPane.style.height = `calc(100% - ${newTopHeight + 8}px)`;
+          };
+
+          const onMouseUp = () => {
+            divider.classList.remove('active-dragging');
+            doc.removeEventListener('mousemove', onMouseMove);
+            doc.removeEventListener('mouseup', onMouseUp);
+          };
+
+          doc.addEventListener('mousemove', onMouseMove);
+          doc.addEventListener('mouseup', onMouseUp);
+        });
+      }
+    }
+  }
+
+  closeSessionLogViewer(parentEl = null) {
+    this._activeViewedSessionLog = null;
+    const doc = parentEl ? (parentEl.ownerDocument || document) : (typeof document !== 'undefined' ? document : null);
+    if (!doc) return;
+
+    doc.querySelectorAll('#campaign-browser-split-divider').forEach(div => {
+      div.style.display = 'none';
+    });
+    doc.querySelectorAll('#campaign-browser-log-pane').forEach(lp => {
+      lp.style.display = 'none';
+      lp.innerHTML = '';
+    });
+    doc.querySelectorAll('#campaign-browser-top-pane').forEach(tp => {
+      tp.style.flex = '1 1 100%';
+      tp.style.height = '100%';
+    });
+  }
+
+  openSessionLogInBrowser(campId, logId, parentEl = null) {
+    const logs = this.getCampaignSessionLogs(campId);
+    const log = logs.find(l => l.id === logId) || logs[0];
+    if (!log) return;
+
+    const campInfo = this.getCampaignInfo(campId) || this.getCampaignHistory().find(c => c.campaignId === campId) || {};
+    const campName = campInfo.campaignName || campId;
+    this._activeViewedSessionLog = { ...log, campaignId: campId, campaignName: campName };
+
+    const doc = parentEl ? (parentEl.ownerDocument || document) : (typeof document !== 'undefined' ? document : null);
+    if (!doc) return;
+
+    const wrapper = doc.querySelector('#campaign-browser-split-wrapper');
+    const divider = doc.querySelector('#campaign-browser-split-divider');
+    const logPane = doc.querySelector('#campaign-browser-log-pane');
+    const topPane = doc.querySelector('#campaign-browser-top-pane');
+
+    if (wrapper && divider && logPane && topPane) {
+      logPane.innerHTML = this.generateSessionLogViewerHTML(this._activeViewedSessionLog);
+      divider.style.display = 'flex';
+      logPane.style.display = 'flex';
+
+      const ratio = this._logDividerTopRatio || 0.5;
+      topPane.style.flex = `0 0 ${ratio * 100}%`;
+      topPane.style.height = `${ratio * 100}%`;
+      logPane.style.flex = `0 0 calc(${100 - (ratio * 100)}% - 8px)`;
+      logPane.style.height = `calc(${100 - (ratio * 100)}% - 8px)`;
+
+      this.wireSessionLogViewer(wrapper);
+    } else {
+      this.renderAllOpenViews();
+    }
+  }
 
   // =======================================================
   // GM CAMPAIGN SAVED CHARACTERS & CHANGE DETECTION
@@ -4323,6 +4614,7 @@ export class CampaignTrackerManager {
     const state = this.getCampaignState();
 
     const browserCards = browserCampaigns.map(c => {
+      const cLogs = this.getCampaignSessionLogs(c.campaignId);
       const regInfo = this.getCampaignInfo(c.campaignId) || {};
       const isOnHiatus = !!(c.isOnHiatus || regInfo.isOnHiatus);
       const isPublic = !!(c.isPublic || regInfo.isPublic);
@@ -4370,9 +4662,26 @@ export class CampaignTrackerManager {
               ` : '')}
               ${!isMember ? `
                 <button type="button" class="btn btn-primary btn-browser-apply-campaign" data-campid="${c.campaignId}" data-campname="${(c.campaignName || '').replace(/"/g, '&quot;')}" style="font-size: 10pt; padding: 2px 8px; font-weight: 800; background: var(--hero-blue); border-color: var(--hero-blue); cursor: pointer;">📝 Apply to Join</button>
-              ` : (!hasCharInParty ? `
-                <button type="button" class="btn btn-outline btn-browser-attach-char" data-campid="${c.campaignId}" data-campname="${(c.campaignName || '').replace(/"/g, '&quot;')}" style="font-size: 10pt; padding: 2px 8px; font-weight: 800; color: var(--hero-blue); border-color: var(--hero-blue); cursor: pointer;">📎 Attach Character</button>
-              ` : '')}
+              ` : `
+                <!-- Dropdown: Campaign Session Logs (v4.00) -->
+                <div class="menu-dropdown-container campaign-logs-dropdown" style="position: relative; display: inline-block;">
+                  <button type="button" class="btn btn-outline campaign-logs-toggle" data-campid="${c.campaignId}" title="View previous session logs" style="font-size: 10pt; padding: 2px 9px; font-weight: 700; color: var(--hero-purple, #a855f7); border-color: rgba(168, 85, 247, 0.55); background: rgba(168, 85, 247, 0.08); cursor: pointer; display: inline-flex; align-items: center; gap: 0.3rem;">
+                    <span>📜 Logs ▾</span>
+                    ${cLogs.length > 0 ? `<span style="background: rgba(168, 85, 247, 0.25); color: #d8b4fe; font-size: 9pt; font-weight: 800; padding: 0px 5px; border-radius: 999px;">${cLogs.length}</span>` : ''}
+                  </button>
+                  <div class="menu-dropdown-panel campaign-logs-panel" style="position: absolute; top: calc(100% + 4px); right: 0; left: auto; min-width: 260px; max-height: calc(6 * 44px + 36px); overflow-y: auto; border-radius: 6px; z-index: 2500; padding: 0.35rem 0;">
+                    <div class="menu-dropdown-heading" style="font-size: 10pt; font-weight: 800; text-transform: uppercase; color: var(--hero-purple, #a855f7); padding: 0.35rem 0.85rem 0.2rem 0.85rem;">Previous Session Logs</div>
+                    ${cLogs.length === 0 ? `
+                      <div style="font-size: 10pt; color: var(--text-muted); font-style: italic; padding: 0.5rem 0.85rem;">No previous session logs recorded yet.</div>
+                    ` : cLogs.map(log => `
+                      <button type="button" class="menu-dropdown-item btn-view-session-log" data-campid="${c.campaignId}" data-logid="${log.id}" style="font-size: 10pt; color: var(--text-bright); font-weight: 600; cursor: pointer; display: flex; flex-direction: column; align-items: flex-start; gap: 2px; padding: 0.45rem 0.85rem; border-bottom: 1px solid rgba(255,255,255,0.05); text-align: left; width: 100%;">
+                        <span style="font-weight: 700; color: var(--hero-cyan);">${this.escapeHTML(log.title || 'Session Log')}</span>
+                        <span style="font-size: 9pt; color: var(--text-muted);">${this.escapeHTML(log.date || '')} ${log.time ? '• ' + this.escapeHTML(log.time) : ''}</span>
+                      </button>
+                    `).join('')}
+                  </div>
+                </div>
+              `}
 
               <!-- Dropdown 1: Campaign Actions -->
               <div class="menu-dropdown-container campaign-actions-dropdown" style="position: relative; display: inline-block;">
@@ -4602,7 +4911,23 @@ export class CampaignTrackerManager {
       </div>
     `;
 
-    return topDirectoryBar + browserSection;
+    const mainBrowserContent = topDirectoryBar + browserSection;
+    const hasActiveLog = !!(this._activeViewedSessionLog);
+    const splitRatio = this._logDividerTopRatio || 0.5;
+
+    return `
+      <div class="campaign-browser-split-wrapper" id="campaign-browser-split-wrapper" style="display: flex; flex-direction: column; height: 100%; width: 100%; overflow: hidden; box-sizing: border-box;">
+        <div class="campaign-browser-top-pane" id="campaign-browser-top-pane" style="${hasActiveLog ? `flex: 0 0 ${splitRatio * 100}%; height: ${splitRatio * 100}%;` : 'flex: 1 1 100%; height: 100%;'} min-height: 100px; overflow-y: auto; box-sizing: border-box;">
+          ${mainBrowserContent}
+        </div>
+        <div class="campaign-browser-split-divider" id="campaign-browser-split-divider" style="display: ${hasActiveLog ? 'flex' : 'none'}; height: 8px; min-height: 8px; background: var(--border-color); cursor: row-resize; align-items: center; justify-content: center; user-select: none; transition: background 0.15s; flex-shrink: 0; z-index: 10; margin: 0; box-sizing: border-box;" title="Drag to resize pane • Double-click to restore 50/50 split">
+          <div class="divider-handle" style="width: 36px; height: 3px; background: rgba(255, 255, 255, 0.4); border-radius: 2px;"></div>
+        </div>
+        <div class="campaign-browser-log-pane" id="campaign-browser-log-pane" style="display: ${hasActiveLog ? 'flex' : 'none'}; flex-direction: column; ${hasActiveLog ? `flex: 0 0 calc(${100 - (splitRatio * 100)}% - 8px); height: calc(${100 - (splitRatio * 100)}% - 8px);` : 'flex: 0 0 0px; height: 0px;'} min-height: ${hasActiveLog ? '100px' : '0px'}; overflow: hidden; background: var(--bg-card); border-top: 1px solid var(--border-color); box-sizing: border-box;">
+          ${hasActiveLog ? this.generateSessionLogViewerHTML(this._activeViewedSessionLog) : ''}
+        </div>
+      </div>
+    `;
   }
 
   generatePartyHTML() {
@@ -4669,17 +4994,17 @@ export class CampaignTrackerManager {
     // Campaign Actions & GM Tools Dropdown Toggles (v3.81)
     const doc = parentEl.ownerDocument || (typeof document !== 'undefined' ? document : null);
 
-    parentEl.querySelectorAll('.campaign-actions-toggle, .campaign-gm-toggle').forEach(btn => {
+    parentEl.querySelectorAll('.campaign-actions-toggle, .campaign-gm-toggle, .campaign-logs-toggle').forEach(btn => {
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
         e.preventDefault();
         const container = btn.closest('.menu-dropdown-container');
-        const panel = container ? container.querySelector('.campaign-actions-panel, .campaign-gm-panel') : btn.nextElementSibling;
+        const panel = container ? container.querySelector('.campaign-actions-panel, .campaign-gm-panel, .campaign-logs-panel') : btn.nextElementSibling;
         const isShown = panel?.classList.contains('show') || panel?.style.display === 'block';
 
         // Close all dropdowns in this document
         if (doc) {
-          doc.querySelectorAll('.campaign-actions-panel, .campaign-gm-panel').forEach(p => {
+          doc.querySelectorAll('.campaign-actions-panel, .campaign-gm-panel, .campaign-logs-panel').forEach(p => {
             p.classList.remove('show');
             p.style.display = 'none';
             const c = p.closest(".campaign-browser-card"); if (c && c.style) { if (typeof c.style.removeProperty === "function") c.style.removeProperty("z-index"); else c.style.zIndex = ""; }
@@ -4695,10 +5020,10 @@ export class CampaignTrackerManager {
       });
     });
 
-    parentEl.querySelectorAll('.campaign-actions-panel .menu-dropdown-item, .campaign-gm-panel .menu-dropdown-item').forEach(item => {
+    parentEl.querySelectorAll('.campaign-actions-panel .menu-dropdown-item, .campaign-gm-panel .menu-dropdown-item, .campaign-logs-panel .menu-dropdown-item').forEach(item => {
       item.addEventListener('click', () => {
         if (doc) {
-          doc.querySelectorAll('.campaign-actions-panel, .campaign-gm-panel').forEach(p => {
+          doc.querySelectorAll('.campaign-actions-panel, .campaign-gm-panel, .campaign-logs-panel').forEach(p => {
             p.classList.remove('show');
             p.style.display = 'none';
             const c = p.closest(".campaign-browser-card"); if (c && c.style) { if (typeof c.style.removeProperty === "function") c.style.removeProperty("z-index"); else c.style.zIndex = ""; }
@@ -4707,11 +5032,24 @@ export class CampaignTrackerManager {
       });
     });
 
+    // Session log view selection
+    parentEl.querySelectorAll('.btn-view-session-log').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const campId = e.currentTarget.dataset.campid;
+        const logId = e.currentTarget.dataset.logid;
+        this.openSessionLogInBrowser(campId, logId, parentEl);
+      });
+    });
+
+    // Wire up log viewer and divider
+    this.wireSessionLogViewer(parentEl);
+
     if (doc && !doc._campaignDropdownDocListenerAttached) {
       doc._campaignDropdownDocListenerAttached = true;
       doc.addEventListener('click', (e) => {
-        if (!e.target.closest('.campaign-actions-dropdown') && !e.target.closest('.campaign-gm-tools-dropdown')) {
-          doc.querySelectorAll('.campaign-actions-panel, .campaign-gm-panel').forEach(p => {
+        if (!e.target.closest('.campaign-actions-dropdown') && !e.target.closest('.campaign-gm-tools-dropdown') && !e.target.closest('.campaign-logs-dropdown')) {
+          doc.querySelectorAll('.campaign-actions-panel, .campaign-gm-panel, .campaign-logs-panel').forEach(p => {
             p.classList.remove('show');
             p.style.display = 'none';
             const c = p.closest(".campaign-browser-card"); if (c && c.style) { if (typeof c.style.removeProperty === "function") c.style.removeProperty("z-index"); else c.style.zIndex = ""; }

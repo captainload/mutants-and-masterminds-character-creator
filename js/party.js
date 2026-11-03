@@ -2685,10 +2685,8 @@ export class CampaignTrackerManager {
 
       if (isExplicitlyNamedRecipient) return true;
       if (sndUser && currentUser && sndUser === currentUser) {
-        if (m.type === 'DIRECT_MESSAGE' && recUser && recUser !== currentUser) {
-          return false;
-        }
-        return true;
+        // Sender's own sent messages belong in the Sent folder, not Inbox, unless sent to self
+        return recUser === currentUser;
       }
       if (m.recipientRole === 'GM') {
         return ownedIds.has(mCampId) || (currentUser && (m.gmName || '').toLowerCase() === currentUser);
@@ -2701,6 +2699,25 @@ export class CampaignTrackerManager {
       }
       // PARTICIPANTS or ALL
       return participatedIds.has(mCampId) || ownedIds.has(mCampId);
+    });
+  }
+
+  /**
+   * Filters messages sent by the current user (either explicitly via senderUser or as GM/player).
+   */
+  getSentMessagesForCurrentUser() {
+    const all = this.getAllCampaignMessages();
+    const currentUser = (this.getCurrentUsername() || '').toLowerCase();
+    if (!currentUser) return [];
+
+    return all.filter(m => {
+      const sndUser = (m.senderUser || '').toLowerCase();
+      if (sndUser && sndUser === currentUser) return true;
+      if (!sndUser) {
+        if (m.recipientRole === 'GM' && (m.playerName || '').toLowerCase() === currentUser) return true;
+        if ((m.recipientRole === 'PARTICIPANTS' || m.recipientRole === 'USER' || m.recipientRole === 'ALL') && (m.gmName || '').toLowerCase() === currentUser) return true;
+      }
+      return false;
     });
   }
 

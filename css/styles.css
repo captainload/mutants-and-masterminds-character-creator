@@ -3386,8 +3386,8 @@ html[data-theme="light"] .tracker-section-campaign-browser {
 .address-book-user-notes-middle {
   flex: 1 1 auto;
   min-width: 0;
-  max-height: 3.8em;
-  line-height: 1.25em;
+  line-height: 1.35em;
+  max-height: 4.2em; /* 1 row shown by default, expands up to 3 rows before scrolling */
   overflow-y: auto;
   font-size: 10pt;
   color: var(--text-muted);

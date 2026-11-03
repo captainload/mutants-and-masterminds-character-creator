@@ -3068,6 +3068,11 @@ window.partyManager = partyManager;
       campaignManager.clearReadMessages();
       this.renderCampaignMessagesModalIfOpen();
     });
+
+    doc.getElementById('msg-client-folder-select')?.addEventListener('change', (e) => {
+      this._activeMessageFolder = e.target.value;
+      this.renderCampaignMessagesModalIfOpen();
+    });
     const syncComposeTextareaHeight = () => {
       const ta = doc.getElementById('msg-compose-text-input');
       if (!ta) return;
@@ -4729,18 +4734,48 @@ window.partyManager = partyManager;
       }
     }
 
+    const activeFolder = this._activeMessageFolder || 'inbox';
     const readerKey = campaignManager.getTabSessionId();
-    const messages = campaignManager.getMessagesForCurrentUser();
+    const inboxMessages = campaignManager.getMessagesForCurrentUser();
+    const sentMessages = typeof campaignManager.getSentMessagesForCurrentUser === 'function' ? campaignManager.getSentMessagesForCurrentUser() : [];
     const unreadTotal = campaignManager.getUnreadMessageCount();
+    const messages = activeFolder === 'sent' ? sentMessages : inboxMessages;
+
+    const folderSelect = doc.getElementById('msg-client-folder-select');
+    if (folderSelect) {
+      folderSelect.innerHTML = `
+        <option value="inbox" ${activeFolder === 'inbox' ? 'selected' : ''}>📥 Inbox: ${inboxMessages.length} message${inboxMessages.length === 1 ? '' : 's'} (${unreadTotal} unread)</option>
+        <option value="sent" ${activeFolder === 'sent' ? 'selected' : ''}>📤 Sent: ${sentMessages.length} message${sentMessages.length === 1 ? '' : 's'}</option>
+      `;
+      folderSelect.value = activeFolder;
+    }
+
     const summaryEl = doc.getElementById('msg-client-inbox-summary');
-    if (summaryEl) {
-      summaryEl.textContent = `Inbox: ${messages.length} message${messages.length === 1 ? '' : 's'} (${unreadTotal} unread)`;
+    if (summaryEl && !summaryEl.querySelector('#msg-client-folder-select')) {
+      summaryEl.textContent = `${activeFolder === 'sent' ? 'Sent' : 'Inbox'}: ${messages.length} message${messages.length === 1 ? '' : 's'}${activeFolder === 'inbox' ? ` (${unreadTotal} unread)` : ''}`;
+    }
+
+    const listFolderTitle = doc.getElementById('msg-client-list-folder-title');
+    if (listFolderTitle) {
+      listFolderTitle.textContent = activeFolder === 'sent'
+        ? '📤 Message List (Sent)'
+        : '📬 Message List (Campaigns you GM are marked with 👑)';
+    }
+
+    const markAllBtn = doc.getElementById('btn-mark-all-messages-read');
+    const clearReadBtn = doc.getElementById('btn-clear-read-messages');
+    if (activeFolder === 'sent') {
+      if (markAllBtn) markAllBtn.style.display = 'none';
+      if (clearReadBtn) clearReadBtn.style.display = 'none';
+    } else {
+      if (markAllBtn) markAllBtn.style.display = 'inline-block';
+      if (clearReadBtn) clearReadBtn.style.display = 'inline-block';
     }
 
     if (messages.length === 0) {
       container.innerHTML = `
         <div style="text-align: center; color: var(--text-muted); font-size: 10pt; font-style: italic; padding: 2rem 0;">
-          No campaign messages yet. Notifications about join requests, character changes, hiatuses, and ownership transfers appear here.
+          ${activeFolder === 'sent' ? 'No sent messages yet.' : 'No campaign messages yet. Notifications about join requests, character changes, hiatuses, and ownership transfers appear here.'}
         </div>
       `;
       return;
@@ -4750,7 +4785,7 @@ window.partyManager = partyManager;
     const scopeChoices = campaignManager.getRecipientScopeChoices();
 
     container.innerHTML = messages.map(m => {
-      const isUnread = !m.read && !(Array.isArray(m.readBy) && m.readBy.includes(readerKey));
+      const isUnread = activeFolder !== 'sent' && !m.read && !(Array.isArray(m.readBy) && m.readBy.includes(readerKey));
       const isPendingOffer = m.type === 'OWNERSHIP_TRANSFER_OFFER' && m.offerStatus === 'pending';
       const cleanMCampId = String(m.campaignId || '').toUpperCase().replace(/^#+/, '');
       const isUserGMForCampaign = ownedCampIds.has(cleanMCampId) || (myNameLower && (m.gmName || '').toLowerCase() === myNameLower);
@@ -4759,7 +4794,12 @@ window.partyManager = partyManager;
         : (!campaignManager.isMailingListName(m.gmName) && (m.gmName || '').toLowerCase() !== myNameLower
           ? m.gmName
           : (!campaignManager.isMailingListName(m.playerName) && (m.playerName || '').toLowerCase() !== myNameLower ? m.playerName : ''));
-      const replyTarget = (rawSender && rawSender.toLowerCase() !== myNameLower) ? rawSender : '';
+      let replyTarget = '';
+      if (activeFolder === 'sent') {
+        replyTarget = m.recipientUser || (Array.isArray(m.recipientUsers) && m.recipientUsers[0]) || '';
+      } else {
+        replyTarget = (rawSender && rawSender.toLowerCase() !== myNameLower) ? rawSender : '';
+      }
 
       // Determine sender and recipient user names
       const fromName = m.senderUser || (m.recipientRole === 'GM' ? (m.playerName || 'Player') : (m.gmName || 'GM'));
@@ -4834,7 +4874,7 @@ window.partyManager = partyManager;
           </div>
           <div style="display: flex; justify-content: flex-end; align-items: center; gap: 0.45rem; flex-wrap: wrap;">
             ${replyTarget ? `
-              <button type="button" class="btn btn-outline btn-msg-reply-user" data-replyuser="${replyTarget}" data-campid="${cleanMCampId !== 'DIRECT' ? cleanMCampId : ''}" title="Reply to ${replyTarget} (tagged with campaign)" style="font-size: 10pt; padding: 2px 8px; color: var(--hero-gold); border-color: var(--hero-gold); font-weight: 700;">↩️ Reply to ${replyTarget}</button>
+              <button type="button" class="btn btn-outline btn-msg-reply-user" data-replyuser="${replyTarget}" data-campid="${cleanMCampId !== 'DIRECT' ? cleanMCampId : ''}" title="${activeFolder === 'sent' ? `Message ${replyTarget}` : `Reply to ${replyTarget} (tagged with campaign)`}" style="font-size: 10pt; padding: 2px 8px; color: var(--hero-gold); border-color: var(--hero-gold); font-weight: 700;">${activeFolder === 'sent' ? `✉️ Message ${replyTarget}` : `↩️ Reply to ${replyTarget}`}</button>
             ` : ''}
             ${m.type === 'CAMPAIGN_INVITATION' && m.invitationStatus === 'pending' ? `
               <button type="button" class="btn btn-primary btn-msg-accept-invite" data-campid="${m.campaignId}" data-msgid="${m.id}" style="font-size: 10pt; padding: 2px 9px; font-weight: 800; background: var(--hero-green); border-color: var(--hero-green);">✅ Accept Invitation</button>
@@ -4851,9 +4891,11 @@ window.partyManager = partyManager;
             ${m.type === 'JOIN_REQUEST' ? `
               <button type="button" class="btn btn-outline btn-msg-open-requests" data-campid="${m.campaignId}" data-msgid="${m.id}" style="font-size: 10pt; padding: 2px 8px; color: var(--hero-blue); border-color: var(--hero-blue); font-weight: 700;">🛡️ Review Join Requests</button>
             ` : ''}
-            <button type="button" class="btn btn-outline btn-msg-mark-read" data-msgid="${m.id}" style="font-size: 10pt; padding: 2px 8px; ${isUnread ? 'color: var(--hero-blue); border-color: var(--hero-blue); font-weight: 700;' : 'opacity: 0.65; cursor: default;'}" ${isUnread ? '' : 'disabled title="Already marked as read"'}>
-              ${isUnread ? '✓ Mark Read' : '✓ Read'}
-            </button>
+            ${activeFolder !== 'sent' ? `
+              <button type="button" class="btn btn-outline btn-msg-mark-read" data-msgid="${m.id}" style="font-size: 10pt; padding: 2px 8px; ${isUnread ? 'color: var(--hero-blue); border-color: var(--hero-blue); font-weight: 700;' : 'opacity: 0.65; cursor: default;'}" ${isUnread ? '' : 'disabled title="Already marked as read"'}>
+                ${isUnread ? '✓ Mark Read' : '✓ Read'}
+              </button>
+            ` : ''}
           </div>
         </div>
       `;
@@ -7247,9 +7289,16 @@ window.partyManager = partyManager;
     const savedMsgEl = document.getElementById('user-settings-notes-saved-msg');
 
     if (notesInput) {
+      const autoResizeUserNotes = () => {
+        notesInput.style.height = 'auto';
+        const nextH = Math.min(Math.max(notesInput.scrollHeight || 28, 28), 75);
+        notesInput.style.height = `${nextH}px`;
+      };
+
       const initialNotes = campaignManager.getUserNotes();
       notesInput.value = initialNotes;
       if (notesCount) notesCount.textContent = `${initialNotes.length} / 256`;
+      autoResizeUserNotes();
 
       notesInput.addEventListener('input', () => {
         if (notesInput.value.length > 256) {
@@ -7258,6 +7307,7 @@ window.partyManager = partyManager;
         if (notesCount) {
           notesCount.textContent = `${notesInput.value.length} / 256`;
         }
+        autoResizeUserNotes();
       });
     }
 
@@ -7353,7 +7403,12 @@ window.partyManager = partyManager;
 
     const uname = supabaseService.getUsername() || supabaseService.currentUser?.user_metadata?.username || this.char?.playerName || 'User';
     const currentNotes = campaignManager.getUserNotes(uname);
-    if (notesInput) notesInput.value = currentNotes;
+    if (notesInput) {
+      notesInput.value = currentNotes;
+      notesInput.style.height = 'auto';
+      const nextH = Math.min(Math.max(notesInput.scrollHeight || 28, 28), 75);
+      notesInput.style.height = `${nextH}px`;
+    }
     if (notesCount) notesCount.textContent = `${currentNotes.length} / 256`;
 
     if (!supabaseService.isLoggedIn() && !allowOffline) {

@@ -518,4 +518,65 @@ const savedAfter = sessionMgr.getCampaignSavedCharacter('ACT-100', 'Lightning', 
 assert.strictEqual(savedAfter.characterData.abilities.agility, 6, 'Saved snapshot must reflect approved changes');
 console.log('✓ Character change detection, "!" icon, GM change report, and approval flow verified successfully.');
 
+// Test 16: Verify Inbox / Sent messages dropdown switching and getSentMessagesForCurrentUser
+console.log('Test 16: Verify Inbox / Sent messages dropdown switching and getSentMessagesForCurrentUser');
+const folderMgr = new CampaignTrackerManager();
+folderMgr.getCurrentUsername = () => 'alice_sender';
+folderMgr.saveAllCampaignMessages([]);
+
+// Alice sends a message to Bob
+const sentMsg = folderMgr.sendCampaignMessage({
+  senderUser: 'alice_sender',
+  recipientRole: 'USER',
+  recipientUser: 'bob_receiver',
+  campaignId: 'FOLDER-1',
+  campaignName: 'Folder Test Campaign',
+  text: 'Hello Bob from Alice!'
+});
+
+// Alice should see this in sent messages, not inbox
+const aliceInbox = folderMgr.getMessagesForCurrentUser();
+const aliceSent = folderMgr.getSentMessagesForCurrentUser();
+assert.strictEqual(aliceSent.length, 1, 'Alice must have 1 sent message');
+assert.strictEqual(aliceSent[0].id, sentMsg.id, 'Sent message ID must match');
+assert.strictEqual(aliceInbox.length, 0, 'Alice must not have received her own direct message in inbox');
+
+// Bob should see this in inbox, not sent
+folderMgr.getCurrentUsername = () => 'bob_receiver';
+const bobInbox = folderMgr.getMessagesForCurrentUser();
+const bobSent = folderMgr.getSentMessagesForCurrentUser();
+assert.strictEqual(bobInbox.length, 1, 'Bob must have 1 inbox message');
+assert.strictEqual(bobInbox[0].id, sentMsg.id, 'Inbox message ID must match');
+assert.strictEqual(bobSent.length, 0, 'Bob must have 0 sent messages');
+
+// Check markup for folder select dropdown
+const indexHtmlForFolder = fs.readFileSync('index.html', 'utf8');
+assert.ok(indexHtmlForFolder.includes('id="msg-client-folder-select"'), 'index.html must have msg-client-folder-select');
+assert.ok(indexHtmlForFolder.includes('value="inbox"'), 'Folder dropdown must have inbox option');
+assert.ok(indexHtmlForFolder.includes('value="sent"'), 'Folder dropdown must have sent option');
+console.log('✓ Inbox / Sent messages dropdown switching and getSentMessagesForCurrentUser verified.');
+
+// Test 17: Verify "From:" and "To:" labels formatting for sender and recipient names
+console.log('Test 17: Verify "From:" and "To:" labels formatting in messages');
+const appJsForLabels = fs.readFileSync('js/app.js', 'utf8');
+assert.ok(appJsForLabels.includes('From: ${fromFormatted}'), 'app.js must render From: label before sender');
+assert.ok(appJsForLabels.includes('To: ${toFormatted}'), 'app.js must render To: label before recipient');
+assert.ok(appJsForLabels.includes('msg-from-badge'), 'app.js must include msg-from-badge');
+assert.ok(appJsForLabels.includes('msg-to-badge'), 'app.js must include msg-to-badge');
+console.log('✓ "From:" and "To:" labels correctly formatted for sender and recipient names.');
+
+// Test 18: Verify User Notes row sizing (1 row default, expands up to 3 rows before scrolling)
+console.log('Test 18: Verify User Notes row sizing (1 row default, expands up to 3 rows before scrolling)');
+const indexHtmlForNotes = fs.readFileSync('index.html', 'utf8');
+assert.ok(indexHtmlForNotes.includes('id="user-settings-notes-input"'), 'index.html must contain user-settings-notes-input');
+assert.ok(indexHtmlForNotes.includes('rows="1"'), 'user-settings-notes-input must show 1 row by default');
+assert.ok(indexHtmlForNotes.includes('max-height: 4.5em'), 'user-settings-notes-input must cap at 3 rows before scrolling');
+
+const stylesCssContent = fs.readFileSync('css/styles.css', 'utf8');
+assert.ok(stylesCssContent.includes('.address-book-user-notes-middle'), 'styles.css must style .address-book-user-notes-middle');
+assert.ok(stylesCssContent.includes('max-height: 4.2em'), '.address-book-user-notes-middle must expand up to 3 rows before scrolling');
+
+assert.ok(appJsForLabels.includes('autoResizeUserNotes'), 'app.js must include autoResizeUserNotes dynamic handler');
+console.log('✓ User Notes row sizing (1 row default, expands up to 3 rows before scrolling) verified.');
+
 console.log('--- ALL v3.99 TESTS PASSED SUCCESSFULLY! ---');

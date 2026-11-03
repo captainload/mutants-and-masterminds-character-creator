@@ -962,7 +962,7 @@
           <p style="font-size: 10pt; color: var(--text-muted); margin-bottom: 0.6rem; line-height: 1.45;">
             Post a short note or bio (up to 256 characters). Anyone you message can view these notes via the <strong>i</strong> button next to your name in their Known Users address book.
           </p>
-          <textarea id="user-settings-notes-input" maxlength="256" rows="3" placeholder="Enter up to 256 characters (e.g., preferred game times, playstyle, Discord handle)..." style="width: 100%; background: var(--bg-input); color: var(--text-bright); border: 1px solid var(--border-color); border-radius: 4px; padding: 0.5rem; font-size: 10pt; resize: vertical; margin-bottom: 0.6rem;"></textarea>
+          <textarea id="user-settings-notes-input" maxlength="256" rows="1" placeholder="Enter up to 256 characters (e.g., preferred game times, playstyle, Discord handle)..." style="width: 100%; background: var(--bg-input); color: var(--text-bright); border: 1px solid var(--border-color); border-radius: 4px; padding: 0.35rem 0.5rem; font-size: 10pt; resize: vertical; line-height: 1.35; min-height: 28px; max-height: 4.5em; overflow-y: auto; margin-bottom: 0.6rem;"></textarea>
           <div style="display: flex; justify-content: flex-end; align-items: center; gap: 0.5rem;">
             <span id="user-settings-notes-saved-msg" style="font-size: 10pt; color: var(--hero-green); font-weight: 700; display: none;">✓ Saved!</span>
             <button type="button" class="btn btn-primary" id="btn-save-user-settings-notes" style="font-size: 10pt; font-weight: 700; padding: 0.35rem 0.9rem;">💾 Save User Notes</button>
@@ -2030,8 +2030,11 @@
             <button type="button" class="btn btn-outline" id="btn-mark-all-messages-read" style="font-size: 10pt; padding: 0.25rem 0.65rem;">✓ Mark All Read</button>
             <button type="button" class="btn btn-outline" id="btn-clear-read-messages" style="font-size: 10pt; padding: 0.25rem 0.65rem;">🗑️ Clear Read</button>
           </div>
-          <div id="msg-client-inbox-summary" style="font-size: 10pt; color: var(--text-muted); font-weight: 700;">
-            Inbox
+          <div id="msg-client-inbox-summary" style="display: inline-flex; align-items: center; gap: 0.35rem;">
+            <select id="msg-client-folder-select" class="msg-folder-select" style="font-size: 10pt; font-weight: 800; padding: 3px 8px; border-radius: 4px; background: var(--bg-card, #1e293b); color: var(--hero-blue); border: 1.5px solid var(--border-color); cursor: pointer;" title="Switch between Inbox and Sent messages">
+              <option value="inbox">📥 Inbox (0 messages)</option>
+              <option value="sent">📤 Sent (0 messages)</option>
+            </select>
           </div>
         </div>
 
@@ -2040,7 +2043,7 @@
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem; flex-wrap: wrap; gap: 0.4rem;">
             <div>
               <strong style="font-size: 10pt; color: var(--hero-blue);">📖 Personal Address Book (Known Users)</strong>
-              <span style="font-size: 10pt; color: var(--text-muted); margin-left: 0.4rem;">• Up to 3 rows of user notes are shown per contact • Click <strong>✉️ Message</strong> to compose</span>
+              <span style="font-size: 10pt; color: var(--text-muted); margin-left: 0.4rem;">• 1 row of user notes shown by default, expands up to 3 rows before scrolling • Click <strong>✉️ Message</strong> to compose</span>
             </div>
             <button type="button" class="btn btn-outline" id="btn-close-address-book-drawer" style="font-size: 10pt; padding: 1px 7px; min-height: 22px;">✕ Close</button>
           </div>
@@ -2052,7 +2055,7 @@
         <!-- Upper Pane: Message List (Inbox) -->
         <div class="msg-client-inbox-pane" id="msg-client-inbox-pane">
           <div class="msg-client-list-header">
-            <span>📬 Message List (Campaigns you GM are marked with 👑)</span>
+            <span id="msg-client-list-folder-title">📬 Message List (Campaigns you GM are marked with 👑)</span>
             <span>Click to select • Ctrl-Click / Shift-Click for multi-select</span>
           </div>
           <div id="campaign-messages-list-container" style="padding: 0.65rem; overflow-y: auto; flex: 1;">

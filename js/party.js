@@ -5,7 +5,7 @@
  * GM join approval queues, character sheet inspection, and P2P fallback.
  */
 
-import { supabaseService } from './supabase_client.js?v=3.94';
+import { supabaseService } from './supabase_client.js?v=3.95';
 
 export function formatCharacterSheetHTML(char) {
   if (!char) return '<div style="padding:1rem;color:var(--text-muted);">No character data available.</div>';
@@ -1154,7 +1154,7 @@ export class CampaignTrackerManager {
       if (!cleanId) return;
 
       const regEntry = reg[cleanId] || {};
-      const effPublic = c.isPublic !== undefined ? !!c.isPublic : !!regEntry.isPublic;
+      const effPublic = c.isPublic !== undefined ? !!c.isPublic : (regEntry.isPublic !== undefined ? !!regEntry.isPublic : true);
       const effCreatorName = (c.creatorName || regEntry.creatorName || '').trim();
       const effNotes = String(c.notes ?? regEntry.notes ?? '');
       const effHiatus = c.isOnHiatus !== undefined ? !!c.isOnHiatus : !!regEntry.isOnHiatus;
@@ -3786,7 +3786,7 @@ export class CampaignTrackerManager {
               <span style="font-size: 10pt; background: rgba(0,0,0,0.15); padding: 1px 6px; border-radius: 4px; font-weight: 800; color: var(--hero-blue);">ID: #${c.campaignId}</span>
               <span style="font-size: 10pt; color: var(--hero-gold); font-weight: 800;">PL ${c.powerLevel || 10}</span>
               ${isPublic ? '<span style="font-size: 10pt; font-weight: 700; color: #10b981; background: rgba(16, 185, 129, 0.12); padding: 1px 5px; border-radius: 3px;">🌐 Public</span>' : '<span style="font-size: 10pt; color: var(--text-muted); background: rgba(255,255,255,0.05); padding: 1px 5px; border-radius: 3px;">🔒 Private</span>'}
-              ${c.isCreator ? '<span style="font-size: 10pt; font-weight: 800; color: var(--hero-gold); background: rgba(234, 179, 8, 0.15); padding: 1px 5px; border-radius: 3px;">👑 GM (Owner)</span>' : (isJoinedOrCreated ? '<span style="font-size: 10pt; font-weight: 700; color: var(--hero-blue); background: rgba(59, 130, 246, 0.15); padding: 1px 5px; border-radius: 3px;">Player</span>' : '')}
+              ${c.isCreator ? '<span style="font-size: 10pt; font-weight: 800; color: var(--hero-gold); background: rgba(234, 179, 8, 0.15); padding: 1px 5px; border-radius: 3px;">👑 GM (Owner)</span>' : (c.isJoinedOrCreated ? '<span style="font-size: 10pt; font-weight: 700; color: var(--hero-blue); background: rgba(59, 130, 246, 0.15); padding: 1px 5px; border-radius: 3px;">Player</span>' : '')}
               ${c.creatorName ? `<span style="font-size: 10pt; color: var(--text-muted);">GM: <strong>${c.creatorName}</strong></span>` : ''}
               ${isInParty ? `<span style="font-size: 10pt; color: var(--text-muted);">Attached: ${attachedStr}</span>` : ''}
             </div>
@@ -4568,7 +4568,7 @@ export class CampaignTrackerManager {
 <head>
   <meta charset="UTF-8">
   <title>Mutants & Masterminds 3E - Party Conditions & Toughness Tracker</title>
-  <link rel="stylesheet" href="css/styles.css?v=3.94">
+  <link rel="stylesheet" href="css/styles.css?v=3.95">
   <style>
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -4745,7 +4745,7 @@ export class CampaignTrackerManager {
 <head>
   <meta charset="UTF-8">
   <title>Mutants & Masterminds 3E - Game Session Tracker</title>
-  <link rel="stylesheet" href="css/styles.css?v=3.94">
+  <link rel="stylesheet" href="css/styles.css?v=3.95">
   <style>
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;

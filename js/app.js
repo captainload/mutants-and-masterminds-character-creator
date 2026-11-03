@@ -39,19 +39,19 @@ import {
   HQ_SIZES_TABLE,
   HQ_FEATURES_LIST,
   tablesManager
-} from './tables.js?v=3.94';
+} from './tables.js?v=3.95';
 
-import { POWER_PROFILES_LIBRARY } from './power_profiles.js?v=3.94';
-import { ARCHETYPES } from './archetypes.js?v=3.94';
-import { archetypeManager } from './archetype_window.js?v=3.94';
-import { campaignManager, partyManager, formatCharacterSheetHTML } from './party.js?v=3.94';
-import { supabaseService } from './supabase_client.js?v=3.94';
-import { ARCHETYPE_CUSTOMIZATION_OPTIONS, buildCustomizedArchetype } from './archetype_builder.js?v=3.94';
-import { diceRoller } from './dice.js?v=3.94';
-import { DiscordConfig, discordIntegrator } from './discord.js?v=3.94';
-import { helpManager } from './help.js?v=3.94';
-import { storageManager } from './storage.js?v=3.94';
-import { BASIC_CONDITIONS, COMBINED_CONDITIONS, calculateConditionModifiers } from './conditions.js?v=3.94';
+import { POWER_PROFILES_LIBRARY } from './power_profiles.js?v=3.95';
+import { ARCHETYPES } from './archetypes.js?v=3.95';
+import { archetypeManager } from './archetype_window.js?v=3.95';
+import { campaignManager, partyManager, formatCharacterSheetHTML } from './party.js?v=3.95';
+import { supabaseService } from './supabase_client.js?v=3.95';
+import { ARCHETYPE_CUSTOMIZATION_OPTIONS, buildCustomizedArchetype } from './archetype_builder.js?v=3.95';
+import { diceRoller } from './dice.js?v=3.95';
+import { DiscordConfig, discordIntegrator } from './discord.js?v=3.95';
+import { helpManager } from './help.js?v=3.95';
+import { storageManager } from './storage.js?v=3.95';
+import { BASIC_CONDITIONS, COMBINED_CONDITIONS, calculateConditionModifiers } from './conditions.js?v=3.95';
 
 class AppController {
   constructor() {
@@ -2214,7 +2214,7 @@ window.partyManager = partyManager;
   }
 
   async checkForUpdates({ isManual = false } = {}) {
-    const CURRENT_VERSION = '3.94';
+    const CURRENT_VERSION = '3.95';
     const versionEl = document.getElementById('header-version-tag');
     const updateBtn = document.getElementById('btn-header-update-alert');
     if (typeof window === 'undefined' || !window.location || !window.location.href || window.location.href === 'about:blank') return;
@@ -4036,7 +4036,7 @@ window.partyManager = partyManager;
 <head>
   <meta charset="UTF-8">
   <title>Mutants &amp; Masterminds 3E - Campaign Messaging Client</title>
-  <link rel="stylesheet" href="css/styles.css?v=3.94">
+  <link rel="stylesheet" href="css/styles.css?v=3.95">
   <style>
     html, body { height: 100%; margin: 0; }
     body {

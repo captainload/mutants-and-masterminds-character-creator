@@ -1,6 +1,6 @@
 {
-  "version": "3.94",
-  "updatedAt": "2026-11-02T15:35:47.445Z",
-  "releaseNotes": "Sync local player name with online username for campaign characters, preserve custom player name for non-campaign characters, move Campaigns button to right of Tables and shift group to right end of row 3, and fix campaign creation against cloud database schema.",
-  "updated": "2026-11-02"
+  "version": "3.95",
+  "updatedAt": "2026-11-03T00:50:00.000Z",
+  "releaseNotes": "Alphabetize Ranged Damage in catalog, calculate power range brackets accurately according to M&M 3E rules, prevent ReferenceError in campaign browser cards, and ensure campaigns are visible in campaign browser.",
+  "updated": "2026-11-03"
 }

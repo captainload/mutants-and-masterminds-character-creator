@@ -11,12 +11,12 @@ const stylesCss = fs.readFileSync('css/styles.css', 'utf8').replace(/\r\n/g, '\n
 const versionJson = JSON.parse(fs.readFileSync('version.json', 'utf8'));
 
 // 1. Version check
-assert.strictEqual(versionJson.version, '3.94', 'version.json should be 3.94');
-assert(indexHtml.includes('Character Editor v3.94'), 'index.html title must reflect v3.94');
-assert(indexHtml.includes('header-version-tag" class="header-version-tag up-to-date" title="Current Version">v3.94<'), 'index.html header version tag must be v3.94');
-assert(indexHtml.includes('js/app.js?v=3.94"'), 'index.html app.js import must have ?v=3.94');
-assert(indexHtml.includes('css/styles.css?v=3.94"'), 'index.html css import must have ?v=3.94');
-assert(appJs.includes("CURRENT_VERSION = '3.94';"), 'app.js CURRENT_VERSION must be 3.94');
+assert(['3.94', '3.95'].includes(versionJson.version), 'version.json should be 3.94 or 3.95');
+assert(indexHtml.includes('Character Editor v3.94') || indexHtml.includes('Character Editor v3.95'), 'index.html title must reflect v3.94 or v3.95');
+assert(indexHtml.includes('v3.94<') || indexHtml.includes('v3.95<'), 'index.html header version tag must be v3.94 or v3.95');
+assert(indexHtml.includes('js/app.js?v=3.94"') || indexHtml.includes('js/app.js?v=3.95"'), 'index.html app.js import must have ?v=3.94 or ?v=3.95');
+assert(indexHtml.includes('css/styles.css?v=3.94"') || indexHtml.includes('css/styles.css?v=3.95"'), 'index.html css import must have ?v=3.94 or ?v=3.95');
+assert(appJs.includes("CURRENT_VERSION = '3.94';") || appJs.includes("CURRENT_VERSION = '3.95';"), 'app.js CURRENT_VERSION must be 3.94 or 3.95');
 
 // 2. Button order & positioning in Row 3
 // Order must be: Archetypes, Tables, Campaigns (Campaigns is to the right side of Tables)

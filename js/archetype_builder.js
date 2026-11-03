@@ -3,7 +3,7 @@
  * Official options and customization packages from the Deluxe Hero's Handbook.
  */
 
-import { ARCHETYPES } from './archetypes.js?v=3.94';
+import { ARCHETYPES } from './archetypes.js?v=3.95';
 
 export const ARCHETYPE_CUSTOMIZATION_OPTIONS = {
   battlesuit: {

@@ -3,7 +3,7 @@
  * Official rules text from Green Ronin Publishing M&M 3e Deluxe Hero's Handbook.
  */
 
-import { MEASUREMENTS_TABLE } from './tables.js?v=3.94';
+import { MEASUREMENTS_TABLE } from './tables.js?v=3.95';
 
 export const ABILITIES = [
   { id: 'str', name: 'Strength', short: 'STR', desc: 'Strength measures sheer muscle and physical power of your character. It affects the damage you deal in close combat, how far you can jump, your athletic prowess, and how much weight you can lift and carry.' },
@@ -725,7 +725,6 @@ export const ADVANTAGES_DATABASE = [
 
 export const POWER_EFFECTS_CATALOG = [
   { id: 'affliction', name: 'Affliction', baseCost: 1, action: 'Standard', range: 'Close', duration: 'Instant', resist: 'Fortitude or Will', dcBase: 10, isAttack: true, desc: 'Affliction imposes adverse conditions on a target, resisting with Fortitude or Will against DC (10 + Affliction rank). Example conditions: Dazed/Stunned/Incapacitated or Hindered/Immobilized/Paralyzed.' },
-  { id: 'blast', name: 'Ranged Damage', baseCost: 2, action: 'Standard', range: 'Ranged', duration: 'Instant', resist: 'Toughness', dcBase: 15, isAttack: true, desc: 'Ranged Damage projects force, energy bolts, bullets, or plasma beams to strike opponents from a distance. Resisted by Toughness (DC 15 + Damage rank).' },
   { id: 'burrowing', name: 'Burrowing', baseCost: 1, action: 'Free', range: 'Personal', duration: 'Sustained', resist: 'None', isMovement: true, desc: 'Tunnel rapidly through soil, rock, or reinforced concrete.' },
   { id: 'communication', name: 'Communication', baseCost: 4, action: 'Free', range: 'Rank', duration: 'Sustained', resist: 'None', desc: 'Allows mental, radio, or sensory communication across distances based on rank.' },
   { id: 'comprehend', name: 'Comprehend', baseCost: 2, action: 'None', range: 'Personal', duration: 'Permanent', resist: 'None', desc: 'Understand all spoken tongues, read all languages, speak to animals or machines.' },
@@ -749,11 +748,12 @@ export const POWER_EFFECTS_CATALOG = [
   { id: 'luck_control', name: 'Luck Control', baseCost: 3, action: 'Reaction', range: 'Perception', duration: 'Instant', resist: 'None', desc: 'Allows influencing rolls, re-rolls, and fortune for yourself or others.' },
   { id: 'mind_reading', name: 'Mind Reading', baseCost: 2, action: 'Standard', range: 'Perception', duration: 'Sustained', resist: 'Will', dcBase: 10, isAttack: true, desc: 'Read target thoughts, memories, surface consciousness, or deep secrets.' },
   { id: 'morph', name: 'Morph', baseCost: 5, action: 'Free', range: 'Personal', duration: 'Sustained', resist: 'None', desc: 'Change physical appearance into other beings, humanoid forms, or any object.' },
-  { id: 'movement', name: 'Movement', baseCost: 2, action: 'Free', range: 'Personal', duration: 'Sustained', resist: 'None', isMovement: true, desc: 'Specialized movement modes: Dimensional Travel, Environmental Adaptation, Permeate, Space Travel, Swinging, Time Travel, Trackless, Wall-Crawling, Water-Walking.' },
   { id: 'move_object', name: 'Move Object', baseCost: 2, action: 'Standard', range: 'Ranged', duration: 'Sustained', resist: 'Dodge/Str', dcBase: 10, isAttack: true, desc: 'Telekinesis or magnetic tractor beam capable of lifting and manipulating distant objects.' },
+  { id: 'movement', name: 'Movement', baseCost: 2, action: 'Free', range: 'Personal', duration: 'Sustained', resist: 'None', isMovement: true, desc: 'Specialized movement modes: Dimensional Travel, Environmental Adaptation, Permeate, Space Travel, Swinging, Time Travel, Trackless, Wall-Crawling, Water-Walking.' },
   { id: 'nullify', name: 'Nullify', baseCost: 1, action: 'Standard', range: 'Ranged', duration: 'Instant', resist: 'Will', dcBase: 10, isAttack: true, desc: 'Counters, shuts down, or disrupts target super powers or technology.' },
   { id: 'protection', name: 'Protection', baseCost: 1, action: 'None', range: 'Personal', duration: 'Permanent', resist: 'None', isDefense: true, desc: 'Protection adds directly to your character’s Toughness defense rank, resisting incoming damage.' },
   { id: 'quickness', name: 'Quickness', baseCost: 1, action: 'Free', range: 'Personal', duration: 'Sustained', resist: 'None', desc: 'Perform routine or non-combat tasks with extraordinary speed (rank table time reduction).' },
+  { id: 'blast', name: 'Ranged Damage', baseCost: 2, action: 'Standard', range: 'Ranged', duration: 'Instant', resist: 'Toughness', dcBase: 15, isAttack: true, desc: 'Ranged Damage projects force, energy bolts, bullets, or plasma beams to strike opponents from a distance. Resisted by Toughness (DC 15 + Damage rank).' },
   { id: 'regeneration', name: 'Regeneration', baseCost: 1, action: 'None', range: 'Personal', duration: 'Permanent', resist: 'None', desc: 'Automatically recover from damage bruises and conditions over rounds without medical aid.' },
   { id: 'remote_sensing', name: 'Remote Sensing', baseCost: 2, action: 'Free', range: 'Rank', duration: 'Sustained', resist: 'None', desc: 'Clairvoyance, projecting perception to distant coordinates.' },
   { id: 'senses', name: 'Senses', baseCost: 1, action: 'None', range: 'Personal', duration: 'Permanent', resist: 'None', desc: 'Superhuman perception (darkvision, infravision, radar, scent, microscopic, radio).' },
@@ -842,7 +842,7 @@ export const FLAWS_CATALOG = [
   { id: 'limited_to_resistance', name: 'Limited: Single Resistance', cost: 1, isFlat: false, isRanked: true, maxRank: 1, minRank: 1, isUnique: false, isEffectSpecific: false, isExtra: false, desc: 'Effect is limited to a single specific resistance or defense (-1 cost per rank).' },
   { id: 'noticeable', name: 'Noticeable', cost: 1, isFlat: true, isUnique: false, isEffectSpecific: false, isExtra: false, desc: 'Power is clearly obvious and conspicuous even if continuous or passive.' },
   { id: 'quirk', name: 'Quirk (Minor drawback)', cost: 1, isFlat: true, isRanked: true, maxRank: 5, minRank: 1, isUnique: false, isEffectSpecific: false, isExtra: false, desc: 'Minor inconvenience or limitation (-1 PP flat per quirk).' },
-  { id: 'reduced_range', name: 'Reduced Range', cost: 1, isFlat: false, isRanked: true, maxRank: 1, minRank: 1, isUnique: false, isEffectSpecific: false, isExtra: false, desc: 'Power range reduced by one step (Perception -> Ranged, or Ranged -> Close).' },
+  { id: 'reduced_range', name: 'Reduced Range', cost: 1, isFlat: false, isRanked: true, maxRank: 2, minRank: 1, isUnique: false, isEffectSpecific: false, isExtra: false, desc: 'Power range reduced by one step per rank (Perception -> Ranged -> Close).' },
   { id: 'removable', name: 'Removable (Worn Device / Suit / Belt)', cost: 0, isFlat: false, isDevice: true, discountPer5: 1, isUnique: false, isEffectSpecific: false, isExtra: false, desc: 'Worn suit or gadget that can only be removed when immobilized (-1 PP per 5 PP total).' },
   { id: 'resistible', name: 'Resistible', cost: 1, isFlat: false, isUnique: false, isEffectSpecific: false, isExtra: false, desc: 'Allows extra defense check (e.g. Will or Fortitude) to completely negate.' },
   { id: 'self_powered', name: '★ Self-Powered', cost: 1, isFlat: false, isUnique: true, isEffectSpecific: true, isExtra: false, desc: 'Summoned minion draws power from the summoner; damage or fatigue to minion affects the summoner (-1 cost per rank).' },
@@ -951,8 +951,9 @@ export function computePowerRangeAndDuration(effect, extras = [], flaws = []) {
   const rangeSteps = ['Personal', 'Close', 'Ranged', 'Perception'];
   const durationSteps = ['Instant', 'Concentration', 'Sustained', 'Continuous', 'Permanent'];
 
+  const isRankRange = baseRange === 'Rank';
   let curRangeIdx = rangeSteps.indexOf(baseRange);
-  if (curRangeIdx === -1) curRangeIdx = 1;
+  if (curRangeIdx === -1 && !isRankRange) curRangeIdx = 1;
 
   let curDurIdx = durationSteps.indexOf(baseDuration);
   if (curDurIdx === -1) curDurIdx = 0;
@@ -967,24 +968,29 @@ export function computePowerRangeAndDuration(effect, extras = [], flaws = []) {
   const reachExtra = (extras || []).find(e => e.id === 'reach');
   const dimRange = (flaws || []).find(f => f.id === 'diminished_range');
 
-  if (baseRange === 'Personal' && (affectsOthers || attackExtra)) {
-    curRangeIdx = 1; // Converts Personal to Close
-    rangeNotes.push(affectsOthers ? 'Affects Others (+1/rank)' : 'Attack (+0)');
+  if (isRankRange) {
+    // Rank-based range (Communication, Remote Sensing, Environment) cannot be stepped by Increased/Reduced Range
+    rangeNotes.push('Range determined by rank');
+  } else {
+    if (baseRange === 'Personal' && (affectsOthers || attackExtra)) {
+      curRangeIdx = 1; // Converts Personal to Close
+      rangeNotes.push(affectsOthers ? 'Affects Others (+1/rank)' : 'Attack (+0)');
+    }
+
+    if (incRange) {
+      const ranks = incRange.id === 'increased_range_2' ? 2 : (parseInt(incRange.rank, 10) || 1);
+      curRangeIdx = Math.min(3, curRangeIdx + ranks);
+      rangeNotes.push(`+${ranks} Increased Range`);
+    }
+
+    if (redRange) {
+      const ranks = parseInt(redRange.rank, 10) || 1;
+      curRangeIdx = Math.max(1, curRangeIdx - ranks);
+      rangeNotes.push(`-${ranks} Reduced Range`);
+    }
   }
 
-  if (incRange) {
-    const ranks = incRange.id === 'increased_range_2' ? 2 : (parseInt(incRange.rank, 10) || 1);
-    curRangeIdx = Math.min(3, curRangeIdx + ranks);
-    rangeNotes.push(`+${ranks} Increased Range`);
-  }
-
-  if (redRange) {
-    const ranks = parseInt(redRange.rank, 10) || 1;
-    curRangeIdx = Math.max(1, curRangeIdx - ranks);
-    rangeNotes.push(`-${ranks} Reduced Range`);
-  }
-
-  const effectiveRange = rangeSteps[curRangeIdx] || baseRange;
+  const effectiveRange = isRankRange ? 'Rank' : (rangeSteps[curRangeIdx] || baseRange);
 
   if (effectiveRange === 'Close' && reachExtra) {
     const reachRanks = parseInt(reachExtra.rank, 10) || 1;
@@ -1099,10 +1105,27 @@ export function computePowerEffectiveStats(effect, extras = [], flaws = [], acti
   if (rd.effectiveRange === 'Ranged') {
     const extRange = (extras || []).find(e => e.id === 'extended_range');
     const dimRange = (flaws || []).find(f => f.id === 'diminished_range');
-    let distRank = effectRank;
-    if (extRange) distRank += (parseInt(extRange.rank, 10) || 1);
-    if (dimRange) distRank = Math.max(0, distRank - (parseInt(dimRange.rank, 10) || 1));
-    const clampedRank = Math.min(20, Math.max(-5, Math.round(distRank)));
+    let shortMult = 25;
+    let medMult = 50;
+    let longMult = 100;
+    if (dimRange) {
+      const dimRanks = parseInt(dimRange.rank, 10) || 1;
+      if (dimRanks === 1) { shortMult = 10; medMult = 25; longMult = 50; }
+      else if (dimRanks === 2) { shortMult = 5; medMult = 10; longMult = 25; }
+      else if (dimRanks >= 3) { shortMult = 2; medMult = 5; longMult = 10; }
+    } else if (extRange) {
+      const extRanks = parseInt(extRange.rank, 10) || 1;
+      const factor = Math.pow(2, extRanks);
+      shortMult *= factor;
+      medMult *= factor;
+      longMult *= factor;
+    }
+    const shortDist = effectRank * shortMult;
+    const medDist = effectRank * medMult;
+    const longDist = effectRank * longMult;
+    rangeMeasurement = `${shortDist}/${medDist}/${longDist} ft.`;
+  } else if (rd.effectiveRange === 'Rank') {
+    const clampedRank = Math.min(20, Math.max(-5, Math.round(effectRank)));
     const entry = MEASUREMENTS_TABLE.find(m => m.rank === clampedRank);
     rangeMeasurement = entry ? entry.distance : `${effectRank * 100} ft.`;
   } else if (rd.effectiveRange === 'Close') {
@@ -1206,6 +1229,7 @@ export function isModifierLegalForEffect(modifier, effect, extras = [], flaws = 
   // 5. Range-specific constraints
   if (modifier.id === 'increased_range') {
     if (baseRange === 'Perception') return { legal: false, reason: 'Perception is already maximum range' };
+    if (baseRange === 'Rank') return { legal: false, reason: 'Range determined by rank cannot take Increased Range' };
     if (baseRange === 'Personal' && !extraIds.has('affects_others') && !extraIds.has('attack')) {
       return { legal: false, reason: 'Requires Affects Others or Attack first' };
     }
@@ -1215,6 +1239,7 @@ export function isModifierLegalForEffect(modifier, effect, extras = [], flaws = 
     if (baseRange === 'Personal' || baseRange === 'Close') {
       return { legal: false, reason: 'Cannot reduce Close or Personal range' };
     }
+    if (baseRange === 'Rank') return { legal: false, reason: 'Range determined by rank cannot take Reduced Range' };
   }
 
   const isAttackEffect = !!(effect?.isAttack || extraIds.has('attack') || (extras || []).some(e => e.id === 'attack'));
@@ -1597,6 +1622,12 @@ export function validateModifierLegality(effect, extras = [], flaws = [], mainPo
   }
   if ((baseRange === 'Personal' || baseRange === 'Close') && flawIds.has('reduced_range')) {
     errors.push('Reduced Range cannot be applied to Personal or Close range effects.');
+  }
+  if (baseRange === 'Rank' && (extraIds.has('increased_range') || extraIds.has('increased_range_2'))) {
+    errors.push('Effects with range determined by rank cannot take Increased Range.');
+  }
+  if (baseRange === 'Rank' && flawIds.has('reduced_range')) {
+    errors.push('Effects with range determined by rank cannot take Reduced Range.');
   }
   if (baseRange === 'Perception' && extraIds.has('increased_range')) {
     errors.push('Perception range is already the maximum range and cannot take Increased Range.');

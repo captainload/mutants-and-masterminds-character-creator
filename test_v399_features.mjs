@@ -580,14 +580,14 @@ assert.ok(stylesCssContent.includes('max-height: 4.2em'), '.address-book-user-no
 assert.ok(appJsForLabels.includes('autoResizeUserNotes'), 'app.js must include autoResizeUserNotes dynamic handler');
 console.log('✓ User Notes row sizing (1 row default, expands up to 3 rows before scrolling) verified.');
 
-// Test 19: Verify v4.00 Versioning, GM Tools layout, and expand/collapse modal arrows
-console.log('Test 19: Verify v4.00 Versioning, GM Tools layout, and expand/collapse modal arrows');
+// Test 19: Verify Versioning (v4.01), GM Tools layout, and expand/collapse modal arrows
+console.log('Test 19: Verify Versioning (v4.01), GM Tools layout, and expand/collapse modal arrows');
 const vJson = JSON.parse(fs.readFileSync('version.json', 'utf8'));
-assert.strictEqual(vJson.version, '4.00', 'version.json must be v4.00');
+assert.strictEqual(vJson.version, '4.01', 'version.json must be v4.01');
 
 const idxHtml = fs.readFileSync('index.html', 'utf8');
-assert.ok(idxHtml.includes('v4.00'), 'index.html must display v4.00');
-assert.ok(idxHtml.includes('js/app.js?v=4.00'), 'index.html must include app.js?v=4.00 cache-buster');
+assert.ok(idxHtml.includes('v4.01'), 'index.html must display v4.01');
+assert.ok(idxHtml.includes('js/app.js?v=4.01'), 'index.html must include app.js?v=4.01 cache-buster');
 
 const partyJsForGMTools = fs.readFileSync('js/party.js', 'utf8');
 // Check that Campaign Actions dropdown does not prematurely close before GM Tools dropdown
@@ -604,7 +604,7 @@ const appJsFull = fs.readFileSync('js/app.js', 'utf8');
 assert.ok(appJsFull.includes('btn-msg-expand-arrow'), 'app.js must render expand/collapse modal arrows');
 assert.ok(appJsFull.includes('msg-card-collapsible-section'), 'app.js must wrap full message content except first row');
 assert.strictEqual(appJsFull.includes('msg-card-campaign-select'), false, 'app.js must NOT render recipient scope dropdown in inbox messages');
-console.log('✓ v4.00 Versioning, GM Tools layout, and Expand/Collapse modal arrows verified successfully.');
+console.log('✓ v4.01 Versioning, GM Tools layout, and Expand/Collapse modal arrows verified successfully.');
 
 // Test 20: Verify message text sizing (11pt) and campaign names in bold
 console.log('Test 20: Verify message text sizing (11pt) and campaign names in bold');

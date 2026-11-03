@@ -1093,7 +1093,7 @@ class DatabaseAdminController {
   exportDatabaseJSON() {
     const backup = {
       app: 'Mutants & Masterminds 3E Database Admin',
-      version: '3.99',
+      version: '4.01',
       exported_at: new Date().toISOString(),
       exported_by: this.githubUser ? `github:${this.githubUser.login}` : 'admin',
       database_tables: {

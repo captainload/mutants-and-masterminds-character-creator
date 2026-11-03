@@ -2217,7 +2217,7 @@ window.partyManager = partyManager;
   }
 
   async checkForUpdates({ isManual = false } = {}) {
-    const CURRENT_VERSION = '4.00';
+    const CURRENT_VERSION = '4.01';
     const versionEl = document.getElementById('header-version-tag');
     const updateBtn = document.getElementById('btn-header-update-alert');
     if (typeof window === 'undefined' || !window.location || !window.location.href || window.location.href === 'about:blank') return;
@@ -2238,9 +2238,9 @@ window.partyManager = partyManager;
       const isOutdated = !!(remoteVersion && remoteVersion !== CURRENT_VERSION);
 
       if (versionEl) {
-        versionEl.textContent = `v${CURRENT_VERSION}`;
+        versionEl.textContent = `v${isOutdated ? CURRENT_VERSION : (remoteVersion || CURRENT_VERSION)}`;
         versionEl.className = `header-version-tag ${isOutdated ? 'out-of-date' : 'up-to-date'}`;
-        versionEl.title = isOutdated ? `Update available: v${remoteVersion}` : `Up to date (v${CURRENT_VERSION})`;
+        versionEl.title = isOutdated ? `Update available: v${remoteVersion}` : `Up to date (v${remoteVersion || CURRENT_VERSION})`;
       }
       if (updateBtn) {
         updateBtn.className = `btn-header-update-alert ${isOutdated ? 'out-of-date' : 'up-to-date'}`;

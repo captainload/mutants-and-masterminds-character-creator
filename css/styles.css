@@ -3426,6 +3426,17 @@ html[data-theme="light"] .tracker-section-campaign-browser {
   background: rgba(234, 179, 8, 0.12) !important;
 }
 
+.campaign-message-card .msg-body-wrapper,
+.campaign-message-card .msg-body-content {
+  font-size: 11pt;
+  line-height: 1.5;
+}
+
+.msg-campaign-badge strong,
+.campaign-name-bold {
+  font-weight: 800;
+}
+
 /* Modal Popup Dialog for New Message */
 .msg-client-compose-pane {
   position: fixed;
@@ -3463,9 +3474,9 @@ html[data-theme="light"] .tracker-section-campaign-browser {
   width: 100%;
   min-height: 140px;
   max-height: 260px;
-  line-height: 20px;
+  line-height: 22px;
   padding: 8px 10px;
-  font-size: 10pt;
+  font-size: 11pt;
   font-family: inherit;
   background: var(--bg-input);
   color: var(--text-bright);

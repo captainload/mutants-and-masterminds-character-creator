@@ -606,4 +606,56 @@ assert.ok(appJsFull.includes('msg-card-collapsible-section'), 'app.js must wrap 
 assert.strictEqual(appJsFull.includes('msg-card-campaign-select'), false, 'app.js must NOT render recipient scope dropdown in inbox messages');
 console.log('✓ v4.00 Versioning, GM Tools layout, and Expand/Collapse modal arrows verified successfully.');
 
+// Test 20: Verify message text sizing (11pt) and campaign names in bold
+console.log('Test 20: Verify message text sizing (11pt) and campaign names in bold');
+assert.ok(appJsFull.includes('Campaign: <strong>${this.escapeHTML(m.campaignName || cleanMCampId)}</strong>'), 'Campaign badge must wrap campaign name in <strong>');
+assert.ok(appJsFull.includes('font-size: 11pt; color: var(--text-bright); line-height: 1.5;'), 'msg-body-wrapper must use 11pt font size and 1.5 line height');
+assert.ok(appJsFull.includes('formatMessageBodyText'), 'app.js must contain formatMessageBodyText helper');
+
+const stylesCss = fs.readFileSync('css/styles.css', 'utf8');
+assert.ok(stylesCss.includes('.campaign-message-card .msg-body-content') && stylesCss.includes('font-size: 11pt;'), 'styles.css must style message body content with 11pt');
+assert.ok(stylesCss.includes('.msg-campaign-badge strong') && stylesCss.includes('font-weight: 800;'), 'styles.css must bold campaign badge name');
+assert.ok(stylesCss.includes('.textarea-msg-compose') && stylesCss.includes('font-size: 11pt;'), 'styles.css must style compose textarea with 11pt');
+
+// Instantiate or evaluate formatMessageBodyText logic
+const extractMethod = (source, methodName) => {
+  const start = source.indexOf(methodName + '(');
+  if (start < 0) return null;
+  let braceCount = 0;
+  let started = false;
+  let end = -1;
+  for (let i = start; i < source.length; i++) {
+    if (source[i] === '{') {
+      braceCount++;
+      started = true;
+    } else if (source[i] === '}') {
+      braceCount--;
+      if (started && braceCount === 0) {
+        end = i + 1;
+        break;
+      }
+    }
+  }
+  return end > start ? source.slice(start, end) : null;
+};
+
+const formatFnCode = extractMethod(appJsFull, 'formatMessageBodyText');
+assert.ok(formatFnCode, 'formatMessageBodyText must be successfully extracted from app.js');
+const escapeFnCode = extractMethod(appJsFull, 'escapeHTML');
+assert.ok(escapeFnCode, 'escapeHTML must be successfully extracted from app.js');
+
+const TestClass = new Function(`
+  return class TestApp {
+    ${escapeFnCode}
+    ${formatFnCode}
+  };
+`)();
+const testApp = new TestClass();
+
+const sampleText = 'Hero "Sentinel" wants to join campaign "Emerald City Knights". Welcome to Emerald City Knights!';
+const formatted = testApp.formatMessageBodyText(sampleText, 'Emerald City Knights');
+assert.ok(formatted.includes('<strong>Emerald City Knights</strong>'), 'formatMessageBodyText must wrap campaign name in <strong>');
+assert.strictEqual((formatted.match(/<strong>Emerald City Knights<\/strong>/g) || []).length, 2, 'Must bold all occurrences without double-wrapping');
+console.log('✓ Message text size (11pt) and campaign names in bold verified successfully.');
+
 console.log('--- ALL v3.99 TESTS PASSED SUCCESSFULLY! ---');

@@ -4278,6 +4278,41 @@ window.partyManager = partyManager;
       .replace(/'/g, '&#39;');
   }
 
+  formatMessageBodyText(rawText, messageCampaignName = '') {
+    if (!rawText) return '';
+    let escaped = this.escapeHTML(rawText);
+
+    // Collect all candidate campaign names to bold in message body
+    const campaignNames = new Set();
+    if (messageCampaignName && messageCampaignName.trim() && messageCampaignName.toUpperCase() !== 'DIRECT') {
+      campaignNames.add(messageCampaignName.trim());
+    }
+    try {
+      if (typeof campaignManager !== 'undefined' && campaignManager) {
+        const history = campaignManager.getCampaignHistory ? campaignManager.getCampaignHistory() : [];
+        history.forEach(c => {
+          if (c && c.campaignName && c.campaignName.trim()) {
+            campaignNames.add(c.campaignName.trim());
+          }
+        });
+      }
+    } catch (e) {}
+
+    // Sort by length descending so longer campaign names match before substrings
+    const sortedNames = Array.from(campaignNames).sort((a, b) => b.length - a.length);
+
+    for (const name of sortedNames) {
+      if (!name || name.length < 2) continue;
+      const escapedName = this.escapeHTML(name);
+      const escapedRegex = escapedName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      // Match already bolded tags or the raw escaped name, so we don't double-wrap
+      const regex = new RegExp(`(<strong>.*?<\\/strong>)|(${escapedRegex})`, 'gi');
+      escaped = escaped.replace(regex, (match, p1, p2) => p1 ? p1 : `<strong>${p2}</strong>`);
+    }
+
+    return escaped;
+  }
+
   isEmailForwardingEnabled(username = '') {
     const uName = (username || supabaseService.getUsername() || this.char?.playerName || '').toLowerCase();
     if (!uName) return false;
@@ -4842,7 +4877,7 @@ window.partyManager = partyManager;
               <button type="button" class="btn-msg-expand-arrow" data-msgid="${m.id}" title="${isExpanded ? 'Collapse message' : 'Expand message'}" style="background: none; border: none; color: var(--hero-cyan); font-size: 11pt; font-weight: 800; cursor: pointer; padding: 0 4px; line-height: 1; user-select: none;">${isExpanded ? '▼' : '▶'}</button>
               ${isUnread ? '<span style="background: var(--hero-blue); color: #fff; font-size: 10pt; font-weight: 800; padding: 1px 6px; border-radius: 4px;">NEW</span>' : ''}
               <span class="msg-campaign-badge" style="font-size: 10pt; font-weight: 700; color: ${cleanMCampId && cleanMCampId !== 'DIRECT' ? (isUserGMForCampaign ? 'var(--hero-gold)' : 'var(--hero-cyan)') : 'var(--text-muted)'}; background: rgba(255,255,255,0.06); padding: 1px 7px; border-radius: 4px;">
-                ${cleanMCampId && cleanMCampId !== 'DIRECT' ? `${isUserGMForCampaign ? '👑 ' : ''}Campaign: ${this.escapeHTML(m.campaignName || cleanMCampId)}` : 'Direct Message'}
+                ${cleanMCampId && cleanMCampId !== 'DIRECT' ? `${isUserGMForCampaign ? '👑 ' : ''}Campaign: <strong>${this.escapeHTML(m.campaignName || cleanMCampId)}</strong>` : 'Direct Message'}
               </span>
               <span class="msg-from-badge" style="font-size: 10pt; font-weight: 700; color: var(--hero-blue); background: rgba(59, 130, 246, 0.14); padding: 1px 7px; border-radius: 4px;">From: ${fromFormatted}</span>
               <span class="msg-to-badge" style="font-size: 10pt; font-weight: 700; color: #a855f7; background: rgba(168, 85, 247, 0.14); padding: 1px 7px; border-radius: 4px;">To: ${toFormatted}</span>
@@ -4852,9 +4887,9 @@ window.partyManager = partyManager;
 
           <!-- Collapsible Section: The whole message except the first row -->
           <div class="msg-card-collapsible-section" style="${isExpanded ? 'display: block;' : 'display: none;'}; border-top: 1px solid rgba(255,255,255,0.06); margin-top: 0.35rem; padding-top: 0.35rem;">
-            <div class="msg-body-wrapper" style="font-size: 10pt; color: var(--text-bright); line-height: 1.4; margin: 0.3rem 0;">
-              <div class="msg-body-content" style="white-space: pre-wrap; word-break: break-word;">
-                ${this.escapeHTML(rawText)}
+            <div class="msg-body-wrapper" style="font-size: 11pt; color: var(--text-bright); line-height: 1.5; margin: 0.35rem 0;">
+              <div class="msg-body-content" style="white-space: pre-wrap; word-break: break-word; font-size: 11pt; line-height: 1.5;">
+                ${this.formatMessageBodyText(rawText, m.campaignName)}
               </div>
             </div>
             <div class="msg-actions-bar" style="display: flex; justify-content: flex-end; align-items: center; gap: 0.45rem; flex-wrap: wrap; margin-top: 0.4rem;">

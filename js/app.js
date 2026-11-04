@@ -2192,18 +2192,32 @@ window.partyManager = partyManager;
   setupUpdateChecker() {
     document.getElementById('btn-close-update-alert')?.addEventListener('click', () => this.closeModal('modal-update-alert'));
     document.getElementById('btn-update-later')?.addEventListener('click', () => this.closeModal('modal-update-alert'));
-    document.getElementById('btn-update-reload')?.addEventListener('click', () => {
-      try {
-        const u = new URL(window.location.href);
-        u.searchParams.set('_v', Date.now().toString());
-        window.location.replace(u.toString());
-      } catch {
-        window.location.reload(true);
-      }
+    document.getElementById('btn-update-reload')?.addEventListener('click', async () => {
+      await this.performAppReloadBypassCache();
     });
     document.getElementById('btn-header-update-alert')?.addEventListener('click', () => {
       this.checkForUpdates({ isManual: true });
     });
+
+    // Interactive Version Display: Clicking or pressing Enter/Space checks for updates
+    const versionEl = document.getElementById('header-version-tag');
+    if (versionEl) {
+      versionEl.style.cursor = 'pointer';
+      versionEl.setAttribute('role', 'button');
+      versionEl.setAttribute('tabindex', '0');
+      versionEl.title = 'Click to check for updates';
+      versionEl.addEventListener('click', (e) => {
+        e.preventDefault();
+        this.checkForUpdates({ isManual: true });
+      });
+      versionEl.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          this.checkForUpdates({ isManual: true });
+        }
+      });
+    }
+
     if (typeof window !== 'undefined' && typeof window.addEventListener === 'function') {
       window.addEventListener('focus', () => this.checkForUpdates({ isManual: false }));
       document.addEventListener?.('visibilitychange', () => {
@@ -2211,51 +2225,139 @@ window.partyManager = partyManager;
           this.checkForUpdates({ isManual: false });
         }
       });
+      window.addEventListener('storage', (e) => {
+        if (e.key === 'mm3e_update_available' && e.newValue) {
+          try {
+            const d = JSON.parse(e.newValue);
+            if (d && d.version) {
+              this.applyRemoteUpdateAlert(d.version, d.releaseNotes);
+            }
+          } catch (err) {}
+        }
+      });
       const pollTimer = setInterval(() => this.checkForUpdates({ isManual: false }), 20000);
       if (pollTimer && typeof pollTimer.unref === 'function') pollTimer.unref();
     }
   }
 
+  async performAppReloadBypassCache() {
+    try {
+      if (typeof window !== 'undefined' && 'caches' in window) {
+        const keys = await window.caches.keys();
+        await Promise.all(keys.map(k => window.caches.delete(k)));
+      }
+    } catch (e) {}
+    try {
+      if (typeof window !== 'undefined' && window.location) {
+        await fetch((window.location.pathname || '/') + '?_bust=' + Date.now(), { cache: 'reload' });
+      }
+    } catch (e) {}
+    try {
+      const u = new URL(window.location.href);
+      u.searchParams.set('_v', Date.now().toString());
+      window.location.replace(u.toString());
+    } catch {
+      window.location.reload();
+    }
+  }
+
+  applyRemoteUpdateAlert(remoteVersion, releaseNotes = '') {
+    const CURRENT_VERSION = '4.02';
+    const versionEl = document.getElementById('header-version-tag');
+    const updateBtn = document.getElementById('btn-header-update-alert');
+    const isOutdated = !!(remoteVersion && remoteVersion !== CURRENT_VERSION);
+
+    if (versionEl) {
+      if (isOutdated) {
+        versionEl.textContent = `v${CURRENT_VERSION} ➔ v${remoteVersion}`;
+        versionEl.className = 'header-version-tag out-of-date pulsing';
+        versionEl.title = `Update available: v${remoteVersion} (Click to reload & update)`;
+      } else {
+        versionEl.textContent = `v${CURRENT_VERSION}`;
+        versionEl.className = 'header-version-tag up-to-date';
+        versionEl.title = `Up to date (v${CURRENT_VERSION}) - Click to check for updates`;
+      }
+    }
+    if (updateBtn) {
+      updateBtn.className = `btn-header-update-alert ${isOutdated ? 'out-of-date' : 'up-to-date'}`;
+      updateBtn.style.display = isOutdated ? 'inline-flex' : 'none';
+      updateBtn.title = isOutdated ? `Update available (v${remoteVersion}). Click to view.` : '';
+    }
+
+    if (isOutdated) {
+      const currEl = document.getElementById('update-curr-version');
+      const newEl = document.getElementById('update-new-version');
+      const notesEl = document.getElementById('update-notes');
+      if (currEl) currEl.textContent = `v${CURRENT_VERSION}`;
+      if (newEl) newEl.textContent = `v${remoteVersion}`;
+      if (notesEl) notesEl.textContent = releaseNotes || 'Bug fixes and performance improvements.';
+      this.openModal('modal-update-alert');
+    }
+  }
+
   async checkForUpdates({ isManual = false } = {}) {
-    const CURRENT_VERSION = '4.01';
+    const CURRENT_VERSION = '4.02';
     const versionEl = document.getElementById('header-version-tag');
     const updateBtn = document.getElementById('btn-header-update-alert');
     if (typeof window === 'undefined' || !window.location || !window.location.href || window.location.href === 'about:blank') return;
     try {
-      const url = new URL('version.json', window.location.href);
-      url.searchParams.set('t', Date.now().toString());
-      const res = await fetch(url.toString(), { cache: 'no-store' });
-      if (!res.ok) {
+      let data = null;
+      // 1. Try local version.json first
+      try {
+        const url = new URL('version.json', window.location.href);
+        url.searchParams.set('t', Date.now().toString());
+        const res = await fetch(url.toString(), { cache: 'no-store' });
+        if (res.ok) {
+          data = await res.json();
+        }
+      } catch (e) {}
+
+      // 2. If local didn't return or returned same, also check GitHub raw if accessible
+      if (!data || data.version === CURRENT_VERSION) {
+        try {
+          const ghRes = await fetch(`https://raw.githubusercontent.com/captainload/mutants-and-masterminds-character-creator/main/version.json?t=${Date.now()}`, { cache: 'no-store' });
+          if (ghRes.ok) {
+            const ghData = await ghRes.json();
+            if (ghData && ghData.version) {
+              data = ghData;
+            }
+          }
+        } catch (e) {}
+      }
+
+      if (!data) {
         if (versionEl) {
           versionEl.textContent = `v${CURRENT_VERSION}`;
           versionEl.className = 'header-version-tag up-to-date';
+          versionEl.title = `Current version: v${CURRENT_VERSION} - Click to check for updates`;
         }
         if (isManual) await this.showAlertDialog('Could not check for updates (server responded with error).', { title: 'Update Check' });
         return;
       }
-      const data = await res.json();
+
       const remoteVersion = data.version;
       const isOutdated = !!(remoteVersion && remoteVersion !== CURRENT_VERSION);
 
-      if (versionEl) {
-        versionEl.textContent = `v${isOutdated ? CURRENT_VERSION : (remoteVersion || CURRENT_VERSION)}`;
-        versionEl.className = `header-version-tag ${isOutdated ? 'out-of-date' : 'up-to-date'}`;
-        versionEl.title = isOutdated ? `Update available: v${remoteVersion}` : `Up to date (v${remoteVersion || CURRENT_VERSION})`;
-      }
-      if (updateBtn) {
-        updateBtn.className = `btn-header-update-alert ${isOutdated ? 'out-of-date' : 'up-to-date'}`;
-        updateBtn.style.display = isOutdated ? 'inline-flex' : 'none';
-        updateBtn.title = isOutdated ? `Update available (v${remoteVersion}). Click to view.` : '';
-      }
+      this.applyRemoteUpdateAlert(remoteVersion, data.releaseNotes);
 
       if (isOutdated) {
-        const currEl = document.getElementById('update-curr-version');
-        const newEl = document.getElementById('update-new-version');
-        const notesEl = document.getElementById('update-notes');
-        if (currEl) currEl.textContent = `v${CURRENT_VERSION}`;
-        if (newEl) newEl.textContent = `v${remoteVersion}`;
-        if (notesEl) notesEl.textContent = data.releaseNotes || 'Bug fixes and performance improvements.';
-        this.openModal('modal-update-alert');
+        // Push update alert out to other open tabs and storage bus
+        try {
+          if (typeof localStorage !== 'undefined') {
+            localStorage.setItem('mm3e_update_available', JSON.stringify({
+              version: remoteVersion,
+              releaseNotes: data.releaseNotes,
+              timestamp: Date.now()
+            }));
+          }
+          if (this.campaignManager?.broadcastMessage) {
+            this.campaignManager.broadcastMessage({
+              type: 'APP_UPDATE_AVAILABLE',
+              version: remoteVersion,
+              releaseNotes: data.releaseNotes
+            });
+          }
+        } catch (e) {}
       } else if (isManual) {
         await this.showAlertDialog(`You are up to date! Mutants & Masterminds Character Editor is running the latest version (v${CURRENT_VERSION}).`, { title: 'Up to Date' });
       }
@@ -8768,9 +8870,10 @@ window.partyManager = partyManager;
         display: flex;
         flex-direction: column;
         justify-content: space-between;
-        gap: 0.4rem;
+        gap: 0.45rem;
         box-sizing: border-box;
         min-width: 0;
+        overflow: hidden;
       `;
 
       if (def.id === 'toughness') {
@@ -8788,51 +8891,61 @@ window.partyManager = partyManager;
         });
 
         card.innerHTML = `
-          <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
-            <div style="display: flex; align-items: center; gap: 0.25rem;">
-              <span class="rules-link" data-id="${def.id}" data-type="defense" data-name="${def.name}" data-cat="Defense" style="font-weight: 800; font-size: var(--font-size-sm); color: var(--hero-cyan); cursor: pointer;" title="Click for rules">${def.name}</span>
-              <span class="rules-info-badge" style="font-size: var(--font-size-xs); opacity: 0.8; cursor: pointer; padding: 1px 3px;" title="View ${def.name} rules">ℹ️</span>
-              <span style="font-size: var(--font-size-xs); color: var(--text-muted); margin-left: 0.15rem;">[${abName}]</span>
+          <!-- Row 1: Defense Title & Associated Ability -->
+          <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; min-width: 0;">
+            <div style="display: flex; align-items: center; gap: 0.25rem; min-width: 0; overflow: hidden;">
+              <span class="rules-link" data-id="${def.id}" data-type="defense" data-name="${def.name}" data-cat="Defense" style="font-weight: 800; font-size: 10.5pt; color: var(--hero-cyan); cursor: pointer; white-space: nowrap;" title="Click for rules">${def.name}</span>
+              <span class="rules-info-badge" style="font-size: 10pt; opacity: 0.8; cursor: pointer; padding: 1px 2px;" title="View ${def.name} rules">ℹ️</span>
             </div>
-            <div style="display: flex; align-items: baseline; gap: 0.35rem;">
-              <span style="font-size: var(--font-size-xs); color: var(--text-muted);">Total:</span>
-              <strong style="font-size: var(--font-size-md); font-weight: 900; color: var(--text-bright);">${total}</strong>
-            </div>
+            <span style="font-size: 10pt; color: var(--text-muted); font-weight: 700; white-space: nowrap; margin-left: 0.25rem;">[${abName}]</span>
           </div>
 
-          <div style="display: flex; justify-content: space-between; align-items: center; font-size: var(--font-size-xs); color: var(--text-muted); background: rgba(0,0,0,0.18); padding: 0.2rem 0.45rem; border-radius: 3px;">
+          <!-- Row 2: Dedicated Total Row (reformatted to prevent exceeding card edge) -->
+          <div class="defense-card-total-row" style="display: flex; justify-content: space-between; align-items: center; width: 100%; background: rgba(56, 189, 248, 0.09); border: 1px solid rgba(56, 189, 248, 0.28); border-radius: 4px; padding: 0.2rem 0.5rem; box-sizing: border-box;">
+            <span style="font-size: 10pt; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em;">Total:</span>
+            <strong class="defense-total-value" style="font-size: 13pt; font-weight: 900; color: var(--hero-cyan); line-height: 1;">${total}</strong>
+          </div>
+
+          <!-- Row 3: Breakdown -->
+          <div style="display: flex; justify-content: space-between; align-items: center; font-size: 10pt; color: var(--text-muted); background: rgba(0,0,0,0.18); padding: 0.2rem 0.45rem; border-radius: 3px; flex-wrap: wrap; gap: 2px;">
             <span>STA: <strong>${baseVal}</strong></span>
             <span>Prot: <strong>+${protBonus}</strong></span>
             <span>Def Roll: <strong>+${defRollBonus}</strong></span>
           </div>
 
-          <div style="display: flex; align-items: center; justify-content: center; width: 100%; min-height: 28px; font-size: var(--font-size-xs); color: var(--text-muted); font-style: italic; text-align: center;">
+          <!-- Row 4: Controls / Notes -->
+          <div style="display: flex; align-items: center; justify-content: center; width: 100%; min-height: 28px; font-size: 10pt; color: var(--text-muted); font-style: italic; text-align: center;">
             Derived &bull; Cannot buy with PP
           </div>
         `;
       } else {
         card.innerHTML = `
-          <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
-            <div style="display: flex; align-items: center; gap: 0.25rem;">
-              <span class="rules-link" data-id="${def.id}" data-type="defense" data-name="${def.name}" data-cat="Defense" style="font-weight: 800; font-size: var(--font-size-sm); color: var(--hero-cyan); cursor: pointer;" title="Click for rules">${def.name}</span>
-              <span class="rules-info-badge" style="font-size: var(--font-size-xs); opacity: 0.8; cursor: pointer; padding: 1px 3px;" title="View ${def.name} rules">ℹ️</span>
-              <span style="font-size: var(--font-size-xs); color: var(--text-muted); margin-left: 0.15rem;">[${abName}]</span>
+          <!-- Row 1: Defense Title & Associated Ability -->
+          <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; min-width: 0;">
+            <div style="display: flex; align-items: center; gap: 0.25rem; min-width: 0; overflow: hidden;">
+              <span class="rules-link" data-id="${def.id}" data-type="defense" data-name="${def.name}" data-cat="Defense" style="font-weight: 800; font-size: 10.5pt; color: var(--hero-cyan); cursor: pointer; white-space: nowrap;" title="Click for rules">${def.name}</span>
+              <span class="rules-info-badge" style="font-size: 10pt; opacity: 0.8; cursor: pointer; padding: 1px 2px;" title="View ${def.name} rules">ℹ️</span>
             </div>
-            <div style="display: flex; align-items: baseline; gap: 0.35rem;">
-              <span style="font-size: var(--font-size-xs); color: var(--text-muted);">Total:</span>
-              <strong style="font-size: var(--font-size-md); font-weight: 900; color: var(--text-bright);">${total}</strong>
-            </div>
+            <span style="font-size: 10pt; color: var(--text-muted); font-weight: 700; white-space: nowrap; margin-left: 0.25rem;">[${abName}]</span>
           </div>
 
-          <div style="display: flex; justify-content: space-between; align-items: center; font-size: var(--font-size-xs); color: var(--text-muted); background: rgba(0,0,0,0.18); padding: 0.2rem 0.45rem; border-radius: 3px;">
+          <!-- Row 2: Dedicated Total Row (reformatted to prevent exceeding card edge) -->
+          <div class="defense-card-total-row" style="display: flex; justify-content: space-between; align-items: center; width: 100%; background: rgba(56, 189, 248, 0.09); border: 1px solid rgba(56, 189, 248, 0.28); border-radius: 4px; padding: 0.2rem 0.5rem; box-sizing: border-box;">
+            <span style="font-size: 10pt; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em;">Total:</span>
+            <strong class="defense-total-value" style="font-size: 13pt; font-weight: 900; color: var(--hero-cyan); line-height: 1;">${total}</strong>
+          </div>
+
+          <!-- Row 3: Breakdown -->
+          <div style="display: flex; justify-content: space-between; align-items: center; font-size: 10pt; color: var(--text-muted); background: rgba(0,0,0,0.18); padding: 0.2rem 0.45rem; border-radius: 3px; flex-wrap: wrap; gap: 2px;">
             <span>Base (${abName}): <strong>${baseVal}</strong></span>
             <span>+ Bought: <strong>${bought} PP</strong></span>
           </div>
 
+          <!-- Row 4: Stepper Controls -->
           <div style="display: flex; justify-content: center; width: 100%;">
             <div class="stepper-control compact">
               <button class="btn-stepper compact" data-def="${def.id}" data-dir="-1" title="Decrease Bought Ranks">-</button>
-              <span class="stepper-value compact" style="min-width: 32px; font-weight: 800;">${bought}</span>
+              <span class="stepper-value compact" style="min-width: 32px; font-weight: 800; font-size: 10.5pt;">${bought}</span>
               <button class="btn-stepper compact" data-def="${def.id}" data-dir="1" title="Increase Bought Ranks">+</button>
             </div>
           </div>

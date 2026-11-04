@@ -1,6 +1,6 @@
 {
   "name": "mutants-and-masterminds-character-creator",
-  "version": "4.0.1",
+  "version": "4.0.2",
   "description": "Mutants and Masterminds 3rd Edition Web Character Generator & Interactive Virtual Tabletop Record",
   "type": "module",
   "main": "server.js",

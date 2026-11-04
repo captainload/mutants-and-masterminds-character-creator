@@ -3718,6 +3718,13 @@ export class CampaignTrackerManager {
       return;
     }
 
+    if (msg.type === 'APP_UPDATE_AVAILABLE' && msg.version) {
+      if (typeof window !== 'undefined' && window.appController?.applyRemoteUpdateAlert) {
+        window.appController.applyRemoteUpdateAlert(msg.version, msg.releaseNotes);
+      }
+      return;
+    }
+
     if (msg.type === 'SESSION_ROLL' && msg.roll) {
       if (!this._sessionRolls) this._sessionRolls = [];
       const exists = this._sessionRolls.some(r => r.id === msg.roll.id);

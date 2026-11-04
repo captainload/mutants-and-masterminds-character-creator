@@ -1,8 +1,8 @@
 {
-  "version": "4.01",
-  "updatedAt": "2026-11-03T16:15:00.000Z",
-  "releaseNotes": "Campaign Browser Session Logs dropdown with split pane viewer and movable divider, automatic session recap logging, and 11pt message text/details with bold campaign names.",
+  "version": "4.02",
+  "updatedAt": "2026-11-03T19:05:00.000Z",
+  "releaseNotes": "Interactive pulsing version badge for update alerts, check-for-updates on click, cache-busting reload to eliminate manual Ctrl-F5 refreshes, and reformatted Edit Abilities defense cards with dedicated Total rows preventing edge overflow.",
   "updated": "2026-11-03",
   "releaseDate": "2026-11-03",
-  "description": "v4.01: Session Logs dropdown, vertical split viewer with movable divider, automatic session recap logging, and 11pt message text & details"
+  "description": "v4.02: Interactive pulsing version alert badge, check for update on click, cache-busting reload, and reformatted defense cards with dedicated Total row"
 }

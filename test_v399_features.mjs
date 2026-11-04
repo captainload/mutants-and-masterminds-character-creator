@@ -580,14 +580,14 @@ assert.ok(stylesCssContent.includes('max-height: 4.2em'), '.address-book-user-no
 assert.ok(appJsForLabels.includes('autoResizeUserNotes'), 'app.js must include autoResizeUserNotes dynamic handler');
 console.log('✓ User Notes row sizing (1 row default, expands up to 3 rows before scrolling) verified.');
 
-// Test 19: Verify Versioning (v4.01), GM Tools layout, and expand/collapse modal arrows
-console.log('Test 19: Verify Versioning (v4.01), GM Tools layout, and expand/collapse modal arrows');
+// Test 19: Verify Versioning (v4.02), GM Tools layout, and expand/collapse modal arrows
+console.log('Test 19: Verify Versioning (v4.02), GM Tools layout, and expand/collapse modal arrows');
 const vJson = JSON.parse(fs.readFileSync('version.json', 'utf8'));
-assert.strictEqual(vJson.version, '4.01', 'version.json must be v4.01');
+assert.strictEqual(vJson.version, '4.02', 'version.json must be v4.02');
 
 const idxHtml = fs.readFileSync('index.html', 'utf8');
-assert.ok(idxHtml.includes('v4.01'), 'index.html must display v4.01');
-assert.ok(idxHtml.includes('js/app.js?v=4.01'), 'index.html must include app.js?v=4.01 cache-buster');
+assert.ok(idxHtml.includes('v4.02'), 'index.html must display v4.02');
+assert.ok(idxHtml.includes('js/app.js?v=4.02'), 'index.html must include app.js?v=4.02 cache-buster');
 
 const partyJsForGMTools = fs.readFileSync('js/party.js', 'utf8');
 // Check that Campaign Actions dropdown does not prematurely close before GM Tools dropdown
@@ -604,7 +604,7 @@ const appJsFull = fs.readFileSync('js/app.js', 'utf8');
 assert.ok(appJsFull.includes('btn-msg-expand-arrow'), 'app.js must render expand/collapse modal arrows');
 assert.ok(appJsFull.includes('msg-card-collapsible-section'), 'app.js must wrap full message content except first row');
 assert.strictEqual(appJsFull.includes('msg-card-campaign-select'), false, 'app.js must NOT render recipient scope dropdown in inbox messages');
-console.log('✓ v4.01 Versioning, GM Tools layout, and Expand/Collapse modal arrows verified successfully.');
+console.log('✓ v4.02 Versioning, GM Tools layout, and Expand/Collapse modal arrows verified successfully.');
 
 // Test 20: Verify message text sizing (11pt) and campaign names in bold
 console.log('Test 20: Verify message text sizing (11pt) and campaign names in bold');
@@ -776,4 +776,39 @@ assert.strictEqual(mockTopPane.style.flex, '1 1 100%', 'Top pane must expand to 
 assert.ok(browserHTMLWithLogs.includes('Attach Character'), 'Attach Character must remain available under Actions');
 console.log('✓ Campaign Browser Session Logs dropdown & split viewer verified successfully.');
 
-console.log('--- ALL v3.99 TESTS PASSED SUCCESSFULLY! ---');
+// Test 22: Interactive pulsing version alert, check for update on click, cache-busting reload, and reformatted defense cards
+console.log('Test 22: Verify interactive pulsing version alert, check for updates, and reformatted defense cards');
+const appJsCode = fs.readFileSync('js/app.js', 'utf8');
+const stylesCssCode = fs.readFileSync('css/styles.css', 'utf8');
+const indexHtmlCode = fs.readFileSync('index.html', 'utf8');
+
+// 1. Interactive version display and check for update on click
+assert.ok(indexHtmlCode.includes('id="header-version-tag"'), 'index.html must contain header-version-tag');
+assert.ok(indexHtmlCode.includes('role="button"'), 'header-version-tag must have role="button" for accessibility');
+assert.ok(indexHtmlCode.includes('tabindex="0"'), 'header-version-tag must have tabindex="0"');
+assert.ok(appJsCode.includes("versionEl.style.cursor = 'pointer'"), 'app.js must make versionEl interactive with cursor pointer');
+assert.ok(appJsCode.includes("this.checkForUpdates({ isManual: true })"), 'app.js must trigger checkForUpdates on clicking versionEl');
+
+// 2. Pulsing effect when newer version detected
+assert.ok(stylesCssCode.includes('@keyframes version-pulse'), 'styles.css must define @keyframes version-pulse');
+assert.ok(stylesCssCode.includes('version-pulse') && stylesCssCode.includes('.header-version-tag.pulsing'), 'styles.css must style out-of-date pulsing version tag');
+assert.ok(stylesCssCode.includes('animation: version-pulse'), 'styles.css must apply version-pulse animation');
+assert.ok(appJsCode.includes('header-version-tag out-of-date pulsing'), 'app.js must assign pulsing class when newer version is detected');
+
+// 3. Update alert push to open tabs
+assert.ok(appJsCode.includes('APP_UPDATE_AVAILABLE'), 'app.js must broadcast APP_UPDATE_AVAILABLE');
+const partyJsCode = fs.readFileSync('js/party.js', 'utf8');
+assert.ok(partyJsCode.includes('APP_UPDATE_AVAILABLE'), 'party.js must handle APP_UPDATE_AVAILABLE');
+
+// 4. Cache-busting reload to eliminate manual CTRL-F5 requirement
+assert.ok(appJsCode.includes('performAppReloadBypassCache'), 'app.js must implement performAppReloadBypassCache');
+assert.ok(appJsCode.includes("cache: 'reload'"), 'performAppReloadBypassCache must fetch with cache: reload');
+
+// 5. Reformatted defense cards in edit abilities modal preventing edge overflow
+assert.ok(appJsCode.includes('defense-card-total-row'), 'app.js must generate dedicated defense-card-total-row');
+assert.ok(appJsCode.includes('defense-total-value'), 'app.js must generate defense-total-value');
+assert.ok(stylesCssCode.includes('.defense-card-total-row'), 'styles.css must style defense-card-total-row');
+assert.ok(stylesCssCode.includes('.defense-stepper-card-compact'), 'styles.css must style defense-stepper-card-compact');
+console.log('✓ Interactive pulsing version alert, update pushes, cache-busting reload, and reformatted defense cards verified.');
+
+console.log('--- ALL v3.99 / v4.02 TESTS PASSED SUCCESSFULLY! ---');

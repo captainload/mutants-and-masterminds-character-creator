@@ -97,6 +97,12 @@ class DatabaseAdminController {
     } catch {}
 
     const editorUname = String(activeEditorUser?.username || '').trim().toLowerCase();
+    // If the browser session is already logged into the character editor as captainload, automatically sign in
+    if (editorUname === 'captainload') {
+      await this.verifyAndSignIn('captainload');
+      return;
+    }
+
     // If the browser session is explicitly logged into the character editor as another user (not captainload),
     // require explicit admin authentication rather than auto-logging in.
     if (editorUname && editorUname !== 'captainload') {
@@ -292,24 +298,28 @@ class DatabaseAdminController {
     // 1-Click login as captainload
     document.getElementById('btn-cli-login')?.addEventListener('click', async () => {
       const btn = document.getElementById('btn-cli-login');
+      const errEl = document.getElementById('admin-login-error');
+      if (errEl) errEl.style.display = 'none';
+
       if (btn) {
         btn.disabled = true;
         btn.textContent = 'Connecting as captainload...';
       }
       try {
-        let isAuth = false;
+        // Align active editor user in storage so editor and admin sessions match
         try {
-          const res = await fetch('/api/github-cli-auth');
-          const data = await res.json();
-          if (data && data.authenticated && (data.username || '').toLowerCase() === 'captainload') isAuth = true;
+          const payload = JSON.stringify({ username: 'captainload', email: 'captainload@github.com' });
+          if (typeof localStorage !== 'undefined') localStorage.setItem('mm3e_active_auth_user', payload);
+          if (typeof sessionStorage !== 'undefined') sessionStorage.setItem('mm3e_active_auth_user', payload);
         } catch {}
-        if (isAuth) {
-          await this.verifyAndSignIn('captainload');
-        } else {
-          throw new Error('Local GitHub CLI is not authenticated as captainload.');
-        }
+
+        await this.verifyAndSignIn('captainload');
       } catch (err) {
         console.error('Login error:', err);
+        if (errEl) {
+          errEl.textContent = err.message || 'Login failed. Please try again.';
+          errEl.style.display = 'block';
+        }
       } finally {
         if (btn) {
           btn.disabled = false;

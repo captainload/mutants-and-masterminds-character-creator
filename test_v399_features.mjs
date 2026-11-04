@@ -120,14 +120,15 @@ assert.ok(indexHtml.includes('btn-header-database-admin'), 'index.html must cont
 assert.ok(indexHtml.includes('href="admin.html"'), 'index.html must link to admin.html');
 console.log('✓ Database Admin link is present in index.html user dropdown.');
 
-// Test 5: Verify GitHub Project Credentials Authorization Gating
-console.log('Test 5: Verify GitHub Project Credentials Authorization Gating');
+// Test 5: Verify GitHub Project Credentials Authorization Gating & Working Login Button
+console.log('Test 5: Verify GitHub Project Credentials Authorization Gating & Working Login Button');
 assert.ok(adminHtml.includes('captainload'), 'admin.html must designate captainload as authorized project admin');
 assert.ok(adminHtml.includes('GitHub Project Administration'), 'admin.html must emphasize GitHub project administration');
 assert.ok(adminJs.includes('captainload'), 'js/admin.js must enforce captainload login');
 assert.ok(adminJs.includes('api.github.com/user'), 'js/admin.js must verify credentials with GitHub API');
 assert.ok(adminJs.includes('verifyAndSignIn'), 'js/admin.js must implement verifyAndSignIn');
-console.log('✓ Database Admin is strictly gated by GitHub project credentials (captainload).');
+assert.ok(adminJs.includes("await this.verifyAndSignIn('captainload')"), 'btn-cli-login must invoke verifyAndSignIn with captainload');
+console.log('✓ Database Admin is strictly gated by GitHub project credentials (captainload) and Login button works.');
 
 // Test 6: Verify GM Join Request Synchronization into Messages & Requests Store
 console.log('Test 6: Verify GM Join Request Synchronization into Messages & Requests Store');

@@ -209,10 +209,11 @@ mgr.leaveCampaignPermanent(campCId, campCName);
 const histAfter = mgr.getCampaignHistory().find(c => c.campaignId === campCId);
 assert(histAfter && histAfter.isCreator, 'GM must still own campaign in history after leaving party');
 
-// In browser HTML, card should reflect GM (Owner) and NOT In Party
+// In browser HTML, card should reflect 👑 GM: and eliminate GM (Owner) tags, and NOT In Party
 const browserHTML = mgr.generateCampaignBrowserHTML();
-assert(browserHTML.includes('👑 GM (Owner)'), 'GM without attached character must be marked GM (Owner)');
-assert(!browserHTML.includes('👑 GM • 🌟 In Party'), 'GM without attached character must NOT be marked In Party');
+assert(!browserHTML.includes('GM (Owner)'), 'GM without attached character must eliminate GM (Owner) tag');
+assert(browserHTML.includes('👑 GM:'), 'GM card must feature 👑 GM: in front of the GM name');
+assert(!browserHTML.includes('In Party'), 'GM without attached character must NOT be marked In Party');
 assert(browserHTML.includes('Attach Character') || browserHTML.includes('Join Campaign'), 'Card must show Attach Character or Join Campaign button when GM is not in party');
 
 console.log('✓ GM leaving party keeps campaign ownership while properly removing party membership status.');

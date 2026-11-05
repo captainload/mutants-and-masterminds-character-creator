@@ -4586,16 +4586,13 @@ export class CampaignTrackerManager {
         <div class="campaign-browser-card" data-campid="${c.campaignId}" style="background: var(--bg-card); border: 1px solid ${isOnHiatus ? 'rgba(245, 158, 11, 0.45)' : (isCreator || isMember ? 'rgba(59, 130, 246, 0.5)' : 'var(--border-color)')}; border-radius: 6px; padding: 0.65rem 0.85rem; margin-bottom: 0.55rem; display: flex; flex-direction: column; gap: 0.45rem;">
           <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.45rem;">
             <div style="display: flex; align-items: center; gap: 0.45rem; flex-wrap: wrap;">
-              ${isCreator
-                ? (hasCharInParty
-                  ? `<span class="badge-gm-owned-campaign badge-joined-campaign" data-gm-owned="1" title="Campaign you own as GM with character in party (shown first)" style="font-size: 10pt; font-weight: 800; color: var(--hero-gold); background: rgba(234, 179, 8, 0.18); border: 1px solid rgba(234, 179, 8, 0.55); padding: 1px 6px; border-radius: 4px;">👑 GM • 🌟 In Party</span>`
-                  : `<span class="badge-gm-owned-campaign" data-gm-owned="1" title="Campaign you own as GM (shown first)" style="font-size: 10pt; font-weight: 800; color: var(--hero-gold); background: rgba(234, 179, 8, 0.18); border: 1px solid rgba(234, 179, 8, 0.55); padding: 1px 6px; border-radius: 4px;">👑 GM (Owner)</span>`
-                )
-                : (hasCharInParty
-                  ? `<span class="badge-joined-campaign" data-gm-owned="0" title="Campaign you participate in as a Player with character in party" style="font-size: 10pt; font-weight: 800; color: var(--hero-blue); background: rgba(59, 130, 246, 0.16); border: 1px solid rgba(59, 130, 246, 0.45); padding: 1px 6px; border-radius: 4px;">🌟 In Party</span>`
-                  : (isMember
-                    ? `<span style="font-size: 10pt; font-weight: 800; color: var(--hero-blue); background: rgba(59, 130, 246, 0.12); border: 1px solid rgba(59, 130, 246, 0.35); padding: 1px 6px; border-radius: 4px;">👤 Member</span>`
-                    : `<span style="font-size: 10pt; font-weight: 700; color: var(--hero-green); background: rgba(16, 185, 129, 0.14); border: 1px solid rgba(16, 185, 129, 0.4); padding: 1px 6px; border-radius: 4px;">🌐 Open to Join</span>`
+              ${hasCharInParty
+                ? `<span class="badge-joined-campaign" data-gm-owned="${isCreator ? '1' : '0'}" title="Campaign you participate in with character in party" style="font-size: 10pt; font-weight: 800; color: var(--hero-blue); background: rgba(59, 130, 246, 0.16); border: 1px solid rgba(59, 130, 246, 0.45); padding: 1px 6px; border-radius: 4px;">🌟 In Party</span>`
+                : (isMember && !isCreator
+                  ? `<span style="font-size: 10pt; font-weight: 800; color: var(--hero-blue); background: rgba(59, 130, 246, 0.12); border: 1px solid rgba(59, 130, 246, 0.35); padding: 1px 6px; border-radius: 4px;">👤 Member</span>`
+                  : (!isMember && !isCreator
+                    ? `<span style="font-size: 10pt; font-weight: 700; color: var(--hero-green); background: rgba(16, 185, 129, 0.14); border: 1px solid rgba(16, 185, 129, 0.4); padding: 1px 6px; border-radius: 4px;">🌐 Open to Join</span>`
+                    : ''
                   )
                 )
               }
@@ -4603,8 +4600,8 @@ export class CampaignTrackerManager {
               <span style="font-size: 10pt; background: rgba(0,0,0,0.15); padding: 1px 6px; border-radius: 4px; font-weight: 800; color: var(--hero-blue);">ID: #${c.campaignId}</span>
               <span style="font-size: 10pt; color: var(--hero-gold); font-weight: 800;">PL ${c.powerLevel || 10}</span>
               ${isPublic ? '<span style="font-size: 10pt; font-weight: 700; color: #10b981; background: rgba(16, 185, 129, 0.12); padding: 1px 5px; border-radius: 3px;">🌐 Public</span>' : '<span style="font-size: 10pt; color: var(--text-muted); background: rgba(255,255,255,0.05); padding: 1px 5px; border-radius: 3px;">🔒 Private</span>'}
-              ${c.isCreator ? '<span style="font-size: 10pt; font-weight: 800; color: var(--hero-gold); background: rgba(234, 179, 8, 0.15); padding: 1px 5px; border-radius: 3px;">👑 GM (Owner)</span>' : (c.isJoinedOrCreated ? '<span style="font-size: 10pt; font-weight: 700; color: var(--hero-blue); background: rgba(59, 130, 246, 0.15); padding: 1px 5px; border-radius: 3px;">Player</span>' : '')}
-              ${c.creatorName ? `<span style="font-size: 10pt; color: var(--text-muted);">GM: <strong>${c.creatorName}</strong></span>` : ''}
+              ${!c.isCreator && c.isJoinedOrCreated ? '<span style="font-size: 10pt; font-weight: 700; color: var(--hero-blue); background: rgba(59, 130, 246, 0.15); padding: 1px 5px; border-radius: 3px;">Player</span>' : ''}
+              ${c.creatorName ? `<span style="font-size: 10pt; color: var(--text-muted);">👑 GM: <strong>${c.creatorName}</strong></span>` : ''}
               ${hasCharInParty ? `<span style="font-size: 10pt; color: var(--text-muted);">Attached: ${attachedStr}</span>` : ''}
             </div>
             <div style="display: flex; align-items: center; gap: 0.45rem; flex-wrap: wrap;">

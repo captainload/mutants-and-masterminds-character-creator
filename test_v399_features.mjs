@@ -584,11 +584,11 @@ console.log('✓ User Notes row sizing (1 row default, expands up to 3 rows befo
 // Test 19: Verify Versioning (v4.02), GM Tools layout, and expand/collapse modal arrows
 console.log('Test 19: Verify Versioning (v4.02), GM Tools layout, and expand/collapse modal arrows');
 const vJson = JSON.parse(fs.readFileSync('version.json', 'utf8'));
-assert.strictEqual(vJson.version, '4.02', 'version.json must be v4.02');
+assert.ok(parseFloat(vJson.version) >= 4.02, 'version.json must be v4.02+');
 
 const idxHtml = fs.readFileSync('index.html', 'utf8');
-assert.ok(idxHtml.includes('v4.02'), 'index.html must display v4.02');
-assert.ok(idxHtml.includes('js/app.js?v=4.02'), 'index.html must include app.js?v=4.02 cache-buster');
+assert.ok(idxHtml.includes(vJson.version), 'index.html must display current version');
+assert.ok(idxHtml.includes(`js/app.js?v=${vJson.version}`), 'index.html must include app.js cache-buster');
 
 const partyJsForGMTools = fs.readFileSync('js/party.js', 'utf8');
 // Check that Campaign Actions dropdown does not prematurely close before GM Tools dropdown

@@ -1,8 +1,8 @@
 {
-  "version": "4.02",
-  "updatedAt": "2026-11-03T19:05:00.000Z",
-  "releaseNotes": "Interactive pulsing version badge for update alerts, check-for-updates on click, cache-busting reload to eliminate manual Ctrl-F5 refreshes, and reformatted Edit Abilities defense cards with dedicated Total rows preventing edge overflow.",
-  "updated": "2026-11-03",
-  "releaseDate": "2026-11-03",
-  "description": "v4.02: Interactive pulsing version alert badge, check for update on click, cache-busting reload, and reformatted defense cards with dedicated Total row"
+  "version": "4.03",
+  "updatedAt": "2026-11-05T18:50:00.000Z",
+  "releaseNotes": "Campaign Browser: Eliminated GM (Owner) tags and added 👑 GM: prefix in front of the GM's name across all campaign cards.",
+  "updated": "2026-11-05",
+  "releaseDate": "2026-11-05",
+  "description": "v4.03: Campaign Browser eliminates GM (Owner) tags and prefixes GM names with 👑 GM:"
 }

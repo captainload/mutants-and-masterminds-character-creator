@@ -44,7 +44,7 @@ import {
 import { POWER_PROFILES_LIBRARY } from './power_profiles.js?v=3.99';
 import { ARCHETYPES } from './archetypes.js?v=3.99';
 import { archetypeManager } from './archetype_window.js?v=3.99';
-import { campaignManager, partyManager, formatCharacterSheetHTML } from './party.js?v=3.99';
+import { campaignManager, partyManager, formatCharacterSheetHTML } from './party.js?v=4.03';
 import { supabaseService } from './supabase_client.js?v=3.99';
 import { ARCHETYPE_CUSTOMIZATION_OPTIONS, buildCustomizedArchetype } from './archetype_builder.js?v=3.99';
 import { diceRoller } from './dice.js?v=3.99';
@@ -2262,7 +2262,7 @@ window.partyManager = partyManager;
   }
 
   applyRemoteUpdateAlert(remoteVersion, releaseNotes = '') {
-    const CURRENT_VERSION = '4.02';
+    const CURRENT_VERSION = '4.03';
     const versionEl = document.getElementById('header-version-tag');
     const updateBtn = document.getElementById('btn-header-update-alert');
     const isOutdated = !!(remoteVersion && remoteVersion !== CURRENT_VERSION);
@@ -2296,7 +2296,7 @@ window.partyManager = partyManager;
   }
 
   async checkForUpdates({ isManual = false } = {}) {
-    const CURRENT_VERSION = '4.02';
+    const CURRENT_VERSION = '4.03';
     const versionEl = document.getElementById('header-version-tag');
     const updateBtn = document.getElementById('btn-header-update-alert');
     if (typeof window === 'undefined' || !window.location || !window.location.href || window.location.href === 'about:blank') return;

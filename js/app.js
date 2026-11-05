@@ -2225,12 +2225,28 @@ window.partyManager = partyManager;
           this.checkForUpdates({ isManual: false });
         }
       });
+
+      // Clear any outdated mm3e_update_available from previous versions
+      try {
+        if (typeof localStorage !== 'undefined') {
+          const stored = localStorage.getItem('mm3e_update_available');
+          if (stored) {
+            const parsed = JSON.parse(stored);
+            if (!this.isNewerVersion(parsed?.version, '4.03')) {
+              localStorage.removeItem('mm3e_update_available');
+            }
+          }
+        }
+      } catch (e) {}
+
       window.addEventListener('storage', (e) => {
         if (e.key === 'mm3e_update_available' && e.newValue) {
           try {
             const d = JSON.parse(e.newValue);
-            if (d && d.version) {
+            if (d && d.version && this.isNewerVersion(d.version, '4.03')) {
               this.applyRemoteUpdateAlert(d.version, d.releaseNotes);
+            } else if (typeof localStorage !== 'undefined') {
+              localStorage.removeItem('mm3e_update_available');
             }
           } catch (err) {}
         }
@@ -2238,6 +2254,21 @@ window.partyManager = partyManager;
       const pollTimer = setInterval(() => this.checkForUpdates({ isManual: false }), 20000);
       if (pollTimer && typeof pollTimer.unref === 'function') pollTimer.unref();
     }
+  }
+
+  isNewerVersion(remote, current) {
+    if (!remote || !current) return false;
+    const parse = v => String(v).replace(/^v/i, '').split('.').map(n => parseInt(n, 10) || 0);
+    const rParts = parse(remote);
+    const cParts = parse(current);
+    const maxLen = Math.max(rParts.length, cParts.length);
+    for (let i = 0; i < maxLen; i++) {
+      const r = rParts[i] || 0;
+      const c = cParts[i] || 0;
+      if (r > c) return true;
+      if (r < c) return false;
+    }
+    return false;
   }
 
   async performAppReloadBypassCache() {
@@ -2265,7 +2296,7 @@ window.partyManager = partyManager;
     const CURRENT_VERSION = '4.03';
     const versionEl = document.getElementById('header-version-tag');
     const updateBtn = document.getElementById('btn-header-update-alert');
-    const isOutdated = !!(remoteVersion && remoteVersion !== CURRENT_VERSION);
+    const isOutdated = !!(remoteVersion && this.isNewerVersion(remoteVersion, CURRENT_VERSION));
 
     if (versionEl) {
       if (isOutdated) {
@@ -2292,6 +2323,12 @@ window.partyManager = partyManager;
       if (newEl) newEl.textContent = `v${remoteVersion}`;
       if (notesEl) notesEl.textContent = releaseNotes || 'Bug fixes and performance improvements.';
       this.openModal('modal-update-alert');
+    } else {
+      try {
+        if (typeof localStorage !== 'undefined') {
+          localStorage.removeItem('mm3e_update_available');
+        }
+      } catch (e) {}
     }
   }
 
@@ -2312,8 +2349,8 @@ window.partyManager = partyManager;
         }
       } catch (e) {}
 
-      // 2. If local didn't return or returned same, also check GitHub raw if accessible
-      if (!data || data.version === CURRENT_VERSION) {
+      // 2. Only check GitHub raw if local version.json could not be fetched
+      if (!data) {
         try {
           const ghRes = await fetch(`https://raw.githubusercontent.com/captainload/mutants-and-masterminds-character-creator/main/version.json?t=${Date.now()}`, { cache: 'no-store' });
           if (ghRes.ok) {
@@ -2336,7 +2373,7 @@ window.partyManager = partyManager;
       }
 
       const remoteVersion = data.version;
-      const isOutdated = !!(remoteVersion && remoteVersion !== CURRENT_VERSION);
+      const isOutdated = this.isNewerVersion(remoteVersion, CURRENT_VERSION);
 
       this.applyRemoteUpdateAlert(remoteVersion, data.releaseNotes);
 
@@ -2358,8 +2395,15 @@ window.partyManager = partyManager;
             });
           }
         } catch (e) {}
-      } else if (isManual) {
-        await this.showAlertDialog(`You are up to date! Mutants & Masterminds Character Editor is running the latest version (v${CURRENT_VERSION}).`, { title: 'Up to Date' });
+      } else {
+        try {
+          if (typeof localStorage !== 'undefined') {
+            localStorage.removeItem('mm3e_update_available');
+          }
+        } catch (e) {}
+        if (isManual) {
+          await this.showAlertDialog(`You are up to date! Mutants & Masterminds Character Editor is running the latest version (v${CURRENT_VERSION}).`, { title: 'Up to Date' });
+        }
       }
     } catch (err) {
       if (versionEl) {

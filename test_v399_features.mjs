@@ -581,8 +581,8 @@ assert.ok(stylesCssContent.includes('max-height: 4.2em'), '.address-book-user-no
 assert.ok(appJsForLabels.includes('autoResizeUserNotes'), 'app.js must include autoResizeUserNotes dynamic handler');
 console.log('✓ User Notes row sizing (1 row default, expands up to 3 rows before scrolling) verified.');
 
-// Test 19: Verify Versioning (v4.02), GM Tools layout, and expand/collapse modal arrows
-console.log('Test 19: Verify Versioning (v4.02), GM Tools layout, and expand/collapse modal arrows');
+// Test 19: Verify Versioning (v4.02+), Unified Actions layout, and expand/collapse modal arrows
+console.log('Test 19: Verify Versioning (v4.02+), Unified Actions layout, and expand/collapse modal arrows');
 const vJson = JSON.parse(fs.readFileSync('version.json', 'utf8'));
 assert.ok(parseFloat(vJson.version) >= 4.02, 'version.json must be v4.02+');
 
@@ -591,21 +591,16 @@ assert.ok(idxHtml.includes(vJson.version), 'index.html must display current vers
 assert.ok(idxHtml.includes(`js/app.js?v=${vJson.version}`), 'index.html must include app.js cache-buster');
 
 const partyJsForGMTools = fs.readFileSync('js/party.js', 'utf8');
-// Check that Campaign Actions dropdown does not prematurely close before GM Tools dropdown
-const gmToolsPos = partyJsForGMTools.indexOf('campaign-gm-tools-dropdown');
-assert.ok(gmToolsPos > 0, 'party.js must include campaign-gm-tools-dropdown');
-const endOfActions = partyJsForGMTools.indexOf('btn-leave-campaign-membership');
-const middleSnippet = partyJsForGMTools.slice(endOfActions, gmToolsPos);
-// Count closing </div> tags between btn-leave-campaign-membership and campaign-gm-tools-dropdown
-const closeDivMatches = middleSnippet.match(/<\/div>/g) || [];
-// Exactly 2 </div> tags: campaign-actions-panel and campaign-actions-dropdown container
-assert.strictEqual(closeDivMatches.length, 2, 'Must close exactly the actions panel and actions dropdown container before GM Tools dropdown');
+// Verify GM Tools button is removed from card row markup and GM commands are housed in unified campaign-actions-panel
+assert.strictEqual(partyJsForGMTools.includes('<button type="button" class="btn btn-outline campaign-gm-toggle"'), false, 'Standalone campaign-gm-toggle button must be removed from campaign card markup');
+assert.ok(partyJsForGMTools.includes('campaign-actions-panel'), 'party.js must include unified campaign-actions-panel');
+assert.ok(partyJsForGMTools.includes('👑 GM Controls'), 'unified campaign-actions-panel must include GM Controls section');
 
 const appJsFull = fs.readFileSync('js/app.js', 'utf8');
 assert.ok(appJsFull.includes('btn-msg-expand-arrow'), 'app.js must render expand/collapse modal arrows');
 assert.ok(appJsFull.includes('msg-card-collapsible-section'), 'app.js must wrap full message content except first row');
 assert.strictEqual(appJsFull.includes('msg-card-campaign-select'), false, 'app.js must NOT render recipient scope dropdown in inbox messages');
-console.log('✓ v4.02 Versioning, GM Tools layout, and Expand/Collapse modal arrows verified successfully.');
+console.log('✓ v4.02+ Versioning, Unified Actions layout, and Expand/Collapse modal arrows verified successfully.');
 
 // Test 20: Verify message text sizing (11pt) and campaign names in bold
 console.log('Test 20: Verify message text sizing (11pt) and campaign names in bold');
@@ -812,4 +807,89 @@ assert.ok(stylesCssCode.includes('.defense-card-total-row'), 'styles.css must st
 assert.ok(stylesCssCode.includes('.defense-stepper-card-compact'), 'styles.css must style defense-stepper-card-compact');
 console.log('✓ Interactive pulsing version alert, update pushes, cache-busting reload, and reformatted defense cards verified.');
 
-console.log('--- ALL v3.99 / v4.02 TESTS PASSED SUCCESSFULLY! ---');
+// Test 23: Verify Campaign Browser Makeover
+console.log('Test 23: Verify Campaign Browser Makeover');
+// 1. Check Row 1 layout and font sizes
+assert.ok(partyJsCode.includes('campaign-card-row1'), 'Campaign card must have campaign-card-row1');
+assert.ok(partyJsCode.includes('campaign-card-name'), 'Campaign card must have campaign-card-name');
+assert.ok(partyJsCode.includes('font-size: 12pt;'), 'Campaign name must be styled with 12pt font size');
+assert.ok(partyJsCode.includes('campaign-card-gm'), 'Campaign card must have campaign-card-gm');
+assert.ok(partyJsCode.includes('font-size: 11pt;') && partyJsCode.includes('👑 GM:'), 'GM label must be styled with 11pt');
+assert.ok(partyJsCode.includes('campaign-card-status'), 'Campaign card must have campaign-card-status');
+
+// 2. Check Set PL stepper and Override PL setting in Actions menu
+assert.ok(partyJsCode.includes('btn-stepper-camp-pl'), 'Actions menu must include btn-stepper-camp-pl');
+assert.ok(partyJsCode.includes('stepper-value-camp-pl'), 'Actions menu must include stepper-value-camp-pl');
+assert.ok(partyJsCode.includes('chk-campaign-override-pl'), 'Actions menu must include chk-campaign-override-pl');
+assert.ok(partyJsCode.includes("Override PL (Don't enforce limits)"), 'Override PL setting must be clearly labeled');
+
+// 3. Check Row 2 active session status, start time/date, and expandable notes
+assert.ok(partyJsCode.includes('campaign-card-row2'), 'Campaign card must have campaign-card-row2');
+assert.ok(partyJsCode.includes('campaign-session-status-badge'), 'Row 2 must have campaign-session-status-badge');
+assert.ok(partyJsCode.includes('🟢 Session Running • Started:'), 'Row 2 must display running session start date and time');
+assert.ok(partyJsCode.includes('textarea-campaign-notes'), 'Row 2 must have textarea-campaign-notes for GM');
+
+// 4. Verify functional rendering for GM vs Non-GM with permission filtering
+const testMgr = new CampaignTrackerManager();
+testMgr.registerCampaignInfo({
+  campaignId: 'BROWSER-MAKEOVER-1',
+  campaignName: 'Freedom League Makeover',
+  creatorName: 'Captainload',
+  powerLevel: 10,
+  isPublic: true,
+  notes: 'Campaign notes for freedom league.'
+});
+
+// Set active session for BROWSER-MAKEOVER-1
+const activeSessionsStore = {};
+activeSessionsStore['BROWSER-MAKEOVER-1'] = {
+  campaignId: 'BROWSER-MAKEOVER-1',
+  campaignName: 'Freedom League Makeover',
+  creatorName: 'Captainload',
+  isHost: true,
+  startedAtMs: Date.now() - 3600000,
+  startedAtDate: '11/6/2026',
+  startedAtTime: '05:30 PM',
+  lastHeartbeat: Date.now()
+};
+testMgr._sharedFallback['mm3e_active_sessions'] = JSON.stringify(activeSessionsStore);
+
+// Render as GM (Captainload)
+testMgr.saveCampaignState({
+  isConnected: true,
+  campaignId: 'BROWSER-MAKEOVER-1',
+  campaignName: 'Freedom League Makeover',
+  isCreator: true,
+  creatorName: 'Captainload'
+});
+
+const gmCardHtml = testMgr.generateCampaignBrowserHTML();
+assert.ok(gmCardHtml.includes('Freedom League Makeover'), 'GM card includes campaign name');
+assert.ok(gmCardHtml.includes('👑 GM:'), 'GM card includes 👑 GM:');
+assert.ok(gmCardHtml.includes('🌐 Public'), 'GM card includes status 🌐 Public');
+assert.ok(gmCardHtml.includes('🟢 Session Running • Started: 11/6/2026 at 05:30 PM'), 'GM card displays session running status with start date and time');
+assert.ok(gmCardHtml.includes('👑 GM Controls'), 'GM sees 👑 GM Controls section in Actions menu');
+assert.ok(gmCardHtml.includes('btn-stepper-camp-pl'), 'GM sees Set PL stepper in Actions menu');
+assert.ok(gmCardHtml.includes('chk-campaign-override-pl'), 'GM sees Override PL setting in Actions menu');
+assert.ok(gmCardHtml.includes('btn-gm-delete-campaign'), 'GM sees Delete Campaign in Actions menu');
+
+// Render as Non-GM Player (Visitor)
+supabaseService.getUsername = () => 'VisitorHero';
+testMgr.getCurrentUsername = () => 'VisitorHero';
+testMgr.saveCampaignState({
+  isConnected: false,
+  campaignId: null,
+  isCreator: false,
+  creatorName: 'Captainload'
+});
+
+const playerCardHtml = testMgr.generateCampaignBrowserHTML();
+assert.ok(playerCardHtml.includes('Freedom League Makeover'), 'Player card includes campaign name');
+assert.ok(playerCardHtml.includes('🟢 Session Running • Started: 11/6/2026 at 05:30 PM'), 'Player card displays session running status with start date and time');
+assert.strictEqual(playerCardHtml.includes('👑 GM Controls'), false, 'Non-GM MUST NOT see GM Controls section');
+assert.strictEqual(playerCardHtml.includes('btn-stepper-camp-pl'), false, 'Non-GM MUST NOT see Set PL stepper');
+assert.strictEqual(playerCardHtml.includes('chk-campaign-override-pl'), false, 'Non-GM MUST NOT see Override PL setting');
+assert.strictEqual(playerCardHtml.includes('btn-gm-delete-campaign'), false, 'Non-GM MUST NOT see Delete Campaign');
+console.log('✓ Campaign Browser Makeover (Row 1 layout & sizing, Actions GM unification, permission filtering, Row 2 session & notes) verified successfully.');
+
+console.log('--- ALL v3.99 / v4.02 / v4.04 TESTS PASSED SUCCESSFULLY! ---');

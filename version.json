@@ -1,8 +1,8 @@
 {
-  "version": "4.03",
-  "updatedAt": "2026-11-05T18:50:00.000Z",
-  "releaseNotes": "Campaign Browser: Eliminated GM (Owner) tags and added 👑 GM: prefix in front of the GM's name across all campaign cards.",
-  "updated": "2026-11-05",
-  "releaseDate": "2026-11-05",
-  "description": "v4.03: Campaign Browser eliminates GM (Owner) tags and prefixes GM names with 👑 GM:"
+  "version": "4.04",
+  "updatedAt": "2026-11-06T18:30:00.000Z",
+  "releaseNotes": "Campaign Browser Makeover: Row 1 displays Campaign Name, GM, and Status in slightly larger text; GM Tools integrated into Actions menu with Set PL stepper, Override PL setting, and permission-filtered GM controls; Row 2 displays active session status, start date/time, and expandable notes.",
+  "updated": "2026-11-06",
+  "releaseDate": "2026-11-06",
+  "description": "v4.04: Campaign Browser makeover with unified Actions, PL stepper, and session start tracking"
 }

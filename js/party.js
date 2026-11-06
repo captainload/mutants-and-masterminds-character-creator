@@ -342,6 +342,11 @@ export class CampaignTrackerManager {
       const current = this.getCampaignState();
       if (current.isConnected && current.campaignId) {
         const cleanId = current.campaignId.replace(/^#+/, '');
+        const sessions = this.getActiveSessions();
+        const prevSession = sessions[cleanId] || {};
+        const startedAtMs = current.startedAtMs || prevSession.startedAtMs || Date.now();
+        const startedAtDate = current.startedAtDate || prevSession.startedAtDate || new Date(startedAtMs).toLocaleDateString();
+        const startedAtTime = current.startedAtTime || prevSession.startedAtTime || new Date(startedAtMs).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
         const payload = {
           campaignId: cleanId,
           campaignName: current.campaignName,
@@ -349,10 +354,12 @@ export class CampaignTrackerManager {
           dontEnforcePL: !!current.dontEnforcePL,
           creatorName: current.creatorName || '',
           isHost: !!current.isHost,
+          startedAtMs,
+          startedAtDate,
+          startedAtTime,
           lastHeartbeat: Date.now()
         };
         try {
-          const sessions = this.getActiveSessions();
           sessions[cleanId] = payload;
           if (typeof localStorage !== 'undefined') {
             localStorage.setItem('mm3e_active_sessions', JSON.stringify(sessions));
@@ -397,6 +404,13 @@ export class CampaignTrackerManager {
     } catch {
       return {};
     }
+  }
+
+  getActiveSessionInfo(campaignId) {
+    if (!campaignId) return null;
+    const cleanId = String(campaignId).trim().toUpperCase().replace(/^#+/, '');
+    const active = this.getActiveSessions();
+    return active[cleanId] || null;
   }
 
   isSessionActive(campaignId) {
@@ -481,6 +495,9 @@ export class CampaignTrackerManager {
     const campPL = parseInt(info?.powerLevel ?? histMatch?.powerLevel ?? current.powerLevel ?? 10, 10) || 10;
     const dontEnforce = !!(info?.dontEnforcePL ?? histMatch?.dontEnforcePL ?? current.dontEnforcePL);
 
+    const nowMs = Date.now();
+    const startDate = new Date(nowMs).toLocaleDateString();
+    const startTime = new Date(nowMs).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     // Connect GM to the live campaign room now that the session is starting
     const liveState = {
       ...current,
@@ -492,6 +509,9 @@ export class CampaignTrackerManager {
       dontEnforcePL: dontEnforce,
       isHost: true,
       isCreator: true,
+      startedAtMs: nowMs,
+      startedAtDate: startDate,
+      startedAtTime: startTime,
       connectedAt: new Date().toLocaleTimeString()
     };
     this.saveCampaignState(liveState);
@@ -4572,7 +4592,10 @@ export class CampaignTrackerManager {
       const isPublic = !!(c.isPublic || regInfo.isPublic);
       const notesText = String(c.notes ?? regInfo.notes ?? '');
       const pendingTransfer = c.pendingTransfer || regInfo.pendingTransfer || null;
-      const isLive = !isOnHiatus && this.isSessionActive(c.campaignId);
+      const activeSession = this.getActiveSessionInfo(c.campaignId);
+      const isLive = !isOnHiatus && !!activeSession;
+      const sessionStartDate = activeSession?.startedAtDate || (activeSession?.startedAtMs ? new Date(activeSession.startedAtMs).toLocaleDateString() : new Date().toLocaleDateString());
+      const sessionStartTime = activeSession?.startedAtTime || (activeSession?.startedAtMs ? new Date(activeSession.startedAtMs).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
       const isCur = state.isConnected && isLive && state.campaignId === c.campaignId;
       const attached = storedChars.filter(ch => (ch.campaignId && ch.campaignId.toUpperCase().replace(/^#+/, '') === c.campaignId) || (ch.campaign && ch.campaign.trim().toLowerCase() === (c.campaignName || '').toLowerCase()));
       const attachedStr = attached.map(ch => ch.name || 'Hero').join(', ') || 'None';
@@ -4584,35 +4607,29 @@ export class CampaignTrackerManager {
 
       return `
         <div class="campaign-browser-card" data-campid="${c.campaignId}" style="background: var(--bg-card); border: 1px solid ${isOnHiatus ? 'rgba(245, 158, 11, 0.45)' : (isCreator || isMember ? 'rgba(59, 130, 246, 0.5)' : 'var(--border-color)')}; border-radius: 6px; padding: 0.65rem 0.85rem; margin-bottom: 0.55rem; display: flex; flex-direction: column; gap: 0.45rem;">
-          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.45rem;">
-            <div style="display: flex; align-items: center; gap: 0.45rem; flex-wrap: wrap;">
+          <!-- Row 1: Left has Campaign Name, GM, Status, badges. Right has Logs & Unified Actions -->
+          <div class="campaign-card-row1" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.55rem; width: 100%;">
+            <div style="display: flex; align-items: center; gap: 0.65rem; flex-wrap: wrap;">
+              <strong class="campaign-card-name" style="font-size: 12pt; font-weight: 800; color: var(--text-bright);">${c.isCreator ? '👑 ' : ''}${this.escapeHTML(c.campaignName)}</strong>
+              <span class="campaign-card-gm" style="font-size: 11pt; color: var(--text-muted); font-weight: 600;">👑 GM: <strong style="color: var(--text-bright); font-size: 11pt;">${this.escapeHTML(c.creatorName || 'Unknown')}</strong></span>
+              <span class="campaign-card-status" style="font-size: 11pt; font-weight: 700; ${isPublic ? 'color: #10b981; background: rgba(16, 185, 129, 0.12);' : 'color: var(--text-muted); background: rgba(255,255,255,0.05);'} padding: 1px 6px; border-radius: 4px;">${isPublic ? '🌐 Public' : '🔒 Private'}</span>
+              <span class="badge-campaign-id" style="font-size: 10.5pt; background: rgba(0,0,0,0.18); padding: 1px 6px; border-radius: 4px; font-weight: 800; color: var(--hero-blue);">ID: #${c.campaignId}</span>
+              <span class="badge-campaign-pl" data-campid="${c.campaignId}" style="font-size: 10.5pt; color: var(--hero-gold); font-weight: 800;">PL ${c.powerLevel || 10}</span>
               ${hasCharInParty
-                ? `<span class="badge-joined-campaign" data-gm-owned="${isCreator ? '1' : '0'}" title="Campaign you participate in with character in party" style="font-size: 10pt; font-weight: 800; color: var(--hero-blue); background: rgba(59, 130, 246, 0.16); border: 1px solid rgba(59, 130, 246, 0.45); padding: 1px 6px; border-radius: 4px;">🌟 In Party</span>`
+                ? `<span class="badge-joined-campaign" data-gm-owned="${isCreator ? '1' : '0'}" title="Campaign you participate in with character in party" style="font-size: 10.5pt; font-weight: 800; color: var(--hero-blue); background: rgba(59, 130, 246, 0.16); border: 1px solid rgba(59, 130, 246, 0.45); padding: 1px 6px; border-radius: 4px;">🌟 In Party${attachedStr !== 'None' ? ` (${this.escapeHTML(attachedStr)})` : ''}</span>`
                 : (isMember && !isCreator
-                  ? `<span style="font-size: 10pt; font-weight: 800; color: var(--hero-blue); background: rgba(59, 130, 246, 0.12); border: 1px solid rgba(59, 130, 246, 0.35); padding: 1px 6px; border-radius: 4px;">👤 Member</span>`
+                  ? `<span style="font-size: 10.5pt; font-weight: 800; color: var(--hero-blue); background: rgba(59, 130, 246, 0.12); border: 1px solid rgba(59, 130, 246, 0.35); padding: 1px 6px; border-radius: 4px;">👤 Member</span>`
                   : (!isMember && !isCreator
-                    ? `<span style="font-size: 10pt; font-weight: 700; color: var(--hero-green); background: rgba(16, 185, 129, 0.14); border: 1px solid rgba(16, 185, 129, 0.4); padding: 1px 6px; border-radius: 4px;">🌐 Open to Join</span>`
+                    ? `<span style="font-size: 10.5pt; font-weight: 700; color: var(--hero-green); background: rgba(16, 185, 129, 0.14); border: 1px solid rgba(16, 185, 129, 0.4); padding: 1px 6px; border-radius: 4px;">🌐 Open to Join</span>`
                     : ''
                   )
                 )
               }
-              <strong style="font-size: 10.5pt; color: var(--text-bright);">${c.isCreator ? '👑 ' : ''}${c.campaignName}</strong>
-              <span style="font-size: 10pt; background: rgba(0,0,0,0.15); padding: 1px 6px; border-radius: 4px; font-weight: 800; color: var(--hero-blue);">ID: #${c.campaignId}</span>
-              <span style="font-size: 10pt; color: var(--hero-gold); font-weight: 800;">PL ${c.powerLevel || 10}</span>
-              ${isPublic ? '<span style="font-size: 10pt; font-weight: 700; color: #10b981; background: rgba(16, 185, 129, 0.12); padding: 1px 5px; border-radius: 3px;">🌐 Public</span>' : '<span style="font-size: 10pt; color: var(--text-muted); background: rgba(255,255,255,0.05); padding: 1px 5px; border-radius: 3px;">🔒 Private</span>'}
-              ${!c.isCreator && c.isJoinedOrCreated ? '<span style="font-size: 10pt; font-weight: 700; color: var(--hero-blue); background: rgba(59, 130, 246, 0.15); padding: 1px 5px; border-radius: 3px;">Player</span>' : ''}
-              ${c.creatorName ? `<span style="font-size: 10pt; color: var(--text-muted);">👑 GM: <strong>${c.creatorName}</strong></span>` : ''}
-              ${hasCharInParty ? `<span style="font-size: 10pt; color: var(--text-muted);">Attached: ${attachedStr}</span>` : ''}
             </div>
+
             <div style="display: flex; align-items: center; gap: 0.45rem; flex-wrap: wrap;">
-              ${isOnHiatus ? '<span style="color: var(--hero-gold); font-weight: 800; font-size: 10pt;">⏸️ On Hiatus</span>' : (isLive ? '<span style="color: #10b981; font-weight: 800; font-size: 10pt;">🟢 Session Running</span>' : '<span style="color: var(--text-muted); font-size: 10pt;">⚪ No Session Running</span>')}
-              ${isCur ? '<span style="font-size: 10pt; font-weight: 800; color: var(--hero-green);">[In Session]</span>' : (isLive && hasCharInParty ? `
-                <button type="button" class="btn btn-primary btn-join-game-session" data-campid="${c.campaignId}" style="font-size: 10pt; padding: 2px 8px; font-weight: 800; background: var(--hero-green); border-color: var(--hero-green); cursor: pointer;">🎮 Join Session</button>
-              ` : '')}
-              ${!isMember ? `
-                <button type="button" class="btn btn-primary btn-browser-apply-campaign" data-campid="${c.campaignId}" data-campname="${(c.campaignName || '').replace(/"/g, '&quot;')}" style="font-size: 10pt; padding: 2px 8px; font-weight: 800; background: var(--hero-blue); border-color: var(--hero-blue); cursor: pointer;">📝 Apply to Join</button>
-              ` : `
-                <!-- Dropdown: Campaign Session Logs (v4.00) -->
+              ${isMember ? `
+                <!-- Dropdown: Campaign Session Logs -->
                 <div class="menu-dropdown-container campaign-logs-dropdown" style="position: relative; display: inline-block;">
                   <button type="button" class="btn btn-outline campaign-logs-toggle" data-campid="${c.campaignId}" title="View previous session logs" style="font-size: 10pt; padding: 2px 9px; font-weight: 700; color: var(--hero-purple, #a855f7); border-color: rgba(168, 85, 247, 0.55); background: rgba(168, 85, 247, 0.08); cursor: pointer; display: inline-flex; align-items: center; gap: 0.3rem;">
                     <span>📜 Logs ▾</span>
@@ -4630,14 +4647,15 @@ export class CampaignTrackerManager {
                     `).join('')}
                   </div>
                 </div>
-              `}
+              ` : ''}
 
-              <!-- Dropdown 1: Campaign Actions -->
+              <!-- Unified Actions Dropdown (Includes GM Controls when creator) -->
               <div class="menu-dropdown-container campaign-actions-dropdown" style="position: relative; display: inline-block;">
                 <button type="button" class="btn btn-outline campaign-actions-toggle" data-campid="${c.campaignId}" title="Campaign Actions" style="font-size: 10pt; padding: 2px 9px; font-weight: 700; color: var(--hero-blue); border-color: rgba(59, 130, 246, 0.55); background: rgba(59, 130, 246, 0.08); cursor: pointer; display: inline-flex; align-items: center; gap: 0.3rem;">
                   <span>⚡ Actions ▾</span>
+                  ${pendingReqCount > 0 ? `<span style="background: var(--hero-gold); color: #000; font-size: 10pt; font-weight: 900; padding: 0px 5px; border-radius: 999px;">${pendingReqCount}</span>` : ''}
                 </button>
-                <div class="menu-dropdown-panel campaign-actions-panel" style="position: absolute; top: calc(100% + 4px); right: 0; left: auto; min-width: 220px; border-radius: 6px; z-index: 2500; padding: 0.35rem 0;">
+                <div class="menu-dropdown-panel campaign-actions-panel" style="position: absolute; top: calc(100% + 4px); right: 0; left: auto; min-width: 250px; border-radius: 6px; z-index: 2500; padding: 0.35rem 0;">
                   <div class="menu-dropdown-heading" style="font-size: 10pt; font-weight: 800; text-transform: uppercase; color: var(--text-muted); padding: 0.35rem 0.85rem 0.2rem 0.85rem;">Campaign Actions</div>
                   ${isLive && hasCharInParty ? `
                     <button type="button" class="menu-dropdown-item btn-join-game-session" data-campid="${c.campaignId}" style="font-size: 10pt; color: var(--hero-green); font-weight: 700; cursor: pointer;">
@@ -4656,7 +4674,7 @@ export class CampaignTrackerManager {
                   ` : ''}
                   ${hasCharInParty ? `
                     <button type="button" class="menu-dropdown-item btn-load-attached-char" data-campid="${c.campaignId}" style="font-size: 10pt; color: var(--hero-purple); font-weight: 700; cursor: pointer;">
-                      <span class="menu-item-icon">🦸</span> Load Hero (${attachedStr})
+                      <span class="menu-item-icon">🦸</span> Load Hero (${this.escapeHTML(attachedStr)})
                     </button>
                   ` : ''}
                   <button type="button" class="menu-dropdown-item btn-copy-campaign-link" data-campid="${c.campaignId}" style="font-size: 10pt; color: var(--text-bright); font-weight: 600; cursor: pointer;">
@@ -4664,7 +4682,7 @@ export class CampaignTrackerManager {
                   </button>
                   ${!c.isCreator && c.creatorName ? `
                     <button type="button" class="menu-dropdown-item btn-browser-message-gm" data-gm="${(c.creatorName || '').replace(/"/g, '&quot;')}" data-campid="${c.campaignId}" data-campname="${(c.campaignName || '').replace(/"/g, '&quot;')}" style="font-size: 10pt; color: var(--hero-blue); font-weight: 700; cursor: pointer;">
-                      <span class="menu-item-icon">✉️</span> Message GM (${c.creatorName})
+                      <span class="menu-item-icon">✉️</span> Message GM (${this.escapeHTML(c.creatorName)})
                     </button>
                   ` : ''}
                   ${hasCharInParty ? `
@@ -4679,21 +4697,31 @@ export class CampaignTrackerManager {
                       <span class="menu-item-icon">🚪</span> Leave Campaign
                     </button>
                   ` : ''}
-                </div>
-              </div>
 
-              <!-- Dropdown 2: GM Tools -->
-              ${c.isCreator ? `
-                <div class="menu-dropdown-container campaign-gm-tools-dropdown" style="position: relative; display: inline-block;">
-                  <button type="button" class="btn btn-outline campaign-gm-toggle" data-campid="${c.campaignId}" title="GM Management Commands" style="font-size: 10pt; padding: 2px 9px; font-weight: 800; color: var(--hero-gold); border-color: rgba(234, 179, 8, 0.65); background: rgba(234, 179, 8, 0.1); cursor: pointer; display: inline-flex; align-items: center; gap: 0.35rem;">
-                    <span>👑 GM Tools ▾</span>
-                    ${pendingReqCount > 0 ? `<span style="background: var(--hero-gold); color: #000; font-size: 10pt; font-weight: 900; padding: 0px 5px; border-radius: 999px;">${pendingReqCount}</span>` : ''}
-                  </button>
-                  <div class="menu-dropdown-panel campaign-gm-panel" style="position: absolute; top: calc(100% + 4px); right: 0; left: auto; min-width: 220px; border-radius: 6px; z-index: 2500; padding: 0.35rem 0;">
-                    <div class="menu-dropdown-heading" style="font-size: 10pt; font-weight: 800; text-transform: uppercase; color: var(--hero-gold); padding: 0.35rem 0.85rem 0.2rem 0.85rem;">GM Commands</div>
-                    <button type="button" class="menu-dropdown-item btn-open-campaign-characters" data-campid="${c.campaignId}" data-campname="${(c.campaignName || '').replace(/"/g, '&quot;')}" style="font-size: 10pt; color: var(--hero-gold); font-weight: 700; display: flex; align-items: center; gap: 0.45rem; cursor: pointer;">
-                      <span class="menu-item-icon">👥</span> Campaign Characters
-                    </button>
+                  <!-- GM Controls Section (Filtered strictly by permission: creator only) -->
+                  ${c.isCreator ? `
+                    <div class="menu-dropdown-separator" style="height: 1px; background-color: rgba(255,255,255,0.12); margin: 0.35rem 0;"></div>
+                    <div class="menu-dropdown-heading" style="font-size: 10pt; font-weight: 800; text-transform: uppercase; color: var(--hero-gold); padding: 0.35rem 0.85rem 0.2rem 0.85rem;">👑 GM Controls</div>
+
+                    <!-- Set PL Stepper -->
+                    <div class="menu-dropdown-item-control" style="padding: 0.35rem 0.85rem; display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; font-size: 10pt; color: var(--text-bright);">
+                      <span style="font-weight: 700; color: var(--hero-gold); white-space: nowrap;">Set Target PL:</span>
+                      <div style="display: inline-flex; align-items: center; gap: 0.35rem;">
+                        <button type="button" class="btn btn-outline btn-stepper-camp-pl" data-campid="${c.campaignId}" data-dir="-1" title="Decrease PL" style="padding: 1px 7px; font-size: 10pt; font-weight: 800; cursor: pointer; color: var(--text-bright); border-color: var(--border-color);">-</button>
+                        <span class="stepper-value-camp-pl" data-campid="${c.campaignId}" style="min-width: 44px; text-align: center; font-weight: 800; color: var(--hero-cyan); font-size: 10.5pt;">PL ${c.powerLevel || 10}</span>
+                        <button type="button" class="btn btn-outline btn-stepper-camp-pl" data-campid="${c.campaignId}" data-dir="1" title="Increase PL" style="padding: 1px 7px; font-size: 10pt; font-weight: 800; cursor: pointer; color: var(--text-bright); border-color: var(--border-color);">+</button>
+                      </div>
+                    </div>
+
+                    <!-- Override PL Setting -->
+                    <div class="menu-dropdown-item-control" style="padding: 0.35rem 0.85rem; font-size: 10pt;">
+                      <label style="display: inline-flex; align-items: center; gap: 0.45rem; cursor: pointer; user-select: none; color: var(--text-bright); font-weight: 600;" title="When checked, characters of any Power Level can join without PL restrictions">
+                        <input type="checkbox" class="chk-campaign-dont-enforce-pl chk-campaign-override-pl" data-campid="${c.campaignId}" ${c.dontEnforcePL ? 'checked' : ''} style="cursor: pointer; width: 15px; height: 15px; accent-color: var(--hero-gold);">
+                        <span>Override PL (Don't enforce limits)</span>
+                      </label>
+                    </div>
+
+                    <!-- Start / End Game Session -->
                     ${!isOnHiatus ? (isLive ? `
                       <button type="button" class="menu-dropdown-item btn-gm-toggle-session" data-action="end" data-campid="${c.campaignId}" style="font-size: 10pt; color: var(--hero-red); font-weight: 700; cursor: pointer;">
                         <span class="menu-item-icon">⏹️</span> End Game Session
@@ -4703,15 +4731,26 @@ export class CampaignTrackerManager {
                         <span class="menu-item-icon">▶️</span> Start Game Session
                       </button>
                     `) : ''}
+
+                    <!-- Review Join Requests -->
                     <button type="button" class="menu-dropdown-item btn-open-join-requests" data-campid="${c.campaignId}" style="font-size: 10pt; color: var(--hero-blue); font-weight: 700; display: flex; justify-content: space-between; align-items: center; cursor: pointer;">
                       <span style="display: flex; align-items: center; gap: 0.45rem;">
                         <span class="menu-item-icon">🔔</span> Review Join Requests
                       </span>
                       ${pendingReqCount > 0 ? `<span style="background: var(--hero-blue); color: #fff; font-size: 10pt; font-weight: 800; padding: 0px 6px; border-radius: 999px;">${pendingReqCount}</span>` : ''}
                     </button>
+
+                    <!-- Campaign Characters -->
+                    <button type="button" class="menu-dropdown-item btn-open-campaign-characters" data-campid="${c.campaignId}" data-campname="${(c.campaignName || '').replace(/"/g, '&quot;')}" style="font-size: 10pt; color: var(--hero-gold); font-weight: 700; display: flex; align-items: center; gap: 0.45rem; cursor: pointer;">
+                      <span class="menu-item-icon">👥</span> Campaign Characters
+                    </button>
+
+                    <!-- Unlist / Make Public -->
                     <button type="button" class="menu-dropdown-item btn-gm-toggle-public" data-campid="${c.campaignId}" data-public="${isPublic ? '1' : '0'}" style="font-size: 10pt; color: ${isPublic ? '#10b981' : 'var(--hero-blue)'}; font-weight: 700; cursor: pointer;">
                       <span class="menu-item-icon">${isPublic ? '🌐' : '📢'}</span> ${isPublic ? 'Unlist (Make Private)' : 'Make Public (Advertise)'}
                     </button>
+
+                    <!-- Hiatus Toggle -->
                     ${isOnHiatus ? `
                       <button type="button" class="menu-dropdown-item btn-gm-toggle-hiatus" data-action="resume" data-campid="${c.campaignId}" style="font-size: 10pt; color: var(--hero-green); font-weight: 700; cursor: pointer;">
                         <span class="menu-item-icon">▶️</span> Resume Campaign
@@ -4721,6 +4760,8 @@ export class CampaignTrackerManager {
                         <span class="menu-item-icon">⏸️</span> Put on Hiatus
                       </button>
                     `}
+
+                    <!-- Ownership Transfer -->
                     ${pendingTransfer && pendingTransfer.status === 'pending' ? `
                       <button type="button" class="menu-dropdown-item btn-gm-withdraw-transfer" data-campid="${c.campaignId}" style="font-size: 10pt; color: var(--hero-gold); font-weight: 700; cursor: pointer;">
                         <span class="menu-item-icon">↩️</span> Withdraw Transfer Offer
@@ -4730,38 +4771,42 @@ export class CampaignTrackerManager {
                         <span class="menu-item-icon">👑</span> Transfer Ownership
                       </button>
                     `}
+
                     <div class="menu-dropdown-separator" style="height: 1px; background-color: rgba(255,255,255,0.1); margin: 0.35rem 0;"></div>
+                    <!-- Delete Campaign -->
                     <button type="button" class="menu-dropdown-item btn-gm-delete-campaign" data-campid="${c.campaignId}" data-campname="${(c.campaignName || '').replace(/"/g, '&quot;')}" style="font-size: 10pt; color: var(--hero-red); font-weight: 700; cursor: pointer;">
                       <span class="menu-item-icon">🗑️</span> Delete Campaign
                     </button>
-                  </div>
+                  ` : ''}
                 </div>
-              ` : ''}
+              </div>
             </div>
           </div>
 
-          ${c.isCreator ? `
-            <div style="display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; width: 100%; margin-top: 0.15rem; flex-wrap: wrap;">
-              <div style="display: flex; align-items: center; gap: 0.45rem; flex: 1; min-width: 220px;">
-                <label style="font-size: 10pt; font-weight: 700; color: var(--hero-gold); white-space: nowrap;">📝 Campaign Notes:</label>
-                <textarea class="textarea-campaign-notes" rows="1" data-campid="${c.campaignId}" placeholder="Add campaign notes or description (expands up to 3 rows)..." style="flex: 1; min-width: 140px; font-size: 10pt; background: var(--bg-input); color: var(--text-bright); border: 1px solid var(--border-color); border-radius: 4px; padding: 2px 6px; resize: vertical; line-height: 1.35; max-height: 4.5em;">${notesText.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</textarea>
-              </div>
-              <div style="display: inline-flex; align-items: center; gap: 0.5rem; flex-shrink: 0; font-size: 10pt; flex-wrap: wrap;">
-                <label style="display: inline-flex; align-items: center; gap: 0.3rem; cursor: pointer; user-select: none; color: var(--text-bright); font-weight: 700;" title="When checked, characters of any Power Level can join without PL restrictions">
-                  <input type="checkbox" class="chk-campaign-dont-enforce-pl" data-campid="${c.campaignId}" ${c.dontEnforcePL ? 'checked' : ''} style="cursor: pointer; width: 14px; height: 14px; accent-color: var(--hero-gold);">
-                  <span>Don't enforce PL</span>
-                </label>
-                <div style="display: inline-flex; align-items: center; gap: 0.25rem;">
-                  <span style="color: var(--text-muted); font-size: 10pt; font-weight: 700;">PL:</span>
-                  <select class="sel-campaign-target-pl" data-campid="${c.campaignId}" style="background: var(--bg-input); color: var(--text-bright); border: 1px solid var(--border-color); border-radius: 3px; padding: 1px 5px; font-size: 10pt; font-weight: 800;">
-                    ${[6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20].map(pl => `<option value="${pl}" ${(c.powerLevel || 10) === pl ? 'selected' : ''}>PL ${pl}</option>`).join('')}
-                  </select>
-                </div>
-              </div>
+          <!-- Row 2: Left has Session Running state (with start time/date if live). Right has expandable notes -->
+          <div class="campaign-card-row2" style="display: flex; justify-content: space-between; align-items: center; gap: 0.65rem; width: 100%; margin-top: 0.2rem; flex-wrap: wrap;">
+            <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+              ${isOnHiatus ? `
+                <span class="campaign-session-status-badge session-hiatus" style="color: var(--hero-gold); font-weight: 800; font-size: 10pt; display: inline-flex; align-items: center; gap: 0.35rem;">⏸️ On Hiatus</span>
+              ` : (isLive ? `
+                <span class="campaign-session-status-badge session-active" style="color: #10b981; font-weight: 800; font-size: 10pt; display: inline-flex; align-items: center; gap: 0.35rem;">🟢 Session Running • Started: ${this.escapeHTML(sessionStartDate)} at ${this.escapeHTML(sessionStartTime)}</span>
+              ` : `
+                <span class="campaign-session-status-badge session-inactive" style="color: var(--text-muted); font-size: 10pt; display: inline-flex; align-items: center; gap: 0.35rem;">⚪ No Session Running</span>
+              `)}
+              ${isCur ? '<span style="font-size: 10pt; font-weight: 800; color: var(--hero-green);">[In Session]</span>' : ''}
             </div>
-          ` : (notesText ? `
-            <div style="font-size: 10pt; color: var(--text-muted); background: rgba(0,0,0,0.15); border-left: 3px solid var(--hero-blue); padding: 0.3rem 0.6rem; border-radius: 3px; max-height: 75px; overflow-y: auto; white-space: pre-wrap;">${notesText.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</div>
-          ` : '')}
+
+            <div class="campaign-notes-wrapper" style="display: flex; align-items: center; gap: 0.45rem; flex: 1; min-width: 250px; justify-content: flex-end;">
+              <label style="font-size: 10pt; font-weight: 700; color: ${isCreator ? 'var(--hero-gold)' : 'var(--text-muted)'}; white-space: nowrap;">📝 Notes:</label>
+              ${isCreator ? `
+                <textarea class="textarea-campaign-notes" rows="1" data-campid="${c.campaignId}" placeholder="Add campaign notes or description (expands up to 3 rows)..." style="flex: 1; min-width: 150px; max-width: 600px; font-size: 10pt; background: var(--bg-input); color: var(--text-bright); border: 1px solid var(--border-color); border-radius: 4px; padding: 2px 6px; resize: vertical; line-height: 1.35; max-height: 4.5em;">${notesText.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</textarea>
+              ` : (notesText ? `
+                <div class="display-campaign-notes" style="font-size: 10pt; color: var(--text-muted); background: rgba(0,0,0,0.15); border-left: 3px solid var(--hero-blue); padding: 0.2rem 0.5rem; border-radius: 3px; max-height: 4.5em; overflow-y: auto; white-space: pre-wrap; flex: 1; max-width: 600px;">${notesText.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</div>
+              ` : `
+                <span style="font-size: 10pt; color: var(--text-muted); font-style: italic;">No campaign notes recorded</span>
+              `)}
+            </div>
+          </div>
         </div>
       `;
     }).join('');
@@ -5261,10 +5306,56 @@ export class CampaignTrackerManager {
       });
     });
 
-    parentEl.querySelectorAll('.chk-campaign-dont-enforce-pl').forEach(chk => {
+    // Dropdown control items: prevent click from bubbling and dismissing menu
+    parentEl.querySelectorAll('.menu-dropdown-item-control').forEach(ctrl => {
+      ctrl.addEventListener('click', (e) => {
+        e.stopPropagation();
+      });
+    });
+
+    // Set PL Stepper in Actions Menu (GM Controls)
+    parentEl.querySelectorAll('.btn-stepper-camp-pl').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        e.preventDefault();
+        const campId = e.currentTarget.dataset.campid;
+        const dir = parseInt(e.currentTarget.dataset.dir, 10) || 0;
+        const info = this.getCampaignInfo(campId) || {};
+        const curPL = parseInt(info.powerLevel, 10) || 10;
+        const newPL = Math.min(Math.max(curPL + dir, 1), 20);
+        this.updateCampaignSettings({ campaignId: campId, powerLevel: newPL });
+        const panel = btn.closest('.campaign-actions-panel') || btn.closest('.menu-dropdown-panel');
+        const stepperVal = panel ? panel.querySelector(`.stepper-value-camp-pl[data-campid="${campId}"]`) : null;
+        if (stepperVal) stepperVal.textContent = `PL ${newPL}`;
+        const card = btn.closest('.campaign-browser-card');
+        const badge = card ? card.querySelector(`.badge-campaign-pl[data-campid="${campId}"]`) : null;
+        if (badge) badge.textContent = `PL ${newPL}`;
+        if (typeof supabaseService !== 'undefined' && supabaseService && supabaseService.isLoggedIn()) {
+          supabaseService.getCampaignByNameOrCode(campId).then(cloudCamp => {
+            if (cloudCamp?.id) {
+              supabaseService.updateCampaignSettings(cloudCamp.id, { powerLevel: newPL }).catch(() => {});
+            }
+          }).catch(() => {});
+        }
+      });
+    });
+
+    // Override PL checkbox (Don't enforce limits)
+    parentEl.querySelectorAll('.chk-campaign-dont-enforce-pl, .chk-campaign-override-pl').forEach(chk => {
+      chk.addEventListener('click', (e) => {
+        e.stopPropagation();
+      });
       chk.addEventListener('change', (e) => {
+        e.stopPropagation();
         const campId = e.currentTarget.dataset.campid;
         this.updateCampaignSettings({ campaignId: campId, dontEnforcePL: e.target.checked });
+        if (typeof supabaseService !== 'undefined' && supabaseService && supabaseService.isLoggedIn()) {
+          supabaseService.getCampaignByNameOrCode(campId).then(cloudCamp => {
+            if (cloudCamp?.id) {
+              supabaseService.updateCampaignSettings(cloudCamp.id, { dontEnforcePL: e.target.checked }).catch(() => {});
+            }
+          }).catch(() => {});
+        }
       });
     });
 

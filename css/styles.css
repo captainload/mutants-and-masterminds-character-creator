@@ -3968,3 +3968,78 @@ html[data-theme="light"] .campaign-character-card {
   flex: 1;
   overflow-y: auto;
 }
+
+/* Campaign Browser Makeover (v4.04) */
+.menu-dropdown-item-control {
+  cursor: default;
+  user-select: none;
+}
+
+html[data-theme="light"] .menu-dropdown-item-control {
+  color: #1e293b !important;
+}
+
+.campaign-card-row1 {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  width: 100%;
+}
+
+.campaign-card-name {
+  font-size: 12pt;
+  font-weight: 800;
+  color: var(--text-bright);
+}
+
+.campaign-card-gm {
+  font-size: 11pt;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.campaign-card-status {
+  font-size: 11pt;
+  font-weight: 700;
+}
+
+.campaign-card-row2 {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.65rem;
+  width: 100%;
+  margin-top: 0.2rem;
+  flex-wrap: wrap;
+}
+
+.campaign-session-status-badge {
+  font-size: 10pt;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  white-space: nowrap;
+}
+
+.campaign-session-status-badge.session-active {
+  color: #10b981;
+}
+
+.campaign-session-status-badge.session-inactive {
+  color: var(--text-muted);
+}
+
+.campaign-session-status-badge.session-hiatus {
+  color: var(--hero-gold);
+}
+
+.stepper-value-camp-pl {
+  font-size: 10.5pt;
+  font-weight: 800;
+  color: var(--hero-cyan);
+  min-width: 44px;
+  text-align: center;
+}

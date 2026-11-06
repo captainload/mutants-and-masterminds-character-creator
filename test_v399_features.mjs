@@ -805,7 +805,12 @@ assert.ok(appJsCode.includes('defense-card-total-row'), 'app.js must generate de
 assert.ok(appJsCode.includes('defense-total-value'), 'app.js must generate defense-total-value');
 assert.ok(stylesCssCode.includes('.defense-card-total-row'), 'styles.css must style defense-card-total-row');
 assert.ok(stylesCssCode.includes('.defense-stepper-card-compact'), 'styles.css must style defense-stepper-card-compact');
-console.log('✓ Interactive pulsing version alert, update pushes, cache-busting reload, and reformatted defense cards verified.');
+
+// 6. Dynamic getAppVersion and no hardcoded stale version in checkForUpdates
+assert.ok(appJsCode.includes('getAppVersion()'), 'app.js must implement getAppVersion');
+assert.ok(appJsCode.includes('const CURRENT_VERSION = this.getAppVersion();'), 'checkForUpdates must use dynamic this.getAppVersion()');
+assert.ok(indexHtmlCode.includes('data-app-version="4.04"'), 'index.html must specify data-app-version on header-version-tag');
+console.log('✓ Interactive pulsing version alert, update pushes, cache-busting reload, dynamic versioning, and reformatted defense cards verified.');
 
 // Test 23: Verify Campaign Browser Makeover
 console.log('Test 23: Verify Campaign Browser Makeover');

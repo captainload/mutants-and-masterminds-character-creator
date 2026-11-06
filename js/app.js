@@ -44,7 +44,7 @@ import {
 import { POWER_PROFILES_LIBRARY } from './power_profiles.js?v=3.99';
 import { ARCHETYPES } from './archetypes.js?v=3.99';
 import { archetypeManager } from './archetype_window.js?v=3.99';
-import { campaignManager, partyManager, formatCharacterSheetHTML } from './party.js?v=4.03';
+import { campaignManager, partyManager, formatCharacterSheetHTML } from './party.js?v=4.04';
 import { supabaseService } from './supabase_client.js?v=3.99';
 import { ARCHETYPE_CUSTOMIZATION_OPTIONS, buildCustomizedArchetype } from './archetype_builder.js?v=3.99';
 import { diceRoller } from './dice.js?v=3.99';
@@ -2189,10 +2189,34 @@ window.partyManager = partyManager;
     });
   }
 
+  getAppVersion() {
+    if (this._appVersion) return this._appVersion;
+    if (typeof document !== 'undefined') {
+      const el = document.getElementById('header-version-tag');
+      const dataV = el?.getAttribute('data-app-version');
+      if (dataV && /^\d+(\.\d+)+/.test(dataV.trim())) {
+        this._appVersion = dataV.trim();
+        return this._appVersion;
+      }
+      const rawText = (el?.textContent || '').trim();
+      const match = rawText.match(/v?(\d+\.\d+(\.\d+)?)/i);
+      if (match && match[1]) {
+        this._appVersion = match[1];
+        return this._appVersion;
+      }
+    }
+    return '4.04';
+  }
+
   setupUpdateChecker() {
     document.getElementById('btn-close-update-alert')?.addEventListener('click', () => this.closeModal('modal-update-alert'));
     document.getElementById('btn-update-later')?.addEventListener('click', () => this.closeModal('modal-update-alert'));
     document.getElementById('btn-update-reload')?.addEventListener('click', async () => {
+      try {
+        if (typeof localStorage !== 'undefined') {
+          localStorage.removeItem('mm3e_update_available');
+        }
+      } catch (e) {}
       await this.performAppReloadBypassCache();
     });
     document.getElementById('btn-header-update-alert')?.addEventListener('click', () => {
@@ -2227,12 +2251,13 @@ window.partyManager = partyManager;
       });
 
       // Clear any outdated mm3e_update_available from previous versions
+      const currentVer = this.getAppVersion();
       try {
         if (typeof localStorage !== 'undefined') {
           const stored = localStorage.getItem('mm3e_update_available');
           if (stored) {
             const parsed = JSON.parse(stored);
-            if (!this.isNewerVersion(parsed?.version, '4.03')) {
+            if (!this.isNewerVersion(parsed?.version, currentVer)) {
               localStorage.removeItem('mm3e_update_available');
             }
           }
@@ -2243,7 +2268,7 @@ window.partyManager = partyManager;
         if (e.key === 'mm3e_update_available' && e.newValue) {
           try {
             const d = JSON.parse(e.newValue);
-            if (d && d.version && this.isNewerVersion(d.version, '4.03')) {
+            if (d && d.version && this.isNewerVersion(d.version, this.getAppVersion())) {
               this.applyRemoteUpdateAlert(d.version, d.releaseNotes);
             } else if (typeof localStorage !== 'undefined') {
               localStorage.removeItem('mm3e_update_available');
@@ -2273,6 +2298,11 @@ window.partyManager = partyManager;
 
   async performAppReloadBypassCache() {
     try {
+      if (typeof localStorage !== 'undefined') {
+        localStorage.removeItem('mm3e_update_available');
+      }
+    } catch (e) {}
+    try {
       if (typeof window !== 'undefined' && 'caches' in window) {
         const keys = await window.caches.keys();
         await Promise.all(keys.map(k => window.caches.delete(k)));
@@ -2281,6 +2311,8 @@ window.partyManager = partyManager;
     try {
       if (typeof window !== 'undefined' && window.location) {
         await fetch((window.location.pathname || '/') + '?_bust=' + Date.now(), { cache: 'reload' });
+        await fetch('js/app.js?_bust=' + Date.now(), { cache: 'reload' });
+        await fetch('version.json?_bust=' + Date.now(), { cache: 'reload' });
       }
     } catch (e) {}
     try {
@@ -2293,7 +2325,7 @@ window.partyManager = partyManager;
   }
 
   applyRemoteUpdateAlert(remoteVersion, releaseNotes = '') {
-    const CURRENT_VERSION = '4.03';
+    const CURRENT_VERSION = this.getAppVersion();
     const versionEl = document.getElementById('header-version-tag');
     const updateBtn = document.getElementById('btn-header-update-alert');
     const isOutdated = !!(remoteVersion && this.isNewerVersion(remoteVersion, CURRENT_VERSION));
@@ -2329,11 +2361,12 @@ window.partyManager = partyManager;
           localStorage.removeItem('mm3e_update_available');
         }
       } catch (e) {}
+      this.closeModal('modal-update-alert');
     }
   }
 
   async checkForUpdates({ isManual = false } = {}) {
-    const CURRENT_VERSION = '4.03';
+    const CURRENT_VERSION = this.getAppVersion();
     const versionEl = document.getElementById('header-version-tag');
     const updateBtn = document.getElementById('btn-header-update-alert');
     if (typeof window === 'undefined' || !window.location || !window.location.href || window.location.href === 'about:blank') return;

@@ -1334,7 +1334,7 @@ export class CampaignTrackerManager {
     return newState;
   }
 
-  updateCampaignSettings({ campaignId, powerLevel, dontEnforcePL, isPublic, notes }) {
+  updateCampaignSettings({ campaignId, powerLevel, dontEnforcePL, isPublic, notes }, { skipRender = false } = {}) {
     const current = this.getCampaignState();
     const targetId = String(campaignId || current.campaignId || '').trim().toUpperCase().replace(/^#+/, '');
     const histMatch = this.getCampaignHistory().find(c => c.campaignId === targetId);
@@ -1379,7 +1379,9 @@ export class CampaignTrackerManager {
       isPublic: effPublic,
       notes: effNotes
     });
-    this.renderAllOpenViews();
+    if (!skipRender) {
+      this.renderAllOpenViews();
+    }
     return updatedPayload;
   }
 
@@ -4967,8 +4969,37 @@ export class CampaignTrackerManager {
 
     const browserContainer = typeof document !== 'undefined' ? document.getElementById('campaign-tracker-content') : null;
     if (browserContainer) {
+      // Preserve any open dropdown panel across re-rendering (Actions or Logs)
+      let openPanelType = null;
+      let openCampId = null;
+      try {
+        const openPanel = browserContainer.querySelector('.campaign-actions-panel.show, .campaign-logs-panel.show, .campaign-actions-panel[style*="display: block"], .campaign-logs-panel[style*="display: block"]');
+        if (openPanel) {
+          if (openPanel.classList.contains('campaign-actions-panel')) openPanelType = 'actions';
+          else if (openPanel.classList.contains('campaign-logs-panel')) openPanelType = 'logs';
+          const card = openPanel.closest('.campaign-browser-card');
+          openCampId = card?.dataset?.campid || null;
+        }
+      } catch (e) {}
+
       browserContainer.innerHTML = this.generateCampaignBrowserHTML();
       this.wireCardButtons(browserContainer);
+
+      if (openCampId && openPanelType) {
+        try {
+          const card = browserContainer.querySelector(`.campaign-browser-card[data-campid="${openCampId}"]`);
+          if (card) {
+            const panelToRestore = openPanelType === 'actions'
+              ? card.querySelector('.campaign-actions-panel')
+              : card.querySelector('.campaign-logs-panel');
+            if (panelToRestore) {
+              panelToRestore.classList.add('show');
+              panelToRestore.style.display = 'block';
+              if (card.style) card.style.zIndex = '50';
+            }
+          }
+        } catch (e) {}
+      }
     }
 
     const sessionTrackerContainer = typeof document !== 'undefined' ? document.getElementById('session-party-tracker-container') : null;
@@ -5307,7 +5338,7 @@ export class CampaignTrackerManager {
     });
 
     // Dropdown control items: prevent click from bubbling and dismissing menu
-    parentEl.querySelectorAll('.menu-dropdown-item-control').forEach(ctrl => {
+    parentEl.querySelectorAll('.menu-dropdown-item-control, .menu-dropdown-item-control label, .menu-dropdown-item-control input').forEach(ctrl => {
       ctrl.addEventListener('click', (e) => {
         e.stopPropagation();
       });
@@ -5323,7 +5354,7 @@ export class CampaignTrackerManager {
         const info = this.getCampaignInfo(campId) || {};
         const curPL = parseInt(info.powerLevel, 10) || 10;
         const newPL = Math.min(Math.max(curPL + dir, 1), 20);
-        this.updateCampaignSettings({ campaignId: campId, powerLevel: newPL });
+        this.updateCampaignSettings({ campaignId: campId, powerLevel: newPL }, { skipRender: true });
         const panel = btn.closest('.campaign-actions-panel') || btn.closest('.menu-dropdown-panel');
         const stepperVal = panel ? panel.querySelector(`.stepper-value-camp-pl[data-campid="${campId}"]`) : null;
         if (stepperVal) stepperVal.textContent = `PL ${newPL}`;
@@ -5348,7 +5379,7 @@ export class CampaignTrackerManager {
       chk.addEventListener('change', (e) => {
         e.stopPropagation();
         const campId = e.currentTarget.dataset.campid;
-        this.updateCampaignSettings({ campaignId: campId, dontEnforcePL: e.target.checked });
+        this.updateCampaignSettings({ campaignId: campId, dontEnforcePL: e.target.checked }, { skipRender: true });
         if (typeof supabaseService !== 'undefined' && supabaseService && supabaseService.isLoggedIn()) {
           supabaseService.getCampaignByNameOrCode(campId).then(cloudCamp => {
             if (cloudCamp?.id) {
@@ -5362,7 +5393,7 @@ export class CampaignTrackerManager {
     parentEl.querySelectorAll('.sel-campaign-target-pl').forEach(sel => {
       sel.addEventListener('change', (e) => {
         const campId = e.currentTarget.dataset.campid;
-        this.updateCampaignSettings({ campaignId: campId, powerLevel: parseInt(e.target.value, 10) });
+        this.updateCampaignSettings({ campaignId: campId, powerLevel: parseInt(e.target.value, 10) }, { skipRender: true });
       });
     });
 

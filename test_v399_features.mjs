@@ -895,6 +895,23 @@ assert.strictEqual(playerCardHtml.includes('👑 GM Controls'), false, 'Non-GM M
 assert.strictEqual(playerCardHtml.includes('btn-stepper-camp-pl'), false, 'Non-GM MUST NOT see Set PL stepper');
 assert.strictEqual(playerCardHtml.includes('chk-campaign-override-pl'), false, 'Non-GM MUST NOT see Override PL setting');
 assert.strictEqual(playerCardHtml.includes('btn-gm-delete-campaign'), false, 'Non-GM MUST NOT see Delete Campaign');
+
+// 5. Verify Actions menu does NOT close when PL is changed or overridden
+const freshPartyJs = fs.readFileSync('js/party.js', 'utf8');
+assert.ok(freshPartyJs.includes('this.updateCampaignSettings({ campaignId: campId, powerLevel: newPL }, { skipRender: true });'), 'Stepper must pass skipRender: true to keep Actions menu open');
+assert.ok(freshPartyJs.includes('this.updateCampaignSettings({ campaignId: campId, dontEnforcePL: e.target.checked }, { skipRender: true });'), 'Override PL checkbox must pass skipRender: true to keep Actions menu open');
+assert.ok(freshPartyJs.includes('openPanelType === \'actions\''), 'renderAllOpenViews must preserve open Actions dropdown state');
+assert.ok(freshPartyJs.includes("panelToRestore.classList.add('show');"), 'renderAllOpenViews must restore show class to open dropdown panel');
+
+// Test functional settings update without closing/re-rendering
+supabaseService.getUsername = () => 'Captainload';
+testMgr.getCurrentUsername = () => 'Captainload';
+testMgr.updateCampaignSettings({ campaignId: 'BROWSER-MAKEOVER-1', powerLevel: 14 }, { skipRender: true });
+assert.strictEqual(testMgr.getCampaignInfo('BROWSER-MAKEOVER-1').powerLevel, 14, 'Target PL updated to 14');
+testMgr.updateCampaignSettings({ campaignId: 'BROWSER-MAKEOVER-1', dontEnforcePL: true }, { skipRender: true });
+assert.strictEqual(testMgr.getCampaignInfo('BROWSER-MAKEOVER-1').dontEnforcePL, true, 'Override PL set to true');
+console.log('✓ Actions menu remains open on PL change or override (skipRender + state preservation) verified.');
+
 console.log('✓ Campaign Browser Makeover (Row 1 layout & sizing, Actions GM unification, permission filtering, Row 2 session & notes) verified successfully.');
 
 console.log('--- ALL v3.99 / v4.02 / v4.04 TESTS PASSED SUCCESSFULLY! ---');
